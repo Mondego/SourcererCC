@@ -1,0 +1,83 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# mac os files
+## generic files to ignore
+*~
+*.lock
+*.DS_Store
+*.swp
+*.out
+
+*.pydevproject
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+*.idx
+*.orig
+build/
+debug/
+local.properties
+.classpath
+.settings/
+.loadpath
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# CDT-specific
+.cproject
+
+# PDT-specific
+.buildpath
+
+# my files
+runme-to-init-env.sh
+gitAdd
+thirdparty/event/bin/
+thirdparty/event/include/
+thirdparty/event/lib/
+thirdparty/event/libevent-2.0.18-stable/
+thirdparty/json/jsoncpp-src-0.5.0/
+thirdparty/gperftools/bin/
+thirdparty/gperftools/gperftools-2.0/
+thirdparty/gperftools/include/
+thirdparty/gperftools/lib/
+thirdparty/gperftools/share/
+thirdparty/libunwind/libunwind-0.99-beta/
+# .cmake related
+*.cmake
+*CMakeFiles
+*Makefile
+CMakeCache.txt
+DartConfiguration.tcl
+
+# Some ctags/cscope files
+tags
+cscope.out
+cscope.files
+.ycm*
+# test logs
+log.txt
+# ignore mongo files
+thirdparty/mongo-cxx-driver-v2.4/*
