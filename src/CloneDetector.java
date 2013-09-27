@@ -1,13 +1,11 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.gson.Gson;
-
 import utility.Util;
+
+import com.google.gson.Gson;
 
 /**
  * 
