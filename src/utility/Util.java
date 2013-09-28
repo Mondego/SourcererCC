@@ -18,9 +18,10 @@ public class Util {
 
     /**
      * generates a random integer
+     * 
      * @return
      */
-    public static int getRandomNumber(int max , int min) {
+    public static int getRandomNumber(int max, int min) {
         return rand.nextInt((max - min) + 1) + min;
     }
 
@@ -63,7 +64,7 @@ public class Util {
             throw e;
         }
     }
-    
+
     /**
      * closes the outputfile
      */

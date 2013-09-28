@@ -7,9 +7,9 @@ import java.util.Set;
 
 /**
  * @author vaibhavsaini
- *
+ * 
  */
-public class Bag extends HashMap<Token,Integer> {
+public class Bag extends HashMap<Token, Integer> {
     private int id;
 
     /**
@@ -19,28 +19,34 @@ public class Bag extends HashMap<Token,Integer> {
         super();
         this.id = id;
     }
+
     /**
      * @return the id
      */
     public int getId() {
         return id;
     }
+
     /**
-     * @param id the id to set
+     * @param id
+     *            the id to set
      */
     public void setId(int id) {
         this.id = id;
     }
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        String returnString="";
+        String returnString = "";
         Set<Token> tokens = this.keySet();
-        for(Token token : tokens){
-            returnString+=token.toString()+System.lineSeparator();
+        for (Token token : tokens) {
+            returnString += token.toString() + System.lineSeparator();
         }
-        return "Bag [id=" + id + "]"+System.lineSeparator()+returnString;
+        return "Bag [id=" + id + "]" + System.lineSeparator() + returnString;
     }
 }
