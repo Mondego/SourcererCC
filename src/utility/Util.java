@@ -16,9 +16,11 @@ import java.util.Random;
 public class Util {
     static Random rand = new Random(3);
 
-    public static int getRandomNumber() {
-        int max = 10;
-        int min = 1;
+    /**
+     * generates a random integer
+     * @return
+     */
+    public static int getRandomNumber(int max , int min) {
         return rand.nextInt((max - min) + 1) + min;
     }
 

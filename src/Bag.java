@@ -1,4 +1,5 @@
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * 
@@ -18,7 +19,28 @@ public class Bag extends HashMap<Token,Integer> {
         super();
         this.id = id;
     }
-    public String toString(){
-        return this.id +"";
+    /**
+     * @return the id
+     */
+    public int getId() {
+        return id;
+    }
+    /**
+     * @param id the id to set
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        String returnString="";
+        Set<Token> tokens = this.keySet();
+        for(Token token : tokens){
+            returnString+=token.toString()+System.lineSeparator();
+        }
+        return "Bag [id=" + id + "]"+System.lineSeparator()+returnString;
     }
 }
