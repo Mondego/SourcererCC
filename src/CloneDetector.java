@@ -34,16 +34,16 @@ public class CloneDetector {
             Set<Bag> setA = cd.getTestSet(1, 11);
             Set<Bag> setB = cd.getTestSet(11, 21);
             inputSetsWriter = Util.openFileToWrite("input.txt");
-            String setAJsonString = cd.Stringify(setA);
-            String setBJsonString = cd.Stringify(setB);
-            Util.writeToFile(inputSetsWriter, setAJsonString, true);
+            String setAString = cd.Stringify(setA);
+            String setBString = cd.Stringify(setB);
+            Util.writeToFile(inputSetsWriter, setAString, true);
             Util.writeToFile(inputSetsWriter,
                     "********************************", true);
             Util.writeToFile(inputSetsWriter,
                     "********************************", true);
             Util.writeToFile(inputSetsWriter,
                     "********************************", true);
-            Util.writeToFile(inputSetsWriter, setBJsonString, true);
+            Util.writeToFile(inputSetsWriter, setBString, true);
             cd.detectClones(setA, setB);
         } catch (IOException e) {
             e.printStackTrace();
