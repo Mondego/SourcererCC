@@ -8,8 +8,22 @@
  */
 public class Token {
     private String value; // this is the face value of a token, e.g. 'for'
+    private int id; // unique id of a token
     
-    
+    /**
+     * @return the id
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public Token(String value) {
         super();
         this.value = value;
@@ -59,6 +73,20 @@ public class Token {
     @Override
     public String toString() {
         return "Token [value=" + value + "]";
+    }
+
+    /**
+     * @return the value
+     */
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     * @param value the value to set
+     */
+    public void setValue(String value) {
+        this.value = value;
     }
     
 

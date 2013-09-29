@@ -1,4 +1,4 @@
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -9,7 +9,7 @@ import java.util.Set;
  * @author vaibhavsaini
  * 
  */
-public class Bag extends HashMap<Token, Integer> {
+public class Bag extends HashSet<TokenFrequency> {
     private int id;
 
     /**
@@ -43,10 +43,19 @@ public class Bag extends HashMap<Token, Integer> {
     @Override
     public String toString() {
         String returnString = "";
-        Set<Token> tokens = this.keySet();
-        for (Token token : tokens) {
-            returnString += token.toString() + System.lineSeparator();
+        for (TokenFrequency tokenFrequency : this) {
+            returnString += tokenFrequency.getToken().toString()
+                    + System.lineSeparator();
         }
         return "Bag [id=" + id + "]" + System.lineSeparator() + returnString;
+    }
+    
+    public TokenFrequency get(TokenFrequency tokenFrequency){
+        for (TokenFrequency tf : this){
+            if(tf.equals(tokenFrequency)){
+                return tf;
+            }
+        }
+        return null;
     }
 }
