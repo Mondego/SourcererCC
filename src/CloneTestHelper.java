@@ -79,6 +79,7 @@ public class CloneTestHelper {
             tokenPositionMap.put(tokenFrequency, position);
             position++;
         }
+        System.out.println(list);
         return tokenPositionMap;
     }
 
@@ -97,7 +98,6 @@ public class CloneTestHelper {
                 TokenFrequency tokenFrequency = map.get(tf);
                 tokenFrequency.setFrequency(tokenFrequency.getFrequency()
                         + tf.getFrequency());
-                map.put(tf, tokenFrequency);
             } else {
                 TokenFrequency tokenFrequency = new TokenFrequency();
                 Token token = new Token(tf.getToken().getValue());

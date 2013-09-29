@@ -45,7 +45,7 @@ public class CloneDetectorWithFilter {
         PrintWriter inputSetsWriter = null;
         try {
             cd.cloneHelper.setClonesWriter(Util.openFileToWrite("clonesWithFilter.txt"));
-            cd.cloneHelper.setThreshold(.8F);
+            cd.cloneHelper.setThreshold(cd.threshold);
             Set<Bag> setA = CloneTestHelper.getTestSet(1, 11);
             Set<Bag> setB = CloneTestHelper.getTestSet(11, 21);
             cd.setGlobalTokenPositionMap(CloneTestHelper.getGlobalTokenPositionMap(setA,setB));
