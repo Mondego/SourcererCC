@@ -96,7 +96,7 @@ public class CloneHelper {
                 TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
                 count += Math.min(tokenFrequencyA.getFrequency(),
                         tokenFrequencyB.getFrequency());
-                if (count >= computedThreshold) {
+                if (count > computedThreshold) {
                     // report clone.
                     this.reportClone(bagA, bagB, this.previousBag);
                     this.previousBag = bagA;

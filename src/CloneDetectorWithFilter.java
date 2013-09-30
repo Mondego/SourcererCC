@@ -3,14 +3,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import utility.Util;
-
-import com.rits.cloning.Cloner;
 
 /**
  * 
@@ -27,6 +26,7 @@ public class CloneDetectorWithFilter {
     private CloneHelper cloneHelper;
     private float threshold; // threshold for matching the clones.e.g. .8 or
                              // .9
+    private Map<Bag, List<TokenFrequency>> bagToSortedListMap;
 
     /**
      * @param cloneHelper
@@ -34,7 +34,8 @@ public class CloneDetectorWithFilter {
     public CloneDetectorWithFilter(CloneHelper cloneHelper) {
         super();
         this.cloneHelper = cloneHelper;
-        this.threshold = .5F;
+        this.threshold = .6F;
+        bagToSortedListMap = new HashMap<Bag, List<TokenFrequency>>();
     }
 
     /**
@@ -51,12 +52,12 @@ public class CloneDetectorWithFilter {
                     .openFileToWrite("clonesWithFilter.txt"));
             cd.cloneHelper.setThreshold(cd.threshold);
             Set<Bag> setA = CloneTestHelper.getTestSet(1, 11);
-             Set<Bag> setB = CloneTestHelper.getTestSet(11, 21);
+            Set<Bag> setB = CloneTestHelper.getTestSet(11, 21);
             cd.setGlobalTokenPositionMap(CloneTestHelper
-                    .getGlobalTokenPositionMap(setA, setA)); // input
+                    .getGlobalTokenPositionMap(setA, setB)); // input
             inputSetsWriter = Util.openFileToWrite("inputForFilter.txt");
-            cd.cloneHelper.bookKeepInputs(setA, setA, inputSetsWriter); // input
-            cd.detectClones(setA, setA);// input
+            cd.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter); // input
+            cd.detectClones(setA, setB);// input
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -89,10 +90,12 @@ public class CloneDetectorWithFilter {
             // compare this map with every map in setB and report clones
             // iterate on setB
             for (Bag bagInSetB : setB) {
-                if (this.isCandidate(bagInSetA, bagInSetB)) {
-                    System.out.println("possible candidates "
-                            + bagInSetA.getId() + ", " + bagInSetB.getId());
-                    this.cloneHelper.detectClones(bagInSetA, bagInSetB);
+                if (bagInSetA.getId() == 4 && bagInSetB.getId() == 17) {
+                    if (this.isCandidate(bagInSetA, bagInSetB)) {
+                        System.out.println("possible candidates "
+                                + bagInSetA.getId() + ", " + bagInSetB.getId());
+                        this.cloneHelper.detectClones(bagInSetA, bagInSetB);
+                    }
                 }
             }
         }
@@ -107,21 +110,28 @@ public class CloneDetectorWithFilter {
      * @return List<TokenFrequency>
      */
     private List<TokenFrequency> convertToSortedList(Bag bag) {
-        List<TokenFrequency> list = new ArrayList<TokenFrequency>(bag);
-        if (bag.getId() == 7) {
-            System.out.println("before: " + list);
+        if (this.bagToSortedListMap.containsKey(bag)) {
+            return bagToSortedListMap.get(bag);
+        } else {
+            List<TokenFrequency> list = new ArrayList<TokenFrequency>(bag);
+            if (bag.getId() == 17) {
+                System.out.println("before: " + list);
+            }
+
+            Collections.sort(list, new Comparator<TokenFrequency>() {
+                public int compare(TokenFrequency tfFirst,
+                        TokenFrequency tfSecond) {
+                    return globalTokenPositionMap.get(tfFirst)
+                            - globalTokenPositionMap.get(tfSecond);
+                }
+            });
+            if (bag.getId() == 17) {
+                System.out.println("after: " + list);
+            }
+            this.bagToSortedListMap.put(bag, list);
+            return list;
         }
 
-        Collections.sort(list, new Comparator<TokenFrequency>() {
-            public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
-                return globalTokenPositionMap.get(tfFirst)
-                        - globalTokenPositionMap.get(tfSecond);
-            }
-        });
-        if (bag.getId() == 7) {
-            System.out.println("after: " + list);
-        }
-        return list;
     }
 
     /**
@@ -133,8 +143,13 @@ public class CloneDetectorWithFilter {
      * @return
      */
     private int computePrefixSize(int maxTokenLength) {
-        return (maxTokenLength + 1)
-                - (int) Math.ceil(this.threshold * maxTokenLength);
+        System.out.println("t is " + maxTokenLength);
+        System.out.println("threshld is " + this.threshold);
+        double x = this.threshold * maxTokenLength;
+        System.out.println("x is " + x);
+        int thetaT = (int) Math.ceil(x);
+        System.out.println("thetaT is " + thetaT);
+        return (maxTokenLength + 1) - thetaT;
     }
 
     /**
@@ -145,54 +160,54 @@ public class CloneDetectorWithFilter {
      * @return boolean
      */
     private boolean isCandidate(Bag bagA, Bag bagB) {
-        int computedThreshold = (int) Math.ceil(this.threshold
-                * (Math.max(bagA.getSize(), bagB.getSize())));
-        int prefixSize = this.computePrefixSize(computedThreshold);
+        int maxLength = Math.max(bagA.getSize(), bagB.getSize());
+        int prefixSize = this.computePrefixSize(maxLength);
         System.out.println("prefixSize for " + bagA.getId() + ", "
                 + bagB.getId() + " is: " + prefixSize);
         if (prefixSize <= Math.min(bagA.getSize(), bagB.getSize())) {
             List<TokenFrequency> listA = this.convertToSortedList(bagA);
             List<TokenFrequency> listB = this.convertToSortedList(bagB);
-            int matched = 0;
+            Iterator<TokenFrequency> listAItr = listA.iterator();
             Iterator<TokenFrequency> listBItr = listB.iterator();
-            for (TokenFrequency tokenFrequencyA : listA) {
-                System.out.println("tokenFrequencyA is " + tokenFrequencyA);
-                if (listBItr.hasNext()) {
-                    TokenFrequency tokenFrequencyB = listBItr.next();
-                    System.out.println("tokenFrequencyB" + tokenFrequencyB);
-                    if (tokenFrequencyA.equals(tokenFrequencyB)) {
-                        // check the frequency
-                        if (tokenFrequencyA.getFrequency() == tokenFrequencyB
-                                .getFrequency()) {
-                            matched += tokenFrequencyA.getFrequency();
-                        } else {
-
-                            matched += Math.min(tokenFrequencyA.getFrequency(),
-                                    tokenFrequencyB.getFrequency());
-
-                            if (matched >= prefixSize) {
-                                return true;
-                            } else {
-                                System.out
-                                        .println("Rejected: tokens matched but frequencies did not match, matched count is "
-                                                + matched
-                                                + " , prefixSize is "
-                                                + prefixSize);
-                                return false;
-                            }
+            int count = 0;
+            TokenFrequency tokenFrequencyA = listAItr.next();
+            TokenFrequency tokenFrequencyB = listBItr.next();
+            while (true) {
+                if (tokenFrequencyB.equals(tokenFrequencyA)) {
+                    return true;
+                } else {
+                    int globalPositionA = this.globalTokenPositionMap
+                            .get(tokenFrequencyA);
+                    int globalPositionB = this.globalTokenPositionMap
+                            .get(tokenFrequencyB);
+                    if (globalPositionB <= globalPositionA) {
+                        count += tokenFrequencyB.getFrequency();
+                        if (count >= prefixSize) {
+                            return false;
                         }
-                        if (matched >= prefixSize) {
-                            return true;
+                        if (listBItr.hasNext()) {
+                            tokenFrequencyB = listBItr.next();
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        count += tokenFrequencyA.getFrequency();
+                        if (count >= prefixSize) {
+                            return false;
+                        }
+                        if (listAItr.hasNext()) {
+                            tokenFrequencyA = listAItr.next();
+                        } else {
+                            return false;
                         }
                     }
-                } else {
-                    System.out.println("Rejected: listB.hasNext is false");
-                    return false;
                 }
             }
+
+        } else {
+            System.out.println("min size is less than prefix size");
+            return false;
         }
-        System.out.println("min size is less than prefix size");
-        return false;
     }
 
     /**

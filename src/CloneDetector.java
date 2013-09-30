@@ -33,12 +33,12 @@ public class CloneDetector {
         PrintWriter inputSetsWriter = null;
         try {
             cd.cloneHelper.setClonesWriter(Util.openFileToWrite("clones.txt"));
-            cd.cloneHelper.setThreshold(.8F);
+            cd.cloneHelper.setThreshold(.6F);
             Set<Bag> setA = CloneTestHelper.getTestSet(1, 11);
             Set<Bag> setB = CloneTestHelper.getTestSet(11, 21);
             inputSetsWriter = Util.openFileToWrite("input.txt");
-            cd.cloneHelper.bookKeepInputs(setA, setA, inputSetsWriter);// input
-            cd.cloneHelper.detectClones(setA, setA); // input
+            cd.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter);// input
+            cd.cloneHelper.detectClones(setA, setB); // input
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

@@ -56,7 +56,7 @@ public class CloneTestHelper {
             Token t = getTestToken();
             TokenFrequency tFrequency = new TokenFrequency();
             tFrequency.setToken(t);
-            tFrequency.setFrequency(Util.getRandomNumber(3, 1));
+            tFrequency.setFrequency(Util.getRandomNumber(1, 1));
             bag.add(tFrequency);
         }
         return bag;
