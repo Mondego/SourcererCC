@@ -25,8 +25,8 @@ public class CloneTestHelper {
      * 
      * @return Set<Bag>
      */
-    public static Set<Bag> getTestSet(int start, int stop) {
-        Set<Bag> set = new HashSet<Bag>();
+    public static HashSet<Bag> getTestSet(int start, int stop) {
+        HashSet<Bag> set = new HashSet<Bag>();
         for (int i = start; i < stop; i++) {
             set.add(getTestBag(i));
         }
@@ -56,7 +56,7 @@ public class CloneTestHelper {
             Token t = getTestToken();
             TokenFrequency tFrequency = new TokenFrequency();
             tFrequency.setToken(t);
-            tFrequency.setFrequency(Util.getRandomNumber(10, 1));
+            tFrequency.setFrequency(Util.getRandomNumber(3, 1));
             bag.add(tFrequency);
         }
         return bag;

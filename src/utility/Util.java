@@ -14,7 +14,7 @@ import java.util.Random;
  * 
  */
 public class Util {
-    static Random rand = new Random(3);
+    static Random rand = new Random(11);
 
     /**
      * generates a random integer

@@ -44,18 +44,26 @@ public class Bag extends HashSet<TokenFrequency> {
     public String toString() {
         String returnString = "";
         for (TokenFrequency tokenFrequency : this) {
-            returnString += tokenFrequency.getToken().toString()
-                    + System.lineSeparator();
+            returnString += tokenFrequency.getToken().toString() + ", "
+                    + tokenFrequency.getFrequency() + System.lineSeparator();
         }
         return "Bag [id=" + id + "]" + System.lineSeparator() + returnString;
     }
-    
-    public TokenFrequency get(TokenFrequency tokenFrequency){
-        for (TokenFrequency tf : this){
-            if(tf.equals(tokenFrequency)){
+
+    public TokenFrequency get(TokenFrequency tokenFrequency) {
+        for (TokenFrequency tf : this) {
+            if (tf.equals(tokenFrequency)) {
                 return tf;
             }
         }
         return null;
+    }
+
+    public int getSize() {
+        int size = 0;
+        for (TokenFrequency tf : this) {
+            size += tf.getFrequency();
+        }
+        return size;
     }
 }

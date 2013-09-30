@@ -37,8 +37,8 @@ public class CloneDetector {
             Set<Bag> setA = CloneTestHelper.getTestSet(1, 11);
             Set<Bag> setB = CloneTestHelper.getTestSet(11, 21);
             inputSetsWriter = Util.openFileToWrite("input.txt");
-            cd.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter);
-            cd.cloneHelper.detectClones(setA, setB);
+            cd.cloneHelper.bookKeepInputs(setA, setA, inputSetsWriter);// input
+            cd.cloneHelper.detectClones(setA, setA); // input
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

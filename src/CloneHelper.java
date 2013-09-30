@@ -84,8 +84,9 @@ public class CloneHelper {
      */
     public void detectClones(Bag bagA, Bag bagB) {
         int computedThreshold = (int) Math.ceil(this.threshold
-                * (Math.max(bagA.size(), bagB.size()))); // integer value of
+                * (Math.max(bagA.getSize(), bagB.getSize()))); // integer value of
                                                          // threshold.
+        System.out.println("threshold is "+ computedThreshold + " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
         // iterate on bagA
         int count = 0;
         for (TokenFrequency tokenFrequencyA : bagA) {
