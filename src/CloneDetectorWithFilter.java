@@ -52,9 +52,9 @@ public class CloneDetectorWithFilter {
             cd.cloneHelper.setThreshold(cd.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String folder = "t3";
-            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/projectA.txt", setA);
+            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Documents/codetime/repo/ast/output/clone-INPUT.txt", setA);
             Set<Bag> setB = new HashSet<Bag>();
-            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/projectB.txt", setB);
+            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Documents/codetime/repo/ast/output/clone-INPUT.txt", setB);
             cd.setGlobalTokenPositionMap(CloneTestHelper
                     .getGlobalTokenPositionMap(setA, setB)); // input
             cd.detectClones(setA, setB);// input

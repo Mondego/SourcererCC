@@ -52,10 +52,10 @@ public class Bag extends HashSet<TokenFrequency> {
     public String toString() {
         String returnString = "";
         for (TokenFrequency tokenFrequency : this) {
-            returnString += tokenFrequency.getToken().toString() + "::"
+            returnString += tokenFrequency.getToken().toString() + "@@::@@"
                     + tokenFrequency.getFrequency() + ",";
         }
-        return this.id+ "#"+ returnString.substring(0,returnString.length()-1) + System.lineSeparator();
+        return this.id+ "@#@"+ returnString.substring(0,returnString.length()-1) + System.lineSeparator();
     }
 
     public TokenFrequency get(TokenFrequency tokenFrequency) {

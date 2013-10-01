@@ -128,7 +128,7 @@ public class CloneHelper {
     
     public Bag deserialise(String s) throws ParseException{
         if(null!=s && s.trim().length()>0){
-            String[] bagAndTokens = s.split("#");
+            String[] bagAndTokens = s.split("@#@");
             String bagId = bagAndTokens[0];
             Bag bag = new Bag(Integer.parseInt(bagId));
             String tokenString = bagAndTokens[1];
@@ -141,14 +141,17 @@ public class CloneHelper {
     private void parseAndPopulateBag(Bag bag, String inputString){
         String []tokenFreqStrings = inputString.split(",");
         for(String tokenFreq : tokenFreqStrings){
-            String [] tokenAndFreq = tokenFreq.split("::");
+            String [] tokenAndFreq = tokenFreq.split("@@::@@");
+            if(tokenAndFreq.length<2){
+                System.out.println(tokenAndFreq[0]);
+                System.out.println(inputString);
+            }
             Token token = new Token(tokenAndFreq[0]);
             TokenFrequency tokenFrequency = new TokenFrequency();
             tokenFrequency.setToken(token);
             tokenFrequency.setFrequency(Integer.parseInt(tokenAndFreq[1]));
             bag.add(tokenFrequency);
         }
-        
     }
 
     /**
