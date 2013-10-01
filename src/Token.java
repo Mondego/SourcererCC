@@ -72,7 +72,7 @@ public class Token {
      */
     @Override
     public String toString() {
-        return "Token [value=" + value + "]";
+        return value;
     }
 
     /**

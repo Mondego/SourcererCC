@@ -10,7 +10,11 @@ import java.util.Set;
  * 
  */
 public class Bag extends HashSet<TokenFrequency> {
-    private int id;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1721183896451527542L;
+    public int id;
 
     /**
      * @param id
@@ -18,6 +22,10 @@ public class Bag extends HashSet<TokenFrequency> {
     public Bag(int id) {
         super();
         this.id = id;
+    }
+    
+    public Bag(){
+        super();
     }
 
     /**
@@ -44,10 +52,10 @@ public class Bag extends HashSet<TokenFrequency> {
     public String toString() {
         String returnString = "";
         for (TokenFrequency tokenFrequency : this) {
-            returnString += tokenFrequency.getToken().toString() + ", "
-                    + tokenFrequency.getFrequency() + System.lineSeparator();
+            returnString += tokenFrequency.getToken().toString() + "::"
+                    + tokenFrequency.getFrequency() + ",";
         }
-        return "Bag [id=" + id + "]" + System.lineSeparator() + returnString;
+        return this.id+ "#"+ returnString.substring(0,returnString.length()-1) + System.lineSeparator();
     }
 
     public TokenFrequency get(TokenFrequency tokenFrequency) {

@@ -3,18 +3,23 @@
  */
 package utility;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * @author vaibhavsaini
  * 
  */
 public class Util {
-    static Random rand = new Random(11);
+    static Random rand = new Random(5);
 
     /**
      * generates a random integer
@@ -51,11 +56,11 @@ public class Util {
      * @throws IOException
      * @return PrintWriter
      */
-    public static PrintWriter openFileToWrite(String filename)
+    public static PrintWriter openFile(String filename)
             throws IOException {
         try {
             PrintWriter pWriter = new PrintWriter(new BufferedWriter(
-                    new FileWriter(filename, true)));
+                    new FileWriter(filename, false)));
             return pWriter;
 
         } catch (IOException e) {
@@ -69,6 +74,8 @@ public class Util {
      * closes the outputfile
      */
     public static void closeOutputFile(PrintWriter pWriter) {
+        pWriter.flush();
         pWriter.close();
     }
+    
 }

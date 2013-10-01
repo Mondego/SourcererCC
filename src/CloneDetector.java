@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.Set;
 
 import utility.Util;
@@ -32,27 +33,25 @@ public class CloneDetector {
         CloneDetector cd = new CloneDetector(new CloneHelper());
         PrintWriter inputSetsWriter = null;
         try {
-            cd.cloneHelper.setClonesWriter(Util.openFileToWrite("clones.txt"));
-            cd.cloneHelper.setThreshold(.6F);
-            Set<Bag> setA = CloneTestHelper.getTestSet(1, 11);
-            Set<Bag> setB = CloneTestHelper.getTestSet(11, 21);
-            inputSetsWriter = Util.openFileToWrite("input.txt");
-            cd.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter);// input
+            cd.cloneHelper.setClonesWriter(Util.openFile("clones.txt"));
+            cd.cloneHelper.setThreshold(.8F);
+            Set<Bag> setA = new HashSet<Bag>();
+            String folder ="t3"; 
+            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/projectA.txt", setA);
+            Set<Bag> setB = new HashSet<Bag>();
+            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/projectB.txt", setB);
+            inputSetsWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/intInput.txt");
+            cd.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter);
             cd.cloneHelper.detectClones(setA, setB); // input
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 Util.closeOutputFile(cd.cloneHelper.getClonesWriter());
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
-            try {
                 Util.closeOutputFile(inputSetsWriter);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
         }
     }
-
 }

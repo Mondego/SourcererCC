@@ -1,4 +1,9 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.util.Set;
 
 import utility.Util;
@@ -96,7 +101,7 @@ public class CloneHelper {
                 TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
                 count += Math.min(tokenFrequencyA.getFrequency(),
                         tokenFrequencyB.getFrequency());
-                if (count > computedThreshold) {
+                if (count >= computedThreshold) {
                     // report clone.
                     this.reportClone(bagA, bagB, this.previousBag);
                     this.previousBag = bagA;
@@ -119,6 +124,31 @@ public class CloneHelper {
             returnString += bag.toString();
         }
         return returnString;
+    }
+    
+    public Bag deserialise(String s) throws ParseException{
+        if(null!=s && s.trim().length()>0){
+            String[] bagAndTokens = s.split("#");
+            String bagId = bagAndTokens[0];
+            Bag bag = new Bag(Integer.parseInt(bagId));
+            String tokenString = bagAndTokens[1];
+            this.parseAndPopulateBag(bag, tokenString);
+            return bag;
+        }
+        throw new ParseException("parsing error",0);
+    }
+    
+    private void parseAndPopulateBag(Bag bag, String inputString){
+        String []tokenFreqStrings = inputString.split(",");
+        for(String tokenFreq : tokenFreqStrings){
+            String [] tokenAndFreq = tokenFreq.split("::");
+            Token token = new Token(tokenAndFreq[0]);
+            TokenFrequency tokenFrequency = new TokenFrequency();
+            tokenFrequency.setToken(token);
+            tokenFrequency.setFrequency(Integer.parseInt(tokenAndFreq[1]));
+            bag.add(tokenFrequency);
+        }
+        
     }
 
     /**
@@ -147,6 +177,33 @@ public class CloneHelper {
         Util.writeToFile(inputSetsWriter, "********************************",
                 true);
         Util.writeToFile(inputSetsWriter, setBString, true);
+    }
+    
+    public void parseInputFileAndPopulateSet(String filename, Set<Bag> bagsSet){
+        BufferedReader br = null;
+        try {
+           br  = new BufferedReader(new FileReader(filename));
+           String line;
+           while((line = br.readLine())!=null && line.trim().length()>0){
+               bagsSet.add(this.deserialise(line));
+           }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }finally{
+            try {
+                br.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        
     }
 
 }

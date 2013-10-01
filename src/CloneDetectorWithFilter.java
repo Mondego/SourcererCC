@@ -1,9 +1,9 @@
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class CloneDetectorWithFilter {
     public CloneDetectorWithFilter(CloneHelper cloneHelper) {
         super();
         this.cloneHelper = cloneHelper;
-        this.threshold = .6F;
+        this.threshold = .8F;
         bagToSortedListMap = new HashMap<Bag, List<TokenFrequency>>();
     }
 
@@ -46,28 +46,23 @@ public class CloneDetectorWithFilter {
     public static void main(String args[]) {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter(
                 new CloneHelper());
-        PrintWriter inputSetsWriter = null;
         try {
             cd.cloneHelper.setClonesWriter(Util
-                    .openFileToWrite("clonesWithFilter.txt"));
+                    .openFile("clonesWithFilter.txt"));
             cd.cloneHelper.setThreshold(cd.threshold);
-            Set<Bag> setA = CloneTestHelper.getTestSet(1, 11);
-            Set<Bag> setB = CloneTestHelper.getTestSet(11, 21);
+            Set<Bag> setA = new HashSet<Bag>();
+            String folder = "t3";
+            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/projectA.txt", setA);
+            Set<Bag> setB = new HashSet<Bag>();
+            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/projectB.txt", setB);
             cd.setGlobalTokenPositionMap(CloneTestHelper
                     .getGlobalTokenPositionMap(setA, setB)); // input
-            inputSetsWriter = Util.openFileToWrite("inputForFilter.txt");
-            cd.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter); // input
             cd.detectClones(setA, setB);// input
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 Util.closeOutputFile(cd.cloneHelper.getClonesWriter());
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
-            try {
-                Util.closeOutputFile(inputSetsWriter);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
@@ -90,12 +85,10 @@ public class CloneDetectorWithFilter {
             // compare this map with every map in setB and report clones
             // iterate on setB
             for (Bag bagInSetB : setB) {
-                if (bagInSetA.getId() == 4 && bagInSetB.getId() == 17) {
-                    if (this.isCandidate(bagInSetA, bagInSetB)) {
-                        System.out.println("possible candidates "
-                                + bagInSetA.getId() + ", " + bagInSetB.getId());
-                        this.cloneHelper.detectClones(bagInSetA, bagInSetB);
-                    }
+                if (this.isCandidate(bagInSetA, bagInSetB)) {
+                    System.out.println("possible candidates "
+                            + bagInSetA.getId() + ", " + bagInSetB.getId());
+                    this.cloneHelper.detectClones(bagInSetA, bagInSetB);
                 }
             }
         }
