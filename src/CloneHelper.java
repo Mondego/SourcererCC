@@ -22,6 +22,17 @@ public class CloneHelper {
                              // other set
     private float threshold; // threshold for matching the clones.e.g. 80% or
                              // 90%
+    private int comparisions;
+    private int numClonesFound;
+
+    /**
+     * 
+     */
+    public CloneHelper() {
+        super();
+        this.comparisions=0;
+        this.numClonesFound=0;
+    }
 
     /**
      * outputs the bagB as a clone of bagA
@@ -30,6 +41,7 @@ public class CloneHelper {
      * @param bagB
      */
     public void reportClone(Bag bagA, Bag bagB, Bag previousBag) {
+        this.numClonesFound+=1;
         if (bagA.equals(previousBag)) {
             System.out.println("equal");
             Util.writeToFile(this.clonesWriter, " ," + bagB.getId(), false);
@@ -74,7 +86,9 @@ public class CloneHelper {
             // compare this map with every map in setB and report clones
             // iterate on setB
             for (Bag bagInSetB : setB) {
-                this.detectClones(bagInSetA, bagInSetB);
+                if(bagInSetA.getId()!=bagInSetB.getId()){
+                    this.detectClones(bagInSetA, bagInSetB);
+                }
             }
         }
     }
@@ -91,11 +105,12 @@ public class CloneHelper {
         int computedThreshold = (int) Math.ceil(this.threshold
                 * (Math.max(bagA.getSize(), bagB.getSize()))); // integer value of
                                                          // threshold.
-        System.out.println("threshold is "+ computedThreshold + " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
+        //System.out.println("threshold is "+ computedThreshold + " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
         // iterate on bagA
         int count = 0;
         for (TokenFrequency tokenFrequencyA : bagA) {
             // search this token in bagB
+            this.comparisions+=1;
             if (bagB.contains(tokenFrequencyA)) {
                 // token found.
                 TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
@@ -142,10 +157,6 @@ public class CloneHelper {
         String []tokenFreqStrings = inputString.split(",");
         for(String tokenFreq : tokenFreqStrings){
             String [] tokenAndFreq = tokenFreq.split("@@::@@");
-            if(tokenAndFreq.length<2){
-                System.out.println(tokenAndFreq[0]);
-                System.out.println(inputString);
-            }
             Token token = new Token(tokenAndFreq[0]);
             TokenFrequency tokenFrequency = new TokenFrequency();
             tokenFrequency.setToken(token);
@@ -207,6 +218,34 @@ public class CloneHelper {
             }
         }
         
+    }
+
+    /**
+     * @return the comparisions
+     */
+    public int getComparisions() {
+        return comparisions;
+    }
+
+    /**
+     * @param comparisions the comparisions to set
+     */
+    public void setComparisions(int comparisions) {
+        this.comparisions = comparisions;
+    }
+
+    /**
+     * @return the numClonesFound
+     */
+    public int getNumClonesFound() {
+        return numClonesFound;
+    }
+
+    /**
+     * @param numClonesFound the numClonesFound to set
+     */
+    public void setNumClonesFound(int numClonesFound) {
+        this.numClonesFound = numClonesFound;
     }
 
 }

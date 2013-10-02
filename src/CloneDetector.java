@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import utility.Util;
@@ -15,13 +17,17 @@ import utility.Util;
  */
 public class CloneDetector {
     private CloneHelper cloneHelper;
+    private float threshold;
+    int run;
+    private PrintWriter analysisWriter;
 
     /**
      * @param cloneHelper
      */
-    public CloneDetector(CloneHelper cloneHelper) {
+    public CloneDetector() {
         super();
-        this.cloneHelper = cloneHelper;
+        this.threshold = .8F;
+        this.run = 1000;
     }
 
     /**
@@ -30,28 +36,70 @@ public class CloneDetector {
      * @param args
      */
     public static void main(String args[]) {
-        CloneDetector cd = new CloneDetector(new CloneHelper());
+        String folder ="t3";
+        CloneDetector cd = new CloneDetector();
+        try {
+            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/clonesAnalysis.csv");
+            String header = "detect_clones_time, total_comparision, num_clones_detected";
+            Util.writeToFile(cd.analysisWriter, header, true);
+            for(int i=0;i<cd.run;i++){
+                CloneHelper cloneHelper = new CloneHelper();
+                cd.cloneHelper = cloneHelper;
+                cd.runExperiment();
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }finally{
+            Util.closeOutputFile(cd.analysisWriter);
+        }
+    }
+    
+    private void runExperiment(){
         PrintWriter inputSetsWriter = null;
         try {
-            cd.cloneHelper.setClonesWriter(Util.openFile("clones.txt"));
-            cd.cloneHelper.setThreshold(.8F);
+            this.cloneHelper.setClonesWriter(Util.openFile("clones.txt"));
+            this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
-            String folder ="t3"; 
-            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Documents/codetime/repo/ast/output/clone-INPUT.txt", setA);
+             
+            this.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Documents/codetime/repo/ast/output/clone-INPUT.txt", setA);
             Set<Bag> setB = new HashSet<Bag>();
-            cd.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Documents/codetime/repo/ast/output/clone-INPUT.txt", setB);
-            inputSetsWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/intInput.txt");
-            cd.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter);
-            cd.cloneHelper.detectClones(setA, setB); // input
+            this.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Documents/codetime/repo/ast/output/clone-INPUT.txt", setB);
+            //inputSetsWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/intInput.txt");
+            //this.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter);
+            long start_time = System.currentTimeMillis();
+            this.cloneHelper.detectClones(setA, setB); // input
+            long end_time = System.currentTimeMillis();
+            System.out.println("time in milliseconds :"+(end_time-start_time));
+            StringBuilder sb = new StringBuilder();
+            sb.append(end_time-start_time+",");
+            System.out.println("comparisions :"+this.cloneHelper.getComparisions());
+            sb.append(this.cloneHelper.getComparisions()+",");
+            sb.append(this.cloneHelper.getNumClonesFound());
+            Util.writeToFile(this.analysisWriter, sb.toString(), true);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
-                Util.closeOutputFile(cd.cloneHelper.getClonesWriter());
+                Util.closeOutputFile(this.cloneHelper.getClonesWriter());
                 Util.closeOutputFile(inputSetsWriter);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
         }
+    }
+
+    /**
+     * @return the cloneHelper
+     */
+    public CloneHelper getCloneHelper() {
+        return cloneHelper;
+    }
+
+    /**
+     * @param cloneHelper the cloneHelper to set
+     */
+    public void setCloneHelper(CloneHelper cloneHelper) {
+        this.cloneHelper = cloneHelper;
     }
 }

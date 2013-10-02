@@ -79,7 +79,6 @@ public class CloneTestHelper {
             tokenPositionMap.put(tokenFrequency, position);
             position++;
         }
-        System.out.println(list);
         return tokenPositionMap;
     }
 
