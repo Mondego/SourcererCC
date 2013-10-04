@@ -22,7 +22,7 @@ public class CloneHelper {
                              // other set
     private float threshold; // threshold for matching the clones.e.g. 80% or
                              // 90%
-    private int comparisions;
+    private long comparisions;
     private int numClonesFound;
 
     /**
@@ -43,11 +43,11 @@ public class CloneHelper {
     public void reportClone(Bag bagA, Bag bagB, Bag previousBag) {
         this.numClonesFound+=1;
         if (bagA.equals(previousBag)) {
-            System.out.println("equal");
+            //System.out.println("equal");
             Util.writeToFile(this.clonesWriter, " ," + bagB.getId(), false);
         } else {
             // start a new line
-            System.out.println("different");
+            //System.out.println("different");
             Util.writeToFile(this.clonesWriter, "", true);
             Util.writeToFile(this.clonesWriter,
                     "Clones of Bag " + bagA.getId(), true);
@@ -102,8 +102,7 @@ public class CloneHelper {
      *            map of token as key and it's frequency in a method as value
      */
     public void detectClones(Bag bagA, Bag bagB) {
-        int computedThreshold = (int) Math.ceil(this.threshold
-                * (Math.max(bagA.getSize(), bagB.getSize()))); // integer value of
+        int computedThreshold = (int) Math.ceil(this.threshold* bagA.getSize()); // integer value of
                                                          // threshold.
         //System.out.println("threshold is "+ computedThreshold + " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
         // iterate on bagA
@@ -160,7 +159,13 @@ public class CloneHelper {
             Token token = new Token(tokenAndFreq[0]);
             TokenFrequency tokenFrequency = new TokenFrequency();
             tokenFrequency.setToken(token);
-            tokenFrequency.setFrequency(Integer.parseInt(tokenAndFreq[1]));
+            try{
+                tokenFrequency.setFrequency(Integer.parseInt(tokenAndFreq[1]));
+            }
+            catch(ArrayIndexOutOfBoundsException e){
+                System.out.println(inputString);
+            }
+            
             bag.add(tokenFrequency);
         }
     }
@@ -223,14 +228,14 @@ public class CloneHelper {
     /**
      * @return the comparisions
      */
-    public int getComparisions() {
+    public long getComparisions() {
         return comparisions;
     }
 
     /**
      * @param comparisions the comparisions to set
      */
-    public void setComparisions(int comparisions) {
+    public void setComparisions(long comparisions) {
         this.comparisions = comparisions;
     }
 

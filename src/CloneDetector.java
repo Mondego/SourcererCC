@@ -27,7 +27,7 @@ public class CloneDetector {
     public CloneDetector() {
         super();
         this.threshold = .8F;
-        this.run = 1000;
+        this.run = 1;
     }
 
     /**
@@ -39,7 +39,7 @@ public class CloneDetector {
         String folder ="t3";
         CloneDetector cd = new CloneDetector();
         try {
-            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/clonesAnalysis.csv");
+            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTclonesAnalysis.csv");
             String header = "detect_clones_time, total_comparision, num_clones_detected";
             Util.writeToFile(cd.analysisWriter, header, true);
             for(int i=0;i<cd.run;i++){
@@ -56,15 +56,16 @@ public class CloneDetector {
     }
     
     private void runExperiment(){
-        PrintWriter inputSetsWriter = null;
         try {
-            this.cloneHelper.setClonesWriter(Util.openFile("clones.txt"));
+            System.out.println("running, please wait...");
+            this.cloneHelper.setClonesWriter(Util.openFile("Antclones.txt"));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
-             
-            this.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Documents/codetime/repo/ast/output/clone-INPUT.txt", setA);
+            String projectAfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
+            String projectBfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";// change diskwrites
+            this.cloneHelper.parseInputFileAndPopulateSet(projectAfile, setA);
             Set<Bag> setB = new HashSet<Bag>();
-            this.cloneHelper.parseInputFileAndPopulateSet("/Users/vaibhavsaini/Documents/codetime/repo/ast/output/clone-INPUT.txt", setB);
+            this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
             //inputSetsWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/intInput.txt");
             //this.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter);
             long start_time = System.currentTimeMillis();
@@ -82,7 +83,6 @@ public class CloneDetector {
         } finally {
             try {
                 Util.closeOutputFile(this.cloneHelper.getClonesWriter());
-                Util.closeOutputFile(inputSetsWriter);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }

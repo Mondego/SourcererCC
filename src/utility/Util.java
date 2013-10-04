@@ -48,6 +48,7 @@ public class Util {
             pWriter.print(text);
         }
     }
+    
 
     /**
      * opens the outputfile for reporting clones
@@ -60,7 +61,7 @@ public class Util {
             throws IOException {
         try {
             PrintWriter pWriter = new PrintWriter(new BufferedWriter(
-                    new FileWriter(filename, false)));
+                    new FileWriter(filename, false),8*1024*1024));
             return pWriter;
 
         } catch (IOException e) {
