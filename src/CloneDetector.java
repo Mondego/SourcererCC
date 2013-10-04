@@ -39,7 +39,7 @@ public class CloneDetector {
         String folder ="t3";
         CloneDetector cd = new CloneDetector();
         try {
-            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTclonesAnalysis.csv");
+            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItr2clonesAnalysis.csv");
             String header = "detect_clones_time, total_comparision, num_clones_detected";
             Util.writeToFile(cd.analysisWriter, header, true);
             for(int i=0;i<cd.run;i++){
@@ -58,7 +58,7 @@ public class CloneDetector {
     private void runExperiment(){
         try {
             System.out.println("running, please wait...");
-            this.cloneHelper.setClonesWriter(Util.openFile("Antclones.txt"));
+            this.cloneHelper.setClonesWriter(Util.openFile("Antclones2.txt"));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String projectAfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";

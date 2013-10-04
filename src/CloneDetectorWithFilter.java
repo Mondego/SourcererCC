@@ -59,7 +59,7 @@ public class CloneDetectorWithFilter {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
         try {
             cd.analysisWriter = Util
-                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTclonesWithFilterAnalysis.csv");
+                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItr2clonesWithFilterAnalysis.csv");
             String header = "sort_time, detect_clones_time, token_comparision_filter, token_comparision ,total_comparision,num_clones_detected,candidateCumulativeTime";
             Util.writeToFile(cd.analysisWriter, header, true);
             for (int i = 0; i < cd.run; i++) {
@@ -113,8 +113,7 @@ public class CloneDetectorWithFilter {
             sb.append(end_time - start_time + ",");
             System.out.println("filterComparision :" + this.filterComparision);
             sb.append(this.filterComparision + ",");
-            System.out.println("comparisions :"
-                    + this.comparisions);
+            System.out.println("comparisions :" + this.comparisions);
             sb.append(this.comparisions + ",");
             System.out.println("total comparision :"
                     + (this.filterComparision + this.comparisions));
@@ -255,18 +254,17 @@ public class CloneDetectorWithFilter {
      */
     private boolean isCandidate(Bag bagA, Bag bagB) {
         long startTime = System.currentTimeMillis();
-        int computedThreshold = (int) Math.ceil(this.threshold
-                * (bagA.getSize()));
-        int prefixSize = this.computePrefixSize(bagA.getSize());
-
+        int maxLength = Math.max((bagA.getSize()), bagB.getSize());
+        int computedThreshold = (int) Math.ceil(this.threshold * maxLength);
+        int prefixSize = this.computePrefixSize(maxLength);
         boolean candidate = false;
         /*
          * System.out.println("prefixSize for " + bagA.getId() + ", " +
          * bagB.getId() + " is: " + prefixSize);
          */
-        if (prefixSize < bagB.getSize()) {
-            List<TokenFrequency> listA = this.convertToList(bagA, this.doSort);
-            List<TokenFrequency> listB = this.convertToList(bagB, this.doSort);
+        if (prefixSize <= Math.min(bagB.getSize(),bagA.getSize())) {
+            List<TokenFrequency> listA = this.bagToListMap.get(bagA);
+            List<TokenFrequency> listB = this.bagToListMap.get(bagB);
             Iterator<TokenFrequency> listAItr = listA.iterator();
             Iterator<TokenFrequency> listBItr = listB.iterator();
             int count = 0;

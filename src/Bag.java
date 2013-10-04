@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,7 +10,7 @@ import java.util.Set;
  * @author vaibhavsaini
  * 
  */
-public class Bag extends HashSet<TokenFrequency> {
+public class Bag extends ArrayList<TokenFrequency> {
     /**
      * 
      */
@@ -58,6 +59,7 @@ public class Bag extends HashSet<TokenFrequency> {
         return this.id+ "@#@"+ returnString.substring(0,returnString.length()-1) + System.lineSeparator();
     }
 
+    
     public TokenFrequency get(TokenFrequency tokenFrequency) {
         for (TokenFrequency tf : this) {
             if (tf.equals(tokenFrequency)) {
@@ -66,6 +68,7 @@ public class Bag extends HashSet<TokenFrequency> {
         }
         return null;
     }
+    
 
     public int getSize() {
         int size = 0;

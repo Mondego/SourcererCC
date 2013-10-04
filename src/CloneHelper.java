@@ -102,7 +102,7 @@ public class CloneHelper {
      *            map of token as key and it's frequency in a method as value
      */
     public void detectClones(Bag bagA, Bag bagB) {
-        int computedThreshold = (int) Math.ceil(this.threshold* bagA.getSize()); // integer value of
+        int computedThreshold = (int) Math.ceil(this.threshold* Math.max(bagA.getSize(),bagB.getSize())); // integer value of
                                                          // threshold.
         //System.out.println("threshold is "+ computedThreshold + " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
         // iterate on bagA
