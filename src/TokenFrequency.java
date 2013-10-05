@@ -38,10 +38,7 @@ public class TokenFrequency {
      */
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((token == null) ? 0 : token.hashCode());
-        return result;
+        return token.hashCode();
     }
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
@@ -62,7 +59,7 @@ public class TokenFrequency {
             if (other.token != null) {
                 return false;
             }
-        } else if (!token.equals(other.token)) {
+        } else if (!token.getValue().equals(other.token.getValue())) {
             return false;
         }
         return true;

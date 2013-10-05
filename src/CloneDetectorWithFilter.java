@@ -21,13 +21,13 @@ import utility.Util;
  * 
  */
 public class CloneDetectorWithFilter {
-    private Map<TokenFrequency, Integer> globalTokenPositionMap; // we will sort
+    private Map<String, Integer> globalTokenPositionMap; // we will sort
                                                                  // bags using
                                                                  // it.
     private CloneHelper cloneHelper;
     private float threshold; // threshold for matching the clones.e.g. .8 or
                              // .9
-    private Map<Bag, List<TokenFrequency>> bagToListMap;
+    private Map<Integer, List<TokenFrequency>> bagToListMap;
     private int filterComparision;
     private boolean doSort;
     private int run;
@@ -42,7 +42,7 @@ public class CloneDetectorWithFilter {
     public CloneDetectorWithFilter() {
         super();
         this.threshold = .8F;
-        this.bagToListMap = new HashMap<Bag, List<TokenFrequency>>();
+        this.bagToListMap = new HashMap<Integer, List<TokenFrequency>>();
         this.filterComparision = 0;
         this.doSort = true;
         this.run = 1;
@@ -133,7 +133,7 @@ public class CloneDetectorWithFilter {
     }
 
     private void init() {
-        this.bagToListMap = new HashMap<Bag, List<TokenFrequency>>();
+        this.bagToListMap = new HashMap<Integer, List<TokenFrequency>>();
         this.filterComparision = 0;
     }
 
@@ -170,7 +170,6 @@ public class CloneDetectorWithFilter {
             TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
             if (null!=tokenFrequencyB) {
                 // token found.
-                
                 matched += Math.min(tokenFrequencyA.getFrequency(),
                         tokenFrequencyB.getFrequency());
                 if (matched >= computedThreshold) {
@@ -200,11 +199,11 @@ public class CloneDetectorWithFilter {
             Collections.sort(list, new Comparator<TokenFrequency>() {
                 public int compare(TokenFrequency tfFirst,
                         TokenFrequency tfSecond) {
-                    return globalTokenPositionMap.get(tfFirst)
-                            - globalTokenPositionMap.get(tfSecond);
+                    return globalTokenPositionMap.get(tfFirst.getToken().getValue())
+                            - globalTokenPositionMap.get(tfSecond.getToken().getValue());
                 }
             });
-            this.bagToListMap.put(bag, list);
+            this.bagToListMap.put(bag.getId(), list);
             return list;
         }
 
@@ -223,7 +222,7 @@ public class CloneDetectorWithFilter {
             return bagToListMap.get(bag);
         } else {
             List<TokenFrequency> list = new ArrayList<TokenFrequency>(bag);
-            this.bagToListMap.put(bag, list);
+            this.bagToListMap.put(bag.getId(), list);
             return list;
         }
     }
@@ -264,8 +263,8 @@ public class CloneDetectorWithFilter {
          * bagB.getId() + " is: " + prefixSize);
          */
         if (prefixSize <= Math.min(bagB.getSize(),bagA.getSize())) {
-            List<TokenFrequency> listA = this.bagToListMap.get(bagA);
-            List<TokenFrequency> listB = this.bagToListMap.get(bagB);
+            List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
+            List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
             Iterator<TokenFrequency> listAItr = listA.iterator();
             Iterator<TokenFrequency> listBItr = listB.iterator();
             int count = 0;
@@ -290,9 +289,9 @@ public class CloneDetectorWithFilter {
                         break;
                     }
                     int globalPositionA = this.globalTokenPositionMap
-                            .get(tokenFrequencyA);
+                            .get(tokenFrequencyA.getToken().getValue());
                     int globalPositionB = this.globalTokenPositionMap
-                            .get(tokenFrequencyB);
+                            .get(tokenFrequencyB.getToken().getValue());
                     if (globalPositionB <= globalPositionA) {
                         if (listBItr.hasNext()) {
                             tokenFrequencyB = listBItr.next();
@@ -320,7 +319,7 @@ public class CloneDetectorWithFilter {
     /**
      * @return the globalTokenPositionMap
      */
-    public Map<TokenFrequency, Integer> getGlobalTokenPositionMap() {
+    public Map<String, Integer> getGlobalTokenPositionMap() {
         return globalTokenPositionMap;
     }
 
@@ -329,7 +328,7 @@ public class CloneDetectorWithFilter {
      *            the globalTokenPositionMap to set
      */
     public void setGlobalTokenPositionMap(
-            Map<TokenFrequency, Integer> globalTokenPositionMap) {
+            Map<String, Integer> globalTokenPositionMap) {
         this.globalTokenPositionMap = globalTokenPositionMap;
     }
 }
