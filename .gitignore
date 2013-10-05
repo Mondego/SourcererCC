@@ -33,6 +33,7 @@ tmp/**/*
 *.idx
 *.orig
 build/
+build/*
 debug/
 local.properties
 .classpath

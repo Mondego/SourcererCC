@@ -60,7 +60,7 @@ public class Bag extends ArrayList<TokenFrequency> {
             returnString += tokenFrequency.getToken().toString() + "@@::@@"
                     + tokenFrequency.getFrequency() + ",";
         }
-        return this.id+ "@#@"+ returnString.substring(0,returnString.length()-1) + System.lineSeparator();
+        return this.id+ "@#@"+ returnString.substring(0,returnString.length()-1) + System.getProperty("line.separator");
     }
 
     
