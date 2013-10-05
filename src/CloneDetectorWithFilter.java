@@ -288,10 +288,8 @@ public class CloneDetectorWithFilter {
                     if (count >= prefixSize) {
                         break;
                     }
-                    int globalPositionA = this.globalTokenPositionMap
-                            .get(tokenFrequencyA);
-                    int globalPositionB = this.globalTokenPositionMap
-                            .get(tokenFrequencyB);
+                    int globalPositionA = tokenFrequencyA.getTokenPosition();
+                    int globalPositionB = tokenFrequencyB.getTokenPosition();
                     if (globalPositionB <= globalPositionA) {
                         if (listBItr.hasNext()) {
                             tokenFrequencyB = listBItr.next();
