@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CodeCloneDetection" basedir="." default="compile">
+
+    <property name="src.dir"     value="src"/>
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir"     value="${build.dir}/jar"/>
+    <property name="cdWithFilter"  value="CloneDetectorWithFilter"/>
+    <property name="cdWithoutFilter"  value="CloneDetector"/>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}"/>
+    </target>
+
+    <target name="jarWF" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${cdWithFilter}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${cdWithFilter}"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="jarWOF" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${cdWithoutFilter}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${cdWithoutFilter}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="runWF" depends="jarWF">
+        <java jar="${jar.dir}/${cdWithFilter}.jar" fork="true"/>
+    </target>
+    <target name="runWOF" depends="jarWOF">
+        <java jar="${jar.dir}/${cdWithoutFilter}.jar" fork="true"/>
+    </target>
+
+<!--     <target name="clean-build" depends="clean,jar"/> -->
+
+    <target name="cdWF" depends="clean,runWF"/>
+    <target name="cdWOF" depends="clean,runWOF"/>
+
+</project>
