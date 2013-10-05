@@ -167,9 +167,9 @@ public class CloneDetectorWithFilter {
             // search this token in bagB
             TokenFrequency tokenFrequencyA = bagAItr.next();
             this.comparisions += 1;
-            if (bagB.contains(tokenFrequencyA)) {
+            TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
+            if (null!=tokenFrequencyB) {
                 // token found.
-                TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
                 matched += Math.min(tokenFrequencyA.getFrequency(),
                         tokenFrequencyB.getFrequency());
                 if (matched >= computedThreshold) {
