@@ -21,7 +21,7 @@ import utility.Util;
  * 
  */
 public class CloneDetectorWithFilter {
-    private Map<TokenFrequency, Integer> globalTokenPositionMap; // we will sort
+    private Map<String, Integer> globalTokenPositionMap; // we will sort
                                                                  // bags using
                                                                  // it.
     private CloneHelper cloneHelper;
@@ -91,6 +91,8 @@ public class CloneDetectorWithFilter {
             this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
             this.setGlobalTokenPositionMap(CloneTestHelper
                     .getGlobalTokenPositionMap(setA, setB)); // input
+            this.setPositions(setA);
+            this.setPositions(setB);
             // sort
             long start_time = System.currentTimeMillis();
             for (Bag bag : setA) {
@@ -317,7 +319,7 @@ public class CloneDetectorWithFilter {
     /**
      * @return the globalTokenPositionMap
      */
-    public Map<TokenFrequency, Integer> getGlobalTokenPositionMap() {
+    public Map<String, Integer> getGlobalTokenPositionMap() {
         return globalTokenPositionMap;
     }
 
@@ -326,7 +328,14 @@ public class CloneDetectorWithFilter {
      *            the globalTokenPositionMap to set
      */
     public void setGlobalTokenPositionMap(
-            Map<TokenFrequency, Integer> globalTokenPositionMap) {
+            Map<String, Integer> globalTokenPositionMap) {
         this.globalTokenPositionMap = globalTokenPositionMap;
+    }
+    private void setPositions(Set<Bag> set){
+        for(Bag b : set){
+            for(TokenFrequency tf : b){
+                tf.setTokenPosition(this.globalTokenPositionMap.get(tf.getToken().getValue()));
+            }
+        }
     }
 }
