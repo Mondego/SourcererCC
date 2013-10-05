@@ -59,7 +59,7 @@ public class CloneDetectorWithFilter {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
         try {
             cd.analysisWriter = Util
-                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItr2clonesWithFilterAnalysis.csv");
+                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/vANTItr2clonesWithFilterAnalysis.csv");
             String header = "sort_time, detect_clones_time, token_comparision_filter, token_comparision ,total_comparision,num_clones_detected,candidateCumulativeTime";
             Util.writeToFile(cd.analysisWriter, header, true);
             for (int i = 0; i < cd.run; i++) {
@@ -162,7 +162,6 @@ public class CloneDetectorWithFilter {
 
     public void detectClones(Iterator<TokenFrequency> bagAItr, Bag bagB,
             int computedThreshold, int matched, Bag bagA) {
-
         while (bagAItr.hasNext()) {
             // search this token in bagB
             TokenFrequency tokenFrequencyA = bagAItr.next();
@@ -286,10 +285,28 @@ public class CloneDetectorWithFilter {
                             matched, bagA);
                     return true;
                 } else {
-                    if (this.incrementItr(count, tokenSeenInA, tokenSeenInB,
-                            prefixSize, tokenFrequencyA, tokenFrequencyB,
-                            listBItr, listAItr)) {
+                    count = Math.min(tokenSeenInA, tokenSeenInB);
+                    if (count >= prefixSize) {
                         break;
+                    }
+                    int globalPositionA = this.globalTokenPositionMap.get(tokenFrequencyA
+                            .getToken().getValue());
+                    int globalPositionB = this.globalTokenPositionMap.get(tokenFrequencyB
+                            .getToken().getValue());
+                    if (globalPositionB <= globalPositionA) {
+                        if (listBItr.hasNext()) {
+                            tokenFrequencyB = listBItr.next();
+                            tokenSeenInB += tokenFrequencyB.getFrequency();
+                        } else {
+                            break;
+                        }
+                    } else {
+                        if (listAItr.hasNext()) {
+                            tokenFrequencyA = listAItr.next();
+                            tokenSeenInA += tokenFrequencyA.getFrequency();
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
@@ -300,7 +317,7 @@ public class CloneDetectorWithFilter {
         return candidate;
     }
 
-    private boolean incrementItr(int count, int tokenSeenInA, int tokenSeenInB,
+    /*private boolean incrementItr(int count, int tokenSeenInA, int tokenSeenInB,
             int prefixSize, TokenFrequency tokenFrequencyA,
             TokenFrequency tokenFrequencyB, Iterator<TokenFrequency> listBItr,
             Iterator<TokenFrequency> listAItr) {
@@ -340,7 +357,7 @@ public class CloneDetectorWithFilter {
             }
         }
         return false;
-    }
+    }*/
 
     /**
      * @return the globalTokenPositionMap
