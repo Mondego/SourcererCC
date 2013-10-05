@@ -9,6 +9,7 @@
 public class TokenFrequency {
     private int frequency;
     private Token token;
+    private int tokenPosition;
     /**
      * @return the frequency
      */
@@ -33,6 +34,27 @@ public class TokenFrequency {
     public void setToken(Token token) {
         this.token = token;
     }
+    
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "TokenFrequency [frequency=" + frequency + ", token=" + token
+                + "]";
+    }
+    /**
+     * @return the tokenPosition
+     */
+    public int getTokenPosition() {
+        return tokenPosition;
+    }
+    /**
+     * @param tokenPosition the tokenPosition to set
+     */
+    public void setTokenPosition(int tokenPosition) {
+        this.tokenPosition = tokenPosition;
+    }
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
@@ -40,7 +62,7 @@ public class TokenFrequency {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((token == null) ? 0 : token.hashCode());
+        result = prime * result + tokenPosition;
         return result;
     }
     /* (non-Javadoc)
@@ -58,24 +80,9 @@ public class TokenFrequency {
             return false;
         }
         TokenFrequency other = (TokenFrequency) obj;
-        if (token == null) {
-            if (other.token != null) {
-                return false;
-            }
-        } else if (!token.equals(other.token)) {
+        if (tokenPosition != other.tokenPosition) {
             return false;
         }
         return true;
     }
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "TokenFrequency [frequency=" + frequency + ", token=" + token
-                + "]";
-    }
-    
-    
-    
 }
