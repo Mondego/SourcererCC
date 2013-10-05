@@ -27,7 +27,7 @@ public class CloneDetectorWithFilter {
     private CloneHelper cloneHelper;
     private float threshold; // threshold for matching the clones.e.g. .8 or
                              // .9
-    private Map<Bag, List<TokenFrequency>> bagToListMap;
+    private Map<Integer, List<TokenFrequency>> bagToListMap;
     private int filterComparision;
     private boolean doSort;
     private int run;
@@ -42,7 +42,7 @@ public class CloneDetectorWithFilter {
     public CloneDetectorWithFilter() {
         super();
         this.threshold = .8F;
-        this.bagToListMap = new HashMap<Bag, List<TokenFrequency>>();
+        this.bagToListMap = new HashMap<Integer, List<TokenFrequency>>();
         this.filterComparision = 0;
         this.doSort = true;
         this.run = 1;
@@ -59,7 +59,7 @@ public class CloneDetectorWithFilter {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
         try {
             cd.analysisWriter = Util
-                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItr2clonesWithFilterAnalysis.csv");
+                    .openFile("output/ANTItr2clonesWithFilterAnalysis.csv");
             String header = "sort_time, detect_clones_time, token_comparision_filter, token_comparision ,total_comparision,num_clones_detected,candidateCumulativeTime";
             Util.writeToFile(cd.analysisWriter, header, true);
             for (int i = 0; i < cd.run; i++) {
@@ -84,8 +84,8 @@ public class CloneDetectorWithFilter {
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String folder = "t3";
-            String projectAfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
-            String projectBfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
+            String projectAfile = "C:/Users/Hitesh/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
+            String projectBfile = "C:/Users/Hitesh/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
             this.cloneHelper.parseInputFileAndPopulateSet(projectAfile, setA);
             Set<Bag> setB = new HashSet<Bag>();
             this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
@@ -133,7 +133,7 @@ public class CloneDetectorWithFilter {
     }
 
     private void init() {
-        this.bagToListMap = new HashMap<Bag, List<TokenFrequency>>();
+        this.bagToListMap = new HashMap<Integer, List<TokenFrequency>>();
         this.filterComparision = 0;
     }
 
@@ -203,7 +203,7 @@ public class CloneDetectorWithFilter {
                             - globalTokenPositionMap.get(tfSecond);
                 }
             });
-            this.bagToListMap.put(bag, list);
+            this.bagToListMap.put(bag.getId(), list);
             return list;
         }
 
@@ -222,7 +222,7 @@ public class CloneDetectorWithFilter {
             return bagToListMap.get(bag);
         } else {
             List<TokenFrequency> list = new ArrayList<TokenFrequency>(bag);
-            this.bagToListMap.put(bag, list);
+            this.bagToListMap.put(bag.getId(), list);
             return list;
         }
     }
@@ -263,8 +263,8 @@ public class CloneDetectorWithFilter {
          * bagB.getId() + " is: " + prefixSize);
          */
         if (prefixSize <= Math.min(bagB.getSize(),bagA.getSize())) {
-            List<TokenFrequency> listA = this.bagToListMap.get(bagA);
-            List<TokenFrequency> listB = this.bagToListMap.get(bagB);
+            List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
+            List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
             Iterator<TokenFrequency> listAItr = listA.iterator();
             Iterator<TokenFrequency> listBItr = listB.iterator();
             int count = 0;
