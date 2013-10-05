@@ -20,6 +20,7 @@ public class CloneDetector {
     private float threshold;
     int run;
     private PrintWriter analysisWriter;
+    private String filePrefix;
 
     /**
      * @param cloneHelper
@@ -28,6 +29,7 @@ public class CloneDetector {
         super();
         this.threshold = .8F;
         this.run = 1;
+        this.filePrefix="ANT";
     }
 
     /**
@@ -36,10 +38,9 @@ public class CloneDetector {
      * @param args
      */
     public static void main(String args[]) {
-        String folder ="t3";
         CloneDetector cd = new CloneDetector();
         try {
-            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItrclonesAnalysis.csv");
+            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+cd.filePrefix+"clonesAnalysis_NO_FILTER.csv");
             String header = "detect_clones_time, total_comparision, num_clones_detected";
             Util.writeToFile(cd.analysisWriter, header, true);
             for(int i=0;i<cd.run;i++){
@@ -58,16 +59,14 @@ public class CloneDetector {
     private void runExperiment(){
         try {
             System.out.println("running, please wait...");
-            this.cloneHelper.setClonesWriter(Util.openFile("Antclones2.txt"));
+            this.cloneHelper.setClonesWriter(Util.openFile(this.filePrefix+"clones2_NO_FILTER.txt"));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
-            String projectAfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
-            String projectBfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";// change diskwrites
+            String projectAfile = "input/dataset/"+this.filePrefix+"-clone-INPUT.txt";
+            String projectBfile = "input/dataset/"+this.filePrefix+"-clone-INPUT.txt";// change diskwrites
             this.cloneHelper.parseInputFileAndPopulateSet(projectAfile, setA);
             Set<Bag> setB = new HashSet<Bag>();
             this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
-            //inputSetsWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+folder+"/intInput.txt");
-            //this.cloneHelper.bookKeepInputs(setA, setB, inputSetsWriter);
             long start_time = System.currentTimeMillis();
             this.cloneHelper.detectClones(setA, setB); // input
             long end_time = System.currentTimeMillis();

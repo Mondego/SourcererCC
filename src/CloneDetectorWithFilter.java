@@ -35,6 +35,7 @@ public class CloneDetectorWithFilter {
     private long candidateCumulativeTime;
     private long comparisions;
     private Bag previousBag;
+    private String filePrefix;
 
     /**
      * @param cloneHelper
@@ -48,6 +49,7 @@ public class CloneDetectorWithFilter {
         this.run = 1;
         this.candidateCumulativeTime = 0;
         this.comparisions = 0;
+        this.filePrefix="ANT";
     }
 
     /**
@@ -59,7 +61,7 @@ public class CloneDetectorWithFilter {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
         try {
             cd.analysisWriter = Util
-                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItrclonesWithFilterAnalysis.csv");
+                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+cd.filePrefix+"clonesAnalysis_WITH_FILTER.csv");
             String header = "sort_time, detect_clones_time, token_comparision_filter, token_comparision ,total_comparision,num_clones_detected,candidateCumulativeTime";
             Util.writeToFile(cd.analysisWriter, header, true);
             for (int i = 0; i < cd.run; i++) {
@@ -80,12 +82,11 @@ public class CloneDetectorWithFilter {
         try {
             System.out.println("running, please wait...");
             this.cloneHelper.setClonesWriter(Util
-                    .openFile("clonesWithFilter.txt"));
+                    .openFile(this.filePrefix+"clones2_WITH_FILTER.txt"));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
-            String folder = "t3";
-            String projectAfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
-            String projectBfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
+            String projectAfile = "input/dataset/"+this.filePrefix+"-clone-INPUT.txt";
+            String projectBfile = "input/dataset/"+this.filePrefix+"-clone-INPUT.txt";
             this.cloneHelper.parseInputFileAndPopulateSet(projectAfile, setA);
             Set<Bag> setB = new HashSet<Bag>();
             this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
