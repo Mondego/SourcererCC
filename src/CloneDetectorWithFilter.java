@@ -59,7 +59,7 @@ public class CloneDetectorWithFilter {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
         try {
             cd.analysisWriter = Util
-                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/vANTItr2clonesWithFilterAnalysis.csv");
+                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItrclonesWithFilterAnalysis.csv");
             String header = "sort_time, detect_clones_time, token_comparision_filter, token_comparision ,total_comparision,num_clones_detected,candidateCumulativeTime";
             Util.writeToFile(cd.analysisWriter, header, true);
             for (int i = 0; i < cd.run; i++) {
@@ -165,8 +165,9 @@ public class CloneDetectorWithFilter {
         while (bagAItr.hasNext()) {
             // search this token in bagB
             TokenFrequency tokenFrequencyA = bagAItr.next();
-            this.comparisions += 1;
+            
             TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
+            this.comparisions += bagB.comparisions;
             if (null != tokenFrequencyB) {
                 // token found.
                 matched += Math.min(tokenFrequencyA.getFrequency(),

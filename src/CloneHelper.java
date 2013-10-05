@@ -109,8 +109,8 @@ public class CloneHelper {
         int count = 0;
         for (TokenFrequency tokenFrequencyA : bagA) {
             // search this token in bagB
-            this.comparisions+=1;
             TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
+            this.comparisions+=bagB.comparisions;
             if (null!=tokenFrequencyB) {
                 // token found.
                 count += Math.min(tokenFrequencyA.getFrequency(),

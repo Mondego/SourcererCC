@@ -39,7 +39,7 @@ public class CloneDetector {
         String folder ="t3";
         CloneDetector cd = new CloneDetector();
         try {
-            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItr2clonesAnalysis.csv");
+            cd.analysisWriter = Util.openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItrclonesAnalysis.csv");
             String header = "detect_clones_time, total_comparision, num_clones_detected";
             Util.writeToFile(cd.analysisWriter, header, true);
             for(int i=0;i<cd.run;i++){
