@@ -16,6 +16,7 @@ public class Bag extends ArrayList<TokenFrequency> {
      */
     private static final long serialVersionUID = 1721183896451527542L;
     public int id;
+    public int size;
 
     /**
      * @param id
@@ -23,6 +24,7 @@ public class Bag extends ArrayList<TokenFrequency> {
     public Bag(int id) {
         super();
         this.id = id;
+        this.size =0;
     }
     
     public Bag(){
@@ -71,10 +73,11 @@ public class Bag extends ArrayList<TokenFrequency> {
     
 
     public int getSize() {
-        int size = 0;
-        for (TokenFrequency tf : this) {
-            size += tf.getFrequency();
+        if(this.size == 0){
+        	for (TokenFrequency tf : this) {
+                this.size += tf.getFrequency();
+            }
         }
-        return size;
+        return this.size;
     }
 }
