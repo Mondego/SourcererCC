@@ -61,7 +61,7 @@ public class CloneDetectorWithFilter {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
         try {
             cd.analysisWriter = Util
-                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/"+cd.filePrefix+"clonesAnalysis_WITH_FILTER.csv");
+                    .openFile("output/"+cd.filePrefix+"clonesAnalysis_WITH_FILTER.csv");
             String header = "sort_time, detect_clones_time, token_comparision_filter, token_comparision ,total_comparision,num_clones_detected,candidateCumulativeTime";
             Util.writeToFile(cd.analysisWriter, header, true);
             for (int i = 0; i < cd.run; i++) {
