@@ -49,7 +49,6 @@ public class CloneDetectorWithFilter {
         this.run = 1;
         this.candidateCumulativeTime = 0;
         this.comparisions = 0;
-        this.filePrefix="ANT";
     }
 
     /**
@@ -59,6 +58,12 @@ public class CloneDetectorWithFilter {
      */
     public static void main(String args[]) {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
+        if(args.length>0){
+            cd.filePrefix=args[0];
+        }else{
+            System.out.println("Please provide inputfile prefix, e.g. ANT,cocoon,hadoop.");
+            System.exit(1);
+        }
         try {
             cd.analysisWriter = Util
                     .openFile("output/"+cd.filePrefix+"clonesAnalysis_WITH_FILTER.csv");

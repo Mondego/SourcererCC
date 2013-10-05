@@ -43,7 +43,7 @@
 
 <!--     <target name="clean-build" depends="clean,jar"/> -->
 
-    <target name="cdWF" depends="clean,runWF"/>
-    <target name="cdWOF" depends="clean,runWOF"/>
+    <target name="cdwf" depends="clean,runWF"/>
+    <target name="cdwof" depends="clean,runWOF"/>
 
 </project>
