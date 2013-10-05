@@ -21,13 +21,13 @@ import utility.Util;
  * 
  */
 public class CloneDetectorWithFilter {
-    private Map<String, Integer> globalTokenPositionMap; // we will sort
+    private Map<TokenFrequency, Integer> globalTokenPositionMap; // we will sort
                                                                  // bags using
                                                                  // it.
     private CloneHelper cloneHelper;
     private float threshold; // threshold for matching the clones.e.g. .8 or
                              // .9
-    private Map<Integer, List<TokenFrequency>> bagToListMap;
+    private Map<Bag, List<TokenFrequency>> bagToListMap;
     private int filterComparision;
     private boolean doSort;
     private int run;
@@ -42,7 +42,7 @@ public class CloneDetectorWithFilter {
     public CloneDetectorWithFilter() {
         super();
         this.threshold = .8F;
-        this.bagToListMap = new HashMap<Integer, List<TokenFrequency>>();
+        this.bagToListMap = new HashMap<Bag, List<TokenFrequency>>();
         this.filterComparision = 0;
         this.doSort = true;
         this.run = 1;
@@ -59,7 +59,7 @@ public class CloneDetectorWithFilter {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
         try {
             cd.analysisWriter = Util
-                    .openFile("output/ANTItr2clonesWithFilterAnalysis.csv");
+                    .openFile("/Users/vaibhavsaini/Dropbox/clonedetection/testinputfiles/ANTItr2clonesWithFilterAnalysis.csv");
             String header = "sort_time, detect_clones_time, token_comparision_filter, token_comparision ,total_comparision,num_clones_detected,candidateCumulativeTime";
             Util.writeToFile(cd.analysisWriter, header, true);
             for (int i = 0; i < cd.run; i++) {
@@ -84,15 +84,13 @@ public class CloneDetectorWithFilter {
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String folder = "t3";
-            String projectAfile = "C:/Users/Hitesh/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
-            String projectBfile = "C:/Users/Hitesh/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
+            String projectAfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
+            String projectBfile = "/Users/vaibhavsaini/Dropbox/clonedetection/dataset/ANT-clone-INPUT.txt";
             this.cloneHelper.parseInputFileAndPopulateSet(projectAfile, setA);
             Set<Bag> setB = new HashSet<Bag>();
             this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
             this.setGlobalTokenPositionMap(CloneTestHelper
                     .getGlobalTokenPositionMap(setA, setB)); // input
-            this.setPositions(setA);
-            this.setPositions(setB);
             // sort
             long start_time = System.currentTimeMillis();
             for (Bag bag : setA) {
@@ -135,7 +133,7 @@ public class CloneDetectorWithFilter {
     }
 
     private void init() {
-        this.bagToListMap = new HashMap<Integer, List<TokenFrequency>>();
+        this.bagToListMap = new HashMap<Bag, List<TokenFrequency>>();
         this.filterComparision = 0;
     }
 
@@ -172,6 +170,7 @@ public class CloneDetectorWithFilter {
             TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
             if (null!=tokenFrequencyB) {
                 // token found.
+                
                 matched += Math.min(tokenFrequencyA.getFrequency(),
                         tokenFrequencyB.getFrequency());
                 if (matched >= computedThreshold) {
@@ -205,7 +204,7 @@ public class CloneDetectorWithFilter {
                             - globalTokenPositionMap.get(tfSecond);
                 }
             });
-            this.bagToListMap.put(bag.getId(), list);
+            this.bagToListMap.put(bag, list);
             return list;
         }
 
@@ -224,7 +223,7 @@ public class CloneDetectorWithFilter {
             return bagToListMap.get(bag);
         } else {
             List<TokenFrequency> list = new ArrayList<TokenFrequency>(bag);
-            this.bagToListMap.put(bag.getId(), list);
+            this.bagToListMap.put(bag, list);
             return list;
         }
     }
@@ -265,8 +264,8 @@ public class CloneDetectorWithFilter {
          * bagB.getId() + " is: " + prefixSize);
          */
         if (prefixSize <= Math.min(bagB.getSize(),bagA.getSize())) {
-            List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
-            List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
+            List<TokenFrequency> listA = this.bagToListMap.get(bagA);
+            List<TokenFrequency> listB = this.bagToListMap.get(bagB);
             Iterator<TokenFrequency> listAItr = listA.iterator();
             Iterator<TokenFrequency> listBItr = listB.iterator();
             int count = 0;
@@ -290,8 +289,10 @@ public class CloneDetectorWithFilter {
                     if (count >= prefixSize) {
                         break;
                     }
-                    int globalPositionA = tokenFrequencyA.getTokenPosition();
-                    int globalPositionB = tokenFrequencyB.getTokenPosition();
+                    int globalPositionA = this.globalTokenPositionMap
+                            .get(tokenFrequencyA);
+                    int globalPositionB = this.globalTokenPositionMap
+                            .get(tokenFrequencyB);
                     if (globalPositionB <= globalPositionA) {
                         if (listBItr.hasNext()) {
                             tokenFrequencyB = listBItr.next();
@@ -319,7 +320,7 @@ public class CloneDetectorWithFilter {
     /**
      * @return the globalTokenPositionMap
      */
-    public Map<String, Integer> getGlobalTokenPositionMap() {
+    public Map<TokenFrequency, Integer> getGlobalTokenPositionMap() {
         return globalTokenPositionMap;
     }
 
@@ -328,14 +329,7 @@ public class CloneDetectorWithFilter {
      *            the globalTokenPositionMap to set
      */
     public void setGlobalTokenPositionMap(
-            Map<String, Integer> globalTokenPositionMap) {
+            Map<TokenFrequency, Integer> globalTokenPositionMap) {
         this.globalTokenPositionMap = globalTokenPositionMap;
-    }
-    private void setPositions(Set<Bag> set){
-        for(Bag b : set){
-            for(TokenFrequency tf : b){
-                tf.setTokenPosition(this.globalTokenPositionMap.get(tf.getToken().getValue()));
-            }
-        }
     }
 }

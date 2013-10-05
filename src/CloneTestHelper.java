@@ -62,9 +62,9 @@ public class CloneTestHelper {
         return bag;
     }
 
-    public static Map<String, Integer> getGlobalTokenPositionMap(
+    public static Map<TokenFrequency, Integer> getGlobalTokenPositionMap(
             Set<Bag> setA, Set<Bag> setB) {
-        Map<String, Integer> tokenPositionMap = new HashMap<String, Integer>();
+        Map<TokenFrequency, Integer> tokenPositionMap = new HashMap<TokenFrequency, Integer>();
         Map<TokenFrequency, TokenFrequency> map = new HashMap<TokenFrequency, TokenFrequency>();
         fetchTokenFrequencyList(map, setA);
         fetchTokenFrequencyList(map, setB);
@@ -76,8 +76,7 @@ public class CloneTestHelper {
         });
         int position = 0;
         for (TokenFrequency tokenFrequency : list) {
-            tokenPositionMap.put(tokenFrequency.getToken().getValue(), position);
-            tokenFrequency.setTokenPosition(position);
+            tokenPositionMap.put(tokenFrequency, position);
             position++;
         }
         return tokenPositionMap;
