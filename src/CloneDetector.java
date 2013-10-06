@@ -40,12 +40,22 @@ public class CloneDetector {
         CloneDetector cd = new CloneDetector();
         if(args.length>0){
             cd.filePrefix=args[0];
+            if(args.length==2){
+                try{
+                    cd.run=Integer.parseInt(args[1]);
+                }catch(NumberFormatException e){
+                    System.out.println("Not a valid number. 2nd argument should be an Int");
+                    System.exit(1);
+                }
+            }
         }else{
             System.out.println("Please provide inputfile prefix, e.g. ANT,cocoon,hadoop.");
             System.exit(1);
         }
         try {
-            cd.analysisWriter = Util.openFile("output/"+cd.filePrefix+"clonesAnalysis_NO_FILTER.csv");
+            String filename = "output/"+cd.filePrefix+"clonesAnalysis_NO_FILTER.csv";
+            System.out.println("writing in file : "+ filename);
+            cd.analysisWriter = Util.openFile(filename,true);
             String header = "detect_clones_time, total_comparision, num_clones_detected";
             Util.writeToFile(cd.analysisWriter, header, true);
             for(int i=0;i<cd.run;i++){
@@ -64,7 +74,7 @@ public class CloneDetector {
     private void runExperiment(){
         try {
             System.out.println("running, please wait...");
-            this.cloneHelper.setClonesWriter(Util.openFile(this.filePrefix+"clones2_NO_FILTER.txt"));
+            this.cloneHelper.setClonesWriter(Util.openFile("output/"+this.filePrefix+"clones2_NO_FILTER.txt",false));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String projectAfile = "input/dataset/"+this.filePrefix+"-clone-INPUT.txt";

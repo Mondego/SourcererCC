@@ -57,11 +57,11 @@ public class Util {
      * @throws IOException
      * @return PrintWriter
      */
-    public static PrintWriter openFile(String filename)
+    public static PrintWriter openFile(String filename, boolean append)
             throws IOException {
         try {
             PrintWriter pWriter = new PrintWriter(new BufferedWriter(
-                    new FileWriter(filename, false),8*1024*1024));
+                    new FileWriter(filename, append),8*1024*1024));
             return pWriter;
 
         } catch (IOException e) {

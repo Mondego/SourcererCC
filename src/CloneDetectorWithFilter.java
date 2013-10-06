@@ -28,7 +28,7 @@ public class CloneDetectorWithFilter {
     private float threshold; // threshold for matching the clones.e.g. .8 or
                              // .9
     private Map<Integer, List<TokenFrequency>> bagToListMap;
-    private int filterComparision;
+    private long filterComparision;
     private boolean doSort;
     private int run;
     private PrintWriter analysisWriter;
@@ -60,13 +60,23 @@ public class CloneDetectorWithFilter {
         CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
         if(args.length>0){
             cd.filePrefix=args[0];
+            if(args.length==2){
+                try{
+                    cd.run=Integer.parseInt(args[1]);
+                }catch(NumberFormatException e){
+                    System.out.println("Not a valid number. 2nd argument should be an Int");
+                    System.exit(1);
+                }
+            }
         }else{
             System.out.println("Please provide inputfile prefix, e.g. ANT,cocoon,hadoop.");
             System.exit(1);
         }
         try {
+            String filename = "output/"+cd.filePrefix+"clonesAnalysis_NO_FILTER.csv";
+            System.out.println("writing in file : "+ filename);
             cd.analysisWriter = Util
-                    .openFile("output/"+cd.filePrefix+"clonesAnalysis_WITH_FILTER.csv");
+                    .openFile(filename,true);
             String header = "sort_time, detect_clones_time, token_comparision_filter, token_comparision ,total_comparision,num_clones_detected,candidateCumulativeTime";
             Util.writeToFile(cd.analysisWriter, header, true);
             for (int i = 0; i < cd.run; i++) {
@@ -87,7 +97,7 @@ public class CloneDetectorWithFilter {
         try {
             System.out.println("running, please wait...");
             this.cloneHelper.setClonesWriter(Util
-                    .openFile(this.filePrefix+"clones2_WITH_FILTER.txt"));
+                    .openFile(this.filePrefix+"clones_WITH_FILTER.txt",false));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String projectAfile = "input/dataset/"+this.filePrefix+"-clone-INPUT.txt";

@@ -34,9 +34,9 @@ public class GenerateInput {
             if(f.delete()){
                 System.out.println("deleted existing projectB.txt");
             }
-            projectAWriter = Util.openFile("projectA.txt");
+            projectAWriter = Util.openFile("projectA.txt",false);
             Util.writeToFile(projectAWriter, cloneHelper.stringify(setA), true);
-            projectBWriter = Util.openFile("projectB.txt");
+            projectBWriter = Util.openFile("projectB.txt",false);
             Util.writeToFile(projectBWriter, cloneHelper.stringify(setB), true);
         } catch (IOException e) {
             // TODO Auto-generated catch block
