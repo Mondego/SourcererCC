@@ -74,7 +74,7 @@ public class CloneDetector {
     private void runExperiment(){
         try {
             System.out.println("running, please wait...");
-            this.cloneHelper.setClonesWriter(Util.openFile("output/"+this.filePrefix+"clones2_NO_FILTER.txt",false));
+            this.cloneHelper.setClonesWriter(Util.openFile("output/"+this.filePrefix+"clones_NO_FILTER.txt",false));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String projectAfile = "input/dataset/"+this.filePrefix+"-clone-INPUT.txt";

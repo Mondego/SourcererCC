@@ -73,7 +73,7 @@ public class CloneDetectorWithFilter {
             System.exit(1);
         }
         try {
-            String filename = "output/"+cd.filePrefix+"clonesAnalysis_NO_FILTER.csv";
+            String filename = "output/"+cd.filePrefix+"clonesAnalysis_WITH_FILTER.csv";
             System.out.println("writing in file : "+ filename);
             cd.analysisWriter = Util
                     .openFile(filename,true);
@@ -97,7 +97,7 @@ public class CloneDetectorWithFilter {
         try {
             System.out.println("running, please wait...");
             this.cloneHelper.setClonesWriter(Util
-                    .openFile(this.filePrefix+"clones_WITH_FILTER.txt",false));
+                    .openFile("output/"+this.filePrefix+"clones_WITH_FILTER.txt",false));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String projectAfile = "input/dataset/"+this.filePrefix+"-clone-INPUT.txt";
