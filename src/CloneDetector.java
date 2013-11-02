@@ -83,7 +83,11 @@ public class CloneDetector {
             Set<Bag> setB = new HashSet<Bag>();
             this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
             long start_time = System.currentTimeMillis();
+            
+            
             this.cloneHelper.detectClones(setA, setB); // input
+            
+            
             long end_time = System.currentTimeMillis();
             System.out.println("time in milliseconds :"+(end_time-start_time));
             StringBuilder sb = new StringBuilder();

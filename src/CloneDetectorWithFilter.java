@@ -122,7 +122,11 @@ public class CloneDetectorWithFilter {
             sb.append(end_time - start_time + ",");
             // sorting done
             start_time = System.currentTimeMillis();
+            
+            
             this.detectClones(setA, setB);// input
+            
+            
             end_time = System.currentTimeMillis();
             System.out.println("time in milliseconds :"
                     + (end_time - start_time));
@@ -169,8 +173,11 @@ public class CloneDetectorWithFilter {
             // compare this map with every map in setB and report clones
             // iterate on setB
             for (Bag bagInSetB : setB) {
-                if (bagInSetA.getId() != bagInSetB.getId()) {
-                    this.isCandidate(bagInSetA, bagInSetB);
+                if(bagInSetA.getId()!=bagInSetB.getId()){
+                    String pairId = "";
+                    if(bagInSetA.getId()<bagInSetB.getId()){
+                        this.isCandidate(bagInSetA, bagInSetB);
+                    }
                 }
             }
         }

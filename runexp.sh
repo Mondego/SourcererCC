@@ -1,7 +1,7 @@
 #!/bin/bash
  
 ## define an array ##
-arrayname=(cocoon ANT maven lucene hadoop)
+arrayname=(hadoop)
 loops="${1:-1}"
 ## get item count using ${arrayname[@]} ##
 for m in "${arrayname[@]}"

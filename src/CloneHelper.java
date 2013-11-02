@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
+import java.util.HashSet;
 import java.util.Set;
 
 import utility.Util;
@@ -30,8 +31,8 @@ public class CloneHelper {
      */
     public CloneHelper() {
         super();
-        this.comparisions=0;
-        this.numClonesFound=0;
+        this.comparisions = 0;
+        this.numClonesFound = 0;
     }
 
     /**
@@ -41,13 +42,13 @@ public class CloneHelper {
      * @param bagB
      */
     public void reportClone(Bag bagA, Bag bagB, Bag previousBag) {
-        this.numClonesFound+=1;
+        this.numClonesFound += 1;
         if (bagA.equals(previousBag)) {
-            //System.out.println("equal");
+            // System.out.println("equal");
             Util.writeToFile(this.clonesWriter, " ," + bagB.getId(), false);
         } else {
             // start a new line
-            //System.out.println("different");
+            // System.out.println("different");
             Util.writeToFile(this.clonesWriter, "", true);
             Util.writeToFile(this.clonesWriter,
                     "Clones of Bag " + bagA.getId(), true);
@@ -86,8 +87,10 @@ public class CloneHelper {
             // compare this map with every map in setB and report clones
             // iterate on setB
             for (Bag bagInSetB : setB) {
-                if(bagInSetA.getId()!=bagInSetB.getId()){
-                    this.detectClones(bagInSetA, bagInSetB);
+                if (bagInSetA.getId() != bagInSetB.getId()) {
+                    if (bagInSetA.getId() < bagInSetB.getId()) {
+                        this.detectClones(bagInSetA, bagInSetB);
+                    }
                 }
             }
         }
@@ -102,16 +105,18 @@ public class CloneHelper {
      *            map of token as key and it's frequency in a method as value
      */
     public void detectClones(Bag bagA, Bag bagB) {
-        int computedThreshold = (int) Math.ceil(this.threshold* Math.max(bagA.getSize(),bagB.getSize())); // integer value of
-                                                         // threshold.
-        //System.out.println("threshold is "+ computedThreshold + " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
+        int computedThreshold = (int) Math.ceil(this.threshold
+                * Math.max(bagA.getSize(), bagB.getSize())); // integer value of
+        // threshold.
+        // System.out.println("threshold is "+ computedThreshold +
+        // " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
         // iterate on bagA
         int count = 0;
         for (TokenFrequency tokenFrequencyA : bagA) {
             // search this token in bagB
             TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
-            this.comparisions+=bagB.comparisions;
-            if (null!=tokenFrequencyB) {
+            this.comparisions += bagB.comparisions;
+            if (null != tokenFrequencyB) {
                 // token found.
                 count += Math.min(tokenFrequencyA.getFrequency(),
                         tokenFrequencyB.getFrequency());
@@ -139,9 +144,9 @@ public class CloneHelper {
         }
         return returnString;
     }
-    
-    public Bag deserialise(String s) throws ParseException{
-        if(null!=s && s.trim().length()>0){
+
+    public Bag deserialise(String s) throws ParseException {
+        if (null != s && s.trim().length() > 0) {
             String[] bagAndTokens = s.split("@#@");
             String bagId = bagAndTokens[0];
             Bag bag = new Bag(Integer.parseInt(bagId));
@@ -149,23 +154,24 @@ public class CloneHelper {
             this.parseAndPopulateBag(bag, tokenString);
             return bag;
         }
-        throw new ParseException("parsing error",0);
+        throw new ParseException("parsing error", 0);
     }
-    
-    private void parseAndPopulateBag(Bag bag, String inputString){
-        String []tokenFreqStrings = inputString.split(",");
-        for(String tokenFreq : tokenFreqStrings){
-            String [] tokenAndFreq = tokenFreq.split("@@::@@");
+
+    private void parseAndPopulateBag(Bag bag, String inputString) {
+        String[] tokenFreqStrings = inputString.split(",");
+        for (String tokenFreq : tokenFreqStrings) {
+            String[] tokenAndFreq = tokenFreq.split("@@::@@");
             Token token = new Token(tokenAndFreq[0]);
             TokenFrequency tokenFrequency = new TokenFrequency();
             tokenFrequency.setToken(token);
-            try{
+            try {
                 tokenFrequency.setFrequency(Integer.parseInt(tokenAndFreq[1]));
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("EXCEPTION CAUGHT, token: "+ token);
+                //System.out.println("EXCEPTION CAUGHT, tokenFreq: "+ tokenAndFreq[1]);
+                System.out.println("EXCEPTION CAUGHT: "+ inputString);
             }
-            catch(ArrayIndexOutOfBoundsException e){
-                System.out.println(inputString);
-            }
-            
+
             bag.add(tokenFrequency);
         }
     }
@@ -178,7 +184,8 @@ public class CloneHelper {
     }
 
     /**
-     * @param clonesWriter the clonesWriter to set
+     * @param clonesWriter
+     *            the clonesWriter to set
      */
     public void setClonesWriter(PrintWriter clonesWriter) {
         this.clonesWriter = clonesWriter;
@@ -197,15 +204,15 @@ public class CloneHelper {
                 true);
         Util.writeToFile(inputSetsWriter, setBString, true);
     }
-    
-    public void parseInputFileAndPopulateSet(String filename, Set<Bag> bagsSet){
+
+    public void parseInputFileAndPopulateSet(String filename, Set<Bag> bagsSet) {
         BufferedReader br = null;
         try {
-           br  = new BufferedReader(new FileReader(filename));
-           String line;
-           while((line = br.readLine())!=null && line.trim().length()>0){
-               bagsSet.add(this.deserialise(line));
-           }
+            br = new BufferedReader(new FileReader(filename));
+            String line;
+            while ((line = br.readLine()) != null && line.trim().length() > 0) {
+                bagsSet.add(this.deserialise(line));
+            }
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -214,7 +221,7 @@ public class CloneHelper {
         } catch (ParseException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }finally{
+        } finally {
             try {
                 br.close();
             } catch (IOException e) {
@@ -222,7 +229,7 @@ public class CloneHelper {
                 e.printStackTrace();
             }
         }
-        
+
     }
 
     /**
@@ -233,7 +240,8 @@ public class CloneHelper {
     }
 
     /**
-     * @param comparisions the comparisions to set
+     * @param comparisions
+     *            the comparisions to set
      */
     public void setComparisions(long comparisions) {
         this.comparisions = comparisions;
@@ -247,7 +255,8 @@ public class CloneHelper {
     }
 
     /**
-     * @param numClonesFound the numClonesFound to set
+     * @param numClonesFound
+     *            the numClonesFound to set
      */
     public void setNumClonesFound(int numClonesFound) {
         this.numClonesFound = numClonesFound;
