@@ -1,6 +1,6 @@
 #!/bin/bash
 loops="${1:-1}"
-prefix="${2:-hadoop}"
+prefix="${2:-codeclonedetection}"
 for ((c=1;c<=$loops;c++))
 do
 	echo "running java -jar dist/CloneDetectorWithFilter.jar $prefix"

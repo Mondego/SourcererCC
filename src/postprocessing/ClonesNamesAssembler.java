@@ -36,7 +36,7 @@ public class ClonesNamesAssembler {
         // TODO Auto-generated method stub
         System.out.println("start!");
         ClonesNamesAssembler assembler = new ClonesNamesAssembler();
-        assembler.projectName = "hadoop";
+        assembler.projectName = "codeclonedetection";
         assembler.linesWritten=0;
         assembler.process();
         try{
