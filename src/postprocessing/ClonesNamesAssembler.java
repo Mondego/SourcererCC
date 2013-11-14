@@ -36,14 +36,20 @@ public class ClonesNamesAssembler {
         // TODO Auto-generated method stub
         System.out.println("start!");
         ClonesNamesAssembler assembler = new ClonesNamesAssembler();
-        assembler.projectName = "codeclonedetection";
-        assembler.linesWritten=0;
+        if (args.length > 0) {
+            assembler.projectName = args[0];
+        } else {
+            System.out
+                    .println("Please provide inputfile prefix, e.g. ANT,cocoon,hadoop.");
+            System.exit(1);
+        }
+        assembler.linesWritten = 0;
         assembler.process();
-        try{
+        try {
             assembler.createOutput();
             System.out.println("done!");
-        }catch(Exception e){
-            System.out.println("ERROR::"+ e.getMessage());
+        } catch (Exception e) {
+            System.out.println("ERROR::" + e.getMessage());
         }
     }
 
@@ -92,28 +98,28 @@ public class ClonesNamesAssembler {
     }
 
     private void createOutput() throws IOException {
-        String filename = "output/" + this.projectName
-                + "-clones_names.csv";
+        String filename = "output/" + this.projectName + "-clones_names.csv";
         this.outputWriter = Util.openFile(filename, false);
         StringBuilder sb = new StringBuilder();
         Set<Integer> ids = this.cloneIdsMap.keySet();
-        try{
+        try {
             for (Integer id : ids) {
                 sb.append(this.idNameMap.get(id) + ",");
                 List<Integer> clones = this.cloneIdsMap.get(id);
                 for (Integer clone : clones) {
-                    sb.append(this.idNameMap.get(clone)+"::");
+                    sb.append(this.idNameMap.get(clone) + "::");
                 }
-                sb.setLength(sb.length()-2);
-                sb.append(","+clones.size());
+                sb.setLength(sb.length() - 2);
+                sb.append("," + clones.size());
                 Util.writeToFile(this.outputWriter, sb.toString(), true);
                 sb.setLength(0);
                 this.linesWritten++;
-                if((this.linesWritten % 1000)==0){
-                    System.out.println("lines written so far "+ this.linesWritten);
+                if ((this.linesWritten % 1000) == 0) {
+                    System.out.println("lines written so far "
+                            + this.linesWritten);
                 }
             }
-        }finally{
+        } finally {
             Util.closeOutputFile(this.outputWriter);
         }
     }

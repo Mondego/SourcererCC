@@ -4,6 +4,7 @@
 package utility;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -74,4 +75,12 @@ public class Util {
         pWriter.close();
     }
     
+    public static boolean createDirs(String dirname){
+        File dir = new File(dirname);
+        if(!dir.exists()){
+            return dir.mkdirs();
+        }else{
+            return true;
+        }
+    }
 }

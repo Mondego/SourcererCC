@@ -53,6 +53,8 @@ public class CloneDetector {
             System.exit(1);
         }
         try {
+            System.out.println("***********"+System.getProperty("user.dir"));
+            Util.createDirs("output");
             String filename = "output/"+cd.filePrefix+"clonesAnalysis_NO_FILTER.csv";
             System.out.println("writing in file : "+ filename);
             cd.analysisWriter = Util.openFile(filename,true);

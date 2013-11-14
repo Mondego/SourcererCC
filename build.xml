@@ -7,6 +7,8 @@
     <property name="jar.dir"     value="dist"/>
     <property name="cdWithFilter"  value="CloneDetectorWithFilter"/>
     <property name="cdWithoutFilter"  value="CloneDetector"/>
+    <property name="clonesBugsAssembler"  value="postprocessing.ClonesBugsAssembler"/>
+    <property name="clonesNamesAssembler"  value="postprocessing.ClonesNamesAssembler"/>
     <property name="dist.dir" value="dist"/>
 
     <target name="clean">
@@ -36,6 +38,22 @@
             </manifest>
         </jar>
     </target>
+    <target name="jarBA" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${clonesBugsAssembler}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${clonesBugsAssembler}"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="jarNA" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${clonesNamesAssembler}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${clonesNamesAssembler}"/>
+            </manifest>
+        </jar>
+    </target>
 
     <target name="runWF" depends="jarWF">
         <java jar="${jar.dir}/${cdWithFilter}.jar" fork="true"/>
@@ -48,5 +66,5 @@
     <target name="cdwf" depends="clean,runWF"/>
     <target name="cdwof" depends="clean,runWOF"/>
     <target name="cdboth" depends="clean,runWF,runWOF"/>
-
+    <target name="cdpp" depends="jarBA,jarNA"/>
 </project>
