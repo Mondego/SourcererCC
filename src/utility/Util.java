@@ -15,7 +15,7 @@ import java.util.Random;
  */
 public class Util {
     static Random rand = new Random(5);
-    
+    public static final String CSV_DELIMITER = "~"; 
 
     /**
      * generates a random integer

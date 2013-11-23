@@ -104,13 +104,13 @@ public class ClonesNamesAssembler {
         Set<Integer> ids = this.cloneIdsMap.keySet();
         try {
             for (Integer id : ids) {
-                sb.append(this.idNameMap.get(id) + ",");
+                sb.append(this.idNameMap.get(id) + Util.CSV_DELIMITER);
                 List<Integer> clones = this.cloneIdsMap.get(id);
                 for (Integer clone : clones) {
                     sb.append(this.idNameMap.get(clone) + "::");
                 }
                 sb.setLength(sb.length() - 2);
-                sb.append("," + clones.size());
+                sb.append(Util.CSV_DELIMITER + clones.size());
                 Util.writeToFile(this.outputWriter, sb.toString(), true);
                 sb.setLength(0);
                 this.linesWritten++;
