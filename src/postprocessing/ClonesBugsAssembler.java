@@ -140,9 +140,9 @@ public class ClonesBugsAssembler {
     }
     private void appendSummary(int rows){
         StringBuilder sb = new StringBuilder();
-        sb.append("\n\n\n"+"&SUMMARY-START&");
+        sb.append("&SUMMARY-START&");
         sb.append(Util.CSV_DELIMITER+Util.CSV_DELIMITER+"non clones"+Util.CSV_DELIMITER+"clones"+Util.CSV_DELIMITER+"total"+"\n");
-        int columnOffset = rows+5;
+        int columnOffset = rows+2;
         sb.append(Util.CSV_DELIMITER+"LOC"+Util.CSV_DELIMITER+"=SUMIF(P:P,\"=0\",B:B)"+Util.CSV_DELIMITER+"=SUMIF(P:P,\">0\",B:B)"+Util.CSV_DELIMITER+"=SUM(C"+columnOffset+":D"+columnOffset+")\n");
         sb.append(Util.CSV_DELIMITER+"BUGS"+Util.CSV_DELIMITER+"=SUMIF(P:P,\"=0\",L:L)"+Util.CSV_DELIMITER+"=SUMIF(P:P,\">0\",L:L)"+Util.CSV_DELIMITER+"=SUM(C"+(columnOffset+1)+":D"+(columnOffset+1)+")\n");
         sb.append(Util.CSV_DELIMITER+"DD"+Util.CSV_DELIMITER+"=(C"+(columnOffset+1)+"*1000)/"+"C"+columnOffset+Util.CSV_DELIMITER+"=(D"+(columnOffset+1)+"*1000)/"+"D"+columnOffset+Util.CSV_DELIMITER+"=SUM(C"+(columnOffset+1)+":D"+(columnOffset+1)+")\n");

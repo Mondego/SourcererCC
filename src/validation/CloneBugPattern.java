@@ -68,6 +68,7 @@ public class CloneBugPattern {
         Set<String> methods = clonesNameMap.keySet();
         boolean found=false;
         boolean ret = false;
+        Util.writeToFile(this.outputWriter, "sep="+Util.CSV_DELIMITER, true);
         for (String method : methods) {
             StringBuilder sb = new StringBuilder();
             String valueString = clonesNameMap.get(method);

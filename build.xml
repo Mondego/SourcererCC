@@ -10,6 +10,7 @@
     <property name="clonesBugsAssembler"  value="postprocessing.ClonesBugsAssembler"/>
     <property name="clonesNamesAssembler"  value="postprocessing.ClonesNamesAssembler"/>
     <property name="clonesBugPattern"  value="validation.CloneBugPattern"/>
+    <property name="aggregatorClones"  value="postprocessing.Aggregator"/>
     
     <property name="dist.dir" value="dist"/>
 
@@ -71,11 +72,20 @@
     <target name="runWOF" depends="jarWOF">
         <java jar="${jar.dir}/${cdWithoutFilter}.jar" fork="true"/>
     </target>
+    <target name="jarAg" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${aggregatorClones}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${aggregatorClones}"/>
+            </manifest>
+        </jar>
+    </target>
 
 <!--     <target name="clean-build" depends="clean,jar"/> -->
     <target name="cdwf" depends="clean,runWF"/>
     <target name="cdwof" depends="clean,runWOF"/>
-    <target name="cdboth" depends="clean,runWF,runWOF"/>
+    <target name="cdboth" depends="clean,jarWF,jarWOF"/>
     <target name="cdpp" depends="jarBA,jarNA"/>
     <target name="cdv" depends="jarV"/>
+    <target name="cda" depends="jarAg"/>
 </project>
