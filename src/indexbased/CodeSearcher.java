@@ -3,18 +3,17 @@
  */
 package indexbased;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
-import models.Bag;
-import models.TokenFrequency;
+import models.QueryBlock;
 import noindex.CloneHelper;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -40,10 +39,11 @@ public class CodeSearcher {
     private CloneHelper cloneHelper;
     private QueryParser queryParser;
     private String field;
+    private TermSearcher termSearcher;
 
-    public CodeSearcher() {
+    public CodeSearcher(String indexDir) {
         this.field = "tokens";
-        this.indexDir = Util.INDEX_DIR;
+        this.indexDir = indexDir;
         try {
             this.reader = DirectoryReader.open(FSDirectory.open(new File(
                     this.indexDir)));
@@ -59,94 +59,163 @@ public class CodeSearcher {
                 analyzer);
     }
 
-    /**
-     * @param args
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException {
-        // TODO Auto-generated method stub
-        CodeSearcher codeSearcher = new CodeSearcher();
-        codeSearcher.searchIndex();
-        // String test = "ada\"sdsd\'asds\"sdsdsd\'d";
-        // System.out.println(codeSearcher.strip(test));
-    }
-
-    private void searchIndex() throws IOException {
-        File datasetDir = new File("input/query/");
-        if (datasetDir.isDirectory()) {
-            System.out.println("Directory: " + datasetDir.getName());
-            for (File inputFile : datasetDir.listFiles()) {
-                String queryFile = "input/query/" + inputFile.getName();
-                BufferedReader br = null;
-                try {
-                    br = new BufferedReader(new FileReader(queryFile));
-                    String line;
-                    while ((line = br.readLine()) != null
-                            && line.trim().length() > 0) {
-                        Bag bag = cloneHelper.deserialise(line);
-                        for (TokenFrequency tf : bag) {
-                            try {
-                                Query query = queryParser.parse(tf.getToken()
-                                        .getValue());
-                                System.out.println("Searching for: "
-                                        + query.toString(this.field) + " : "
-                                        + tf.getToken().getValue());
-                                CustomCollector result = new CustomCollector();
-                                this.searcher.search(query, result);
-                                this.processResults(result);
-                            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-                                // TODO Auto-generated catch block
-                                // e.printStackTrace();
-                                System.out.println("cannot parse "
-                                        + e.getMessage());
-                            }
-                        }
-                    }
-                } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParseException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } finally {
-                    try {
-                        br.close();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-            }
-        } else {
-            System.out.println("File: " + datasetDir.getName()
-                    + " is not a direcory. exiting now");
+    public CodeSearcher(boolean searchOnForwardIndex) {
+        this.field = "id";
+        this.indexDir = Util.FWD_INDEX_DIR;
+        try {
+            this.reader = DirectoryReader.open(FSDirectory.open(new File(
+                    this.indexDir)));
+        } catch (IOException e) {
+            System.out.println("cant get the reader to fwdindex dir, exiting");
+            e.printStackTrace();
             System.exit(1);
         }
+        this.searcher = new IndexSearcher(reader);
+        this.analyzer = new KeywordAnalyzer();
+        this.cloneHelper = new CloneHelper();
+        this.queryParser = new QueryParser(Version.LUCENE_46, this.field,
+                analyzer);
     }
 
-    private String strip(String str) {
-        return str.replaceAll("(\'|\")", "");
-    }
+    public CustomCollector search(QueryBlock queryBlock) throws IOException {
+        CustomCollector result = new CustomCollector(this.searcher);
+        for (Entry<String,Integer> entry : queryBlock.entrySet()) {
+            try {
+                Query query = queryParser.parse(entry.getKey());
+                /*
+                 * System.out.println("Searching for: " +
+                 * query.toString(this.field) + " : " +
+                 * tf.getToken().getValue());
+                 */
 
-    private void processResults(CustomCollector result) {
-        if (null != result && result.getCodeBlockIds().size() == 0) {
-            for (Integer docId : result.getCodeBlockIds()) {
-                try {
-                    Document doc = this.searcher.doc(docId);
-                    System.out.println("match found, codeblock id :"
-                            + doc.get("id"));
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    System.out.println("IOEXception,  exiting");
-                    System.exit(1);
-                }
+                this.searcher.search(query, result);
+                
+            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+                System.out.println("cannot parse " + e.getMessage());
             }
-        } else {
-            System.out.println("no results");
+        }
+        return result;
+    }
+
+    public CustomCollector search(QueryBlock queryBlock, int prefixSize) throws IOException {
+        CustomCollector result = new CustomCollector(this.searcher);
+        List<String> tfsToRemove = new ArrayList<String>();
+        for (Entry<String, Integer> entry : queryBlock.entrySet()) {
+            try {
+                Query query = queryParser.parse(entry.getKey());
+                /*
+                 * System.out.println("Searching for: " +
+                 * query.toString(this.field) + " : " +
+                 * tf.getToken().getValue());
+                 */
+                result.setSearchTerm(query.toString(this.field));
+                result.setFreqOfSearchTerm(entry.getValue());
+                this.searcher.search(query, result);
+               // String term = query.toString(this.field);
+                tfsToRemove.add(entry.getKey()); // remove this tf
+                prefixSize = prefixSize-entry.getValue();
+                if (prefixSize <= 0) {
+                    break;
+                }
+            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+                System.out.println("cannot parse " + e.getMessage());
+            }
+        }
+        for (String key : tfsToRemove) {
+            queryBlock.remove(key);
+        }
+        tfsToRemove = null; // just making sure to remove all references
+        return result;
+    }
+    
+    public void search2(QueryBlock queryBlock, int prefixSize) throws IOException {
+        List<String> tfsToRemove = new ArrayList<String>();
+        this.termSearcher.setReader(this.reader);
+        for (Entry<String, Integer> entry : queryBlock.entrySet()) {
+            try {
+                Query query = queryParser.parse(entry.getKey());
+                /*
+                 * System.out.println("Searching for: " +
+                 * query.toString(this.field) + " : " +
+                 * tf.getToken().getValue());
+                 */
+                this.termSearcher.setSearchTerm(query.toString(this.field));
+                this.termSearcher.setFreqTerm(entry.getValue());
+                this.termSearcher.search();
+               // String term = query.toString(this.field);
+                tfsToRemove.add(entry.getKey()); // remove this tf
+                prefixSize = prefixSize-entry.getValue();
+                if (prefixSize <= 0) {
+                    break;
+                }
+            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+                System.out.println("cannot parse " + e.getMessage());
+            }
+        }
+        for (String key : tfsToRemove) {
+            queryBlock.remove(key);
+        }
+    }
+    public void search2(QueryBlock queryBlock) throws IOException {
+        this.termSearcher.setReader(this.reader);
+        for (Entry<String, Integer> entry : queryBlock.entrySet()) {
+            try {
+                Query query = queryParser.parse(entry.getKey());
+                this.termSearcher.setSearchTerm(query.toString(this.field));
+                this.termSearcher.setFreqTerm(entry.getValue());
+                this.termSearcher.search();
+            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+                System.out.println("cannot parse " + e.getMessage());
+            }
         }
     }
 
+    public CustomCollectorFwdIndex search(Document doc) throws IOException {
+        CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
+        Query query;
+        try {
+            query = queryParser.parse(doc.get("id"));
+            /*
+             * System.out.println("Searching for: " + query.toString(this.field)
+             * + " : " + doc.get("id"));
+             */
+            this.searcher.search(query, result);
+        } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+            System.out.println("cannot parse " + e.getMessage());
+        }
+        return result;
+    }
+
+    public Document getDocument(long docId) throws IOException {
+        return this.searcher.doc((int) docId);
+    }
+
+    /**
+     * @return the reader
+     */
+    public IndexReader getReader() {
+        return reader;
+    }
+
+    /**
+     * @param reader
+     *            the reader to set
+     */
+    public void setReader(IndexReader reader) {
+        this.reader = reader;
+    }
+
+    /**
+     * @return the termSearcher
+     */
+    public TermSearcher getTermSearcher() {
+        return termSearcher;
+    }
+
+    /**
+     * @param termSearcher the termSearcher to set
+     */
+    public void setTermSearcher(TermSearcher termSearcher) {
+        this.termSearcher = termSearcher;
+    }
 }

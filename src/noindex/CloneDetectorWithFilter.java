@@ -31,7 +31,7 @@ public class CloneDetectorWithFilter {
     private CloneHelper cloneHelper;
     private float threshold; // threshold for matching the clones.e.g. .8 or
                              // .9
-    private Map<Integer, List<TokenFrequency>> bagToListMap;
+    private Map<Long, List<TokenFrequency>> bagToListMap;
     private long filterComparision;
     private boolean doSort;
     private PrintWriter analysisWriter;
@@ -50,7 +50,7 @@ public class CloneDetectorWithFilter {
     public CloneDetectorWithFilter() {
         super();
         this.threshold = .8F;
-        this.bagToListMap = new HashMap<Integer, List<TokenFrequency>>();
+        this.bagToListMap = new HashMap<Long, List<TokenFrequency>>();
         this.filterComparision = 0;
         this.doSort = true;
         this.candidateCumulativeTime = 0;
@@ -119,9 +119,9 @@ public class CloneDetectorWithFilter {
                     + "-clone-INPUT.txt";
             String projectBfile = "input/dataset/" + this.filePrefix
                     + "-clone-INPUT.txt";
-            this.cloneHelper.parseInputFileAndPopulateSet(projectAfile, setA);
+            this.cloneHelper.parseInputFileAndPopulateSet(new File(projectAfile), setA);
             Set<Bag> setB = new HashSet<Bag>();
-            this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
+            this.cloneHelper.parseInputFileAndPopulateSet(new File(projectBfile), setB);
             this.setGlobalTokenPositionMap(CloneTestHelper
                     .getGlobalTokenPositionMap(setA, setB)); // input
             // sort
@@ -172,7 +172,7 @@ public class CloneDetectorWithFilter {
     }
 
     private void init() {
-        this.bagToListMap = new HashMap<Integer, List<TokenFrequency>>();
+        this.bagToListMap = new HashMap<Long, List<TokenFrequency>>();
         this.filterComparision = 0;
     }
 

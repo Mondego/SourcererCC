@@ -88,9 +88,9 @@ public class CloneDetector {
                     + "-clone-INPUT.txt";
             String projectBfile = "input/dataset/" + this.filePrefix
                     + "-clone-INPUT.txt";// change diskwrites
-            this.cloneHelper.parseInputFileAndPopulateSet(projectAfile, setA);
+            this.cloneHelper.parseInputFileAndPopulateSet(new File(projectAfile), setA);
             Set<Bag> setB = new HashSet<Bag>();
-            this.cloneHelper.parseInputFileAndPopulateSet(projectBfile, setB);
+            this.cloneHelper.parseInputFileAndPopulateSet(new File(projectBfile), setB);
             long start_time = System.currentTimeMillis();
 
             this.cloneHelper.detectClones(setA, setB); // input

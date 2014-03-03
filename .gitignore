@@ -84,3 +84,7 @@ log.txt
 thirdparty/mongo-cxx-driver-v2.4/*
 output*
 input*
+/bin
+index/*
+dist/*
+fwdindex/*

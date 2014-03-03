@@ -11,6 +11,8 @@
     <property name="clonesNamesAssembler"  value="postprocessing.ClonesNamesAssembler"/>
     <property name="clonesBugPattern"  value="validation.CloneBugPattern"/>
     <property name="aggregatorClones"  value="postprocessing.Aggregator"/>
+    <property name="cdIndex"  value="indexbased.SearchManager"/>
+    <property name="lib"  value="lib"/>
     
     <property name="dist.dir" value="dist"/>
 
@@ -22,7 +24,13 @@
     <target name="compile">
         <mkdir dir="${classes.dir}"/>
         <mkdir dir="${jar.dir}"/>
-        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}"/>
+        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}">
+            <classpath>
+               <fileset dir="${lib}">
+                  <include name="**/*.jar" />
+               </fileset>
+         </classpath>
+         </javac>
     </target>
 
     <target name="jarWF" depends="compile">
@@ -41,6 +49,16 @@
             </manifest>
         </jar>
     </target>
+    <target name="jarCDI" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${cdIndex}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${cdIndex}"/>
+            </manifest>
+            <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+        </jar>
+    </target>
+    
     <target name="jarBA" depends="compile">
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonesBugsAssembler}.jar" basedir="${classes.dir}">
@@ -88,4 +106,5 @@
     <target name="cdpp" depends="jarBA,jarNA"/>
     <target name="cdv" depends="jarV"/>
     <target name="cda" depends="jarAg"/>
+    <target name="cdi" depends="jarCDI"/>
 </project>

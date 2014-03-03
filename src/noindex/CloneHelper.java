@@ -1,18 +1,18 @@
 package noindex;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
-import java.util.HashSet;
 import java.util.Set;
 
 import models.Bag;
+import models.QueryBlock;
 import models.Token;
 import models.TokenFrequency;
-
 import utility.Util;
 
 /**
@@ -186,9 +186,41 @@ public class CloneHelper {
 
         }
     }
+    
+    public QueryBlock deserialiseToQueryBlock(String s) throws ParseException {
+        if (null != s && s.trim().length() > 0) {
+            String[] bagAndTokens = s.split("@#@");
+            String bagId = bagAndTokens[0];
+            QueryBlock queryBlock = new QueryBlock(Long.parseLong((bagId)));
+            String tokenString = bagAndTokens[1];
+            this.parseAndPopulateQueryBlock(queryBlock, tokenString);
+            return queryBlock;
+        }
+        throw new ParseException("parsing error", 0);
+    }
+
+    private void parseAndPopulateQueryBlock(QueryBlock queryBlock, String inputString) {
+        String[] tokenFreqStrings = inputString.split(",");
+        for (String tokenFreq : tokenFreqStrings) {
+            String[] tokenAndFreq = tokenFreq.split("@@::@@");
+            String tokenStr = this.strip(tokenAndFreq[0]).trim();
+            if (tokenStr.length() > 0) {
+                try {
+                    queryBlock.put(tokenStr,Integer
+                            .parseInt(tokenAndFreq[1]));
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    System.out.println("EXCEPTION CAUGHT, token: " + tokenStr);
+                    // System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
+                    // tokenAndFreq[1]);
+                    System.out.println("EXCEPTION CAUGHT: " + inputString);
+                }
+            }
+
+        }
+    }
 
     private String strip(String str) {
-        return str.replaceAll("(\'|\")", "");
+        return str.replaceAll("(\'|\"|\\\\)", "");
     }
 
     /**
@@ -220,7 +252,7 @@ public class CloneHelper {
         Util.writeToFile(inputSetsWriter, setBString, true);
     }
 
-    public void parseInputFileAndPopulateSet(String filename, Set<Bag> bagsSet) {
+    public void parseInputFileAndPopulateSet(File filename, Set<Bag> bagsSet) {
         BufferedReader br = null;
         try {
             br = new BufferedReader(new FileReader(filename));

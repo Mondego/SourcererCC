@@ -9,6 +9,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
+
+import models.Bag;
+import models.QueryBlock;
 /**
  * @author vaibhavsaini
  * 
@@ -17,6 +20,8 @@ public class Util {
     static Random rand = new Random(5);
     public static final String CSV_DELIMITER = "~"; 
     public static final String INDEX_DIR = "index";
+    public static final String FWD_INDEX_DIR = "fwdindex";
+    public static final String INDEX_DIR_NO_FILTER = "index_nofilter";
 
     /**
      * generates a random integer
@@ -83,5 +88,23 @@ public class Util {
         }else{
             return true;
         }
+    }
+    
+    public static int getMinimumSimilarityThreshold(QueryBlock queryBlock,float threshold) {
+        return (int) Math.ceil(threshold * queryBlock.getSize());
+    }
+    public static int getMinimumSimilarityThreshold(Bag bag,float threshold) {
+        return (int) Math.ceil(threshold * bag.getSize());
+    }
+
+    public static int getPrefixSize(QueryBlock queryBlock, float threshold) {
+        int computedThreshold = getMinimumSimilarityThreshold(queryBlock, threshold);
+        int prefixSize = (queryBlock.getSize() + 1) - computedThreshold;// this.computePrefixSize(maxLength);
+        return prefixSize;
+    }
+    public static int getPrefixSize(Bag bag, float threshold) {
+        int computedThreshold = getMinimumSimilarityThreshold(bag, threshold);
+        int prefixSize = (bag.getSize() + 1) - computedThreshold;// this.computePrefixSize(maxLength);
+        return prefixSize;
     }
 }

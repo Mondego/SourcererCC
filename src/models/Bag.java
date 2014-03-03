@@ -1,7 +1,5 @@
 package models;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 /**
  * 
@@ -11,21 +9,21 @@ import java.util.Set;
  * @author vaibhavsaini
  * 
  */
-public class Bag extends ArrayList<TokenFrequency> {
+public class Bag extends LinkedHashSet<TokenFrequency> {
     /**
      * 
      */
     private static final long serialVersionUID = 1721183896451527542L;
-    public int id;
+    public long id;
     public int size;
     public int comparisions;
 
     /**
-     * @param id
+     * @param bagId
      */
-    public Bag(int id) {
+    public Bag(long bagId) {
         super();
-        this.id = id;
+        this.id = bagId;
         this.size =0;
         this.comparisions=0;
     }
@@ -37,7 +35,7 @@ public class Bag extends ArrayList<TokenFrequency> {
     /**
      * @return the id
      */
-    public int getId() {
+    public long getId() {
         return this.id;
     }
 
