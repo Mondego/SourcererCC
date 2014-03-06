@@ -37,6 +37,7 @@ import utility.Util;
  * 
  */
 public class SearchManager {
+    private long clonePairsCount;
     private CodeSearcher searcher;
     private CodeSearcher fwdSearcher;
     private CloneHelper cloneHelper;
@@ -50,10 +51,16 @@ public class SearchManager {
     private final static String ACTION_INDEX = "index";
     private final static String ACTION_SEARCH = "search";
     private CodeIndexer indexer;
+    private long timeSpentInProcessResult;
+    private long timeSpentInSearchingCandidates;
 
     public SearchManager(boolean mode) {
+        this.clonePairsCount = 0;
         this.isPrefixMode = mode;
         this.cloneHelper = new CloneHelper();
+        this.timeSpentInProcessResult = 0;
+        this.timeSpentInSearchingCandidates = 0;
+
     }
 
     public static void main(String[] args) throws IOException, ParseException {
@@ -74,6 +81,12 @@ public class SearchManager {
             long end_time = System.currentTimeMillis();
             System.out.println("total run time in milliseconds:"
                     + (end_time - start_time));
+            System.out.println("Search Candidates time: "
+                    + searchManager.timeSpentInSearchingCandidates);
+            System.out.println("Process Result  time: "
+                    + searchManager.timeSpentInProcessResult);
+            System.out.println("number of clone pairs detected: "
+                    + searchManager.clonePairsCount);
         } else {
             System.out
                     .println("Please provide all 3 command line arguments, exiting now.");
@@ -207,12 +220,22 @@ public class SearchManager {
                                  * this.processReultWithFilter(result,
                                  * queryBlock, computedThreshold);
                                  */
-                                System.out.println("+++++++");
+                                // System.out.println("+++++++");
                                 TermSearcher termSearcher = new TermSearcher();
                                 this.searcher.setTermSearcher(termSearcher);
+                                long searchCandidatesTimeStart = System
+                                        .currentTimeMillis();
                                 this.searcher.search2(queryBlock, prefixSize);
+                                this.timeSpentInSearchingCandidates += System
+                                        .currentTimeMillis()
+                                        - searchCandidatesTimeStart;
+                                long processResultTimeStart = System
+                                        .currentTimeMillis();
                                 this.processResultWithFilter(termSearcher,
                                         queryBlock, computedThreshold);
+                                this.timeSpentInProcessResult += System
+                                        .currentTimeMillis()
+                                        - processResultTimeStart;
                             } else {
                                 /*
                                  * CustomCollector result = this.searcher
@@ -221,9 +244,19 @@ public class SearchManager {
                                  */
                                 TermSearcher termSearcher = new TermSearcher();
                                 this.searcher.setTermSearcher(termSearcher);
+                                long searchCandidatesTimeStart = System
+                                        .currentTimeMillis();
                                 this.searcher.search2(queryBlock);
+                                this.timeSpentInSearchingCandidates += System
+                                        .currentTimeMillis()
+                                        - searchCandidatesTimeStart;
+                                long processResultTimeStart = System
+                                        .currentTimeMillis();
                                 this.processReult(termSearcher,
                                         computedThreshold, queryBlock);
+                                this.timeSpentInProcessResult += System
+                                        .currentTimeMillis()
+                                        - processResultTimeStart;
                             }
 
                         } catch (ParseException e) {
@@ -246,7 +279,7 @@ public class SearchManager {
 
     private void processReult(TermSearcher termSearcher, int computedThreshold,
             QueryBlock queryBlock) {
-        long numClonesFound = 0;
+
         Map<Long, Integer> codeBlockIds = termSearcher.getSimMap();
         for (Entry<Long, Integer> entry : codeBlockIds.entrySet()) {
             Document doc = null;
@@ -399,10 +432,10 @@ public class SearchManager {
     private long updateSimilarity(QueryBlock queryBlock,
             Entry<Long, Integer> entry, String tokens, int computedThreshold,
             String idCandidate) {
-        long similarity = entry.getValue();
+        // long similarity = entry.getValue();
+        long similarity = 0;
         for (String tokenfreqFrame : tokens.split("::")) {
             String[] tokenFreqInfo = tokenfreqFrame.split(":");
-
             if (queryBlock.containsKey(tokenFreqInfo[0])) {
                 similarity += Math.min(queryBlock.get(tokenFreqInfo[0]),
                         Integer.parseInt(tokenFreqInfo[1]));
@@ -416,7 +449,8 @@ public class SearchManager {
 
     private void reportClone(QueryBlock queryBlock, long idB,
             QueryBlock previousQueryBlock) {
-        System.out.println("reporting " + idB);
+        this.clonePairsCount += 1;
+        // System.out.println("reporting " + idB);
         if (null != previousQueryBlock
                 && queryBlock.getId() == previousQueryBlock.getId()) {
             // System.out.println("equal");
@@ -467,7 +501,8 @@ public class SearchManager {
                             .getKey())
                             || !TermSorter.globalTokenPositionMap
                                     .containsKey(tfSecond.getKey())) {
-                        System.out.println("term not found in globalTokenPositionMap");
+                        System.out
+                                .println("term not found in globalTokenPositionMap");
                     }
                     long position1 = TermSorter.globalTokenPositionMap
                             .get(tfFirst.getKey());

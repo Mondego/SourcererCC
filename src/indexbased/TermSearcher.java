@@ -37,9 +37,9 @@ public class TermSearcher {
                 if (null != docEnum) {
                     int doc = DocsEnum.NO_MORE_DOCS;
                     while ((doc = docEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-
                         long docId = doc + base;
-                        // System.out.println("docbase is: " + base + " doc: " +
+                        // System.out.println("docbase is: " + base +
+                        // " doc: " +
                         // doc + " globDocId: "+docId);
                         if (this.simMap.containsKey(docId)) {
                             this.simMap.put(docId, this.simMap.get(docId)

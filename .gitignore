@@ -88,3 +88,4 @@ input*
 index/*
 dist/*
 fwdindex/*
+index_nofilter/*

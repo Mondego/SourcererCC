@@ -75,7 +75,7 @@ public class TermSorter {
 
     private void populateWordFreqMap(File file) throws IOException,
             ParseException {
-        System.out.println("Sorting file: " + file.getName());
+        //System.out.println("Sorting file: " + file.getName());
         BufferedReader br = null;
         br = new BufferedReader(new FileReader(file));
         String line;
@@ -93,9 +93,9 @@ public class TermSorter {
                 // System.out.println(key + ": "+ this.wordFreq.get(key)+ " : "+
                 // tf.getFrequency()+ " : "+value);
                 this.wordFreq.put(key, value);
-                if(this.wordFreq.size()%10000==0){
-                    System.out.println("size of wordFreq Map: "+ this.wordFreq.size());
-                }
+                /*if(this.wordFreq.size()%10000==0){
+                    //System.out.println("size of wordFreq Map: "+ this.wordFreq.size());
+                }*/
             } else {
                 this.wordFreq.put(key, (long) tf.getFrequency());
             }

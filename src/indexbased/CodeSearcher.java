@@ -79,7 +79,7 @@ public class CodeSearcher {
 
     public CustomCollector search(QueryBlock queryBlock) throws IOException {
         CustomCollector result = new CustomCollector(this.searcher);
-        for (Entry<String,Integer> entry : queryBlock.entrySet()) {
+        for (Entry<String, Integer> entry : queryBlock.entrySet()) {
             try {
                 Query query = queryParser.parse(entry.getKey());
                 /*
@@ -89,7 +89,7 @@ public class CodeSearcher {
                  */
 
                 this.searcher.search(query, result);
-                
+
             } catch (org.apache.lucene.queryparser.classic.ParseException e) {
                 System.out.println("cannot parse " + e.getMessage());
             }
@@ -97,7 +97,8 @@ public class CodeSearcher {
         return result;
     }
 
-    public CustomCollector search(QueryBlock queryBlock, int prefixSize) throws IOException {
+    public CustomCollector search(QueryBlock queryBlock, int prefixSize)
+            throws IOException {
         CustomCollector result = new CustomCollector(this.searcher);
         List<String> tfsToRemove = new ArrayList<String>();
         for (Entry<String, Integer> entry : queryBlock.entrySet()) {
@@ -111,9 +112,9 @@ public class CodeSearcher {
                 result.setSearchTerm(query.toString(this.field));
                 result.setFreqOfSearchTerm(entry.getValue());
                 this.searcher.search(query, result);
-               // String term = query.toString(this.field);
+                // String term = query.toString(this.field);
                 tfsToRemove.add(entry.getKey()); // remove this tf
-                prefixSize = prefixSize-entry.getValue();
+                prefixSize = prefixSize - entry.getValue();
                 if (prefixSize <= 0) {
                     break;
                 }
@@ -127,24 +128,20 @@ public class CodeSearcher {
         tfsToRemove = null; // just making sure to remove all references
         return result;
     }
-    
-    public void search2(QueryBlock queryBlock, int prefixSize) throws IOException {
-        List<String> tfsToRemove = new ArrayList<String>();
+
+    public void search2(QueryBlock queryBlock, int prefixSize)
+            throws IOException {
+//        List<String> tfsToRemove = new ArrayList<String>();
         this.termSearcher.setReader(this.reader);
         for (Entry<String, Integer> entry : queryBlock.entrySet()) {
             try {
                 Query query = queryParser.parse(entry.getKey());
-                /*
-                 * System.out.println("Searching for: " +
-                 * query.toString(this.field) + " : " +
-                 * tf.getToken().getValue());
-                 */
                 this.termSearcher.setSearchTerm(query.toString(this.field));
                 this.termSearcher.setFreqTerm(entry.getValue());
                 this.termSearcher.search();
-               // String term = query.toString(this.field);
-                tfsToRemove.add(entry.getKey()); // remove this tf
-                prefixSize = prefixSize-entry.getValue();
+                // String term = query.toString(this.field);
+                // tfsToRemove.add(entry.getKey()); // remove this tf
+                prefixSize = prefixSize - entry.getValue();
                 if (prefixSize <= 0) {
                     break;
                 }
@@ -152,10 +149,12 @@ public class CodeSearcher {
                 System.out.println("cannot parse " + e.getMessage());
             }
         }
-        for (String key : tfsToRemove) {
-            queryBlock.remove(key);
-        }
+        // for (String key : tfsToRemove) {
+        // queryBlock.remove(key);
+        // }
+
     }
+
     public void search2(QueryBlock queryBlock) throws IOException {
         this.termSearcher.setReader(this.reader);
         for (Entry<String, Integer> entry : queryBlock.entrySet()) {
@@ -213,7 +212,8 @@ public class CodeSearcher {
     }
 
     /**
-     * @param termSearcher the termSearcher to set
+     * @param termSearcher
+     *            the termSearcher to set
      */
     public void setTermSearcher(TermSearcher termSearcher) {
         this.termSearcher = termSearcher;
