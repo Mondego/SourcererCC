@@ -9,7 +9,7 @@ import java.util.LinkedHashSet;
  * @author vaibhavsaini
  * 
  */
-public class Bag extends LinkedHashSet<TokenFrequency> {
+public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this not a linkedhashmap?
     /**
      * 
      */

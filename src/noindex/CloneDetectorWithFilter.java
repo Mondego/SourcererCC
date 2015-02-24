@@ -202,27 +202,58 @@ public class CloneDetectorWithFilter {
         }
     }
 
-    public void detectClones(Iterator<TokenFrequency> bagAItr, Bag bagB,
-            int computedThreshold, int matched, Bag bagA) {
-        while (bagAItr.hasNext()) {
-            // search this token in bagB
-            TokenFrequency tokenFrequencyA = bagAItr.next();
-
-            TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
-            this.comparisions += bagB.comparisions;
-            if (null != tokenFrequencyB) {
-                // token found.
-                matched += Math.min(tokenFrequencyA.getFrequency(),
-                        tokenFrequencyB.getFrequency());
-                if (matched >= computedThreshold) {
-                    // report clone.
-                    this.cloneHelper.reportClone(bagA, bagB, this.previousBag);
-                    this.previousBag = bagA;
-                    break; // no need to iterate on other keys clone has been
-                           // found
-                }
+    public void detectClones(Iterator<TokenFrequency> bagAItr,Iterator<TokenFrequency> bagBItr, Bag bagB,
+            int computedThreshold, int matchCount, Bag bagA,TokenFrequency tokenFrequencyA , TokenFrequency tokenFrequencyB) {
+            while (true) {
+                if (tokenFrequencyB.equals(tokenFrequencyA)) {
+                	matchCount += Math.min(tokenFrequencyA.getFrequency(),
+                            tokenFrequencyB.getFrequency());
+                        if (matchCount >= computedThreshold) {
+                            // report clone.
+                            this.cloneHelper.reportClone(bagA, bagB, this.previousBag);
+                            this.previousBag = bagA;
+                            break; // no need to iterate on other keys clone has been
+                                   // found
+                        }else{
+                    		int globalPositionA = this.globalTokenPositionMap
+                                    .get(tokenFrequencyA.getToken().getValue());
+                            int globalPositionB = this.globalTokenPositionMap
+                                    .get(tokenFrequencyB.getToken().getValue());
+                            if (globalPositionB <= globalPositionA) {
+                                if (bagBItr.hasNext()) {
+                                    tokenFrequencyB = bagBItr.next();
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                if (bagAItr.hasNext()) {
+                                    tokenFrequencyA = bagAItr.next();
+                                } else {
+                                    break;
+                                }
+                            }
+                    	}
+                	}else {
+	                    int globalPositionA = this.globalTokenPositionMap
+	                            .get(tokenFrequencyA.getToken().getValue());
+	                    int globalPositionB = this.globalTokenPositionMap
+	                            .get(tokenFrequencyB.getToken().getValue());
+	                    if (globalPositionB <= globalPositionA) {
+	                        if (bagBItr.hasNext()) {
+	                            tokenFrequencyB = bagBItr.next();
+	                        } else {
+	                            break;
+	                        }
+	                    } else {
+	                        if (bagAItr.hasNext()) {
+	                            tokenFrequencyA = bagAItr.next();
+	                        } else {
+	                            break;
+	                        }
+	                    }
+                	}
             }
-        }
+           // this.comparisions += bagB.comparisions;
     }
 
     /**
@@ -302,12 +333,15 @@ public class CloneDetectorWithFilter {
         int maxLength = Math.max((bagA.getSize()), bagB.getSize());
         int computedThreshold = (int) Math.ceil(this.threshold * maxLength);
         int prefixSize = (maxLength + 1) - computedThreshold;//this.computePrefixSize(maxLength);
+        int k = 1; // k is the addition filter
         boolean candidate = false;
+        int matchCount=0;
         /*
          * System.out.println("prefixSize for " + bagA.getId() + ", " +
          * bagB.getId() + " is: " + prefixSize);
          */
-        if (prefixSize <= Math.min(bagB.getSize(), bagA.getSize())) {
+        if (prefixSize <= Math.min(bagB.getSize(), bagA.getSize())) { // optimization #1 : candidate is only 
+        	//possible if prefix size is smaller than the min(size(bagA),size(bagB))
             List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
             List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
             Iterator<TokenFrequency> listAItr = listA.iterator();
@@ -319,20 +353,67 @@ public class CloneDetectorWithFilter {
             int tokenSeenInA = tokenFrequencyA.getFrequency();
             while (true) {
                 this.filterComparision += 1;
+                count = Math.min(tokenSeenInA, tokenSeenInB);
                 if (tokenFrequencyB.equals(tokenFrequencyA)) {
-                    // candidate = true;
-                    this.numCandidates+=1;
-                    int matched = Math.min(tokenFrequencyA.getFrequency(),
+                	
+                	matchCount += Math.min(tokenFrequencyA.getFrequency(),
                             tokenFrequencyB.getFrequency());
-                    long stopTime = System.currentTimeMillis();
-                    this.candidateCumulativeTime += stopTime - startTime;
-                    this.detectClones(listAItr, bagB, computedThreshold,
-                            matched, bagA);
-                    return true;
+                	if(matchCount >= k+1){ // filter condition, 1 is for the original prefix match, k additional matches required
+                		this.numCandidates+=1;
+                		long stopTime = System.currentTimeMillis();
+                		int globalPositionA = this.globalTokenPositionMap
+                                .get(tokenFrequencyA.getToken().getValue());
+                        int globalPositionB = this.globalTokenPositionMap
+                                .get(tokenFrequencyB.getToken().getValue());
+                        if (globalPositionB <= globalPositionA) {
+                            if (listBItr.hasNext()) {
+                                tokenFrequencyB = listBItr.next();
+                            } else {
+                                break;
+                            }
+                        } else {
+                            if (listAItr.hasNext()) {
+                                tokenFrequencyA = listAItr.next();
+                            } else {
+                                break;
+                            }
+                        }
+                		
+                        this.candidateCumulativeTime += (stopTime - startTime);
+                        // TODO: optimize for location filter; send bagBItr maybe?
+                        this.detectClones(listAItr,listBItr, bagB, computedThreshold,
+                        		matchCount, bagA,tokenFrequencyA,tokenFrequencyB);
+                        return true;
+                	}else{
+                		int globalPositionA = this.globalTokenPositionMap
+                                .get(tokenFrequencyA.getToken().getValue());
+                        int globalPositionB = this.globalTokenPositionMap
+                                .get(tokenFrequencyB.getToken().getValue());
+                        if (globalPositionB <= globalPositionA) {
+                            if (listBItr.hasNext()) {
+                                tokenFrequencyB = listBItr.next();
+                                tokenSeenInB += tokenFrequencyB.getFrequency();
+                            } else {
+                                break;
+                            }
+                        } else {
+                            if (listAItr.hasNext()) {
+                                tokenFrequencyA = listAItr.next();
+                                tokenSeenInA += tokenFrequencyA.getFrequency();
+                            } else {
+                                break;
+                            }
+                        }
+                	}
+                    // candidate = true;
+                    
+//                    int matched = Math.min(tokenFrequencyA.getFrequency(),
+//                            tokenFrequencyB.getFrequency());
                 } else {
-                    count = Math.min(tokenSeenInA, tokenSeenInB);
-                    if (count >= prefixSize) {
+                    if (count >= prefixSize && matchCount==0) {
                         break;
+                    }else if(count>=prefixSize+k){
+                    	break;
                     }
                     int globalPositionA = this.globalTokenPositionMap
                             .get(tokenFrequencyA.getToken().getValue());
@@ -358,7 +439,7 @@ public class CloneDetectorWithFilter {
 
         }
         long stopTime = System.currentTimeMillis();
-        this.candidateCumulativeTime += stopTime - startTime;
+        this.candidateCumulativeTime += (stopTime - startTime);
         //Util.writeToFile(this.prefixWriter, prefixSize+"", true);
         return candidate;
     }

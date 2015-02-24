@@ -49,7 +49,7 @@ public class CloneHelper {
      */
     public void reportClone(Bag bagA, Bag bagB, Bag previousBag) {
         this.numClonesFound += 1;
-        if (bagA.equals(previousBag)) {
+        if (bagA.equals(previousBag)) {  // TODO: can be optimized if we do not compare here
             // System.out.println("equal");
             Util.writeToFile(this.clonesWriter, " ," + bagB.getId(), false);
         } else {
