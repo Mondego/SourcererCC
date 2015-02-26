@@ -348,7 +348,10 @@ public class CloneDetectorWithFilter {
 		this.numPairs += 1;
 		long startTime = System.currentTimeMillis();
 		int maxLength = Math.max((bagA.getSize()), bagB.getSize());
-		int computedThreshold = (int) Math.ceil(this.threshold * maxLength);
+		int minLength = Math.min((bagA.getSize()), bagB.getSize());
+		//int computedThreshold_overlap = (int) Math.ceil(this.threshold * maxLength);
+		int computedThreshold_jaccard = (int)Math.ceil((this.threshold*(bagA.getSize()+bagB.getSize()))/(1+this.threshold));
+		int computedThreshold = computedThreshold_jaccard;
 		int prefixSize = (maxLength + 1) - computedThreshold;// this.computePrefixSize(maxLength);
 		boolean candidate = false;
 		int matchCount = 0;
@@ -357,14 +360,16 @@ public class CloneDetectorWithFilter {
 		 * bagB.getId() + " is: " + prefixSize);
 		 */
 		
-		if (computedThreshold < Math.min(bagB.getSize(), bagA.getSize()) && prefixSize <= Math.min(bagB.getSize(), bagA.getSize())) { // optimization
+		//if (computedThreshold < Math.min(bagB.getSize(), bagA.getSize()) && prefixSize <= Math.min(bagB.getSize(), bagA.getSize())) { // optimization
 																		// #1 :
 																		// candidate
 																		// is
 																		// only
 			// possible if prefix size is smaller than the
 			// min(size(bagA),size(bagB))
-			List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
+		//computedThreshold*maxLength <= minLength &&
+		if ( Math.ceil(this.threshold*maxLength)<=minLength && prefixSize <= minLength) { // optimization
+		    List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
 			List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
 			Iterator<TokenFrequency> listAItr = listA.iterator();
 			Iterator<TokenFrequency> listBItr = listB.iterator();
