@@ -7,10 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.spans.SpanTermQuery;
 
 /**
  * @author vaibhavsaini
@@ -32,6 +35,42 @@ public class TermSearcher {
             Term term = new Term("tokens", this.searchTerm);
             try {
                 DocsEnum docEnum = MultiFields.getTermDocsEnum(ctx.reader(),
+                        MultiFields.getLiveDocs(ctx.reader()), "tokens",
+                        term.bytes());
+                if (null != docEnum) {
+                    int doc = DocsEnum.NO_MORE_DOCS;
+                    while ((doc = docEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+                        long docId = doc + base;
+                        // System.out.println("docbase is: " + base +
+                        // " doc: " +
+                        // doc + " globDocId: "+docId);
+                        if (this.simMap.containsKey(docId)) {
+                            this.simMap.put(docId, this.simMap.get(docId)
+                                    + Math.min(freqTerm, docEnum.freq()));
+                        } else {
+                            this.simMap.put(docId,
+                                    Math.min(freqTerm, docEnum.freq()));
+                        }
+                    }
+                } else {
+                    System.out.println("term not found: " + this.searchTerm);
+                }
+            } catch (Exception e) {
+                System.out.println("" + e.getMessage());
+            }
+
+        }
+
+    }
+    
+    public void searchWithPosition() {
+        for (AtomicReaderContext ctx : this.reader.getContext().leaves()) {
+            int base = ctx.docBase;
+            Term term = new Term("tokens", this.searchTerm);
+            //SpanTermQuery spanQ = new SpanTermQuery(term);
+            
+            try {
+                DocsAndPositionsEnum docEnum = MultiFields.getTermPositionsEnum(ctx.reader(),
                         MultiFields.getLiveDocs(ctx.reader()), "tokens",
                         term.bytes());
                 if (null != docEnum) {

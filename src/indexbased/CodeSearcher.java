@@ -138,7 +138,7 @@ public class CodeSearcher {
                 Query query = queryParser.parse(entry.getKey());
                 this.termSearcher.setSearchTerm(query.toString(this.field));
                 this.termSearcher.setFreqTerm(entry.getValue());
-                this.termSearcher.search();
+                this.termSearcher.searchWithPosition();
                 // String term = query.toString(this.field);
                 // tfsToRemove.add(entry.getKey()); // remove this tf
                 prefixSize = prefixSize - entry.getValue();
