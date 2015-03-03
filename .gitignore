@@ -40,14 +40,6 @@ local.properties
 .settings/
 .loadpath
 
-# External tool builders
-.externalToolBuilders/
-
-# Locally stored "Eclipse launch configurations"
-*.launch
-
-# CDT-specific
-.cproject
 
 # PDT-specific
 .buildpath
@@ -56,3 +48,4 @@ index/*
 dist/*
 fwdindex/*
 index_nofilter/*
+output*
