@@ -38,7 +38,7 @@ import utility.Util;
  */
 public class SearchManager {
     private long clonePairsCount;
-    private CodeSearcher searcher;
+    public static CodeSearcher searcher;
     private CodeSearcher fwdSearcher;
     private CloneHelper cloneHelper;
     private final String QUERY_DIR_PATH = "input/query/";
@@ -225,7 +225,7 @@ public class SearchManager {
                                 this.searcher.setTermSearcher(termSearcher);
                                 long searchCandidatesTimeStart = System
                                         .currentTimeMillis();
-                                this.searcher.search2(queryBlock, prefixSize);
+                                this.searcher.search2(queryBlock, prefixSize,computedThreshold);
                                 this.timeSpentInSearchingCandidates += System
                                         .currentTimeMillis()
                                         - searchCandidatesTimeStart;
@@ -285,9 +285,9 @@ public class SearchManager {
             Document doc = null;
             try {
                 doc = this.searcher.getDocument(entry.getKey());
-                if (doc.get("id").equals(queryBlock.getId() + "")) {
+                /*if (doc.get("id").equals(queryBlock.getId() + "")) {
                     continue;
-                }
+                }*/
                 if (Integer.parseInt(doc.get("size")) > queryBlock.getSize()) {
                     // reject this
                     continue;
@@ -379,9 +379,9 @@ public class SearchManager {
             Document doc = null;
             try {
                 doc = this.searcher.getDocument(entry.getKey());
-                if (doc.get("id").equals(queryBlock.getId() + "")) {
+                /*if (doc.get("id").equals(queryBlock.getId() + "")) {
                     continue;
-                }
+                }*/
                 if (Integer.parseInt(doc.get("size")) > queryBlock.getSize()) {
                     continue;
                 }

@@ -24,6 +24,8 @@ public class TermSearcher {
     private int freqTerm;
     private IndexReader reader;
     private Map<Long, Integer> simMap;
+	private int querySize;
+	private int computedThreshold;
 
     public TermSearcher() {
         this.simMap = new HashMap<Long, Integer>();
@@ -63,7 +65,7 @@ public class TermSearcher {
 
     }
     
-    public void searchWithPosition() {
+    public void searchWithPosition(int queryTermsSeen) {
         for (AtomicReaderContext ctx : this.reader.getContext().leaves()) {
             int base = ctx.docBase;
             Term term = new Term("tokens", this.searchTerm);
@@ -87,6 +89,11 @@ public class TermSearcher {
                             this.simMap.put(docId,
                                     Math.min(freqTerm, docEnum.freq()));
                         }
+                        int blockSize = Integer.parseInt(SearchManager.searcher.getDocument(docId).get("size"));
+                        if(!this.isSatisfyPosFilter(this.simMap.get(docId), queryTermsSeen, blockSize, docEnum.nextPosition()+docEnum.freq())){
+                        	this.simMap.remove(docId);
+                        }
+                        
                     }
                 } else {
                     System.out.println("term not found: " + this.searchTerm);
@@ -97,6 +104,10 @@ public class TermSearcher {
 
         }
 
+    }
+    
+    private boolean isSatisfyPosFilter(int similarity,int termsSeenInQueryBlock,int blockSize, int termsSeenInBlock){
+    	return this.computedThreshold <= similarity + Math.min(this.querySize-termsSeenInQueryBlock,blockSize - termsSeenInBlock );
     }
 
     /**
@@ -158,5 +169,15 @@ public class TermSearcher {
     public void setSimMap(Map<Long, Integer> simMap) {
         this.simMap = simMap;
     }
+
+	public void setQuerySize(int size) {
+		this.querySize = size;
+		
+	}
+
+	public void setComputedThreshold(int computedThreshold) {
+		this.computedThreshold = computedThreshold;
+		
+	}
 
 }

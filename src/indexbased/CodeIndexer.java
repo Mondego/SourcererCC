@@ -43,8 +43,8 @@ public class CodeIndexer {
     private CloneHelper cloneHelper;
     private boolean isPrefixIndex;
     private float threshold;
-    //public final static String DATASET_DIR = "input/dataset";
-    public static String DATASET_DIR2 = "input/posDataset";
+    public final static String DATASET_DIR2 = "input/dataset";
+    //public static String DATASET_DIR2 = "input/posDataset";
     /**
      * @param args
      * @throws IOException
@@ -239,7 +239,6 @@ public class CodeIndexer {
                 break;
             }
         }
-        System.out.println("indexing prefix: "+ tokenString.trim());
         Field field = new Field("tokens",tokenString.trim(),Field.Store.NO,Field.Index.ANALYZED,Field.TermVector.WITH_POSITIONS);
         document.add(field);
         return document;

@@ -129,16 +129,21 @@ public class CodeSearcher {
         return result;
     }
 
-    public void search2(QueryBlock queryBlock, int prefixSize)
+    public void search2(QueryBlock queryBlock, int prefixSize, int computedThreshold)
             throws IOException {
 //        List<String> tfsToRemove = new ArrayList<String>();
         this.termSearcher.setReader(this.reader);
+        this.termSearcher.setQuerySize(queryBlock.getSize());
+        this.termSearcher.setComputedThreshold(computedThreshold);
+        int termsSeenInQuery =0;
         for (Entry<String, Integer> entry : queryBlock.entrySet()) {
             try {
                 Query query = queryParser.parse(entry.getKey());
                 this.termSearcher.setSearchTerm(query.toString(this.field));
                 this.termSearcher.setFreqTerm(entry.getValue());
-                this.termSearcher.searchWithPosition();
+                termsSeenInQuery+=entry.getValue();
+                this.termSearcher.searchWithPosition(termsSeenInQuery);
+               //this.termSearcher.search();
                 // String term = query.toString(this.field);
                 // tfsToRemove.add(entry.getKey()); // remove this tf
                 prefixSize = prefixSize - entry.getValue();

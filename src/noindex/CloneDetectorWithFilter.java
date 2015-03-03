@@ -45,6 +45,7 @@ public class CloneDetectorWithFilter {
 	private long numCandidates;
 	private long numPairs;
 	private int k_filter;
+        private boolean isLocFilterDisabled;
 
 	/**
 	 * @param cloneHelper
@@ -59,7 +60,8 @@ public class CloneDetectorWithFilter {
 		this.comparisions = 0;
 		this.numCandidates = 0;
 		this.numPairs = 0;
-		this.k_filter = 4;
+		this.k_filter = 0;
+		this.isLocFilterDisabled= false;
 	}
 
 	/**
@@ -71,10 +73,11 @@ public class CloneDetectorWithFilter {
 		CloneDetectorWithFilter cd = new CloneDetectorWithFilter();
 		if (args.length > 0) {
 			cd.filePrefix = args[0];
-			if (args.length == 2) {
-				cd.threshold = Float.parseFloat(args[1]) / 10;
-				cd.th = args[1];
-			}
+			cd.threshold = Float.parseFloat(args[1]) / 10;
+			cd.th = args[1];
+			cd.k_filter = Integer.parseInt(args[2]);
+			cd.isLocFilterDisabled=Boolean.parseBoolean(args[3]);
+
 		} else {
 			System.out
 					.println("Please provide inputfile prefix, e.g. ANT,cocoon,hadoop.");
@@ -270,7 +273,7 @@ public class CloneDetectorWithFilter {
 	}
 	
 	private boolean isSatisfylocFilter(int sizeA, int sizeB, int matchCount,int computedThreshold,int tokenSeenInA, int tokenSeenInB){
-		return (Math.min(sizeA-tokenSeenInA,sizeB-tokenSeenInB) + matchCount) >= computedThreshold; 
+		return isLocFilterDisabled || (Math.min(sizeA-tokenSeenInA,sizeB-tokenSeenInB) + matchCount) >= computedThreshold; 
 	}
 
 	/**
@@ -349,9 +352,9 @@ public class CloneDetectorWithFilter {
 		long startTime = System.currentTimeMillis();
 		int maxLength = Math.max((bagA.getSize()), bagB.getSize());
 		int minLength = Math.min((bagA.getSize()), bagB.getSize());
-		//int computedThreshold_overlap = (int) Math.ceil(this.threshold * maxLength);
-		int computedThreshold_jaccard = (int)Math.ceil((this.threshold*(bagA.getSize()+bagB.getSize()))/(1+this.threshold));
-		int computedThreshold = computedThreshold_jaccard;
+		int computedThreshold_overlap = (int) Math.ceil(this.threshold * maxLength);
+		//int computedThreshold_jaccard = (int)Math.ceil((this.threshold*(bagA.getSize()+bagB.getSize()))/(1+this.threshold));
+		int computedThreshold = computedThreshold_overlap;
 		int prefixSize = (maxLength + 1) - computedThreshold;// this.computePrefixSize(maxLength);
 		boolean candidate = false;
 		int matchCount = 0;
