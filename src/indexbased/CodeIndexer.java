@@ -44,7 +44,8 @@ public class CodeIndexer {
     private boolean isPrefixIndex;
     private float threshold;
     //public final static String DATASET_DIR = "input/dataset";
-    public static String DATASET_DIR2 = "input/posDataset";
+    public static String DATASET_DIR2 = "input/dataset";
+    public long bagsSortTime;
     /**
      * @param args
      * @throws IOException
@@ -52,6 +53,7 @@ public class CodeIndexer {
      */
     public CodeIndexer(boolean isPrefixIndex,float threshold) throws IOException {
         this.threshold = threshold;
+        this.bagsSortTime=0;
         this.isPrefixIndex = isPrefixIndex;
         this.indexDir = Util.INDEX_DIR_NO_FILTER;
         this.cloneHelper = new CloneHelper();
@@ -76,6 +78,7 @@ public class CodeIndexer {
     public CodeIndexer(String indexDir, IndexWriter indexWriter,
             CloneHelper cloneHelper, boolean isPrefixIndex,float threshold) {
         super();
+        this.bagsSortTime=0;
         this.threshold = threshold;
         this.indexDir = indexDir;
         this.indexWriter = indexWriter;
@@ -144,7 +147,9 @@ public class CodeIndexer {
     private void indexCodeBlock(Bag bag) {
         Document document;
         if (this.isPrefixIndex) {
+            long startTime = System.currentTimeMillis();
             this.sortBag(bag);
+            this.bagsSortTime += System.currentTimeMillis()-startTime;
             document = this.prepareDocument(bag, this.isPrefixIndex);
         } else {
             document = this.prepareDocument(bag);
