@@ -138,7 +138,7 @@ public class CodeSearcher {
         int termsSeenInQuery =0;
         for (Entry<String, Integer> entry : queryBlock.entrySet()) {
             try {
-                Query query = queryParser.parse(entry.getKey());
+                Query query = queryParser.parse("\""+entry.getKey()+"\"");
                 this.termSearcher.setSearchTerm(query.toString(this.field));
                 this.termSearcher.setFreqTerm(entry.getValue());
                 termsSeenInQuery+=entry.getValue();
@@ -164,7 +164,7 @@ public class CodeSearcher {
         this.termSearcher.setReader(this.reader);
         for (Entry<String, Integer> entry : queryBlock.entrySet()) {
             try {
-                Query query = queryParser.parse(entry.getKey());
+                Query query = queryParser.parse("\""+entry.getKey()+"\"");
                 this.termSearcher.setSearchTerm(query.toString(this.field));
                 this.termSearcher.setFreqTerm(entry.getValue());
                 this.termSearcher.search();

@@ -31,6 +31,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
 import utility.Util;
+import validation.TestGson;
 
 /**
  * @author vaibhavsaini
@@ -53,14 +54,34 @@ public class SearchManager {
     private CodeIndexer indexer;
     private long timeSpentInProcessResult;
     private long timeSpentInSearchingCandidates;
+    private long timeFwdIndex;
+    private long timeInvertedIndex;
+    private long timeGlobalTokenPositionCreation;
+    private long timeSearch;
+    private long numCandidates;
+    private PrintWriter outputWriter;
+    private long timeTotal;
+    private String action;
+    private boolean appendToExistingFile;
+    TestGson testGson;
+    private PrintWriter cloneGroupWriter;
+    private PrintWriter cloneSiblingCountWriter;
+    private int cloneSiblingCount;
 
-    public SearchManager(boolean mode) {
+    public SearchManager(boolean mode) throws IOException {
         this.clonePairsCount = 0;
         this.isPrefixMode = mode;
         this.cloneHelper = new CloneHelper();
         this.timeSpentInProcessResult = 0;
         this.timeSpentInSearchingCandidates = 0;
-
+        this.timeFwdIndex = 0;
+        this.timeInvertedIndex = 0;
+        this.timeGlobalTokenPositionCreation = 0;
+        this.timeSearch = 0;
+        this.numCandidates = 0;
+        this.timeTotal = 0;
+        this.appendToExistingFile = true;
+        this.cloneSiblingCount =0;
     }
 
     public static void main(String[] args) throws IOException, ParseException {
@@ -72,11 +93,25 @@ public class SearchManager {
             searchManager = new SearchManager(Boolean.parseBoolean(args[1]));
             searchManager.threshold = Float.parseFloat(args[2]) / 10;
             searchManager.th = args[2];
+            searchManager.action = action;
+            Util.createDirs("output" + searchManager.th);
+            String reportFileName = "output" + searchManager.th + "/report.csv";
+            File reportFile = new File(reportFileName);
+            if (reportFile.exists()) {
+                searchManager.appendToExistingFile = true;
+            } else {
+                searchManager.appendToExistingFile = false;
+            }
+            searchManager.outputWriter = Util.openFile(reportFileName,
+                    searchManager.appendToExistingFile);
             if (action.equalsIgnoreCase(ACTION_INDEX)) {
+
                 searchManager.doIndex();
             } else if (action.equalsIgnoreCase(ACTION_SEARCH)) {
-                Util.createDirs("output" + searchManager.th);
+                long timeStartSearch = System.currentTimeMillis();
                 searchManager.doSearch();
+                searchManager.timeSearch = System.currentTimeMillis()
+                        - timeStartSearch;
             }
             long end_time = System.currentTimeMillis();
             System.out.println("total run time in milliseconds:"
@@ -87,6 +122,16 @@ public class SearchManager {
                     + searchManager.timeSpentInProcessResult);
             System.out.println("number of clone pairs detected: "
                     + searchManager.clonePairsCount);
+            searchManager.timeTotal = end_time - start_time;
+            searchManager.genReport();
+            Util.closeOutputFile(searchManager.outputWriter);
+            try{
+                Util.closeOutputFile(searchManager.cloneGroupWriter);
+            }catch(Exception e){
+                System.out.println(e.getMessage());
+                // ignore.
+            }
+            
         } else {
             System.out
                     .println("Please provide all 3 command line arguments, exiting now.");
@@ -94,11 +139,45 @@ public class SearchManager {
         }
     }
 
+    private void genReport() {
+        String header = "";
+        if (!this.appendToExistingFile) {
+            header = "fwd_index_time, inverted_index_time, "
+                    + "globalTokenPositionCreationTime,num_candidates, "
+                    + "num_clonePairs, total_run_time, searchTime,"
+                    + "timeSpentInSearchingCandidates,timeSpentInProcessResult,"
+                    + "isPrefixmode,operation,sortTime_during_indexing\n";
+        }
+        header += this.timeFwdIndex + ",";
+        header += this.timeInvertedIndex + ",";
+        header += this.timeGlobalTokenPositionCreation + ",";
+        header += this.numCandidates + ",";
+        header += this.clonePairsCount + ",";
+        header += this.timeTotal + ",";
+        header += this.timeSearch + ",";
+        header += this.timeSpentInSearchingCandidates + ",";
+        header += this.timeSpentInProcessResult + ",";
+        header += this.isPrefixMode + ",";
+        if(this.action.equalsIgnoreCase("index")){
+            header += this.action + ",";
+            header += this.indexer.bagsSortTime;
+        }else{
+            header += this.action;
+        }
+        
+        
+        
+        Util.writeToFile(this.outputWriter, header, true);
+    }
+
     private void doIndex() throws IOException, ParseException {
 
         if (this.isPrefixMode) {
             TermSorter termSorter = new TermSorter();
+            long timeGlobalPositionStart = System.currentTimeMillis();
             termSorter.populateGlobalPositionMap();
+            this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
+                    - timeGlobalPositionStart;
             KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
             WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
                     Version.LUCENE_46);
@@ -129,11 +208,15 @@ public class SearchManager {
                         fwdIndexWriter, cloneHelper, this.isPrefixMode,
                         this.threshold);
                 File datasetDir = new File(CodeIndexer.DATASET_DIR2);
+
                 if (datasetDir.isDirectory()) {
+                    long fwdIndexTimeStart = System.currentTimeMillis();
                     System.out.println("Directory: " + datasetDir.getName());
                     for (File inputFile : datasetDir.listFiles()) {
                         fwdIndexer.createFwdIndex(inputFile);
                     }
+                    this.timeFwdIndex = System.currentTimeMillis()
+                            - fwdIndexTimeStart;
                 } else {
                     System.out.println("File: " + datasetDir.getName()
                             + " is not a direcory. exiting now");
@@ -153,7 +236,10 @@ public class SearchManager {
                 System.out.println(e.getMessage() + ", exiting now");
             }
         }
+        long invertedIndexTimeStart = System.currentTimeMillis();
         this.index(this.indexer);
+        this.timeInvertedIndex = System.currentTimeMillis()
+                - invertedIndexTimeStart;
         this.indexer.closeIndexWriter();
     }
 
@@ -199,11 +285,13 @@ public class SearchManager {
                 BufferedReader br = this.getReader(queryFile);
                 String line = null;
                 try {
+                    QueryBlock queryBlock = null;
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         try {
-                            QueryBlock queryBlock = this
+                            queryBlock = this
                                     .getNextQueryBlock(line);// todo
+                            this.cloneSiblingCount =0;
                             // add
                             // filter
                             // support
@@ -264,12 +352,15 @@ public class SearchManager {
                                     + " skiping to next bag");
                             e.printStackTrace();
                         }
+                        String siblingCount = queryBlock.getId()+", "+this.cloneSiblingCount;
+                        Util.writeToFile(this.cloneSiblingCountWriter, siblingCount, true);
                     }
                 } catch (IOException e) {
                     System.out
                             .println(e.getMessage() + " skiping to next file");
                 }
                 Util.closeOutputFile(this.clonesWriter);
+                Util.closeOutputFile(this.cloneSiblingCountWriter);
             }
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage() + "exiting");
@@ -281,6 +372,7 @@ public class SearchManager {
             QueryBlock queryBlock) {
 
         Map<Long, Integer> codeBlockIds = termSearcher.getSimMap();
+        this.numCandidates += codeBlockIds.size();
         for (Entry<Long, Integer> entry : codeBlockIds.entrySet()) {
             Document doc = null;
             try {
@@ -306,6 +398,19 @@ public class SearchManager {
     }
 
     private void initSearchEnv() {
+        testGson = new TestGson(); // remove this line later. for
+                                            // validation only.
+        testGson.populateMap(); // this is for validation only, remove this
+                                // line.
+        Util.createDirs("output" + this.th+ "/cloneGroups/");
+        try {
+            this.cloneSiblingCountWriter = Util.openFile("output" + this.th
+                    + "/cloneGroups/siblings_count.csv", false);
+            Util.writeToFile(this.cloneSiblingCountWriter, "query_block_id,siblings",true);
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
         if (this.isPrefixMode) {
             TermSorter termSorter = new TermSorter();
             try {
@@ -374,6 +479,7 @@ public class SearchManager {
             QueryBlock queryBlock, int computedThreshold) {
         long numClonesFound = 0;
         Map<Long, Integer> codeBlockIds = result.getSimMap();
+        this.numCandidates += codeBlockIds.size();
         // int prefixSize = this.getPrefixSize(bag);
         for (Entry<Long, Integer> entry : codeBlockIds.entrySet()) {
             Document doc = null;
@@ -453,11 +559,33 @@ public class SearchManager {
         // System.out.println("reporting " + idB);
         if (null != previousQueryBlock
                 && queryBlock.getId() == previousQueryBlock.getId()) {
+            this.cloneSiblingCount ++;
             // System.out.println("equal");
+            Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(idB+""), true);
+            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
             Util.writeToFile(this.clonesWriter, " ," + idB, false);
         } else {
             // start a new line
             // System.out.println("different");
+            try{
+                Util.closeOutputFile(this.cloneGroupWriter);
+            }catch(Exception e){
+                // ignore
+                System.out.println(e.getMessage());
+            }
+                try {
+                    Util.createDirs("output" + this.th+ "/cloneGroups/");
+                    this.cloneGroupWriter = Util.openFile("output" + this.th
+                            + "/cloneGroups/" + queryBlock.getId() + ".txt", false);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                this.cloneSiblingCount ++;
+            Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(queryBlock.getId()+""), true);
+            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
+            Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(idB+""), true);
+            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
             Util.writeToFile(this.clonesWriter, "", true);
             Util.writeToFile(this.clonesWriter,
                     "Clones of Bag " + queryBlock.getId(), true);

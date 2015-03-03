@@ -80,14 +80,15 @@ public class Aggregator {
             System.out.println("reading file : " + aggregator.inputFile);
             input = new File(aggregator.inputFile);
             if (!input.exists()) {
-                System.out.println("Exiting. File not found : "
+                System.out.println("File not found : "
                         + aggregator.inputFile);
-                System.exit(1);
+                //System.exit(1);
+            }else{
+                aggregator.isFilter = false;
+                aggregator.processInputFile();
+                aggregator.avg_comparisions_without_filter=aggregator.comparisions_without_filter/aggregator.readings;
+                aggregator.avg_time_without_filter=aggregator.time_without_filter/aggregator.readings;
             }
-            aggregator.isFilter = false;
-            aggregator.processInputFile();
-            aggregator.avg_comparisions_without_filter=aggregator.comparisions_without_filter/aggregator.readings;
-            aggregator.avg_time_without_filter=aggregator.time_without_filter/aggregator.readings;
             aggregator.writeOutput();
         } catch (IOException e) {
             // TODO Auto-generated catch block
