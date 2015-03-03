@@ -52,39 +52,6 @@ local.properties
 # PDT-specific
 .buildpath
 
-# my files
-runme-to-init-env.sh
-gitAdd
-thirdparty/event/bin/
-thirdparty/event/include/
-thirdparty/event/lib/
-thirdparty/event/libevent-2.0.18-stable/
-thirdparty/json/jsoncpp-src-0.5.0/
-thirdparty/gperftools/bin/
-thirdparty/gperftools/gperftools-2.0/
-thirdparty/gperftools/include/
-thirdparty/gperftools/lib/
-thirdparty/gperftools/share/
-thirdparty/libunwind/libunwind-0.99-beta/
-# .cmake related
-*.cmake
-*CMakeFiles
-*Makefile
-CMakeCache.txt
-DartConfiguration.tcl
-
-# Some ctags/cscope files
-tags
-cscope.out
-cscope.files
-.ycm*
-# test logs
-log.txt
-# ignore mongo files
-thirdparty/mongo-cxx-driver-v2.4/*
-output*
-input*
-/bin
 index/*
 dist/*
 fwdindex/*
