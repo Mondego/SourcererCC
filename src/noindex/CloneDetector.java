@@ -64,7 +64,10 @@ public class CloneDetector {
             }
             cd.analysisWriter = Util.openFile(filename, true);
             if (!skipHeader) {
-                String header = "detect_clones_time, total_comparision, num_clones_detected,threshold";
+                String header = "detect_clones_time,"
+                        + " total_comparision, "
+                        + "num_clones_detected,threshold,"
+                        + "isJaccardEnabled";
                 Util.writeToFile(cd.analysisWriter, header, true);
             }
             CloneHelper cloneHelper = new CloneHelper();
@@ -106,7 +109,8 @@ public class CloneDetector {
             sb.append(this.cloneHelper.getComparisions() + ",");
             sb.append(this.cloneHelper.getNumClonesFound() + ",");
             System.out.println("threshold set to : " + this.threshold);
-            sb.append(this.threshold + "");
+            sb.append(this.threshold + ",");
+            sb.append(this.useJaccardSimilarity);
             Util.writeToFile(this.analysisWriter, sb.toString(), true);
         } catch (IOException e) {
             e.printStackTrace();
