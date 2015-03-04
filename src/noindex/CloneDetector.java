@@ -66,7 +66,8 @@ public class CloneDetector {
             if (!skipHeader) {
                 String header = "detect_clones_time,"
                         + " total_comparision, "
-                        + "num_clones_detected,threshold,"
+                        + "num_clones_detected,"
+                        + "threshold,"
                         + "isJaccardEnabled";
                 Util.writeToFile(cd.analysisWriter, header, true);
             }
