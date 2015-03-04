@@ -2,9 +2,6 @@
 loops="${1:-1}"
 prefix="${2:-codeclonedetection}"
 th="${3:-8}"
-$k="${4:-0}"
-$isPosFilterDisabled="${5:-true}" 
-$isJaccard="${6:-false}"
 
 # naive
 for ((c=1;c<=$loops;c++))
