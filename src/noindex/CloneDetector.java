@@ -22,6 +22,7 @@ public class CloneDetector {
     private String th; // args[1]
     private PrintWriter analysisWriter;
     private String filePrefix;
+    private boolean useJaccardSimilarity;
 
     /**
      * @param cloneHelper
@@ -29,6 +30,7 @@ public class CloneDetector {
     public CloneDetector() {
         super();
         this.threshold = .8F;
+        this.useJaccardSimilarity=false;
         
     }
 
@@ -41,10 +43,9 @@ public class CloneDetector {
         CloneDetector cd = new CloneDetector();
         if (args.length > 0) {
             cd.filePrefix = args[0];
-            if (args.length == 2) {
-                cd.threshold = Float.parseFloat(args[1]) / 10;
-                cd.th = args[1];
-            }
+            cd.threshold = Float.parseFloat(args[1]) / 10;
+            cd.th = args[1];
+            cd.useJaccardSimilarity=Boolean.parseBoolean(args[2]);
         } else {
             System.out
                     .println("Please provide inputfile prefix, e.g. ANT,cocoon,hadoop.");
@@ -93,7 +94,7 @@ public class CloneDetector {
             this.cloneHelper.parseInputFileAndPopulateSet(new File(projectBfile), setB);
             long start_time = System.currentTimeMillis();
 
-            this.cloneHelper.detectClones(setA, setB); // input
+            this.cloneHelper.detectClones(setA, setB,this.useJaccardSimilarity); // input
 
             long end_time = System.currentTimeMillis();
             System.out.println("time in milliseconds :"

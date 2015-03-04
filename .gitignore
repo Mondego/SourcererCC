@@ -49,3 +49,4 @@ dist/*
 fwdindex/*
 index_nofilter/*
 output*
+/bin/

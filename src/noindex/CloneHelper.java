@@ -87,7 +87,7 @@ public class CloneHelper {
      * @param setB
      *            set of Bags
      */
-    public void detectClones(Set<Bag> setA, Set<Bag> setB) {
+    public void detectClones(Set<Bag> setA, Set<Bag> setB, boolean useJaccardSimilarity) {
         // iterate on setA
         for (Bag bagInSetA : setA) {
             // compare this map with every map in setB and report clones
@@ -95,7 +95,7 @@ public class CloneHelper {
             for (Bag bagInSetB : setB) {
                 if (bagInSetA.getId() != bagInSetB.getId()) {
                     if (bagInSetA.getId() < bagInSetB.getId()) {
-                        this.detectClones(bagInSetA, bagInSetB);
+                        this.detectClones(bagInSetA, bagInSetB, useJaccardSimilarity);
                     }
                 }
             }
@@ -110,9 +110,21 @@ public class CloneHelper {
      * @param bagB
      *            map of token as key and it's frequency in a method as value
      */
-    public void detectClones(Bag bagA, Bag bagB) {
-        int computedThreshold = (int) Math.ceil(this.threshold
+    public void detectClones(Bag bagA, Bag bagB, boolean useJaccardSimilarity) {
+        /*int computedThreshold = (int) Math.ceil(this.threshold
                 * Math.max(bagA.getSize(), bagB.getSize())); // integer value of
+        */
+        int computedThreshold = 0;
+        if (useJaccardSimilarity){
+            int computedThreshold_jaccard =
+                    (int)Math.ceil((this.threshold*(bagA.getSize()+bagB.getSize()))/(1+this.threshold));
+            computedThreshold = computedThreshold_jaccard;
+        }else{
+            int maxLength = Math.max(bagA.getSize(), bagB.getSize());
+            int computedThreshold_overlap = (int) Math.ceil(this.threshold
+                    * maxLength);
+            computedThreshold = computedThreshold_overlap;
+        }
         // threshold.
         // System.out.println("threshold is "+ computedThreshold +
         // " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
