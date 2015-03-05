@@ -23,6 +23,8 @@ public class CloneDetector {
     private PrintWriter analysisWriter;
     private String filePrefix;
     private boolean useJaccardSimilarity;
+	private final String SIMILARITY_OVERLAP = "overlap";
+	private final String SIMILARITY_JACCARD = "jaccard";
 
     /**
      * @param cloneHelper
@@ -45,7 +47,11 @@ public class CloneDetector {
             cd.filePrefix = args[0];
             cd.threshold = Float.parseFloat(args[1]) / 10;
             cd.th = args[1];
-            cd.useJaccardSimilarity=Boolean.parseBoolean(args[2]);
+            if(args[2].equals(cd.SIMILARITY_JACCARD)){
+				cd.useJaccardSimilarity = true;
+			}else{
+				cd.useJaccardSimilarity = false;
+			}
         } else {
             System.out
                     .println("Please provide inputfile prefix, e.g. ANT,cocoon,hadoop.");
@@ -68,7 +74,7 @@ public class CloneDetector {
                         + " total_comparision, "
                         + "num_clones_detected,"
                         + "threshold,"
-                        + "isJaccardEnabled";
+                        + "similarity_function";
                 Util.writeToFile(cd.analysisWriter, header, true);
             }
             CloneHelper cloneHelper = new CloneHelper();
@@ -111,7 +117,11 @@ public class CloneDetector {
             sb.append(this.cloneHelper.getNumClonesFound() + ",");
             System.out.println("threshold set to : " + this.threshold);
             sb.append(this.threshold + ",");
-            sb.append(this.useJaccardSimilarity);
+            if(this.useJaccardSimilarity){
+				sb.append(this.SIMILARITY_JACCARD);
+			}else{
+				sb.append(this.SIMILARITY_OVERLAP);
+			}
             Util.writeToFile(this.analysisWriter, sb.toString(), true);
         } catch (IOException e) {
             e.printStackTrace();

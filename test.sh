@@ -1,5 +1,5 @@
 #!/bin/bash
-for entry in `ls /Users/vaibhavsaini/Dropbox/clonedetection/projects/`
+for entry in `cat projects.txt`
 do
   echo "$entry"
 done
