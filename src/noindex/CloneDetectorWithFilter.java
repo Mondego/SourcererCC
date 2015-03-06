@@ -41,7 +41,7 @@ public class CloneDetectorWithFilter {
 	private long comparisions;
 	private Bag previousBag;
 	private String filePrefix;
-	private String th; // args[1]
+	private Float th; // args[1]
 	private long numCandidates;
 	private long numPairs;
 	private int k_filter;
@@ -53,6 +53,8 @@ public class CloneDetectorWithFilter {
 	private final String LOC_FILTER_NONE = "pos_filter_none";
 	private final String SIMILARITY_OVERLAP = "overlap";
 	private final String SIMILARITY_JACCARD = "jaccard";
+	private final String OUTPUT_DIR_PREFIX = "outputnew";
+	private final Integer MUL_FACTOR = 100;
 
 	/**
 	 * @param cloneHelper
@@ -83,15 +85,15 @@ public class CloneDetectorWithFilter {
 		if (args.length > 0) {
 			cd.filePrefix = args[0];
 			cd.threshold = Float.parseFloat(args[1]) / 10;
-			cd.th = args[1];
+			cd.th = (Float.parseFloat(args[1])*cd.MUL_FACTOR);
+			System.out.println(cd.th/cd.MUL_FACTOR);
 			cd.k_filter = Integer.parseInt(args[2]);
 			cd.locFilter = args[3];
-			if(args[4].equals(cd.SIMILARITY_JACCARD)){
+			if (args[4].equals(cd.SIMILARITY_JACCARD)) {
 				cd.useJaccardSimilarity = true;
-			}else{
+			} else {
 				cd.useJaccardSimilarity = false;
 			}
-			
 
 		} else {
 			System.out
@@ -99,12 +101,12 @@ public class CloneDetectorWithFilter {
 			System.exit(1);
 		}
 		try {
-			Util.createDirs("output" + cd.th);
-			String filename = "output" + cd.th + "/" + cd.filePrefix
-					+ "clonesAnalysis_WITH_FILTER.csv";
+			Util.createDirs(cd.OUTPUT_DIR_PREFIX + cd.th/cd.MUL_FACTOR);
+			String filename = cd.OUTPUT_DIR_PREFIX + cd.th/cd.MUL_FACTOR + "/"
+					+ cd.filePrefix + "clonesAnalysis_WITH_FILTER.csv";
 			System.out.println("writing in file : " + filename);
-			String prefixFilename = "output" + cd.th + "/" + cd.filePrefix
-					+ "prefixes.csv";
+			String prefixFilename = cd.OUTPUT_DIR_PREFIX + cd.th/cd.MUL_FACTOR+ "/"
+					+ cd.filePrefix + "prefixes.csv";
 			File file = new File(filename);
 			boolean skipHeader = false;
 			if (file.exists()) {
@@ -118,8 +120,7 @@ public class CloneDetectorWithFilter {
 						+ "total_comparision," + "num_clones_detected,"
 						+ "candidateCumulativeTime,"
 						+ "threshold,numCandidates," + "numPairs, "
-						+ "k_filter," + "locFilter,"
-						+ "similarity_function";
+						+ "k_filter," + "locFilter," + "similarity_function";
 				Util.writeToFile(cd.analysisWriter, header, true);
 			}
 			CloneHelper cloneHelper = new CloneHelper();
@@ -138,8 +139,9 @@ public class CloneDetectorWithFilter {
 	private void runExperiment() {
 		try {
 			System.out.println("running, please wait...");
-			this.cloneHelper.setClonesWriter(Util.openFile("output" + this.th
-					+ "/" + this.filePrefix + "clones_WITH_FILTER.txt", false));
+			this.cloneHelper.setClonesWriter(Util.openFile(
+					this.OUTPUT_DIR_PREFIX + this.th/this.MUL_FACTOR + "/" + this.filePrefix
+							+ "clones_WITH_FILTER.txt", false));
 			this.cloneHelper.setThreshold(this.threshold);
 			Set<Bag> setA = new HashSet<Bag>();
 			String projectAfile = "input/dataset/" + this.filePrefix
@@ -190,9 +192,9 @@ public class CloneDetectorWithFilter {
 			sb.append(this.numPairs + ",");
 			sb.append(this.k_filter + ",");
 			sb.append(this.locFilter + ",");
-			if(this.useJaccardSimilarity){
+			if (this.useJaccardSimilarity) {
 				sb.append(this.SIMILARITY_JACCARD);
-			}else{
+			} else {
 				sb.append(this.SIMILARITY_OVERLAP);
 			}
 			Util.writeToFile(this.analysisWriter, sb.toString(), true);
@@ -242,12 +244,22 @@ public class CloneDetectorWithFilter {
 			Iterator<TokenFrequency> bagBItr, Bag bagB, int computedThreshold,
 			int matchCount, Bag bagA, TokenFrequency tokenFrequencyA,
 			TokenFrequency tokenFrequencyB, int tokenSeenInA, int tokenSeenInB) {
+		/*if (bagA.getId() == 11892 && bagB.getId() == 11893) {
+			System.out.println("DEBUG: it is a candidate");
+		}*/
 		while (true) {
 			this.comparisions += 1;
 			if (tokenFrequencyB.equals(tokenFrequencyA)) {
 				matchCount += Math.min(tokenFrequencyA.getFrequency(),
 						tokenFrequencyB.getFrequency());
+				/*if (bagA.getId() == 11892 && bagB.getId() == 11893) {
+					System.out.println("DEBUG: match count " + matchCount
+							+ "computedThreshold " + computedThreshold);
+				}*/
 				if (matchCount >= computedThreshold) {
+					/*if (bagA.getId() == 11892 && bagB.getId() == 11893) {
+						System.out.println("DEBUG: reporting it");
+					}*/
 					// report clone.
 					this.cloneHelper.reportClone(bagA, bagB, this.previousBag);
 					this.previousBag = bagA;
@@ -363,24 +375,6 @@ public class CloneDetectorWithFilter {
 	}
 
 	/**
-	 * returns the minmum number of tokens that must match in listA and listB
-	 * for listB to be a possible clone candidate.
-	 * 
-	 * @param listA
-	 * @param listB
-	 * @return
-	 */
-	private int computePrefixSize(int maxTokenLength) {
-		// System.out.println("t is " + maxTokenLength);
-		// System.out.println("threshld is " + this.threshold);
-		double x = this.threshold * maxTokenLength;
-		// System.out.println("x is " + x);
-		int thetaT = (int) Math.ceil(x);
-		// System.out.println("thetaT is " + thetaT);
-		return (maxTokenLength + 1) - thetaT;
-	}
-
-	/**
 	 * checks if bagA is a possible candidateClone of bagB
 	 * 
 	 * @param bagA
@@ -394,19 +388,29 @@ public class CloneDetectorWithFilter {
 		int minLength = Math.min((bagA.getSize()), bagB.getSize());
 		int computedThreshold = 0;
 		if (this.useJaccardSimilarity) {
-			int computedThreshold_jaccard = (int) Math
-					.ceil((this.threshold * (bagA.getSize() + bagB.getSize()))
-							/ (1 + this.threshold));
+			int computedThreshold_jaccard = (int) Math.ceil((this.th * (bagA
+					.getSize() + bagB.getSize())) / (10*this.MUL_FACTOR + this.th));
 			computedThreshold = computedThreshold_jaccard;
 		} else {
-			int computedThreshold_overlap = (int) Math.ceil(this.threshold
-					* maxLength);
+			int computedThreshold_overlap = (int) Math
+					.ceil((this.th * maxLength) / (10*this.MUL_FACTOR));
 			computedThreshold = computedThreshold_overlap;
 		}
-		int prefixSize = (maxLength + 1) - computedThreshold;// this.computePrefixSize(maxLength);
+		int prefixSize = (maxLength + 1)
+				- computedThreshold;// this.computePrefixSize(maxLength);
+		/*if (bagA.getId() == 11892 && bagB.getId() == 11893) {
+			System.out.println("DEBUG: prefix " + prefixSize + ", "
+					+ "computed threshold " + computedThreshold
+					+ ", bagA.size " + bagA.getSize() + "bagB.size "
+					+ bagB.getSize() + ", th " + (this.th/this.MUL_FACTOR) + ", threshold "
+					+ this.threshold + ", isJaccard "
+					+ this.useJaccardSimilarity + ", maxlength " + maxLength
+					+ ", maxlength*th " + (this.th * maxLength) / (10*this.MUL_FACTOR)
+					+ ", celi" + Math.ceil((this.th * maxLength) / (10*this.MUL_FACTOR)));
+		}*/
 		boolean candidate = false;
 		int matchCount = 0;
-		if (Math.ceil(this.threshold * maxLength) <= minLength
+		if (Math.ceil((this.th * maxLength)/(10*this.MUL_FACTOR)) <= minLength
 				&& prefixSize <= minLength) { // optimization
 			List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
 			List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
