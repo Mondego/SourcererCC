@@ -410,116 +410,118 @@ public class CloneDetectorWithFilter {
 		}*/
 		boolean candidate = false;
 		int matchCount = 0;
-		if (Math.ceil((this.th * maxLength)/(10*this.MUL_FACTOR)) <= minLength
-				&& prefixSize <= minLength) { // optimization
-			List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
-			List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
-			Iterator<TokenFrequency> listAItr = listA.iterator();
-			Iterator<TokenFrequency> listBItr = listB.iterator();
-			int count = 0;
-			TokenFrequency tokenFrequencyA = listAItr.next();
-			TokenFrequency tokenFrequencyB = listBItr.next();
-			int tokenSeenInB = tokenFrequencyB.getFrequency();
-			int tokenSeenInA = tokenFrequencyA.getFrequency();
-			while (true) {
-				this.filterComparision += 1;
-				count = Math.min(tokenSeenInA, tokenSeenInB);
-				if (tokenFrequencyB.equals(tokenFrequencyA)) {
-
-					matchCount += Math.min(tokenFrequencyA.getFrequency(),
-							tokenFrequencyB.getFrequency());
-					if (matchCount >= this.k_filter + 1) { // filter condition,
-															// 1 is for the
-															// original prefix
-															// match, k
-															// additional
-															// matches required
-						this.numCandidates += 1;
-						candidate = true;
-						long stopTime = System.currentTimeMillis();
-
-						if (listBItr.hasNext() && listAItr.hasNext()) {
-							tokenFrequencyB = listBItr.next();
-							tokenSeenInB += tokenFrequencyB.getFrequency();
-							tokenFrequencyA = listAItr.next();
-							tokenSeenInA += tokenFrequencyA.getFrequency();
-						} else {
-							break;
-						}
-						this.candidateCumulativeTime += (stopTime - startTime);
-						// TODO: optimize for location filter; send bagBItr
-						// maybe?
-						this.detectClones(listAItr, listBItr, bagB,
-								computedThreshold, matchCount, bagA,
-								tokenFrequencyA, tokenFrequencyB, tokenSeenInA,
-								tokenSeenInB);
-						return true;
-					} else {
-						if (this.hasPermission(LOC_FILTER_CANDIDATES)) {
-							if (!isSatisfylocFilter(bagA.getSize(),
-									bagB.getSize(), matchCount,
-									computedThreshold, tokenSeenInA,
-									tokenSeenInB)) {
+		if(hasPermission(LOC_FILTER_CANDIDATES)){
+			if (Math.ceil((this.th * maxLength)/(10*this.MUL_FACTOR)) <= minLength
+					&& prefixSize <= minLength) { // optimization
+				List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
+				List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
+				Iterator<TokenFrequency> listAItr = listA.iterator();
+				Iterator<TokenFrequency> listBItr = listB.iterator();
+				int count = 0;
+				TokenFrequency tokenFrequencyA = listAItr.next();
+				TokenFrequency tokenFrequencyB = listBItr.next();
+				int tokenSeenInB = tokenFrequencyB.getFrequency();
+				int tokenSeenInA = tokenFrequencyA.getFrequency();
+				while (true) {
+					this.filterComparision += 1;
+					count = Math.min(tokenSeenInA, tokenSeenInB);
+					if (tokenFrequencyB.equals(tokenFrequencyA)) {
+	
+						matchCount += Math.min(tokenFrequencyA.getFrequency(),
+								tokenFrequencyB.getFrequency());
+						if (matchCount >= this.k_filter + 1) { // filter condition,
+																// 1 is for the
+																// original prefix
+																// match, k
+																// additional
+																// matches required
+							this.numCandidates += 1;
+							candidate = true;
+							long stopTime = System.currentTimeMillis();
+	
+							if (listBItr.hasNext() && listAItr.hasNext()) {
+								tokenFrequencyB = listBItr.next();
+								tokenSeenInB += tokenFrequencyB.getFrequency();
+								tokenFrequencyA = listAItr.next();
+								tokenSeenInA += tokenFrequencyA.getFrequency();
+							} else {
 								break;
 							}
-						}
-						if (listBItr.hasNext() && listAItr.hasNext()) {
-							tokenFrequencyB = listBItr.next();
-							tokenSeenInB += tokenFrequencyB.getFrequency();
-							tokenFrequencyA = listAItr.next();
-							tokenSeenInA += tokenFrequencyA.getFrequency();
+							this.candidateCumulativeTime += (stopTime - startTime);
+							// TODO: optimize for location filter; send bagBItr
+							// maybe?
+							this.detectClones(listAItr, listBItr, bagB,
+									computedThreshold, matchCount, bagA,
+									tokenFrequencyA, tokenFrequencyB, tokenSeenInA,
+									tokenSeenInB);
+							return true;
 						} else {
-							break;
-						}
-					}
-				} else {
-					if (count >= prefixSize && matchCount == 0) {
-						break;
-					} else if (count >= prefixSize + this.k_filter) {
-						break;
-					}
-					int globalPositionA = this.globalTokenPositionMap
-							.get(tokenFrequencyA.getToken().getValue());
-					int globalPositionB = this.globalTokenPositionMap
-							.get(tokenFrequencyB.getToken().getValue());
-					if (globalPositionB <= globalPositionA) {
-						if (this.hasPermission(LOC_FILTER_CANDIDATES)) {
-							if (!isSatisfylocFilter(bagA.getSize()
-									+ tokenFrequencyA.getFrequency(),
-									bagB.getSize(), matchCount,
-									computedThreshold, tokenSeenInA,
-									tokenSeenInB)) {
+							if (this.hasPermission(LOC_FILTER_CANDIDATES)) {
+								if (!isSatisfylocFilter(bagA.getSize(),
+										bagB.getSize(), matchCount,
+										computedThreshold, tokenSeenInA,
+										tokenSeenInB)) {
+									break;
+								}
+							}
+							if (listBItr.hasNext() && listAItr.hasNext()) {
+								tokenFrequencyB = listBItr.next();
+								tokenSeenInB += tokenFrequencyB.getFrequency();
+								tokenFrequencyA = listAItr.next();
+								tokenSeenInA += tokenFrequencyA.getFrequency();
+							} else {
 								break;
 							}
-						}
-						if (listBItr.hasNext()) {
-							tokenFrequencyB = listBItr.next();
-							tokenSeenInB += tokenFrequencyB.getFrequency();
-						} else {
-							break;
 						}
 					} else {
-						if (this.hasPermission(LOC_FILTER_CANDIDATES)) {
-							if (!isSatisfylocFilter(
-									bagA.getSize(),
-									bagB.getSize()
-											+ tokenFrequencyB.getFrequency(),
-									matchCount, computedThreshold,
-									tokenSeenInA, tokenSeenInB)) {
+						if (count >= prefixSize && matchCount == 0) {
+							break;
+						} else if (count >= prefixSize + this.k_filter) {
+							break;
+						}
+						int globalPositionA = this.globalTokenPositionMap
+								.get(tokenFrequencyA.getToken().getValue());
+						int globalPositionB = this.globalTokenPositionMap
+								.get(tokenFrequencyB.getToken().getValue());
+						if (globalPositionB <= globalPositionA) {
+							if (this.hasPermission(LOC_FILTER_CANDIDATES)) {
+								if (!isSatisfylocFilter(bagA.getSize()
+										+ tokenFrequencyA.getFrequency(),
+										bagB.getSize(), matchCount,
+										computedThreshold, tokenSeenInA,
+										tokenSeenInB)) {
+									break;
+								}
+							}
+							if (listBItr.hasNext()) {
+								tokenFrequencyB = listBItr.next();
+								tokenSeenInB += tokenFrequencyB.getFrequency();
+							} else {
 								break;
 							}
-						}
-						if (listAItr.hasNext()) {
-							tokenFrequencyA = listAItr.next();
-							tokenSeenInA += tokenFrequencyA.getFrequency();
 						} else {
-							break;
+							if (this.hasPermission(LOC_FILTER_CANDIDATES)) {
+								if (!isSatisfylocFilter(
+										bagA.getSize(),
+										bagB.getSize()
+												+ tokenFrequencyB.getFrequency(),
+										matchCount, computedThreshold,
+										tokenSeenInA, tokenSeenInB)) {
+									break;
+								}
+							}
+							if (listAItr.hasNext()) {
+								tokenFrequencyA = listAItr.next();
+								tokenSeenInA += tokenFrequencyA.getFrequency();
+							} else {
+								break;
+							}
 						}
 					}
 				}
+	
 			}
-
-		}
+	    }
 		long stopTime = System.currentTimeMillis();
 		this.candidateCumulativeTime += (stopTime - startTime);
 		return candidate;
