@@ -13,9 +13,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import models.QueryBlock;
 import noindex.CloneHelper;
@@ -67,6 +69,7 @@ public class SearchManager {
     private PrintWriter cloneGroupWriter;
     private PrintWriter cloneSiblingCountWriter;
     private int cloneSiblingCount;
+    private Set<String> cloneSet;
 
     public SearchManager(boolean mode) throws IOException {
         this.clonePairsCount = 0;
@@ -82,6 +85,7 @@ public class SearchManager {
         this.timeTotal = 0;
         this.appendToExistingFile = true;
         this.cloneSiblingCount =0;
+        this.cloneSet = new HashSet<String>();
     }
 
     public static void main(String[] args) throws IOException, ParseException {
@@ -362,6 +366,10 @@ public class SearchManager {
                 Util.closeOutputFile(this.clonesWriter);
                 Util.closeOutputFile(this.cloneSiblingCountWriter);
             }
+            System.out.println("unique clone pairs : "+ this.cloneSet.size());
+            List<String> cloneList = new ArrayList<String>(this.cloneSet);
+            Collections.sort(cloneList);
+            System.out.println("cloneSet is "+ cloneList);
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage() + "exiting");
             System.exit(1);
@@ -398,9 +406,9 @@ public class SearchManager {
     }
 
     private void initSearchEnv() {
-        testGson = new TestGson(); // remove this line later. for
+        //testGson = new TestGson(); // remove this line later. for
                                             // validation only.
-        testGson.populateMap(); // this is for validation only, remove this
+        //testGson.populateMap(); // this is for validation only, remove this
                                 // line.
         Util.createDirs("output" + this.th+ "/cloneGroups/");
         try {
@@ -485,9 +493,9 @@ public class SearchManager {
             Document doc = null;
             try {
                 doc = this.searcher.getDocument(entry.getKey());
-                /*if (doc.get("id").equals(queryBlock.getId() + "")) {
+                if (doc.get("id").equals(queryBlock.getId() + "")) {
                     continue;
-                }*/
+                }
                 if (Integer.parseInt(doc.get("size")) > queryBlock.getSize()) {
                     continue;
                 }
@@ -505,6 +513,14 @@ public class SearchManager {
                                     doc.get("id"));
                             if (similarity > 0) {
                                 // this is a clone.
+                            	long blockId = Long.parseLong(doc.get("id"));
+                            	String clonePair = "";
+                            	if (blockId < queryBlock.getId()){
+                            		clonePair = blockId +"::"+queryBlock.getId();
+                            	}else{
+                            		clonePair = queryBlock.getId() +"::"+blockId;
+                            	}
+                            	this.cloneSet.add(clonePair);
                                 this.reportClone(queryBlock,
                                         Integer.parseInt(doc.get("id")),
                                         this.previousQueryBlock);
@@ -556,13 +572,13 @@ public class SearchManager {
     private void reportClone(QueryBlock queryBlock, long idB,
             QueryBlock previousQueryBlock) {
         this.clonePairsCount += 1;
-        // System.out.println("reporting " + idB);
+         //System.out.println("reporting " + idB);
         if (null != previousQueryBlock
                 && queryBlock.getId() == previousQueryBlock.getId()) {
             this.cloneSiblingCount ++;
             // System.out.println("equal");
-            Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(idB+""), true);
-            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
+            //Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(idB+""), true);
+//            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
             Util.writeToFile(this.clonesWriter, " ," + idB, false);
         } else {
             // start a new line
@@ -573,20 +589,21 @@ public class SearchManager {
                 // ignore
                 System.out.println(e.getMessage());
             }
-                try {
-                    Util.createDirs("output" + this.th+ "/cloneGroups/");
-                    this.cloneGroupWriter = Util.openFile("output" + this.th
-                            + "/cloneGroups/" + queryBlock.getId() + ".txt", false);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+//                try {
+////                    Util.createDirs("output" + this.th+ "/cloneGroups/");
+////                    this.cloneGroupWriter = Util.openFile("output" + this.th
+////                            + "/cloneGroups/" + queryBlock.getId() + ".txt", false);
+//                } catch (IOException e) {
+//                    // TODO Auto-generated catch block
+//                    e.printStackTrace();
+//                }
                 this.cloneSiblingCount ++;
-            Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(queryBlock.getId()+""), true);
-            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
-            Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(idB+""), true);
-            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
+//            Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(queryBlock.getId()+""), true);
+//            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
+//            Util.writeToFile(this.cloneGroupWriter, this.testGson.idToCodeMap.get(idB+""), true);
+//            Util.writeToFile(this.cloneGroupWriter, "===================================================", true);
             Util.writeToFile(this.clonesWriter, "", true);
+               
             Util.writeToFile(this.clonesWriter,
                     "Clones of Bag " + queryBlock.getId(), true);
             Util.writeToFile(this.clonesWriter, idB + "", false);

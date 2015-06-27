@@ -176,6 +176,18 @@ public class CloneHelper {
 		}
 		throw new ParseException("parsing error", 0);
 	}
+	
+	public Bag deserialise3(String s) throws ParseException {
+		if (null != s && s.trim().length() > 0) {
+			String[] bagAndTokens = s.split("@#@");
+			String bagId = bagAndTokens[0];
+			Bag bag = new Bag(Integer.parseInt(bagId));
+			String tokenString = bagAndTokens[1];
+			this.parseAndPopulateBag(bag, tokenString);
+			return bag;
+		}
+		throw new ParseException("parsing error", 0);
+	}
 
 	private void parseAndPopulateBag(Bag bag, String inputString) {
 		String[] tokenFreqStrings = inputString.split(",");
