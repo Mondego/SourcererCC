@@ -237,12 +237,7 @@ public class CloneDetectorWithFilter {
             // compare this map with every map in setB and report clones
             // iterate on setB
             for (Bag bagInSetB : setB) {
-                if (bagInSetA.getId() != bagInSetB.getId()) {
-                    String pairId = "";
-                    if (bagInSetA.getId() < bagInSetB.getId()) {
-                        this.isCandidate(bagInSetA, bagInSetB);
-                    }
-                }
+                this.isCandidate(bagInSetA, bagInSetA);
             }
         }
     }
