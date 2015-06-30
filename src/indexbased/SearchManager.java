@@ -493,9 +493,9 @@ public class SearchManager {
             Document doc = null;
             try {
                 doc = this.searcher.getDocument(entry.getKey());
-                if (doc.get("id").equals(queryBlock.getId() + "")) {
+                /*if (doc.get("id").equals(queryBlock.getId() + "")) {
                     continue;
-                }
+                }*/
                 if (Integer.parseInt(doc.get("size")) > queryBlock.getSize()) {
                     continue;
                 }
