@@ -369,7 +369,9 @@ public class SearchManager {
             System.out.println("unique clone pairs : "+ this.cloneSet.size());
             List<String> cloneList = new ArrayList<String>(this.cloneSet);
             Collections.sort(cloneList);
-            System.out.println("cloneSet is "+ cloneList);
+            for (String clonePair : cloneList){
+                System.out.println(clonePair);
+            }
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage() + "exiting");
             System.exit(1);
