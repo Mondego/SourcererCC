@@ -237,7 +237,7 @@ public class CloneDetectorWithFilter {
             // compare this map with every map in setB and report clones
             // iterate on setB
             for (Bag bagInSetB : setB) {
-                this.isCandidate(bagInSetA, bagInSetA);
+                this.isCandidate(bagInSetA, bagInSetB);
             }
         }
     }
