@@ -44,7 +44,7 @@ public class CodeIndexer {
     private boolean isPrefixIndex;
     private float threshold;
     //public final static String DATASET_DIR = "input/dataset";
-    public static String DATASET_DIR2 = "input/dummy";
+    public static String DATASET_DIR2 = "input/dataset";
     public long bagsSortTime;
     /**
      * @param args
