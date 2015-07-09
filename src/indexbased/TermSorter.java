@@ -28,7 +28,7 @@ import com.google.common.collect.Ordering;
  */
 public class TermSorter {
     private CloneHelper cloneHelper;
-    private Map<String, Long> wordFreq;
+    public static Map<String, Long> wordFreq;
     public static String SORTED_FILES_DIR = "output/sortedFiles";
     public static Map<String,Integer> globalTokenPositionMap;
     public TermSorter() {
@@ -80,26 +80,10 @@ public class TermSorter {
         br = new BufferedReader(new FileReader(file));
         String line;
         while ((line = br.readLine()) != null && line.trim().length() > 0) {
-            this.addToMap(cloneHelper.deserialise(line));
+            cloneHelper.parseAndPopulateWordFreqMap(line);
         }
         br.close();
     }
 
-    public void addToMap(Bag bag) {
-        for (TokenFrequency tf : bag) {
-            String key = tf.getToken().getValue();
-            if (this.wordFreq.containsKey(key)) {
-                long value = this.wordFreq.get(key) + tf.getFrequency();
-                // System.out.println(key + ": "+ this.wordFreq.get(key)+ " : "+
-                // tf.getFrequency()+ " : "+value);
-                this.wordFreq.put(key, value);
-                /*if(this.wordFreq.size()%10000==0){
-                    //System.out.println("size of wordFreq Map: "+ this.wordFreq.size());
-                }*/
-            } else {
-                this.wordFreq.put(key, (long) tf.getFrequency());
-            }
-        }
-    }
 
 }
