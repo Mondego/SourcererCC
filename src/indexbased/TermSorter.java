@@ -57,6 +57,7 @@ public class TermSorter {
 		if (gptmFile.exists()) {
 			TermSorter.globalTokenPositionMap = Util
 					.readJsonStream(this.GTPMfilename);
+			System.out.println("search size of GTPM: "+ TermSorter.globalTokenPositionMap.size());
 		} else {
 			File datasetDir = new File(CodeIndexer.DATASET_DIR2);
 			if (datasetDir.isDirectory()) {
@@ -66,15 +67,16 @@ public class TermSorter {
 				}
 				System.out.println(TermSorter.wordFreq.size());
 				Map<String, Long> sortedMap = ImmutableSortedMap.copyOf(
-						this.wordFreq,
+						TermSorter.wordFreq,
 						Ordering.natural()
-								.onResultOf(Functions.forMap(this.wordFreq))
+								.onResultOf(Functions.forMap(TermSorter.wordFreq))
 								.compound(Ordering.natural()));
 				int count = 1;
 				for (Entry<String, Long> entry : sortedMap.entrySet()) {
 					TermSorter.globalTokenPositionMap.put(entry.getKey(), count);
 					count++;
 				}
+				System.out.println("index size of GTPM: "+ TermSorter.globalTokenPositionMap.size());
 				Util.writeJsonStream(this.GTPMfilename,
 						TermSorter.globalTokenPositionMap);
 				TermSorter.wordFreq = null;
