@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,7 +24,7 @@ public class ClonesBugsAssembler {
     String projectName;
     private Map<String,String> clonesNameMap;
     private Map<String,String> methodListing;
-    private PrintWriter outputWriter;
+    private Writer outputWriter;
     private Set<String> clones;
     private int linesWritten;
     private String headerString;
@@ -243,7 +244,7 @@ public class ClonesBugsAssembler {
     /**
      * @return the outputWriter
      */
-    public PrintWriter getOutputWriter() {
+    public Writer getOutputWriter() {
         return outputWriter;
     }
 

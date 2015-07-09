@@ -2,7 +2,7 @@ package noindex;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,7 +21,7 @@ public class CloneDetector {
 	private CloneHelper cloneHelper;
 	private float threshold;
 	private float th; // args[1]
-	private PrintWriter analysisWriter;
+	private Writer analysisWriter;
 	private String filePrefix;
 	private boolean useJaccardSimilarity;
 	private final String SIMILARITY_OVERLAP = "overlap";

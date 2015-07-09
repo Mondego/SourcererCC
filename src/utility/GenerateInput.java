@@ -1,13 +1,12 @@
 package utility;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Set;
 
+import models.Bag;
 import noindex.CloneHelper;
 import noindex.CloneTestHelper;
-
-import models.Bag;
 
 
 /**
@@ -27,8 +26,8 @@ public class GenerateInput {
         // TODO Auto-generated method stub
         Set<Bag> setA = CloneTestHelper.getTestSet(1, 11);
         Set<Bag> setB = CloneTestHelper.getTestSet(11, 21);
-        PrintWriter projectAWriter = null;
-        PrintWriter projectBWriter = null;
+        Writer projectAWriter = null;
+        Writer projectBWriter = null;
         CloneHelper cloneHelper = new CloneHelper();
         try {
             File f = new File("projectA.txt");

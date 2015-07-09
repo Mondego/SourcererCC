@@ -2,7 +2,7 @@ package noindex;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,7 +35,7 @@ public class CloneDetectorWithFilter {
     private Map<Long, List<TokenFrequency>> bagToListMap;
     private long filterComparision;
     private boolean doSort;
-    private PrintWriter analysisWriter;
+    private Writer analysisWriter;
     // private PrintWriter prefixWriter;
     private long candidateCumulativeTime;
     private long comparisions;

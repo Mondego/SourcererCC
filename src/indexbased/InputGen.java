@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -14,7 +14,7 @@ import utility.Util;
 
 public class InputGen {
     private List<String> methodBlocks;
-    private PrintWriter queryBlockWriter;
+    private Writer queryBlockWriter;
 
     public InputGen() {
         this.methodBlocks = new ArrayList<String>();

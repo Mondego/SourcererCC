@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,9 +21,9 @@ public class SummaryProcessor {
     String CLONES_COUNT = "CLONES_COUNT";
     String THRESHOLD = "THRESHOLD";
     String inputDir;
-    private PrintWriter processedSummryWriter_time;
-    private PrintWriter processedSummryWriter_comparisions;
-    private PrintWriter processedSummryWriter_clones;
+    private Writer processedSummryWriter_time;
+    private Writer processedSummryWriter_comparisions;
+    private Writer processedSummryWriter_clones;
     Map<String, SummaryProcessor.Project> projects;
 
     public SummaryProcessor() throws IOException {

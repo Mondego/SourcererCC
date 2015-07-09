@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +22,7 @@ import java.util.Set;
 import models.QueryBlock;
 import noindex.CloneHelper;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
@@ -47,7 +48,7 @@ public class SearchManager {
 	private CloneHelper cloneHelper;
 	private final String QUERY_DIR_PATH = "input/query/";
 	private QueryBlock previousQueryBlock;
-	private PrintWriter clonesWriter; // writer to write the output
+	private Writer clonesWriter; // writer to write the output
 	private float th; // args[2]
 	private boolean isPrefixMode; // whether to do a prefix search or a normal
 									// search
@@ -61,13 +62,13 @@ public class SearchManager {
 	private long timeGlobalTokenPositionCreation;
 	private long timeSearch;
 	private long numCandidates;
-	private PrintWriter outputWriter;
+	private Writer outputWriter;
 	private long timeTotal;
 	private String action;
 	private boolean appendToExistingFile;
 	TestGson testGson;
-	private PrintWriter cloneGroupWriter;
-	private PrintWriter cloneSiblingCountWriter;
+	private Writer cloneGroupWriter;
+	private Writer cloneSiblingCountWriter;
 	private int cloneSiblingCount;
 	private Set<String> cloneSet;
 	public static final Integer MUL_FACTOR = 100;
@@ -187,6 +188,8 @@ public class SearchManager {
 		if (this.isPrefixMode) {
 			TermSorter termSorter = new TermSorter();
 			long timeGlobalPositionStart = System.currentTimeMillis();
+			FileUtils.deleteDirectory(new File(Util.GTPM_DIR));
+			Util.createDirs(Util.GTPM_DIR);
 			termSorter.populateGlobalPositionMap();
 			this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
 					- timeGlobalPositionStart;
@@ -447,7 +450,11 @@ public class SearchManager {
 		if (this.isPrefixMode) {
 			TermSorter termSorter = new TermSorter();
 			try {
+				
+				long timeGlobalPositionStart = System.currentTimeMillis();
 				termSorter.populateGlobalPositionMap();
+				this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
+						- timeGlobalPositionStart;
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (ParseException e) {

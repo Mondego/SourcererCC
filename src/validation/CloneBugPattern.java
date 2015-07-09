@@ -1,7 +1,7 @@
 package validation;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,7 +9,7 @@ import postprocessing.ClonesBugsAssembler;
 import utility.Util;
 
 public class CloneBugPattern {
-    private PrintWriter outputWriter;
+    private Writer outputWriter;
     /**
      * @param args
      */

@@ -7,7 +7,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +29,7 @@ public class ClonesNamesAssembler {
     Map<Integer, String> idNameMap = new HashMap<Integer, String>();
     Map<Integer, List<Integer>> cloneIdsMap = new HashMap<Integer, List<Integer>>();
     Map<String, List<String>> cloneNameMap = new HashMap<String, List<String>>();
-    private PrintWriter outputWriter;
+    private Writer outputWriter;
     int linesWritten;
 
     public static void main(String[] args) {

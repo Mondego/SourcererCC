@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ import utility.Util;
  * 
  */
 public class CloneHelper {
-	private PrintWriter clonesWriter; // writer to write the output
+	private Writer clonesWriter; // writer to write the output
 	private Bag previousBag; // the previous bag whose clones we were finding in
 								// other set
 	private float threshold; // threshold for matching the clones.e.g. 80% or
@@ -178,11 +179,34 @@ public class CloneHelper {
 			String bagId = bagAndTokens[0];
 			Bag bag = new Bag(Integer.parseInt(bagId));
 			String tokenString = bagAndTokens[1];
-			this.parseAndPopulateWordFreqMap(tokenString);
+			this.parseAndPopulateBag(bag, tokenString);
 			return bag;
 		}
 		throw new ParseException("parsing error", 0);
 	}
+	
+	private void parseAndPopulateBag(Bag bag, String inputString) {
+        String[] tokenFreqStrings = inputString.split(",");
+        for (String tokenFreq : tokenFreqStrings) {
+            String[] tokenAndFreq = tokenFreq.split("@@::@@");
+            String tokenStr = this.strip(tokenAndFreq[0]).trim();
+            if (tokenStr.length() > 0) {
+                Token token = new Token(tokenStr);
+                TokenFrequency tokenFrequency = new TokenFrequency();
+                tokenFrequency.setToken(token);
+                try {
+                    tokenFrequency.setFrequency(Integer
+                            .parseInt(tokenAndFreq[1]));
+                    bag.add(tokenFrequency);
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    System.out.println("EXCEPTION CAUGHT, token: " + token);
+                    // System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
+                    // tokenAndFreq[1]);
+                    System.out.println("EXCEPTION CAUGHT: " + inputString);
+                }
+            }
+        }
+    }
 
 	public void parseAndPopulateWordFreqMap(String s) {
 		if (null != s && s.trim().length() > 0) {
@@ -259,7 +283,7 @@ public class CloneHelper {
 	/**
 	 * @return the clonesWriter
 	 */
-	public PrintWriter getClonesWriter() {
+	public Writer getClonesWriter() {
 		return clonesWriter;
 	}
 
@@ -267,7 +291,7 @@ public class CloneHelper {
 	 * @param clonesWriter
 	 *            the clonesWriter to set
 	 */
-	public void setClonesWriter(PrintWriter clonesWriter) {
+	public void setClonesWriter(Writer clonesWriter) {
 		this.clonesWriter = clonesWriter;
 	}
 

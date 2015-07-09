@@ -2,21 +2,26 @@ package indexbased;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import models.Bag;
-import models.TokenFrequency;
 import noindex.CloneHelper;
 import utility.Util;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
 
 /**
  * for every project's input file (one file is one project) read all lines for
@@ -27,63 +32,71 @@ import com.google.common.collect.Ordering;
  * 
  */
 public class TermSorter {
-    private CloneHelper cloneHelper;
-    public static Map<String, Long> wordFreq;
-    public static String SORTED_FILES_DIR = "output/sortedFiles";
-    public static Map<String,Integer> globalTokenPositionMap;
-    public TermSorter() {
-        this.wordFreq = new HashMap<String, Long>();
-        Util.createDirs(SORTED_FILES_DIR);
-        globalTokenPositionMap = new HashMap<String, Integer>();
-        this.cloneHelper = new CloneHelper();
-        
+	private CloneHelper cloneHelper;
+	public static Map<String, Long> wordFreq;
+	public static String SORTED_FILES_DIR = "output/sortedFiles";
+	public static Map<String, Integer> globalTokenPositionMap;
+	public String GTPMfilename;
 
-    }
+	public TermSorter() {
+		TermSorter.wordFreq = new HashMap<String, Long>();
+		Util.createDirs(SORTED_FILES_DIR);
+		TermSorter.globalTokenPositionMap = new HashMap<String, Integer>();
+		this.cloneHelper = new CloneHelper();
+		this.GTPMfilename = Util.GTPM_DIR + "/gtpm.json";
 
-    public static void main(String[] args) throws IOException, ParseException {
-        TermSorter externalSort = new TermSorter();
-        externalSort.populateGlobalPositionMap();
-    }
+	}
 
-    public void populateGlobalPositionMap() throws IOException,
-            ParseException {
-        File datasetDir = new File(CodeIndexer.DATASET_DIR2);
-        if (datasetDir.isDirectory()) {
-            System.out.println("Directory: " + datasetDir.getName());
-            for (File inputFile : datasetDir.listFiles()) {
-                this.populateWordFreqMap(inputFile);
-            }
-            System.out.println(this.wordFreq.size());
-            Map<String, Long> sortedMap = ImmutableSortedMap.copyOf(
-                    this.wordFreq,
-                    Ordering.natural()
-                            .onResultOf(Functions.forMap(this.wordFreq))
-                            .compound(Ordering.natural()));
-            int count=1;
-            for(Entry<String,Long> entry : sortedMap.entrySet()){
-                globalTokenPositionMap.put(entry.getKey(), count);
-                count++;
-            }
-            this.wordFreq = null;
-            sortedMap = null;
-        } else {
-            System.out.println("File: " + datasetDir.getName()
-                    + " is not a direcory. exiting now");
-            System.exit(1);
-        }
-    }
+	public static void main(String[] args) throws IOException, ParseException {
+		TermSorter externalSort = new TermSorter();
+		externalSort.populateGlobalPositionMap();
+	}
 
-    private void populateWordFreqMap(File file) throws IOException,
-            ParseException {
-        //System.out.println("Sorting file: " + file.getName());
-        BufferedReader br = null;
-        br = new BufferedReader(new FileReader(file));
-        String line;
-        while ((line = br.readLine()) != null && line.trim().length() > 0) {
-            cloneHelper.parseAndPopulateWordFreqMap(line);
-        }
-        br.close();
-    }
+	public void populateGlobalPositionMap() throws IOException, ParseException {
+		File gptmFile = new File(this.GTPMfilename);
+		if (gptmFile.exists()) {
+			TermSorter.globalTokenPositionMap = Util
+					.readJsonStream(this.GTPMfilename);
+		} else {
+			File datasetDir = new File(CodeIndexer.DATASET_DIR2);
+			if (datasetDir.isDirectory()) {
+				System.out.println("Directory: " + datasetDir.getName());
+				for (File inputFile : datasetDir.listFiles()) {
+					this.populateWordFreqMap(inputFile);
+				}
+				System.out.println(TermSorter.wordFreq.size());
+				Map<String, Long> sortedMap = ImmutableSortedMap.copyOf(
+						this.wordFreq,
+						Ordering.natural()
+								.onResultOf(Functions.forMap(this.wordFreq))
+								.compound(Ordering.natural()));
+				int count = 1;
+				for (Entry<String, Long> entry : sortedMap.entrySet()) {
+					TermSorter.globalTokenPositionMap.put(entry.getKey(), count);
+					count++;
+				}
+				Util.writeJsonStream(this.GTPMfilename,
+						TermSorter.globalTokenPositionMap);
+				TermSorter.wordFreq = null;
+				sortedMap = null;
+			} else {
+				System.out.println("File: " + datasetDir.getName()
+						+ " is not a direcory. exiting now");
+				System.exit(1);
+			}
+		}
+	}
 
+	private void populateWordFreqMap(File file) throws IOException,
+			ParseException {
+		// System.out.println("Sorting file: " + file.getName());
+		BufferedReader br = null;
+		br = new BufferedReader(new FileReader(file));
+		String line;
+		while ((line = br.readLine()) != null && line.trim().length() > 0) {
+			cloneHelper.parseAndPopulateWordFreqMap(line);
+		}
+		br.close();
+	}
 
 }

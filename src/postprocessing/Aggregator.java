@@ -5,14 +5,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.ParseException;
+import java.io.Writer;
 
 import utility.Util;
 
 public class Aggregator {
     private String project;
-    private PrintWriter summryWriter;
+    private Writer summryWriter;
     private String inputFile;
     private boolean isFilter = false;
     private int readings = 0;
