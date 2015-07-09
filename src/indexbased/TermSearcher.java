@@ -12,8 +12,8 @@ import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.spans.SpanTermQuery;
+
+import utility.Util;
 
 /**
  * @author vaibhavsaini
@@ -70,7 +70,6 @@ public class TermSearcher {
             int base = ctx.docBase;
             Term term = new Term("tokens", this.searchTerm);
             //SpanTermQuery spanQ = new SpanTermQuery(term);
-            
             try {
                 DocsAndPositionsEnum docEnum = MultiFields.getTermPositionsEnum(ctx.reader(),
                         MultiFields.getLiveDocs(ctx.reader()), "tokens",
@@ -79,9 +78,6 @@ public class TermSearcher {
                     int doc = DocsEnum.NO_MORE_DOCS;
                     while ((doc = docEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
                         long docId = doc + base;
-                        // System.out.println("docbase is: " + base +
-                        // " doc: " +
-                        // doc + " globDocId: "+docId);
                         if (this.simMap.containsKey(docId)) {
                             this.simMap.put(docId, this.simMap.get(docId)
                                     + Math.min(freqTerm, docEnum.freq()));
@@ -89,26 +85,25 @@ public class TermSearcher {
                             this.simMap.put(docId,
                                     Math.min(freqTerm, docEnum.freq()));
                         }
-                        int blockSize = Integer.parseInt(SearchManager.searcher.getDocument(docId).get("size"));
-                        if(!this.isSatisfyPosFilter(this.simMap.get(docId), queryTermsSeen, blockSize, docEnum.nextPosition()+docEnum.freq())){
+                        int candidateSize = Integer.parseInt(SearchManager.searcher.getDocument(docId).get("size"));
+                        
+                        if(!Util.isSatisfyPosFilter(this.simMap.get(docId), this.querySize, queryTermsSeen, candidateSize, docEnum.nextPosition()+docEnum.freq(), this.computedThreshold)){
                         	this.simMap.remove(docId);
                         }
-                        
                     }
-                } else {
+                } 
+                /*else {
                     System.out.println("term not found: " + this.searchTerm);
-                }
+                }*/
             } catch (Exception e) {
-                System.out.println("" + e.getMessage());
+                System.out.println("exception caught" + e.getMessage());
             }
 
         }
 
     }
     
-    private boolean isSatisfyPosFilter(int similarity,int termsSeenInQueryBlock,int blockSize, int termsSeenInBlock){
-    	return this.computedThreshold <= similarity + Math.min(this.querySize-termsSeenInQueryBlock,blockSize - termsSeenInBlock );
-    }
+    
 
     /**
      * @return the searchTerm

@@ -5,9 +5,11 @@ package indexbased;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,6 +33,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+import utility.BlockInfo;
 import utility.Util;
 
 /**
@@ -44,7 +47,8 @@ public class CodeIndexer {
     private boolean isPrefixIndex;
     private float threshold;
     //public final static String DATASET_DIR = "input/dataset";
-    public static String DATASET_DIR2 = "input/dataset";
+    public static String DATASET_DIR2 = "input/dummy";
+    
     public long bagsSortTime;
     /**
      * @param args
@@ -52,6 +56,7 @@ public class CodeIndexer {
      * @throws FileNotFoundException
      */
     public CodeIndexer(boolean isPrefixIndex,float threshold) throws IOException {
+    	
         this.threshold = threshold;
         this.bagsSortTime=0;
         this.isPrefixIndex = isPrefixIndex;
@@ -93,7 +98,7 @@ public class CodeIndexer {
         BufferedReader br = null;
         System.out.println("Indexing file: " + file.getName());
         try {
-            br = new BufferedReader(new FileReader(file));
+        	br = new BufferedReader(new InputStreamReader(new FileInputStream(file),"UTF-8"));
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 this.indexCodeBlock(cloneHelper.deserialise(line));
@@ -121,7 +126,7 @@ public class CodeIndexer {
         BufferedReader br = null;
         System.out.println("fwd Indexing file: " + file.getName());
         try {
-            br = new BufferedReader(new FileReader(file));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(file),"UTF-8"));
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 this.fwdIndexCodeBlock(cloneHelper.deserialise(line));
@@ -165,12 +170,21 @@ public class CodeIndexer {
     }
     
     private void sortBag(Bag bag){
-        long bagId = bag.getId();
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
         Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
             public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
-                long position1 = TermSorter.globalTokenPositionMap.get(tfFirst.getToken().getValue());
-                long position2 = TermSorter.globalTokenPositionMap.get(tfSecond.getToken().getValue());
+            	long position1=0;
+            	long position2 = 0;
+            	try{
+            		position1 = TermSorter.globalTokenPositionMap.get(tfFirst.getToken().getValue());
+            	}catch(Exception e){
+            		System.out.println("Exception in sort "+ tfFirst.getToken().getValue());
+            	}
+            	try{
+            		position2 = TermSorter.globalTokenPositionMap.get(tfSecond.getToken().getValue());
+            	}catch(Exception e){
+            		System.out.println("Exception in sort "+ tfSecond.getToken().getValue());
+            	}
                 if(position1-position2!=0){
                     return (int) (position1 - position2);
                 }else{
@@ -233,7 +247,11 @@ public class CodeIndexer {
         StoredField sizeField = new StoredField("size", bag.getSize() + "");
         document.add(sizeField);
         String tokenString = "";
-        int prefixLength = Util.getPrefixSize(bag,this.threshold);
+        BlockInfo blockInfo = new BlockInfo(this.threshold, bag);
+        int prefixLength = blockInfo.getPrefixSize();
+        StoredField computedThresholdField = new StoredField("ct", blockInfo.getComputedThreshold()+ "");
+        document.add(sizeField);
+        document.add(computedThresholdField);
         for (TokenFrequency tf : bag) {
             for(int i=0;i<tf.getFrequency();i++){
                 tokenString += tf.getToken().getValue() + " ";

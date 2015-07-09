@@ -107,4 +107,5 @@
     <target name="cdv" depends="jarV"/>
     <target name="cda" depends="jarAg"/>
     <target name="cdi" depends="jarCDI"/>
+	<target name="cdini" depends="cdboth, cdi"/>
 </project>

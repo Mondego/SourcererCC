@@ -3,6 +3,8 @@
  */
 package utility;
 
+import indexbased.SearchManager;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -77,8 +79,11 @@ public class Util {
      * closes the outputfile
      */
     public static void closeOutputFile(PrintWriter pWriter) {
-        pWriter.flush();
-        pWriter.close();
+    	if (null!=pWriter){
+    		pWriter.flush();
+            pWriter.close();
+    	}
+        
     }
     
     public static boolean createDirs(String dirname){
@@ -89,22 +94,24 @@ public class Util {
             return true;
         }
     }
+    public static boolean isSatisfyPosFilter(int similarity,int querySize, int termsSeenInQueryBlock, int candidateSize, int termsSeenInCandidate, int computedThreshold){
+    	return computedThreshold <= similarity + Math.min(querySize-termsSeenInQueryBlock,candidateSize - termsSeenInCandidate );
+    }
     
-    public static int getMinimumSimilarityThreshold(QueryBlock queryBlock,float threshold) {
-        return (int) Math.ceil(threshold * queryBlock.getSize());
+   /* public static int getMinimumSimilarityThreshold(QueryBlock queryBlock,float threshold) {
+        return (int) Math.ceil((threshold * queryBlock.getSize())/ (SearchManager.MUL_FACTOR*10));
     }
     public static int getMinimumSimilarityThreshold(Bag bag,float threshold) {
-        return (int) Math.ceil(threshold * bag.getSize());
-    }
+        return (int) Math.ceil((threshold * bag.getSize())/ (SearchManager.MUL_FACTOR*10));
+    }*/
 
-    public static int getPrefixSize(QueryBlock queryBlock, float threshold) {
-        int computedThreshold = getMinimumSimilarityThreshold(queryBlock, threshold);
+    /*public static int getPrefixSize(QueryBlock queryBlock, float threshold) {
         int prefixSize = (queryBlock.getSize() + 1) - computedThreshold;// this.computePrefixSize(maxLength);
         return prefixSize;
-    }
-    public static int getPrefixSize(Bag bag, float threshold) {
+    }*/
+  /*  public static int getPrefixSize(Bag bag, float threshold) {
         int computedThreshold = getMinimumSimilarityThreshold(bag, threshold);
         int prefixSize = (bag.getSize() + 1) - computedThreshold;// this.computePrefixSize(maxLength);
         return prefixSize;
-    }
+    }*/
 }

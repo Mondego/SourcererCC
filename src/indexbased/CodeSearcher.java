@@ -136,8 +136,10 @@ public class CodeSearcher {
         this.termSearcher.setQuerySize(queryBlock.getSize());
         this.termSearcher.setComputedThreshold(computedThreshold);
         int termsSeenInQuery =0;
+        StringBuilder prefixTerms = new StringBuilder();
         for (Entry<String, Integer> entry : queryBlock.entrySet()) {
             try {
+            	prefixTerms.append(entry.getKey()+" ");
                 Query query = queryParser.parse("\""+entry.getKey()+"\"");
                 this.termSearcher.setSearchTerm(query.toString(this.field));
                 this.termSearcher.setFreqTerm(entry.getValue());
@@ -157,7 +159,6 @@ public class CodeSearcher {
         // for (String key : tfsToRemove) {
         // queryBlock.remove(key);
         // }
-
     }
 
     public void search2(QueryBlock queryBlock) throws IOException {
@@ -189,7 +190,24 @@ public class CodeSearcher {
         }
         return result;
     }
-
+    
+    public CustomCollectorFwdIndex search(Document doc, int i) throws IOException {
+        CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
+        Query query;
+        String s = "sdsdasdasdsd";
+        try {
+            query = queryParser.parse(doc.get("id"));
+            /*
+             * System.out.println("Searching for: " + query.toString(this.field)
+             * + " : " + doc.get("id"));
+             */
+            this.searcher.search(query, result);
+        } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+            System.out.println("cannot parse " + e.getMessage());
+        }
+        return result;
+    }
+    
     public Document getDocument(long docId) throws IOException {
         return this.searcher.doc((int) docId);
     }

@@ -62,7 +62,7 @@ public class CloneDetectorWithFilter {
      */
     public CloneDetectorWithFilter() {
         super();
-        this.threshold = .8F;
+        this.threshold = 1F;
         this.bagToListMap = new HashMap<Long, List<TokenFrequency>>();
         this.filterComparision = 0;
         this.doSort = true;
@@ -129,12 +129,12 @@ public class CloneDetectorWithFilter {
             cd.cloneHelper = cloneHelper;
             cd.init();
             cd.runExperiment();
-            System.out.println("unique clone pairs : " + cd.cloneSet.size());
+            /*System.out.println("unique clone pairs : " + cd.cloneSet.size());
             List<String> cloneList = new ArrayList<String>(cd.cloneSet);
             Collections.sort(cloneList);
             for (String clonePair : cloneList){
                 System.out.println(clonePair);
-            }
+            }*/
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
