@@ -3,6 +3,7 @@
  */
 package utility;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,17 +12,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * @author vaibhavsaini
@@ -134,15 +135,18 @@ public class Util {
 
 	public static void writeJsonStream(String filename,
 			Map<String, Integer> gtpm) {
-		JsonWriter writer = null;
+		Writer writer = null;
 		try {
-			writer = new JsonWriter(new OutputStreamWriter(
-					new FileOutputStream(filename), "UTF-8"));
+			writer = Util.openFile(filename, false);
 			Gson gson = new GsonBuilder().create();
-			gson.toJson(gtpm, gtpm.getClass(), writer);
+			String text = gson.toJson(gtpm);
+			Util.writeToFile(writer, text, false);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			try {
@@ -155,26 +159,37 @@ public class Util {
 	}
 	
 	public static Map<String,Integer> readJsonStream(String filename){
-		JsonReader reader = null;
+		
+		BufferedReader br = null;
 		Map<String,Integer> gtpm = new HashMap<String, Integer>();
-		try {
-			reader = new JsonReader(new InputStreamReader(
-					new FileInputStream(filename), "UTF-8"));
-			Gson gson = new GsonBuilder().create();
-			gtpm =  gson.fromJson(reader, gtpm.getClass());
-		} catch (UnsupportedEncodingException e) {
+        try {
+        	br = new BufferedReader(new InputStreamReader(new FileInputStream(filename),"UTF-8"));
+            String line;
+            while ((line = br.readLine()) != null && line.trim().length() > 0) {
+            	Gson gson = new GsonBuilder().create();
+            	Type type = new TypeToken<Map<String,Integer>>(){}.getType();
+            	gtpm =  gson.fromJson(line, type);
+            }
+        }catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} catch (JsonSyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} finally {
 			try {
-				reader.close();
+				br.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		return gtpm;
+		
 	}
 	/*
 	 * public static int getMinimumSimilarityThreshold(QueryBlock
