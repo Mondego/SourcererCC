@@ -5,9 +5,11 @@ package indexbased;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import models.Bag;
 import models.QueryBlock;
 import noindex.CloneHelper;
 
@@ -57,8 +60,7 @@ public class SearchManager {
 	private CodeIndexer indexer;
 	private long timeSpentInProcessResult;
 	private long timeSpentInSearchingCandidates;
-	private long timeFwdIndex;
-	private long timeInvertedIndex;
+	private long timeIndexing;
 	private long timeGlobalTokenPositionCreation;
 	private long timeSearch;
 	private long numCandidates;
@@ -75,6 +77,7 @@ public class SearchManager {
 	int deletemeCounter = 0;
 	private double ramBufferSizeMB;
 	private int mergeFactor;
+	private long bagsSortTime;
 
 	public SearchManager(boolean mode) throws IOException {
 		this.clonePairsCount = 0;
@@ -82,8 +85,7 @@ public class SearchManager {
 		this.cloneHelper = new CloneHelper();
 		this.timeSpentInProcessResult = 0;
 		this.timeSpentInSearchingCandidates = 0;
-		this.timeFwdIndex = 0;
-		this.timeInvertedIndex = 0;
+		this.timeIndexing = 0;
 		this.timeGlobalTokenPositionCreation = 0;
 		this.timeSearch = 0;
 		this.numCandidates = 0;
@@ -93,6 +95,7 @@ public class SearchManager {
 		this.cloneSet = new HashSet<String>();
 		this.ramBufferSizeMB = 1024 * 1;
 		this.mergeFactor = 1000;
+		this.bagsSortTime = 0;
 	}
 
 	public static void main(String[] args) throws IOException, ParseException {
@@ -117,15 +120,16 @@ public class SearchManager {
 			searchManager.outputWriter = Util.openFile(reportFileName,
 					searchManager.appendToExistingFile);
 			if (action.equalsIgnoreCase(ACTION_INDEX)) {
-
+				searchManager.initIndexEnv();
+				long begin_time = System.currentTimeMillis();
 				searchManager.doIndex();
+				searchManager.timeIndexing = System.currentTimeMillis() - begin_time;
 			} else if (action.equalsIgnoreCase(ACTION_SEARCH)) {
+				searchManager.initSearchEnv();
 				long timeStartSearch = System.currentTimeMillis();
 				searchManager.doSearch();
 				searchManager.timeSearch = System.currentTimeMillis()
 						- timeStartSearch;
-				System.out.println("deletemeCounter "
-						+ searchManager.deletemeCounter);
 			}
 			long end_time = System.currentTimeMillis();
 			System.out.println("total run time in milliseconds:"
@@ -154,17 +158,30 @@ public class SearchManager {
 		}
 	}
 
+	private void initIndexEnv() throws IOException, ParseException {
+		TermSorter termSorter = new TermSorter();
+		long timeGlobalPositionStart = System.currentTimeMillis();
+		try {
+			FileUtils.deleteDirectory(new File(Util.GTPM_DIR));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Util.createDirs(Util.GTPM_DIR);
+		termSorter.populateGlobalPositionMap();
+		this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
+				- timeGlobalPositionStart;
+	}
+
 	private void genReport() {
 		String header = "";
 		if (!this.appendToExistingFile) {
-			header = "fwd_index_time, inverted_index_time, "
+			header = "index_time, "
 					+ "globalTokenPositionCreationTime,num_candidates, "
 					+ "num_clonePairs, total_run_time, searchTime,"
 					+ "timeSpentInSearchingCandidates,timeSpentInProcessResult,"
 					+ "isPrefixmode,operation,sortTime_during_indexing\n";
 		}
-		header += this.timeFwdIndex + ",";
-		header += this.timeInvertedIndex + ",";
+		header += this.timeIndexing + ",";
 		header += this.timeGlobalTokenPositionCreation + ",";
 		header += this.numCandidates + ",";
 		header += this.clonePairsCount + ",";
@@ -175,7 +192,7 @@ public class SearchManager {
 		header += this.isPrefixMode + ",";
 		if (this.action.equalsIgnoreCase("index")) {
 			header += this.action + ",";
-			header += this.indexer.bagsSortTime;
+			header += this.bagsSortTime;
 		} else {
 			header += this.action;
 		}
@@ -185,106 +202,93 @@ public class SearchManager {
 
 	private void doIndex() throws IOException, ParseException {
 
-		if (this.isPrefixMode) {
-			TermSorter termSorter = new TermSorter();
-			long timeGlobalPositionStart = System.currentTimeMillis();
-			FileUtils.deleteDirectory(new File(Util.GTPM_DIR));
-			Util.createDirs(Util.GTPM_DIR);
-			termSorter.populateGlobalPositionMap();
-			this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
-					- timeGlobalPositionStart;
-			KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
-			WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
-					Version.LUCENE_46);
-			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
-					Version.LUCENE_46, whitespaceAnalyzer);
-			IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
-					Version.LUCENE_46, keywordAnalyzer);
-			indexWriterConfig.setOpenMode(OpenMode.CREATE);// add new
-															// docs to
-															// exisiting
-															// index
-			TieredMergePolicy mergePolicy = (TieredMergePolicy) indexWriterConfig
-					.getMergePolicy();
+		
+		KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
+		WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
+				Version.LUCENE_46);
+		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
+				Version.LUCENE_46, whitespaceAnalyzer);
+		IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
+				Version.LUCENE_46, keywordAnalyzer);
+		indexWriterConfig.setOpenMode(OpenMode.CREATE);// add new
+														// docs to
+														// exisiting
+														// index
+		TieredMergePolicy mergePolicy = (TieredMergePolicy) indexWriterConfig
+				.getMergePolicy();
 
-			mergePolicy.setNoCFSRatio(0);// what was this for?
-			mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
-			System.out.println("getSegmentsPerTier: "
-					+ mergePolicy.getSegmentsPerTier());
-			mergePolicy
-					.setSegmentsPerTier(mergePolicy.getSegmentsPerTier() * .2);
-			//indexWriterConfig.setMergePolicy(mergePolicy);
-			indexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
-			TieredMergePolicy fwdMergePolicy = (TieredMergePolicy) fwdIndexWriterConfig.getMergePolicy();
-			fwdMergePolicy.setSegmentsPerTier(fwdMergePolicy.getSegmentsPerTier()*.2);
-			fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
-			fwdIndexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
-			//fwdIndexWriterConfig.setMergePolicy(mergePolicy);
-			IndexWriter indexWriter;
-			IndexWriter fwdIndexWriter = null;
-			CodeIndexer fwdIndexer = null;
-			try {
-				indexWriter = new IndexWriter(FSDirectory.open(new File(
-						Util.INDEX_DIR)), indexWriterConfig);
-				this.indexer = new CodeIndexer(Util.INDEX_DIR, indexWriter,
-						cloneHelper, this.isPrefixMode, this.th);
-				fwdIndexWriter = new IndexWriter(FSDirectory.open(new File(
-						Util.FWD_INDEX_DIR)), fwdIndexWriterConfig);
-				fwdIndexer = new CodeIndexer(Util.FWD_INDEX_DIR,
-						fwdIndexWriter, cloneHelper, this.isPrefixMode, this.th);
-				File datasetDir = new File(CodeIndexer.DATASET_DIR2);
+		mergePolicy.setNoCFSRatio(0);// what was this for?
+		mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
+		// indexWriterConfig.setMergePolicy(mergePolicy);
+		indexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
+		TieredMergePolicy fwdMergePolicy = (TieredMergePolicy) fwdIndexWriterConfig
+				.getMergePolicy();
+		fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
+		fwdIndexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
+		// fwdIndexWriterConfig.setMergePolicy(mergePolicy);
+		IndexWriter indexWriter;
+		IndexWriter fwdIndexWriter = null;
+		CodeIndexer fwdIndexer = null;
+		try {
+			indexWriter = new IndexWriter(FSDirectory.open(new File(
+					Util.INDEX_DIR)), indexWriterConfig);
+			this.indexer = new CodeIndexer(Util.INDEX_DIR, indexWriter,
+					cloneHelper, this.isPrefixMode, this.th);
+			fwdIndexWriter = new IndexWriter(FSDirectory.open(new File(
+					Util.FWD_INDEX_DIR)), fwdIndexWriterConfig);
+			fwdIndexer = new CodeIndexer(Util.FWD_INDEX_DIR, fwdIndexWriter,
+					cloneHelper, this.isPrefixMode, this.th);
+			File datasetDir = new File(CodeIndexer.DATASET_DIR2);
 
-				if (datasetDir.isDirectory()) {
-					long fwdIndexTimeStart = System.currentTimeMillis();
-					System.out.println("Directory: " + datasetDir.getName());
-					for (File inputFile : datasetDir.listFiles()) {
-						fwdIndexer.createFwdIndex(inputFile);
+			if (datasetDir.isDirectory()) {
+				System.out.println("Directory: " + datasetDir.getName());
+				BufferedReader br = null;
+				for (File inputFile : datasetDir.listFiles()) {
+					try {
+						br = new BufferedReader(new InputStreamReader(
+								new FileInputStream(inputFile), "UTF-8"));
+						String line;
+						while ((line = br.readLine()) != null
+								&& line.trim().length() > 0) {
+							Bag bag = cloneHelper.deserialise(line);
+							long startTime = System.currentTimeMillis();
+							Util.sortBag(bag);
+							this.bagsSortTime += System.currentTimeMillis()
+									- startTime;
+							fwdIndexer.fwdIndexCodeBlock(bag);
+							this.indexer.indexCodeBlock(bag);
+						}
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (ParseException e) {
+						e.printStackTrace();
+					} finally {
+						try {
+							br.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
-					this.timeFwdIndex = System.currentTimeMillis()
-							- fwdIndexTimeStart;
-				} else {
-					System.out.println("File: " + datasetDir.getName()
-							+ " is not a direcory. exiting now");
-					System.exit(1);
+					// fwdIndexer.createFwdIndex(inputFile);
 				}
-			} catch (IOException e) {
-				System.out.println(e.getMessage() + ", exiting now.");
+			} else {
+				System.out.println("File: " + datasetDir.getName()
+						+ " is not a direcory. exiting now");
 				System.exit(1);
-			} finally {
-				fwdIndexer.closeIndexWriter();
 			}
-		} else {
-			try {
-				this.indexer = new CodeIndexer(this.isPrefixMode, this.th);
-			} catch (IOException e) {
-				System.out.println(e.getMessage() + ", exiting now");
-			}
-		}
-		long invertedIndexTimeStart = System.currentTimeMillis();
-		this.index(this.indexer);
-		this.timeInvertedIndex = System.currentTimeMillis()
-				- invertedIndexTimeStart;
-		this.indexer.closeIndexWriter();
-	}
-
-	private void index(CodeIndexer indexer) {
-		File datasetDir = new File(CodeIndexer.DATASET_DIR2);
-		if (datasetDir.isDirectory()) {
-			System.out.println("Directory: " + datasetDir.getName());
-			for (File inputFile : datasetDir.listFiles()) {
-				indexer.indexCodeBlocks(inputFile);
-			}
-		} else {
-			System.out.println("File: " + datasetDir.getName()
-					+ " is not a direcory. exiting now");
+		} catch (IOException e) {
+			System.out.println(e.getMessage() + ", exiting now.");
 			System.exit(1);
+		} finally {
+			fwdIndexer.closeIndexWriter();
+			this.indexer.closeIndexWriter();
 		}
 	}
 
 	private void doSearch() {
-		this.initSearchEnv();
 		try {
-
 			File queryDirectory = this.getQueryDirectory();
 			File[] queryFiles = this.getQueryFiles(queryDirectory);
 			for (File queryFile : queryFiles) {
@@ -450,11 +454,11 @@ public class SearchManager {
 		if (this.isPrefixMode) {
 			TermSorter termSorter = new TermSorter();
 			try {
-				
+
 				long timeGlobalPositionStart = System.currentTimeMillis();
 				termSorter.populateGlobalPositionMap();
-				this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
-						- timeGlobalPositionStart;
+				this.timeGlobalTokenPositionCreation = System
+						.currentTimeMillis() - timeGlobalPositionStart;
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (ParseException e) {

@@ -3,6 +3,8 @@
  */
 package utility;
 
+import indexbased.TermSorter;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,9 +17,16 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import models.Bag;
+import models.TokenFrequency;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -191,6 +200,37 @@ public class Util {
 		return gtpm;
 		
 	}
+	
+	public static void sortBag(Bag bag){
+        List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
+        Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
+            public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
+            	long position1=0;
+            	long position2 = 0;
+            	try{
+            		position1 = TermSorter.globalTokenPositionMap.get(tfFirst.getToken().getValue());
+            	}catch(Exception e){
+            		position1 = -1;
+			System.out.println("Exception in sort "+ tfFirst.getToken().getValue());
+            	}
+            	try{
+            		position2 = TermSorter.globalTokenPositionMap.get(tfSecond.getToken().getValue());
+            	}catch(Exception e){
+			position2 =-1;
+            		System.out.println("Exception in sort "+ tfSecond.getToken().getValue());
+            	}
+                if(position1-position2!=0){
+                    return (int) (position1 - position2);
+                }else{
+                    return 1;
+                }
+            }
+        });
+        bag.clear();
+        for(TokenFrequency tf : bagAsList){
+            bag.add(tf);
+        }
+    }
 	/*
 	 * public static int getMinimumSimilarityThreshold(QueryBlock
 	 * queryBlock,float threshold) { return (int) Math.ceil((threshold *

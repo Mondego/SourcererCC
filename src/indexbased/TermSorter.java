@@ -65,7 +65,6 @@ public class TermSorter {
 				for (File inputFile : datasetDir.listFiles()) {
 					this.populateWordFreqMap(inputFile);
 				}
-				System.out.println(TermSorter.wordFreq.size());
 				Map<String, Long> sortedMap = ImmutableSortedMap.copyOf(
 						TermSorter.wordFreq,
 						Ordering.natural()

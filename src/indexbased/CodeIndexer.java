@@ -47,9 +47,8 @@ public class CodeIndexer {
     private boolean isPrefixIndex;
     private float threshold;
     //public final static String DATASET_DIR = "input/dataset";
-    public static String DATASET_DIR2 = "input/dummy";
+    public static String DATASET_DIR2 = "input/dataset";
     
-    public long bagsSortTime;
     /**
      * @param args
      * @throws IOException
@@ -58,7 +57,6 @@ public class CodeIndexer {
     public CodeIndexer(boolean isPrefixIndex,float threshold) throws IOException {
     	
         this.threshold = threshold;
-        this.bagsSortTime=0;
         this.isPrefixIndex = isPrefixIndex;
         this.indexDir = Util.INDEX_DIR_NO_FILTER;
         this.cloneHelper = new CloneHelper();
@@ -83,7 +81,6 @@ public class CodeIndexer {
     public CodeIndexer(String indexDir, IndexWriter indexWriter,
             CloneHelper cloneHelper, boolean isPrefixIndex,float threshold) {
         super();
-        this.bagsSortTime=0;
         this.threshold = threshold;
         this.indexDir = indexDir;
         this.indexWriter = indexWriter;
@@ -149,16 +146,9 @@ public class CodeIndexer {
     /**
      * index the code block
      */
-    private void indexCodeBlock(Bag bag) {
+    public void indexCodeBlock(Bag bag) {
         Document document;
-        if (this.isPrefixIndex) {
-            long startTime = System.currentTimeMillis();
-            this.sortBag(bag);
-            this.bagsSortTime += System.currentTimeMillis()-startTime;
-            document = this.prepareDocument(bag, this.isPrefixIndex);
-        } else {
-            document = this.prepareDocument(bag);
-        }
+        document = this.prepareDocument(bag, this.isPrefixIndex);
         try {
             this.indexWriter.addDocument(document);
         } catch (IOException e) {
@@ -169,36 +159,8 @@ public class CodeIndexer {
         }
     }
     
-    private void sortBag(Bag bag){
-        List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
-        Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
-            public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
-            	long position1=0;
-            	long position2 = 0;
-            	try{
-            		position1 = TermSorter.globalTokenPositionMap.get(tfFirst.getToken().getValue());
-            	}catch(Exception e){
-            		System.out.println("Exception in sort "+ tfFirst.getToken().getValue());
-            	}
-            	try{
-            		position2 = TermSorter.globalTokenPositionMap.get(tfSecond.getToken().getValue());
-            	}catch(Exception e){
-            		System.out.println("Exception in sort "+ tfSecond.getToken().getValue());
-            	}
-                if(position1-position2!=0){
-                    return (int) (position1 - position2);
-                }else{
-                    return 1;
-                }
-            }
-        });
-        bag.clear();
-        for(TokenFrequency tf : bagAsList){
-            bag.add(tf);
-        }
-    }
 
-    private void fwdIndexCodeBlock(Bag bag) {
+    public void fwdIndexCodeBlock(Bag bag) {
         Document document = this.prepareDocumentForFwdIndex(bag);
         try {
             this.indexWriter.addDocument(document);

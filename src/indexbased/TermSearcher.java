@@ -55,7 +55,7 @@ public class TermSearcher {
                         }
                     }
                 } else {
-                    System.out.println("term not found: " + this.searchTerm);
+                    //System.out.println("term not found: " + this.searchTerm);
                 }
             } catch (Exception e) {
                 System.out.println("" + e.getMessage());
