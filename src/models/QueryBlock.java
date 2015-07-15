@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 public class QueryBlock extends LinkedHashMap<String, Integer> {
     private long id;
     private int size;
+    private long functionId;
 
     /**
      * @param id
@@ -21,6 +22,7 @@ public class QueryBlock extends LinkedHashMap<String, Integer> {
         super();
         this.id = id;
         this.size=0;
+        this.functionId = -1;
     }
 
     /**
@@ -45,4 +47,11 @@ public class QueryBlock extends LinkedHashMap<String, Integer> {
         }
         return this.size;
     }
+    public long getFunctionId() {
+		return functionId;
+	}
+
+	public void setFunctionId(long functionId) {
+		this.functionId = functionId;
+	}
 }

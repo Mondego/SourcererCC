@@ -14,11 +14,20 @@ public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this no
      * 
      */
     private static final long serialVersionUID = 1721183896451527542L;
-    public long id;
-    public int size;
-    public int comparisions;
+    private long id;
+    private int size;
+    private int comparisions;
+    private long functionId;
 
-    /**
+    public int getComparisions() {
+		return comparisions;
+	}
+
+	public void setComparisions(int comparisions) {
+		this.comparisions = comparisions;
+	}
+
+	/**
      * @param bagId
      */
     public Bag(long bagId) {
@@ -26,13 +35,22 @@ public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this no
         this.id = bagId;
         this.size =0;
         this.comparisions=0;
+        this.functionId = -1;
     }
     
     public Bag(){
         super();
     }
 
-    @Override
+    public long getFunctionId() {
+		return functionId;
+	}
+
+	public void setFunctionId(long functionId) {
+		this.functionId = functionId;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();

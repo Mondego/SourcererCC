@@ -100,6 +100,9 @@ public class SearchManager {
 
 	public static void main(String[] args) throws IOException, ParseException {
 		// set filePrefix
+		// TODO: have two modes of execution. 1) detect all clones in a dataset,
+		// 2) detect clones for a given query. here query can be independent of
+		// the dataset
 		if (args.length >= 3) {
 			long start_time = System.currentTimeMillis();
 			String action = args[0];
@@ -123,7 +126,8 @@ public class SearchManager {
 				searchManager.initIndexEnv();
 				long begin_time = System.currentTimeMillis();
 				searchManager.doIndex();
-				searchManager.timeIndexing = System.currentTimeMillis() - begin_time;
+				searchManager.timeIndexing = System.currentTimeMillis()
+						- begin_time;
 			} else if (action.equalsIgnoreCase(ACTION_SEARCH)) {
 				searchManager.initSearchEnv();
 				long timeStartSearch = System.currentTimeMillis();
@@ -202,7 +206,6 @@ public class SearchManager {
 
 	private void doIndex() throws IOException, ParseException {
 
-		
 		KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
 		WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
 				Version.LUCENE_46);
@@ -531,8 +534,11 @@ public class SearchManager {
 			try {
 				doc = this.searcher.getDocument(entry.getKey());
 				long candidateId = Long.parseLong(doc.get("id"));
-				if (candidateId <= queryBlock.getId()) {
-					continue;
+				long functionIdCandidate = Long
+						.parseLong(doc.get("functionId"));
+				if ((candidateId <= queryBlock.getId())){
+						//|| (functionIdCandidate == queryBlock.getFunctionId())) {
+					continue; // we reject the candidate
 				}
 				int newCt = -1;
 				int cadidateSize = Integer.parseInt(doc.get("size"));
@@ -612,10 +618,13 @@ public class SearchManager {
 				if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(),
 						tokensSeenInqueryBlock, candidateSize,
 						tokensSeenInCandidate, computedThreshold)) {
+					int candidatesTokenFreq =  Integer.parseInt(tokenFreqInfo[1]);
+					tokensSeenInCandidate += candidatesTokenFreq;
 					if (queryBlock.containsKey(tokenFreqInfo[0])) {
+						tokensSeenInqueryBlock += queryBlock.get(tokenFreqInfo[0]);
 						similarity += Math.min(
 								queryBlock.get(tokenFreqInfo[0]),
-								Integer.parseInt(tokenFreqInfo[1]));
+								candidatesTokenFreq);
 
 						if (similarity >= computedThreshold) {
 							return similarity;

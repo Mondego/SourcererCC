@@ -143,7 +143,7 @@ public class CloneHelper {
 		for (TokenFrequency tokenFrequencyA : bagA) {
 			// search this token in bagB
 			TokenFrequency tokenFrequencyB = bagB.get(tokenFrequencyA);
-			this.comparisions += bagB.comparisions;
+			this.comparisions += bagB.getComparisions();
 			if (null != tokenFrequencyB) {
 				// token found.
 				count += Math.min(tokenFrequencyA.getFrequency(),
@@ -176,8 +176,11 @@ public class CloneHelper {
 	public Bag deserialise(String s) throws ParseException {
 		if (null != s && s.trim().length() > 0) {
 			String[] bagAndTokens = s.split("@#@");
-			String bagId = bagAndTokens[0];
-			Bag bag = new Bag(Integer.parseInt(bagId));
+			String[] functionIdAndBagId = bagAndTokens[0].split(",");
+			String functionId =  functionIdAndBagId[0];
+			String bagId =  functionIdAndBagId[1];
+			Bag bag = new Bag(Long.parseLong(bagId));
+			bag.setFunctionId(Long.parseLong(functionId));
 			String tokenString = bagAndTokens[1];
 			this.parseAndPopulateBag(bag, tokenString);
 			return bag;
@@ -247,8 +250,14 @@ public class CloneHelper {
 	public QueryBlock deserialiseToQueryBlock(String s) throws ParseException {
 		if (null != s && s.trim().length() > 0) {
 			String[] bagAndTokens = s.split("@#@");
-			String bagId = bagAndTokens[0];
+			
+			String[] functionIdAndBagId = bagAndTokens[0].split(",");
+			String functionId =  functionIdAndBagId[0];
+			String bagId =  functionIdAndBagId[1];
 			QueryBlock queryBlock = new QueryBlock(Long.parseLong((bagId)));
+			queryBlock.setFunctionId(Long.parseLong(functionId));
+			
+			
 			String tokenString = bagAndTokens[1];
 			this.parseAndPopulateQueryBlock(queryBlock, tokenString);
 			return queryBlock;

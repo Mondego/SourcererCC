@@ -206,6 +206,8 @@ public class CodeIndexer {
         Document document = new Document();
         StoredField strField = new StoredField("id", bag.getId() + "");
         document.add(strField);
+        StoredField functionId = new StoredField("functionId", bag.getFunctionId() + "");
+        document.add(functionId);
         StoredField sizeField = new StoredField("size", bag.getSize() + "");
         document.add(sizeField);
         String tokenString = "";
