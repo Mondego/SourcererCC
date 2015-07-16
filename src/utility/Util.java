@@ -27,6 +27,7 @@ import java.util.Random;
 
 import models.Bag;
 import models.TokenFrequency;
+import models.TokenInfo;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

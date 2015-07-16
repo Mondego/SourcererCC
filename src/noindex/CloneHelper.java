@@ -10,14 +10,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.ParseException;
+import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.lucene.analysis.ngram.EdgeNGramTokenFilter.Side;
 
 import models.Bag;
 import models.QueryBlock;
 import models.Token;
 import models.TokenFrequency;
+import models.TokenInfo;
 import utility.Util;
 
 /**
@@ -247,33 +253,38 @@ public class CloneHelper {
 		}
 	}
 
-	public QueryBlock deserialiseToQueryBlock(String s) throws ParseException {
+	public QueryBlock deserialiseToQueryBlock(String s, List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
 		if (null != s && s.trim().length() > 0) {
 			String[] bagAndTokens = s.split("@#@");
-			
 			String[] functionIdAndBagId = bagAndTokens[0].split(",");
 			String functionId =  functionIdAndBagId[0];
 			String bagId =  functionIdAndBagId[1];
-			QueryBlock queryBlock = new QueryBlock(Long.parseLong((bagId)));
-			queryBlock.setFunctionId(Long.parseLong(functionId));
-			
-			
+			//int size = Integer.parseInt(functionIdAndBagId[2]);
+			//QueryBlock queryBlock = new QueryBlock(Long.parseLong((bagId)));
+			//queryBlock.setFunctionId(Long.parseLong(functionId));
 			String tokenString = bagAndTokens[1];
-			this.parseAndPopulateQueryBlock(queryBlock, tokenString);
+			int queryBlockSize = this.parseAndPopulateQueryBlock(listOfTokens, tokenString);
+			QueryBlock queryBlock = new QueryBlock(Long.parseLong((bagId)),queryBlockSize);
 			return queryBlock;
 		}
 		throw new ParseException("parsing error", 0);
 	}
 
-	private void parseAndPopulateQueryBlock(QueryBlock queryBlock,
+	private int parseAndPopulateQueryBlock(List<Entry<String, TokenInfo>> listOfTokens,
 			String inputString) {
 		String[] tokenFreqStrings = inputString.split(",");
+		int queryBlockSize=0;
 		for (String tokenFreq : tokenFreqStrings) {
 			String[] tokenAndFreq = tokenFreq.split("@@::@@");
 			String tokenStr = this.strip(tokenAndFreq[0]).trim();
 			if (tokenStr.length() > 0) {
 				try {
-					queryBlock.put(tokenStr, Integer.parseInt(tokenAndFreq[1]));
+					TokenInfo tokenInfo = new TokenInfo(Integer.parseInt(tokenAndFreq[1]));
+					Entry<String,TokenInfo> entry =
+						    new AbstractMap.SimpleEntry<String, TokenInfo>(tokenStr, tokenInfo);
+						listOfTokens.add(entry);
+					queryBlockSize += tokenInfo.getFrequency();
+					
 				} catch (ArrayIndexOutOfBoundsException e) {
 					System.out.println("EXCEPTION CAUGHT, token: " + tokenStr);
 					// System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
@@ -283,6 +294,7 @@ public class CloneHelper {
 			}
 
 		}
+		return queryBlockSize;
 	}
 
 	private String strip(String str) {

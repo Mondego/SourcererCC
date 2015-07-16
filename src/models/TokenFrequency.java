@@ -10,7 +10,9 @@ package models;
 public class TokenFrequency {
     private int frequency;
     private Token token;
-    /**
+    
+	
+	/**
      * @return the frequency
      */
     public int getFrequency() {

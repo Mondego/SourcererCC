@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import models.QueryBlock;
+import models.TokenInfo;
 import noindex.CloneHelper;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -77,103 +78,30 @@ public class CodeSearcher {
                 analyzer);
     }
 
-    public CustomCollector search(QueryBlock queryBlock) throws IOException {
-        CustomCollector result = new CustomCollector(this.searcher);
-        for (Entry<String, Integer> entry : queryBlock.entrySet()) {
-            try {
-                Query query = queryParser.parse(entry.getKey());
-                /*
-                 * System.out.println("Searching for: " +
-                 * query.toString(this.field) + " : " +
-                 * tf.getToken().getValue());
-                 */
 
-                this.searcher.search(query, result);
-
-            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-                System.out.println("cannot parse " + e.getMessage());
-            }
-        }
-        return result;
-    }
-
-    public CustomCollector search(QueryBlock queryBlock, int prefixSize)
-            throws IOException {
-        CustomCollector result = new CustomCollector(this.searcher);
-        List<String> tfsToRemove = new ArrayList<String>();
-        for (Entry<String, Integer> entry : queryBlock.entrySet()) {
-            try {
-                Query query = queryParser.parse(entry.getKey());
-                /*
-                 * System.out.println("Searching for: " +
-                 * query.toString(this.field) + " : " +
-                 * tf.getToken().getValue());
-                 */
-                result.setSearchTerm(query.toString(this.field));
-                result.setFreqOfSearchTerm(entry.getValue());
-                this.searcher.search(query, result);
-                // String term = query.toString(this.field);
-                tfsToRemove.add(entry.getKey()); // remove this tf
-                prefixSize = prefixSize - entry.getValue();
-                if (prefixSize <= 0) {
-                    break;
-                }
-            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-                System.out.println("cannot parse " + e.getMessage());
-            }
-        }
-        for (String key : tfsToRemove) {
-            queryBlock.remove(key);
-        }
-        tfsToRemove = null; // just making sure to remove all references
-        return result;
-    }
-
-    public void search2(QueryBlock queryBlock, int prefixSize, int computedThreshold)
+    public int search(QueryBlock queryBlock)
             throws IOException {
 //        List<String> tfsToRemove = new ArrayList<String>();
         this.termSearcher.setReader(this.reader);
         this.termSearcher.setQuerySize(queryBlock.getSize());
-        this.termSearcher.setComputedThreshold(computedThreshold);
+        this.termSearcher.setComputedThreshold(queryBlock.getComputedThreshold());
         int termsSeenInQuery =0;
         StringBuilder prefixTerms = new StringBuilder();
-        for (Entry<String, Integer> entry : queryBlock.entrySet()) {
+        for (Entry<String, TokenInfo> entry : queryBlock.getPrefixMap().entrySet()) {
             try {
             	prefixTerms.append(entry.getKey()+" ");
                 Query query = queryParser.parse("\""+entry.getKey()+"\"");
                 this.termSearcher.setSearchTerm(query.toString(this.field));
-                this.termSearcher.setFreqTerm(entry.getValue());
-                termsSeenInQuery+=entry.getValue();
+                this.termSearcher.setFreqTerm(entry.getValue().getFrequency());
+                termsSeenInQuery+=entry.getValue().getFrequency();
                 this.termSearcher.searchWithPosition(termsSeenInQuery);
-               //this.termSearcher.search();
-                // String term = query.toString(this.field);
-                // tfsToRemove.add(entry.getKey()); // remove this tf
-                prefixSize = prefixSize - entry.getValue();
-                if (prefixSize <= 0) {
-                    break;
-                }
             } catch (org.apache.lucene.queryparser.classic.ParseException e) {
                 System.out.println("cannot parse " + e.getMessage());
             }
         }
-        // for (String key : tfsToRemove) {
-        // queryBlock.remove(key);
-        // }
+        return termsSeenInQuery;
     }
 
-    public void search2(QueryBlock queryBlock) throws IOException {
-        this.termSearcher.setReader(this.reader);
-        for (Entry<String, Integer> entry : queryBlock.entrySet()) {
-            try {
-                Query query = queryParser.parse("\""+entry.getKey()+"\"");
-                this.termSearcher.setSearchTerm(query.toString(this.field));
-                this.termSearcher.setFreqTerm(entry.getValue());
-                this.termSearcher.search();
-            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-                System.out.println("cannot parse " + e.getMessage());
-            }
-        }
-    }
 
     public CustomCollectorFwdIndex search(Document doc) throws IOException {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();

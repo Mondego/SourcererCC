@@ -23,6 +23,7 @@ import java.util.Set;
 
 import models.Bag;
 import models.QueryBlock;
+import models.TokenInfo;
 import noindex.CloneHelper;
 
 import org.apache.commons.io.FileUtils;
@@ -52,7 +53,7 @@ public class SearchManager {
 	private final String QUERY_DIR_PATH = "input/query/";
 	private QueryBlock previousQueryBlock;
 	private Writer clonesWriter; // writer to write the output
-	private float th; // args[2]
+	public static float th; // args[2]
 	private boolean isPrefixMode; // whether to do a prefix search or a normal
 									// search
 	private final static String ACTION_INDEX = "index";
@@ -321,62 +322,36 @@ public class SearchManager {
 							&& line.trim().length() > 0) {
 						try {
 							queryBlock = this.getNextQueryBlock(line);// todo
+							System.out.println("Prefix map: ");
+							System.out.println(queryBlock.getPrefixMap());
+							
+							System.out.println("suffix map: ");
+							System.out.println(queryBlock.getSuffixMap());
+							
+							System.out.println("query size");
+							System.out.println(queryBlock.getSize());
+							
+							System.out.println("prefix size");
+							System.out.println(queryBlock.getPrefixSize());
+							
 							this.cloneSiblingCount = 0;
-							// add
-							// filter
-							// support
-							BlockInfo queryBlockInfo = new BlockInfo(this.th,
-									queryBlock);
-							int computedThreshold = queryBlockInfo
-									.getComputedThreshold();
-							if (this.isPrefixMode) {
-								int prefixSize = queryBlockInfo.getPrefixSize();
-								/*
-								 * CustomCollector result =
-								 * this.searcher.search( queryBlock,
-								 * prefixSize);
-								 * this.processReultWithFilter(result,
-								 * queryBlock, computedThreshold);
-								 */
-								// System.out.println("+++++++");
-								TermSearcher termSearcher = new TermSearcher();
-								this.searcher.setTermSearcher(termSearcher);
-								long searchCandidatesTimeStart = System
-										.currentTimeMillis();
-								this.searcher.search2(queryBlock, prefixSize,
-										computedThreshold);
-								this.timeSpentInSearchingCandidates += System
-										.currentTimeMillis()
-										- searchCandidatesTimeStart;
-								long processResultTimeStart = System
-										.currentTimeMillis();
-								this.processResultWithFilter(termSearcher,
-										queryBlock, computedThreshold);
-								this.timeSpentInProcessResult += System
-										.currentTimeMillis()
-										- processResultTimeStart;
-							} else {
-								/*
-								 * CustomCollector result = this.searcher
-								 * .search(queryBlock);
-								 * this.processResult(result, queryBlock);
-								 */
-								TermSearcher termSearcher = new TermSearcher();
-								this.searcher.setTermSearcher(termSearcher);
-								long searchCandidatesTimeStart = System
-										.currentTimeMillis();
-								this.searcher.search2(queryBlock);
-								this.timeSpentInSearchingCandidates += System
-										.currentTimeMillis()
-										- searchCandidatesTimeStart;
-								long processResultTimeStart = System
-										.currentTimeMillis();
-								this.processReult(termSearcher,
-										computedThreshold, queryBlock);
-								this.timeSpentInProcessResult += System
-										.currentTimeMillis()
-										- processResultTimeStart;
-							}
+							TermSearcher termSearcher = new TermSearcher();
+							this.searcher.setTermSearcher(termSearcher);
+							long searchCandidatesTimeStart = System
+									.currentTimeMillis();
+							int termsSeenInQuery = this.searcher.search(queryBlock);
+							System.out.println("tersSeen in Query: "+ termsSeenInQuery);
+							this.timeSpentInSearchingCandidates += System
+									.currentTimeMillis()
+									- searchCandidatesTimeStart;
+							long processResultTimeStart = System
+									.currentTimeMillis();
+							this.processResultWithFilter(termSearcher,
+									queryBlock,termsSeenInQuery);
+							this.timeSpentInProcessResult += System
+									.currentTimeMillis()
+									- processResultTimeStart;
+							
 
 						} catch (ParseException e) {
 							System.out.println(e.getMessage()
@@ -524,7 +499,7 @@ public class SearchManager {
 	 */
 
 	private long processResultWithFilter(TermSearcher result,
-			QueryBlock queryBlock, int computedThreshold) {
+			QueryBlock queryBlock, int termsSeenInQuery) {
 		long numClonesFound = 0;
 		Map<Long, Integer> codeBlockIds = result.getSimMap();
 		this.numCandidates += codeBlockIds.size();
@@ -533,6 +508,7 @@ public class SearchManager {
 			Document doc = null;
 			try {
 				doc = this.searcher.getDocument(entry.getKey());
+				int similarity = entry.getValue();
 				long candidateId = Long.parseLong(doc.get("id"));
 				long functionIdCandidate = Long
 						.parseLong(doc.get("functionId"));
@@ -557,14 +533,13 @@ public class SearchManager {
 								.get(0));
 						String tokens = document.get("tokens");
 						if (tokens != null && tokens.trim().length() > 0) {
-							long similarity = -1;
 							if (newCt != -1) {
 								similarity = this.updateSimilarity(queryBlock,
-										tokens, newCt, cadidateSize);
+										tokens, newCt, cadidateSize, similarity, termsSeenInQuery);
 							} else {
 								similarity = this
 										.updateSimilarity(queryBlock, tokens,
-												computedThreshold, cadidateSize);
+												queryBlock.getComputedThreshold(), cadidateSize, similarity, termsSeenInQuery);
 							}
 							if (similarity > 0) {
 								// this is a clone.
@@ -606,24 +581,22 @@ public class SearchManager {
 		return numClonesFound;
 	}
 
-	private long updateSimilarity(QueryBlock queryBlock, String tokens,
-			int computedThreshold, int candidateSize) {
-		// long similarity = entry.getValue();
-		int similarity = 0;
-		int tokensSeenInqueryBlock = 0;
+	private int updateSimilarity(QueryBlock queryBlock, String tokens,
+			int computedThreshold, int candidateSize, int similarity , int tokensSeenInQueryBlock) {
 		int tokensSeenInCandidate = 0;
 		try {
 			for (String tokenfreqFrame : tokens.split("::")) {
 				String[] tokenFreqInfo = tokenfreqFrame.split(":");
 				if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(),
-						tokensSeenInqueryBlock, candidateSize,
+						tokensSeenInQueryBlock, candidateSize,
 						tokensSeenInCandidate, computedThreshold)) {
 					int candidatesTokenFreq =  Integer.parseInt(tokenFreqInfo[1]);
 					tokensSeenInCandidate += candidatesTokenFreq;
-					if (queryBlock.containsKey(tokenFreqInfo[0])) {
-						tokensSeenInqueryBlock += queryBlock.get(tokenFreqInfo[0]);
+					if (queryBlock.getSuffixMap().containsKey(tokenFreqInfo[0])) {
+						TokenInfo tokenInfo = queryBlock.getSuffixMap().get(tokenFreqInfo[0]);
+						tokensSeenInQueryBlock = tokenInfo.getPosition();
 						similarity += Math.min(
-								queryBlock.get(tokenFreqInfo[0]),
+								tokenInfo.getFrequency(),
 								candidatesTokenFreq);
 
 						if (similarity >= computedThreshold) {
@@ -711,16 +684,12 @@ public class SearchManager {
 	}
 
 	private QueryBlock getNextQueryBlock(String line) throws ParseException {
-		QueryBlock queryBlock = this.cloneHelper.deserialiseToQueryBlock(line);
-		if (this.isPrefixMode) {
-			// sort the queryBlock
-			List<Entry<String, Integer>> list = new ArrayList<Entry<String, Integer>>();
-			for (Entry<String, Integer> entry : queryBlock.entrySet()) {
-				list.add(entry);
-			}
-			Collections.sort(list, new Comparator<Entry<String, Integer>>() {
-				public int compare(Entry<String, Integer> tfFirst,
-						Entry<String, Integer> tfSecond) {
+		List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
+		QueryBlock queryBlock = this.cloneHelper.deserialiseToQueryBlock(line, listOfTokens);
+			
+			Collections.sort(listOfTokens, new Comparator<Entry<String, TokenInfo>>() {
+				public int compare(Entry<String, TokenInfo> tfFirst,
+						Entry<String, TokenInfo> tfSecond) {
 					long position1 = 0;
 					try {
 						position1 = TermSorter.globalTokenPositionMap
@@ -742,11 +711,17 @@ public class SearchManager {
 					}
 				}
 			});
-			queryBlock.clear();
-			for (Entry<String, Integer> entry : list) {
-				queryBlock.put(entry.getKey(), entry.getValue());
+			int position =0;
+			for (Entry<String, TokenInfo> entry : listOfTokens) {
+				TokenInfo tokenInfo = entry.getValue();
+				if(position <= queryBlock.getPrefixSize()){
+					queryBlock.getPrefixMap().put(entry.getKey(), tokenInfo);
+				}else{
+					queryBlock.getSuffixMap().put(entry.getKey(), tokenInfo);
+				}
+				position += tokenInfo.getFrequency();
+				tokenInfo.setPosition(position);
 			}
-		}
 		return queryBlock;
 	}
 }
