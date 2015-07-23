@@ -79,7 +79,7 @@ public class CodeSearcher {
     }
 
 
-    public int search(QueryBlock queryBlock)
+    public void search(QueryBlock queryBlock)
             throws IOException {
 //        List<String> tfsToRemove = new ArrayList<String>();
         this.termSearcher.setReader(this.reader);
@@ -99,7 +99,6 @@ public class CodeSearcher {
                 System.out.println("cannot parse " + e.getMessage());
             }
         }
-        return termsSeenInQuery;
     }
 
 

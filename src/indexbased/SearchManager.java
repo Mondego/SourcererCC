@@ -22,8 +22,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import models.Bag;
+import models.CandidateSimInfo;
 import models.QueryBlock;
-import models.TokenInfo;
 import noindex.CloneHelper;
 
 import org.apache.commons.io.FileUtils;
@@ -37,7 +37,6 @@ import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-import utility.BlockInfo;
 import utility.Util;
 import validation.TestGson;
 
@@ -50,7 +49,8 @@ public class SearchManager {
 	public static CodeSearcher searcher;
 	private CodeSearcher fwdSearcher;
 	private CloneHelper cloneHelper;
-	private final String QUERY_DIR_PATH = "input/query/";
+	private static final String QUERY_DIR_PATH = "input/query/";
+	public static final String DATASET_DIR2 = "input/dataset";
 	private QueryBlock previousQueryBlock;
 	private Writer clonesWriter; // writer to write the output
 	public static float th; // args[2]
@@ -242,7 +242,7 @@ public class SearchManager {
 					Util.FWD_INDEX_DIR)), fwdIndexWriterConfig);
 			fwdIndexer = new CodeIndexer(Util.FWD_INDEX_DIR, fwdIndexWriter,
 					cloneHelper, this.isPrefixMode, this.th);
-			File datasetDir = new File(CodeIndexer.DATASET_DIR2);
+			File datasetDir = new File(SearchManager.DATASET_DIR2);
 
 			if (datasetDir.isDirectory()) {
 				System.out.println("Directory: " + datasetDir.getName());
@@ -300,16 +300,10 @@ public class SearchManager {
 				String filename = queryFile.getName().replaceFirst("[.][^.]+$",
 						"");
 				try {
-					if (this.isPrefixMode) {
 
-						this.clonesWriter = Util.openFile("output" + this.th
-								/ this.MUL_FACTOR + "/" + filename
-								+ "clones_index_WITH_FILTER.txt", false);
-					} else {
-						this.clonesWriter = Util.openFile("output" + this.th
-								/ this.MUL_FACTOR + "/" + filename
-								+ "clones_index_NO_FILTER.txt", false);
-					}
+					this.clonesWriter = Util.openFile("output" + this.th
+							/ this.MUL_FACTOR + "/" + filename
+							+ "clones_index_WITH_FILTER.txt", false);
 				} catch (IOException e) {
 					System.out.println(e.getMessage() + " exiting");
 					System.exit(1);
@@ -322,36 +316,39 @@ public class SearchManager {
 							&& line.trim().length() > 0) {
 						try {
 							queryBlock = this.getNextQueryBlock(line);// todo
-							System.out.println("Prefix map: ");
-							System.out.println(queryBlock.getPrefixMap());
-							
-							System.out.println("suffix map: ");
-							System.out.println(queryBlock.getSuffixMap());
-							
-							System.out.println("query size");
-							System.out.println(queryBlock.getSize());
-							
-							System.out.println("prefix size");
-							System.out.println(queryBlock.getPrefixSize());
-							
+							// System.out.println("query prefix map size "+
+							// queryBlock.getPrefixMapSize());
+							/*
+							 * System.out.println("Prefix map: ");
+							 * System.out.println(queryBlock.getPrefixMap());
+							 * 
+							 * System.out.println("suffix map: ");
+							 * System.out.println(queryBlock.getSuffixMap());
+							 * 
+							 * System.out.println("query size");
+							 * System.out.println(queryBlock.getSize());
+							 * 
+							 * System.out.println("prefix size");
+							 * System.out.println(queryBlock.getPrefixSize());
+							 */
+
 							this.cloneSiblingCount = 0;
 							TermSearcher termSearcher = new TermSearcher();
 							this.searcher.setTermSearcher(termSearcher);
 							long searchCandidatesTimeStart = System
 									.currentTimeMillis();
-							int termsSeenInQuery = this.searcher.search(queryBlock);
-							System.out.println("tersSeen in Query: "+ termsSeenInQuery);
+							this.searcher
+									.search(queryBlock);
 							this.timeSpentInSearchingCandidates += System
 									.currentTimeMillis()
 									- searchCandidatesTimeStart;
 							long processResultTimeStart = System
 									.currentTimeMillis();
 							this.processResultWithFilter(termSearcher,
-									queryBlock,termsSeenInQuery);
+									queryBlock);
 							this.timeSpentInProcessResult += System
 									.currentTimeMillis()
 									- processResultTimeStart;
-							
 
 						} catch (ParseException e) {
 							System.out.println(e.getMessage()
@@ -380,36 +377,6 @@ public class SearchManager {
 		} catch (FileNotFoundException e) {
 			System.out.println(e.getMessage() + "exiting");
 			System.exit(1);
-		}
-	}
-
-	private void processReult(TermSearcher termSearcher, int computedThreshold,
-			QueryBlock queryBlock) {
-
-		Map<Long, Integer> codeBlockIds = termSearcher.getSimMap();
-		this.numCandidates += codeBlockIds.size();
-		for (Entry<Long, Integer> entry : codeBlockIds.entrySet()) {
-			Document doc = null;
-			try {
-				doc = this.searcher.getDocument(entry.getKey());
-				/*
-				 * if (doc.get("id").equals(queryBlock.getId() + "")) {
-				 * continue; }
-				 */
-				if (Integer.parseInt(doc.get("size")) > queryBlock.getSize()) {
-					// reject this
-					continue;
-				}
-				if (entry.getValue() >= computedThreshold) {
-					this.reportClone(queryBlock, Long.parseLong(doc.get("id")),
-							this.previousQueryBlock);
-					this.previousQueryBlock = queryBlock;
-				}
-			} catch (IOException e) {
-				System.out.println(e.getMessage()
-						+ ", can't find document from searcher"
-						+ entry.getKey());
-			}
 		}
 	}
 
@@ -499,21 +466,21 @@ public class SearchManager {
 	 */
 
 	private long processResultWithFilter(TermSearcher result,
-			QueryBlock queryBlock, int termsSeenInQuery) {
+			QueryBlock queryBlock) {
 		long numClonesFound = 0;
-		Map<Long, Integer> codeBlockIds = result.getSimMap();
+		Map<Long, CandidateSimInfo> codeBlockIds = result.getSimMap();
 		this.numCandidates += codeBlockIds.size();
 		// int prefixSize = this.getPrefixSize(bag);
-		for (Entry<Long, Integer> entry : codeBlockIds.entrySet()) {
+		for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
 			Document doc = null;
 			try {
 				doc = this.searcher.getDocument(entry.getKey());
-				int similarity = entry.getValue();
+				CandidateSimInfo simInfo = entry.getValue();
 				long candidateId = Long.parseLong(doc.get("id"));
 				long functionIdCandidate = Long
 						.parseLong(doc.get("functionId"));
-				if ((candidateId <= queryBlock.getId())){
-						//|| (functionIdCandidate == queryBlock.getFunctionId())) {
+				if ((candidateId <= queryBlock.getId())
+					 || (functionIdCandidate == queryBlock.getFunctionId())) {
 					continue; // we reject the candidate
 				}
 				int newCt = -1;
@@ -533,13 +500,15 @@ public class SearchManager {
 								.get(0));
 						String tokens = document.get("tokens");
 						if (tokens != null && tokens.trim().length() > 0) {
+							int similarity = -1;
 							if (newCt != -1) {
 								similarity = this.updateSimilarity(queryBlock,
-										tokens, newCt, cadidateSize, similarity, termsSeenInQuery);
+										tokens, newCt, cadidateSize, simInfo);
 							} else {
-								similarity = this
-										.updateSimilarity(queryBlock, tokens,
-												queryBlock.getComputedThreshold(), cadidateSize, similarity, termsSeenInQuery);
+								similarity = this.updateSimilarity(queryBlock,
+										tokens,
+										queryBlock.getComputedThreshold(),
+										cadidateSize, simInfo);
 							}
 							if (similarity > 0) {
 								// this is a clone.
@@ -582,23 +551,53 @@ public class SearchManager {
 	}
 
 	private int updateSimilarity(QueryBlock queryBlock, String tokens,
-			int computedThreshold, int candidateSize, int similarity , int tokensSeenInQueryBlock) {
+			int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {
 		int tokensSeenInCandidate = 0;
+		int similarity = simInfo.similarity;
+		// if(candidateId == 614){
 		try {
 			for (String tokenfreqFrame : tokens.split("::")) {
 				String[] tokenFreqInfo = tokenfreqFrame.split(":");
+				/*
+				 * System.out.println("tokenfreqinfo array "+ tokenFreqInfo[0] +
+				 * " : " + tokenFreqInfo[1] + ": sim: "+ similarity);
+				 * System.out.println("query size: "+ queryBlock.getSize() +
+				 * ", tokensSeenInQueryBlock: "+ simInfo.queryMatchPosition);
+				 * System.out.println("candidateSize: "+ candidateSize +
+				 * ", tokensSeenInCandidate: "+ tokensSeenInCandidate);
+				 * System.out.println("computedThreshold: "+ computedThreshold);
+				 */
 				if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(),
-						tokensSeenInQueryBlock, candidateSize,
-						tokensSeenInCandidate, computedThreshold)) {
-					int candidatesTokenFreq =  Integer.parseInt(tokenFreqInfo[1]);
+						simInfo.queryMatchPosition, candidateSize,
+						simInfo.candidateMatchPosition, computedThreshold)) {
+					// System.out.println("sim: "+ similarity);
+					int candidatesTokenFreq = Integer
+							.parseInt(tokenFreqInfo[1]);
 					tokensSeenInCandidate += candidatesTokenFreq;
-					if (queryBlock.getSuffixMap().containsKey(tokenFreqInfo[0])) {
-						TokenInfo tokenInfo = queryBlock.getSuffixMap().get(tokenFreqInfo[0]);
-						tokensSeenInQueryBlock = tokenInfo.getPosition();
-						similarity += Math.min(
-								tokenInfo.getFrequency(),
-								candidatesTokenFreq);
-
+					if (tokensSeenInCandidate > simInfo.candidateMatchPosition) {
+						TokenInfo tokenInfo = null;
+						boolean matchFound = false;
+						if (simInfo.queryMatchPosition < queryBlock
+								.getPrefixMapSize()) {
+							// check in prefix
+							if (queryBlock.getPrefixMap().containsKey(
+									tokenFreqInfo[0])) {
+								matchFound= true;
+								tokenInfo = queryBlock.getPrefixMap().get(
+										tokenFreqInfo[0]);
+								similarity = updateSimilarityHelper(simInfo,
+										tokenInfo, similarity,
+										candidatesTokenFreq);
+							}
+						}
+						// check in suffix
+						if (!matchFound && queryBlock.getSuffixMap().containsKey(
+								tokenFreqInfo[0])) {
+							tokenInfo = queryBlock.getSuffixMap().get(
+									tokenFreqInfo[0]);
+							similarity = updateSimilarityHelper(simInfo,
+									tokenInfo, similarity, candidatesTokenFreq);
+						}
 						if (similarity >= computedThreshold) {
 							return similarity;
 						}
@@ -612,7 +611,16 @@ public class SearchManager {
 			System.out.println("possible error in the format. tokens: "
 					+ tokens);
 		}
+		// }
 		return -1;
+	}
+
+	private int updateSimilarityHelper(CandidateSimInfo simInfo, TokenInfo tokenInfo,
+			int similarity, int candidatesTokenFreq) {
+		simInfo.queryMatchPosition = tokenInfo.getPosition();
+		similarity += Math.min(tokenInfo.getFrequency(), candidatesTokenFreq);
+		// System.out.println("similarity: "+ similarity);
+		return similarity;
 	}
 
 	private void reportClone(QueryBlock queryBlock, long idB,
@@ -685,43 +693,47 @@ public class SearchManager {
 
 	private QueryBlock getNextQueryBlock(String line) throws ParseException {
 		List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
-		QueryBlock queryBlock = this.cloneHelper.deserialiseToQueryBlock(line, listOfTokens);
-			
-			Collections.sort(listOfTokens, new Comparator<Entry<String, TokenInfo>>() {
-				public int compare(Entry<String, TokenInfo> tfFirst,
-						Entry<String, TokenInfo> tfSecond) {
-					long position1 = 0;
-					try {
-						position1 = TermSorter.globalTokenPositionMap
-								.get(tfFirst.getKey());
-					} catch (Exception e) {
-						position1 = -1;
+		QueryBlock queryBlock = this.cloneHelper.deserialiseToQueryBlock(line,
+				listOfTokens);
+
+		Collections.sort(listOfTokens,
+				new Comparator<Entry<String, TokenInfo>>() {
+					public int compare(Entry<String, TokenInfo> tfFirst,
+							Entry<String, TokenInfo> tfSecond) {
+						long position1 = 0;
+						try {
+							position1 = TermSorter.globalTokenPositionMap
+									.get(tfFirst.getKey());
+						} catch (Exception e) {
+							position1 = -1;
+						}
+						long position2 = 0;
+						try {
+							position2 = TermSorter.globalTokenPositionMap
+									.get(tfSecond.getKey());
+						} catch (Exception e) {
+							position2 = -1;
+						}
+						if (position1 - position2 != 0) {
+							return (int) (position1 - position2);
+						} else {
+							return 1;
+						}
 					}
-					long position2 = 0;
-					try {
-						position2 = TermSorter.globalTokenPositionMap
-								.get(tfSecond.getKey());
-					} catch (Exception e) {
-						position2 = -1;
-					}
-					if (position1 - position2 != 0) {
-						return (int) (position1 - position2);
-					} else {
-						return 1;
-					}
-				}
-			});
-			int position =0;
-			for (Entry<String, TokenInfo> entry : listOfTokens) {
-				TokenInfo tokenInfo = entry.getValue();
-				if(position <= queryBlock.getPrefixSize()){
-					queryBlock.getPrefixMap().put(entry.getKey(), tokenInfo);
-				}else{
-					queryBlock.getSuffixMap().put(entry.getKey(), tokenInfo);
-				}
+				});
+		int position = 0;
+		for (Entry<String, TokenInfo> entry : listOfTokens) {
+			TokenInfo tokenInfo = entry.getValue();
+			if (position < queryBlock.getPrefixSize()) {
+				queryBlock.getPrefixMap().put(entry.getKey(), tokenInfo);
 				position += tokenInfo.getFrequency();
-				tokenInfo.setPosition(position);
+				queryBlock.setPrefixMapSize(position);
+			} else {
+				queryBlock.getSuffixMap().put(entry.getKey(), tokenInfo);
+				position += tokenInfo.getFrequency();
 			}
+			tokenInfo.setPosition(position);
+		}
 		return queryBlock;
 	}
 }

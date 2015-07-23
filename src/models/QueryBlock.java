@@ -24,6 +24,8 @@ public class QueryBlock {
     private Map<String,TokenInfo> suffixMap;
     private int prefixSize;
 	private int computedThreshold;
+	private int lenientCt; 
+	private int prefixMapSize;
 
     /**
      * @param id
@@ -37,6 +39,7 @@ public class QueryBlock {
         this.prefixMap = new LinkedHashMap<String, TokenInfo>();
         this.suffixMap = new HashMap<String, TokenInfo>();
         this.computedThreshold = BlockInfo.getMinimumSimilarityThreshold(this.size, SearchManager.th);
+        this.lenientCt = BlockInfo.getMinimumSimilarityThreshold(this.size, (SearchManager.th-0.5f));
         this.prefixSize = BlockInfo.getPrefixSize(this.size, this.computedThreshold);
     }
 
@@ -103,5 +106,17 @@ public class QueryBlock {
 
 	public void setComputedThreshold(int computedThreshold) {
 		this.computedThreshold = computedThreshold;
+	}
+
+	public int getPrefixMapSize() {
+		return prefixMapSize;
+	}
+
+	public void setPrefixMapSize(int prefixMapSize) {
+		this.prefixMapSize = prefixMapSize;
+	}
+
+	public int getLenientCt() {
+		return lenientCt;
 	}
 }

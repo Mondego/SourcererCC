@@ -7,15 +7,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 import models.Bag;
 import models.TokenFrequency;
@@ -46,8 +40,7 @@ public class CodeIndexer {
     private CloneHelper cloneHelper;
     private boolean isPrefixIndex;
     private float threshold;
-    //public final static String DATASET_DIR = "input/dataset";
-    public static String DATASET_DIR2 = "input/dummy";
+    
     
     /**
      * @param args
@@ -185,23 +178,6 @@ public class CodeIndexer {
         return document;
     }
 
-    private Document prepareDocument(Bag bag) {
-        Document document = new Document();
-        StoredField strField = new StoredField("id", bag.getId() + "");
-        document.add(strField);
-        StoredField sizeField = new StoredField("size", bag.getSize() + "");
-        document.add(sizeField);
-        String tokenString = "";
-        for (TokenFrequency tf : bag) {
-            for(int i=0;i<tf.getFrequency();i++){
-                tokenString += tf.getToken().getValue() + " ";
-            }
-        }
-        Field field = new Field("tokens",tokenString.trim(),Field.Store.NO,Field.Index.ANALYZED,Field.TermVector.YES);
-        document.add(field);
-        return document;
-    }
-
     private Document prepareDocument(Bag bag, boolean isPrefixIndex) {
         Document document = new Document();
         StoredField strField = new StoredField("id", bag.getId() + "");
@@ -211,11 +187,14 @@ public class CodeIndexer {
         StoredField sizeField = new StoredField("size", bag.getSize() + "");
         document.add(sizeField);
         String tokenString = "";
-        BlockInfo blockInfo = new BlockInfo(this.threshold, bag);
-        int prefixLength = blockInfo.getPrefixSize();
-        StoredField computedThresholdField = new StoredField("ct", blockInfo.getComputedThreshold()+ "");
+        int ct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(), SearchManager.th);
+        StoredField computedThresholdField = new StoredField("ct", ct +"");
+        int lct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(), (SearchManager.th-0.5f));
+        StoredField lenientComputedThresholdField = new StoredField("lct", lct+ "");
         document.add(sizeField);
         document.add(computedThresholdField);
+        document.add(lenientComputedThresholdField);
+        int prefixLength = BlockInfo.getPrefixSize(bag.getSize(), ct);
         for (TokenFrequency tf : bag) {
             for(int i=0;i<tf.getFrequency();i++){
                 tokenString += tf.getToken().getValue() + " ";
