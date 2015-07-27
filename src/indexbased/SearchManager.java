@@ -24,6 +24,7 @@ import java.util.Set;
 import models.Bag;
 import models.CandidateSimInfo;
 import models.QueryBlock;
+import models.TokenInfo;
 import noindex.CloneHelper;
 
 import org.apache.commons.io.FileUtils;
