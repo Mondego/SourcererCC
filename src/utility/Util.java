@@ -65,7 +65,7 @@ public class Util {
 	 * @param isNewline
 	 *            whether to start from a newline or not
 	 */
-	public static void writeToFile(Writer pWriter, final String text,
+	public static synchronized void writeToFile(Writer pWriter, final String text,
 			final boolean isNewline) {
 		if (isNewline) {
 			try {
@@ -166,6 +166,10 @@ public class Util {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public static String debug_thread(){
+		return "  Thread_id: "+ Thread.currentThread().getId() + " Thread_name: "+ Thread.currentThread().getName();
 	}
 	
 	public static Map<String,Integer> readJsonStream(String filename){

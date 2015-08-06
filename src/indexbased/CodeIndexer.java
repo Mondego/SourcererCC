@@ -72,13 +72,12 @@ public class CodeIndexer {
      * @param isPrefixIndex
      */
     public CodeIndexer(String indexDir, IndexWriter indexWriter,
-            CloneHelper cloneHelper, boolean isPrefixIndex,float threshold) {
+            CloneHelper cloneHelper,float threshold) {
         super();
         this.threshold = threshold;
         this.indexDir = indexDir;
         this.indexWriter = indexWriter;
         this.cloneHelper = cloneHelper;
-        this.isPrefixIndex = isPrefixIndex;
     }
 
     /**

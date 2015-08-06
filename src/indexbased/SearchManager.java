@@ -16,21 +16,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import models.Bag;
-import models.CandidateSimInfo;
+import models.CandidatePair;
+import models.CandidateProcessor;
+import models.CandidateSearcher;
+import models.ClonePair;
+import models.CloneReporter;
+import models.CloneValidator;
+import models.IListener;
 import models.QueryBlock;
+import models.QueryCandidates;
+import models.Queue;
 import models.TokenInfo;
 import noindex.CloneHelper;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -46,71 +53,112 @@ import validation.TestGson;
  * 
  */
 public class SearchManager {
-	private long clonePairsCount;
+	private static long clonePairsCount;
 	public static CodeSearcher searcher;
-	private CodeSearcher fwdSearcher;
+	public static CodeSearcher fwdSearcher;
 	private CloneHelper cloneHelper;
-	private static final String QUERY_DIR_PATH = "input/query/";
-	public static final String DATASET_DIR2 = "input/dataset";
+	private static final String QUERY_DIR_PATH = "input/query_melody/";
+	public static final String DATASET_DIR2 = "input/dataset_melody";
 	private QueryBlock previousQueryBlock;
-	private Writer clonesWriter; // writer to write the output
+	public static Writer clonesWriter; // writer to write the output
 	public static float th; // args[2]
-	private boolean isPrefixMode; // whether to do a prefix search or a normal
 									// search
 	private final static String ACTION_INDEX = "index";
 	private final static String ACTION_SEARCH = "search";
+	private final static int CANDIDATE_SEARCHER = 1;
+	private final static int CANDIDATE_PROCESSOR = 2;
+	private final static int CLONE_VALIDATOR = 3;
+	private final static int CLONE_REPORTER = 4;
+	
 	private CodeIndexer indexer;
 	private long timeSpentInProcessResult;
-	private long timeSpentInSearchingCandidates;
+	public static long timeSpentInSearchingCandidates;
 	private long timeIndexing;
 	private long timeGlobalTokenPositionCreation;
 	private long timeSearch;
-	private long numCandidates;
+	private static long numCandidates;
 	private Writer outputWriter;
 	private long timeTotal;
 	private String action;
 	private boolean appendToExistingFile;
 	TestGson testGson;
-	private Writer cloneGroupWriter;
 	private Writer cloneSiblingCountWriter;
 	private int cloneSiblingCount;
 	private Set<String> cloneSet;
 	public static final Integer MUL_FACTOR = 100;
 	int deletemeCounter = 0;
 	private double ramBufferSizeMB;
-	private int mergeFactor;
 	private long bagsSortTime;
+	public static Queue<QueryCandidates> queryCandidatesQueue;
+	public static Queue<QueryBlock> queryBlockQueue;
+	public static Queue<ClonePair> reportCloneQueue;
+	public static Queue<CandidatePair> verifyCandidateQueue;
+	public static Object lock = new Object();
+	private int qbq_num;
+	private int qcq_num;
+	private int vcq_num;
+	private int rcq_num;
 
-	public SearchManager(boolean mode) throws IOException {
-		this.clonePairsCount = 0;
-		this.isPrefixMode = mode;
+	public SearchManager(String [] args) throws IOException {
+		SearchManager.clonePairsCount = 0;
 		this.cloneHelper = new CloneHelper();
 		this.timeSpentInProcessResult = 0;
-		this.timeSpentInSearchingCandidates = 0;
+		SearchManager.timeSpentInSearchingCandidates = 0;
 		this.timeIndexing = 0;
 		this.timeGlobalTokenPositionCreation = 0;
 		this.timeSearch = 0;
-		this.numCandidates = 0;
+		SearchManager.numCandidates = 0;
 		this.timeTotal = 0;
 		this.appendToExistingFile = true;
 		this.cloneSiblingCount = 0;
 		this.cloneSet = new HashSet<String>();
 		this.ramBufferSizeMB = 1024 * 1;
-		this.mergeFactor = 1000;
 		this.bagsSortTime = 0;
+		this.qbq_num = Integer.parseInt(args[2]);
+		this.qcq_num = Integer.parseInt(args[3]);
+		this.vcq_num = Integer.parseInt(args[4]);
+		this.rcq_num = Integer.parseInt(args[5]);
+		SearchManager.queryBlockQueue = new Queue<QueryBlock>(this.qbq_num);
+		SearchManager.queryCandidatesQueue = new Queue<QueryCandidates>(this.qcq_num);
+		SearchManager.verifyCandidateQueue = new Queue<CandidatePair>(this.vcq_num);
+		SearchManager.reportCloneQueue = new Queue<ClonePair>(this.rcq_num);
+		
+		this.registerListeners(this.qbq_num,SearchManager.queryBlockQueue,CANDIDATE_SEARCHER);
+		this.registerListeners(this.qcq_num,SearchManager.queryCandidatesQueue,CANDIDATE_PROCESSOR);
+		this.registerListeners(this.vcq_num,SearchManager.verifyCandidateQueue,CLONE_VALIDATOR);
+		this.registerListeners(this.rcq_num,SearchManager.reportCloneQueue,CLONE_REPORTER);
+		
 	}
 
-	public static void main(String[] args) throws IOException, ParseException {
+	private void registerListeners(int nListeners, Queue<?> queue, int ListenerType) {
+		List<IListener> listeners = new ArrayList<IListener>();
+		for (int i=0;i<nListeners;i++){
+			IListener listener = null;
+			if (ListenerType==CANDIDATE_PROCESSOR){
+				listener = new CandidateProcessor();
+			}else if (ListenerType==CANDIDATE_SEARCHER){
+				listener = new CandidateSearcher();
+			}else if(ListenerType==CLONE_REPORTER){
+				listener = new CloneReporter();
+			}else if (ListenerType==CLONE_VALIDATOR){
+				listener = new CloneValidator();
+			}
+			listeners.add(listener);
+		}
+		queue.setListeners(listeners);
+	}
+	
+	public static void main(String[] args) throws IOException, ParseException, InterruptedException {
 		// set filePrefix
 		// TODO: have two modes of execution. 1) detect all clones in a dataset,
 		// 2) detect clones for a given query. here query can be independent of
 		// the dataset
-		if (args.length >= 3) {
+		if (args.length >= 6) {
 			long start_time = System.currentTimeMillis();
 			String action = args[0];
 			SearchManager searchManager = null;
-			searchManager = new SearchManager(Boolean.parseBoolean(args[1]));
-			searchManager.th = (Float.parseFloat(args[2]) * searchManager.MUL_FACTOR);
+			searchManager = new SearchManager(args);
+			searchManager.th = (Float.parseFloat(args[1]) * searchManager.MUL_FACTOR);
 			searchManager.action = action;
 			Util.createDirs("output" + searchManager.th
 					/ searchManager.MUL_FACTOR);
@@ -133,7 +181,11 @@ public class SearchManager {
 			} else if (action.equalsIgnoreCase(ACTION_SEARCH)) {
 				searchManager.initSearchEnv();
 				long timeStartSearch = System.currentTimeMillis();
-				searchManager.doSearch();
+				searchManager.findCandidates();
+				searchManager.queryBlockQueue.shutdown();
+				searchManager.queryCandidatesQueue.shutdown();
+				searchManager.verifyCandidateQueue.shutdown();
+				searchManager.reportCloneQueue.shutdown();
 				searchManager.timeSearch = System.currentTimeMillis()
 						- timeStartSearch;
 			}
@@ -150,11 +202,10 @@ public class SearchManager {
 			searchManager.genReport();
 			Util.closeOutputFile(searchManager.outputWriter);
 			try {
-				Util.closeOutputFile(searchManager.cloneGroupWriter);
+				Util.closeOutputFile(searchManager.clonesWriter);
 			} catch (Exception e) {
 				System.out
 						.println("exception caught in main " + e.getMessage());
-				// ignore.
 			}
 
 		} else {
@@ -185,7 +236,7 @@ public class SearchManager {
 					+ "globalTokenPositionCreationTime,num_candidates, "
 					+ "num_clonePairs, total_run_time, searchTime,"
 					+ "timeSpentInSearchingCandidates,timeSpentInProcessResult,"
-					+ "isPrefixmode,operation,sortTime_during_indexing\n";
+					+ "operation,sortTime_during_indexing\n";
 		}
 		header += this.timeIndexing + ",";
 		header += this.timeGlobalTokenPositionCreation + ",";
@@ -195,7 +246,6 @@ public class SearchManager {
 		header += this.timeSearch + ",";
 		header += this.timeSpentInSearchingCandidates + ",";
 		header += this.timeSpentInProcessResult + ",";
-		header += this.isPrefixMode + ",";
 		if (this.action.equalsIgnoreCase("index")) {
 			header += this.action + ",";
 			header += this.bagsSortTime;
@@ -238,11 +288,11 @@ public class SearchManager {
 			indexWriter = new IndexWriter(FSDirectory.open(new File(
 					Util.INDEX_DIR)), indexWriterConfig);
 			this.indexer = new CodeIndexer(Util.INDEX_DIR, indexWriter,
-					cloneHelper, this.isPrefixMode, this.th);
+					cloneHelper, this.th);
 			fwdIndexWriter = new IndexWriter(FSDirectory.open(new File(
 					Util.FWD_INDEX_DIR)), fwdIndexWriterConfig);
 			fwdIndexer = new CodeIndexer(Util.FWD_INDEX_DIR, fwdIndexWriter,
-					cloneHelper, this.isPrefixMode, this.th);
+					cloneHelper, this.th);
 			File datasetDir = new File(SearchManager.DATASET_DIR2);
 
 			if (datasetDir.isDirectory()) {
@@ -292,7 +342,8 @@ public class SearchManager {
 		}
 	}
 
-	private void doSearch() {
+	
+	private void findCandidates() throws InterruptedException {
 		try {
 			File queryDirectory = this.getQueryDirectory();
 			File[] queryFiles = this.getQueryFiles(queryDirectory);
@@ -316,70 +367,31 @@ public class SearchManager {
 					while ((line = br.readLine()) != null
 							&& line.trim().length() > 0) {
 						try {
-							queryBlock = this.getNextQueryBlock(line);// todo
-							// System.out.println("query prefix map size "+
-							// queryBlock.getPrefixMapSize());
-							/*
-							 * System.out.println("Prefix map: ");
-							 * System.out.println(queryBlock.getPrefixMap());
-							 * 
-							 * System.out.println("suffix map: ");
-							 * System.out.println(queryBlock.getSuffixMap());
-							 * 
-							 * System.out.println("query size");
-							 * System.out.println(queryBlock.getSize());
-							 * 
-							 * System.out.println("prefix size");
-							 * System.out.println(queryBlock.getPrefixSize());
-							 */
-
-							this.cloneSiblingCount = 0;
-							TermSearcher termSearcher = new TermSearcher();
-							this.searcher.setTermSearcher(termSearcher);
-							long searchCandidatesTimeStart = System
-									.currentTimeMillis();
-							this.searcher
-									.search(queryBlock);
-							this.timeSpentInSearchingCandidates += System
-									.currentTimeMillis()
-									- searchCandidatesTimeStart;
-							long processResultTimeStart = System
-									.currentTimeMillis();
-							this.processResultWithFilter(termSearcher,
-									queryBlock);
-							this.timeSpentInProcessResult += System
-									.currentTimeMillis()
-									- processResultTimeStart;
-
+							queryBlock = this.getNextQueryBlock(line);
+							SearchManager.queryBlockQueue.put(queryBlock);
 						} catch (ParseException e) {
 							System.out.println(e.getMessage()
 									+ " skiping to next bag");
 							e.printStackTrace();
 						}
-						String siblingCount = queryBlock.getId() + ", "
-								+ this.cloneSiblingCount;
-						Util.writeToFile(this.cloneSiblingCountWriter,
-								siblingCount, true);
 					}
 				} catch (IOException e) {
 					System.out
 							.println(e.getMessage() + " skiping to next file");
+				}finally{
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
-				Util.closeOutputFile(this.clonesWriter);
-				Util.closeOutputFile(this.cloneSiblingCountWriter);
 			}
-			/*
-			 * System.out.println("unique clone pairs : " +
-			 * this.cloneSet.size()); List<String> cloneList = new
-			 * ArrayList<String>(this.cloneSet); Collections.sort(cloneList);
-			 * for (String clonePair : cloneList) {
-			 * System.out.println(clonePair); }
-			 */
 		} catch (FileNotFoundException e) {
 			System.out.println(e.getMessage() + "exiting");
 			System.exit(1);
 		}
 	}
+	
 
 	private void initSearchEnv() {
 		// testGson = new TestGson(); // remove this line later. for
@@ -397,280 +409,34 @@ public class SearchManager {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		if (this.isPrefixMode) {
-			TermSorter termSorter = new TermSorter();
-			try {
-
-				long timeGlobalPositionStart = System.currentTimeMillis();
-				termSorter.populateGlobalPositionMap();
-				this.timeGlobalTokenPositionCreation = System
-						.currentTimeMillis() - timeGlobalPositionStart;
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ParseException e) {
-				System.out.println("Error in Parsing: " + e.getMessage());
-				e.printStackTrace();
-			}
-			this.fwdSearcher = new CodeSearcher(true); // searches on fwd index
-			this.searcher = new CodeSearcher(Util.INDEX_DIR);
-		} else {
-			this.searcher = new CodeSearcher(Util.INDEX_DIR_NO_FILTER);
-		}
-
-	}
-
-	/*
-	 * private long processResult(CustomCollector result, QueryBlock queryBlock)
-	 * { long numClonesFound = 0; Map<Integer, Long> codeBlockIds =
-	 * result.getCodeBlockIds(); int similarityThreshold =
-	 * Util.getMinimumSimilarityThreshold( queryBlock, this.threshold); for
-	 * (Entry<Integer, Long> entry : codeBlockIds.entrySet()) { if
-	 * (entry.getValue() >= similarityThreshold) { long idB; Document doc =
-	 * null; try { doc = this.searcher.getDocument(entry.getKey()); idB =
-	 * Long.parseLong(doc.get("id")); this.reportClone(queryBlock, idB,
-	 * this.previousQueryBlock); numClonesFound += 1; this.previousQueryBlock =
-	 * queryBlock; } catch (NumberFormatException e) {
-	 * System.out.println(e.getMessage() + ", cant parse id for " +
-	 * doc.get("id")); } catch (IOException e) {
-	 * System.out.println(e.getMessage() + ", can't find document from searcher"
-	 * + entry.getKey()); }
-	 * 
-	 * } } return numClonesFound;
-	 * 
-	 * }
-	 */
-	/*
-	 * private long processReultWithFilter(CustomCollector result, QueryBlock
-	 * queryBlock, int computedThreshold) { long numClonesFound = 0;
-	 * Map<Integer, Long> codeBlockIds = result.getCodeBlockIds(); // int
-	 * prefixSize = this.getPrefixSize(bag); for (Entry<Integer, Long> entry :
-	 * codeBlockIds.entrySet()) { Document doc = null; try { doc =
-	 * this.searcher.getDocument(entry.getKey()); CustomCollectorFwdIndex
-	 * collector = this.fwdSearcher .search(doc); List<Integer> blocks =
-	 * collector.getBlocks(); if (!blocks.isEmpty()) { if (blocks.size() == 1) {
-	 * Document document = this.fwdSearcher.getDocument(blocks .get(0)); String
-	 * tokens = document.get("tokens"); if (tokens != null &&
-	 * tokens.trim().length() > 0) { long similarity =
-	 * this.updateSimilarity(queryBlock, entry, tokens, computedThreshold); if
-	 * (similarity > 0) { // this is a clone. this.reportClone(queryBlock,
-	 * Integer.parseInt(doc.get("id")), this.previousQueryBlock); numClonesFound
-	 * += 1; this.previousQueryBlock = queryBlock; } } else {
-	 * System.out.println("tokens not found for document"); } // TODO: get the
-	 * tokens from this document. } else { System.out
-	 * .println("ERROR: more that one doc found. some error here."); }
-	 * 
-	 * } else { System.out.println("document not found in fwd index"); } } catch
-	 * (NumberFormatException e) { System.out.println(e.getMessage() +
-	 * ", cant parse id for " + doc.get("id")); } catch (IOException e) {
-	 * System.out.println(e.getMessage() + ", can't find document from searcher"
-	 * + entry.getKey()); } } return numClonesFound; }
-	 */
-
-	private long processResultWithFilter(TermSearcher result,
-			QueryBlock queryBlock) {
-		long numClonesFound = 0;
-		Map<Long, CandidateSimInfo> codeBlockIds = result.getSimMap();
-		this.numCandidates += codeBlockIds.size();
-		// int prefixSize = this.getPrefixSize(bag);
-		for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
-			Document doc = null;
-			try {
-				doc = this.searcher.getDocument(entry.getKey());
-				CandidateSimInfo simInfo = entry.getValue();
-				long candidateId = Long.parseLong(doc.get("id"));
-				long functionIdCandidate = Long
-						.parseLong(doc.get("functionId"));
-				if ((candidateId <= queryBlock.getId())
-					 || (functionIdCandidate == queryBlock.getFunctionId())) {
-					continue; // we reject the candidate
-				}
-				int newCt = -1;
-				int cadidateSize = Integer.parseInt(doc.get("size"));
-				if (cadidateSize > queryBlock.getSize()) {
-					this.deletemeCounter++;
-
-					newCt = Integer.parseInt(doc.get("ct"));
-					/* System.out.println("stored ct: " + computedThreshold); */
-				}
-				CustomCollectorFwdIndex collector = this.fwdSearcher
-						.search(doc);
-				List<Integer> blocks = collector.getBlocks();
-				if (!blocks.isEmpty()) {
-					if (blocks.size() == 1) {
-						Document document = this.fwdSearcher.getDocument(blocks
-								.get(0));
-						String tokens = document.get("tokens");
-						if (tokens != null && tokens.trim().length() > 0) {
-							int similarity = -1;
-							if (newCt != -1) {
-								similarity = this.updateSimilarity(queryBlock,
-										tokens, newCt, cadidateSize, simInfo);
-							} else {
-								similarity = this.updateSimilarity(queryBlock,
-										tokens,
-										queryBlock.getComputedThreshold(),
-										cadidateSize, simInfo);
-							}
-							if (similarity > 0) {
-								// this is a clone.
-								/*
-								 * long blockId = Long.parseLong(doc.get("id"));
-								 * String clonePair = ""; if (blockId <
-								 * queryBlock.getId()) { clonePair = blockId +
-								 * "::" + queryBlock.getId(); } else { clonePair
-								 * = queryBlock.getId() + "::" + blockId; }
-								 * this.cloneSet.add(clonePair);
-								 */
-								this.reportClone(queryBlock,
-										Integer.parseInt(doc.get("id")),
-										this.previousQueryBlock);
-								numClonesFound += 1;
-								this.previousQueryBlock = queryBlock;
-							}
-						} else {
-							System.out.println("tokens not found for document");
-						}
-						// TODO: get the tokens from this document.
-					} else {
-						System.out
-								.println("ERROR: more that one doc found. some error here.");
-					}
-
-				} else {
-					System.out.println("document not found in fwd index");
-				}
-			} catch (NumberFormatException e) {
-				System.out.println(e.getMessage() + ", cant parse id for "
-						+ doc.get("id"));
-			} catch (IOException e) {
-				System.out.println(e.getMessage()
-						+ ", can't find document from searcher"
-						+ entry.getKey());
-			}
-		}
-		return numClonesFound;
-	}
-
-	private int updateSimilarity(QueryBlock queryBlock, String tokens,
-			int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {
-		int tokensSeenInCandidate = 0;
-		int similarity = simInfo.similarity;
-		// if(candidateId == 614){
+		TermSorter termSorter = new TermSorter();
 		try {
-			for (String tokenfreqFrame : tokens.split("::")) {
-				String[] tokenFreqInfo = tokenfreqFrame.split(":");
-				/*
-				 * System.out.println("tokenfreqinfo array "+ tokenFreqInfo[0] +
-				 * " : " + tokenFreqInfo[1] + ": sim: "+ similarity);
-				 * System.out.println("query size: "+ queryBlock.getSize() +
-				 * ", tokensSeenInQueryBlock: "+ simInfo.queryMatchPosition);
-				 * System.out.println("candidateSize: "+ candidateSize +
-				 * ", tokensSeenInCandidate: "+ tokensSeenInCandidate);
-				 * System.out.println("computedThreshold: "+ computedThreshold);
-				 */
-				if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(),
-						simInfo.queryMatchPosition, candidateSize,
-						simInfo.candidateMatchPosition, computedThreshold)) {
-					// System.out.println("sim: "+ similarity);
-					int candidatesTokenFreq = Integer
-							.parseInt(tokenFreqInfo[1]);
-					tokensSeenInCandidate += candidatesTokenFreq;
-					if (tokensSeenInCandidate > simInfo.candidateMatchPosition) {
-						TokenInfo tokenInfo = null;
-						boolean matchFound = false;
-						if (simInfo.queryMatchPosition < queryBlock
-								.getPrefixMapSize()) {
-							// check in prefix
-							if (queryBlock.getPrefixMap().containsKey(
-									tokenFreqInfo[0])) {
-								matchFound= true;
-								tokenInfo = queryBlock.getPrefixMap().get(
-										tokenFreqInfo[0]);
-								similarity = updateSimilarityHelper(simInfo,
-										tokenInfo, similarity,
-										candidatesTokenFreq);
-							}
-						}
-						// check in suffix
-						if (!matchFound && queryBlock.getSuffixMap().containsKey(
-								tokenFreqInfo[0])) {
-							tokenInfo = queryBlock.getSuffixMap().get(
-									tokenFreqInfo[0]);
-							similarity = updateSimilarityHelper(simInfo,
-									tokenInfo, similarity, candidatesTokenFreq);
-						}
-						if (similarity >= computedThreshold) {
-							return similarity;
-						}
-					}
-				} else {
-					break;
-				}
 
-			}
-		} catch (ArrayIndexOutOfBoundsException e) {
-			System.out.println("possible error in the format. tokens: "
-					+ tokens);
+			long timeGlobalPositionStart = System.currentTimeMillis();
+			termSorter.populateGlobalPositionMap();
+			this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
+					- timeGlobalPositionStart;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			System.out.println("Error in Parsing: " + e.getMessage());
+			e.printStackTrace();
 		}
-		// }
-		return -1;
+		this.fwdSearcher = new CodeSearcher(true); // searches on fwd index
+		this.searcher = new CodeSearcher(Util.INDEX_DIR);
+
 	}
 
-	private int updateSimilarityHelper(CandidateSimInfo simInfo, TokenInfo tokenInfo,
-			int similarity, int candidatesTokenFreq) {
-		simInfo.queryMatchPosition = tokenInfo.getPosition();
-		similarity += Math.min(tokenInfo.getFrequency(), candidatesTokenFreq);
-		// System.out.println("similarity: "+ similarity);
-		return similarity;
+
+	
+	
+	public static synchronized void updateNumCandidates(int num){
+		SearchManager.numCandidates+=num;
 	}
-
-	private void reportClone(QueryBlock queryBlock, long idB,
-			QueryBlock previousQueryBlock) {
-		this.clonePairsCount += 1;
-		// System.out.println("reporting " + idB);
-		if (null != previousQueryBlock
-				&& queryBlock.getId() == previousQueryBlock.getId()) {
-			this.cloneSiblingCount++;
-			// System.out.println("equal");
-			// Util.writeToFile(this.cloneGroupWriter,
-			// this.testGson.idToCodeMap.get(idB+""), true);
-			// Util.writeToFile(this.cloneGroupWriter,
-			// "===================================================", true);
-			Util.writeToFile(this.clonesWriter, " ," + idB, false);
-		} else {
-			// start a new line
-			// System.out.println("different");
-			try {
-				Util.closeOutputFile(this.cloneGroupWriter);
-			} catch (Exception e) {
-				// ignore
-				System.out.println("exception caught " + e.getMessage());
-			}
-			// try {
-			// // Util.createDirs("output" + this.th+ "/cloneGroups/");
-			// // this.cloneGroupWriter = Util.openFile("output" + this.th
-			// // + "/cloneGroups/" + queryBlock.getId() + ".txt", false);
-			// } catch (IOException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }
-			this.cloneSiblingCount++;
-			// Util.writeToFile(this.cloneGroupWriter,
-			// this.testGson.idToCodeMap.get(queryBlock.getId()+""), true);
-			// Util.writeToFile(this.cloneGroupWriter,
-			// "===================================================", true);
-			// Util.writeToFile(this.cloneGroupWriter,
-			// this.testGson.idToCodeMap.get(idB+""), true);
-			// Util.writeToFile(this.cloneGroupWriter,
-			// "===================================================", true);
-			Util.writeToFile(this.clonesWriter, "", true);
-
-			Util.writeToFile(this.clonesWriter, "Clones of Code Block "
-					+ queryBlock.getId(), true);
-			Util.writeToFile(this.clonesWriter, idB + "", false);
-		}
+	public static synchronized void updateClonePairsCount(int num){
+		SearchManager.clonePairsCount+=num;
 	}
-
+	
 	private BufferedReader getReader(File queryFile)
 			throws FileNotFoundException {
 		BufferedReader br = null;

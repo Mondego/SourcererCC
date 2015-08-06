@@ -40,7 +40,6 @@ public class CodeSearcher {
     private CloneHelper cloneHelper;
     private QueryParser queryParser;
     private String field;
-    private TermSearcher termSearcher;
 
     public CodeSearcher(String indexDir) {
         this.field = "tokens";
@@ -79,22 +78,26 @@ public class CodeSearcher {
     }
 
 
-    public void search(QueryBlock queryBlock)
+    public void search(QueryBlock queryBlock, TermSearcher termSearcher)
             throws IOException {
 //        List<String> tfsToRemove = new ArrayList<String>();
-        this.termSearcher.setReader(this.reader);
-        this.termSearcher.setQuerySize(queryBlock.getSize());
-        this.termSearcher.setComputedThreshold(queryBlock.getComputedThreshold());
+        termSearcher.setReader(this.reader);
+       // System.out.println("setting reader: "+this.reader + Util.debug_thread());
+        termSearcher.setQuerySize(queryBlock.getSize());
+        termSearcher.setComputedThreshold(queryBlock.getComputedThreshold());
         int termsSeenInQuery =0;
         StringBuilder prefixTerms = new StringBuilder();
         for (Entry<String, TokenInfo> entry : queryBlock.getPrefixMap().entrySet()) {
             try {
             	prefixTerms.append(entry.getKey()+" ");
-                Query query = queryParser.parse("\""+entry.getKey()+"\"");
-                this.termSearcher.setSearchTerm(query.toString(this.field));
-                this.termSearcher.setFreqTerm(entry.getValue().getFrequency());
+            	Query query = null;
+            	synchronized (this) {
+            		query = queryParser.parse("\""+entry.getKey()+"\"");
+				}
+                termSearcher.setSearchTerm(query.toString(this.field));
+                termSearcher.setFreqTerm(entry.getValue().getFrequency());
                 termsSeenInQuery+=entry.getValue().getFrequency();
-                this.termSearcher.searchWithPosition(termsSeenInQuery);
+                termSearcher.searchWithPosition(termsSeenInQuery);
             } catch (org.apache.lucene.queryparser.classic.ParseException e) {
                 System.out.println("cannot parse " + e.getMessage());
             }
@@ -106,7 +109,9 @@ public class CodeSearcher {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
         Query query;
         try {
-            query = queryParser.parse(doc.get("id"));
+        	synchronized (this) {
+        		query = queryParser.parse(doc.get("id"));
+			}
             /*
              * System.out.println("Searching for: " + query.toString(this.field)
              * + " : " + doc.get("id"));
@@ -118,12 +123,12 @@ public class CodeSearcher {
         return result;
     }
     
-    public CustomCollectorFwdIndex search(Document doc, int i) throws IOException {
+    public synchronized CustomCollectorFwdIndex search(Document doc, int i) throws IOException {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
         Query query;
         String s = "sdsdasdasdsd";
         try {
-            query = queryParser.parse(doc.get("id"));
+    		 query = queryParser.parse(doc.get("id"));
             /*
              * System.out.println("Searching for: " + query.toString(this.field)
              * + " : " + doc.get("id"));
@@ -154,18 +159,4 @@ public class CodeSearcher {
         this.reader = reader;
     }
 
-    /**
-     * @return the termSearcher
-     */
-    public TermSearcher getTermSearcher() {
-        return termSearcher;
-    }
-
-    /**
-     * @param termSearcher
-     *            the termSearcher to set
-     */
-    public void setTermSearcher(TermSearcher termSearcher) {
-        this.termSearcher = termSearcher;
-    }
 }

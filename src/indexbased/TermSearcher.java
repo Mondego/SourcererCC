@@ -5,6 +5,8 @@ package indexbased;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import models.CandidateSimInfo;
 
@@ -33,52 +35,77 @@ public class TermSearcher {
 		this.simMap = new HashMap<Long, CandidateSimInfo>();
 	}
 
-	public void searchWithPosition(int queryTermsSeen) {
-		for (AtomicReaderContext ctx : this.reader.getContext().leaves()) {
-			int base = ctx.docBase;
-			Term term = new Term("tokens", this.searchTerm);
-			// SpanTermQuery spanQ = new SpanTermQuery(term);
-			try {
-				DocsAndPositionsEnum docEnum = MultiFields
-						.getTermPositionsEnum(ctx.reader(),
-								MultiFields.getLiveDocs(ctx.reader()),
-								"tokens", term.bytes());
-				if (null != docEnum) {
-					int doc = DocsEnum.NO_MORE_DOCS;
-					while ((doc = docEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-						long docId = doc + base;
-						CandidateSimInfo simInfo = null;
-						if (this.simMap.containsKey(docId)) {
-							simInfo = this.simMap.get(docId);
-							simInfo.similarity = simInfo.similarity
-									+ Math.min(freqTerm, docEnum.freq());
+	public synchronized void searchWithPosition(int queryTermsSeen) {
+		if(null!=this.reader){
+			if(null!= this.reader.getContext()){
+				if(null!=this.reader.getContext().leaves()){
+					for (AtomicReaderContext ctx : this.reader.getContext().leaves()) {
+						int base = ctx.docBase;
+						
+						// SpanTermQuery spanQ = new SpanTermQuery(term);
+						try {
+							Term term = new Term("tokens", this.searchTerm);
+							DocsAndPositionsEnum docEnum = MultiFields
+									.getTermPositionsEnum(ctx.reader(),
+											MultiFields.getLiveDocs(ctx.reader()),
+											"tokens", term.bytes());
+							if (null != docEnum) {
+								int doc = DocsEnum.NO_MORE_DOCS;
+								while ((doc = docEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+									long docId = doc + base;
+									CandidateSimInfo simInfo = null;
+									if (this.simMap.containsKey(docId)) {
+										simInfo = this.simMap.get(docId);
+										simInfo.similarity = simInfo.similarity
+												+ Math.min(freqTerm, docEnum.freq());
 
-						} else {
-							simInfo = new CandidateSimInfo();
-							simInfo.similarity = Math.min(freqTerm,
-									docEnum.freq());
-							this.simMap.put(docId, simInfo);
+									} else {
+										simInfo = new CandidateSimInfo();
+										simInfo.similarity = Math.min(freqTerm,
+												docEnum.freq());
+										//System.out.println("before putting in simmap "+ Util.debug_thread());
+										this.simMap.put(docId, simInfo);
+										//System.out.println("after putting in simmap "+ Util.debug_thread());
+									}
+									simInfo.queryMatchPosition = queryTermsSeen;
+									int candidatePos = docEnum.nextPosition();
+									simInfo.candidateMatchPosition = candidatePos
+											+ docEnum.freq();
+									if (simInfo.candidateSize == 0) {
+										simInfo.candidateSize = Integer
+												.parseInt(SearchManager.searcher
+														.getDocument(docId).get("size"));
+									}
+									if (!Util.isSatisfyPosFilter(
+											this.simMap.get(docId).similarity,
+											this.querySize, queryTermsSeen,
+											simInfo.candidateSize,
+											simInfo.candidateMatchPosition,
+											this.computedThreshold)) {
+									//	System.out.println("before removing in simmap "+ Util.debug_thread());
+										this.simMap.remove(docId);
+										//System.out.println("after removing in simmap "+ Util.debug_thread());
+									}
+								}
+							}else{
+								System.out.println("docEnum is null, " + base + ", term: "+ this.searchTerm + Util.debug_thread());
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							System.out.println("exception caught " + e.getMessage() + Util.debug_thread() + " search term:" + this.searchTerm);
 						}
-						simInfo.queryMatchPosition = queryTermsSeen;
-						int candidatePos = docEnum.nextPosition();
-						simInfo.candidateMatchPosition = candidatePos + docEnum.freq();
-						if(simInfo.candidateSize==0){
-							simInfo.candidateSize = Integer
-									.parseInt(SearchManager.searcher.getDocument(
-											docId).get("size"));
-						}
-						if (!Util.isSatisfyPosFilter(this.simMap.get(docId).similarity,
-								this.querySize, queryTermsSeen, simInfo.candidateSize,
-								simInfo.candidateMatchPosition, this.computedThreshold)) {
-							this.simMap.remove(docId);
-						}
+
 					}
+				}else{
+					System.out.println("leaves are null, "+ this.searchTerm + Util.debug_thread());
 				}
-			} catch (Exception e) {
-				System.out.println("exception caught" + e.getMessage());
+			}else{
+				System.out.println("getContext is null, "+ this.searchTerm + Util.debug_thread());
 			}
-
+		}else{
+			System.out.println("this.reader is null, "+ this.searchTerm + Util.debug_thread());
 		}
+		
 
 	}
 
@@ -94,6 +121,7 @@ public class TermSearcher {
 	 *            the searchTerm to set
 	 */
 	public void setSearchTerm(String searchTerm) {
+		//System.out.println(Util.debug_thread() + "setting searchTerm: "+ searchTerm);
 		this.searchTerm = searchTerm;
 	}
 
@@ -138,7 +166,7 @@ public class TermSearcher {
 	 * @param simMap
 	 *            the simMap to set
 	 */
-	public void setSimMap(Map<Long, CandidateSimInfo> simMap) {
+	public void setSimMap(ConcurrentMap<Long, CandidateSimInfo> simMap) {
 		this.simMap = simMap;
 	}
 
