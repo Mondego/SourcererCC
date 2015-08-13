@@ -27,7 +27,7 @@ public class InputGen {
     }
 
     private void genInputFile() {
-        File datasetDir = new File(SearchManager.DATASET_DIR2);
+        File datasetDir = new File(SearchManager.DATASET_DIR);
         if (datasetDir.isDirectory()) {
             System.out.println("Directory: " + datasetDir.getName());
             // populate methodsBlocksLIst

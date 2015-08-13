@@ -1,12 +1,10 @@
 package models;
 
-import indexbased.SearchManager;
-import indexbased.TermSearcher;
-
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
-import utility.Util;
+import indexbased.SearchManager;
+import indexbased.TermSearcher;
 
 public class CandidateSearcher implements IListener, Runnable {
 

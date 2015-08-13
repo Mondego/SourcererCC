@@ -11,8 +11,8 @@ public class Queue<E> extends LinkedBlockingQueue<E>{
 	private List<IListener> listeners;
 	private ExecutorService executor;
 	
-	public Queue(int nThreads) {
-		super();
+	public Queue(int nThreads, int capacity) {
+		super(capacity);
 		this.executor = Executors.newFixedThreadPool(nThreads);
 	}
 

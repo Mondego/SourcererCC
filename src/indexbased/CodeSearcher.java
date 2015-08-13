@@ -22,7 +22,9 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
 import utility.Util;
@@ -44,15 +46,18 @@ public class CodeSearcher {
     public CodeSearcher(String indexDir) {
         this.field = "tokens";
         this.indexDir = indexDir;
+        RAMDirectory directory = null;
         try {
-            this.reader = DirectoryReader.open(FSDirectory.open(new File(
-                    this.indexDir)));
+        	FSDirectory fsDirectory = FSDirectory.open(new File(
+                    this.indexDir));
+        	directory = new RAMDirectory(fsDirectory, null);
+            this.reader = DirectoryReader.open(directory);
         } catch (IOException e) {
             System.out.println("cant get the reader to index dir, exiting");
             e.printStackTrace();
             System.exit(1);
         }
-        this.searcher = new IndexSearcher(reader);
+        this.searcher = new IndexSearcher(this.reader);
         this.analyzer = new WhitespaceAnalyzer(Version.LUCENE_46);
         this.cloneHelper = new CloneHelper();
         this.queryParser = new QueryParser(Version.LUCENE_46, this.field,

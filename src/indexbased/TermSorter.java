@@ -59,7 +59,7 @@ public class TermSorter {
 					.readJsonStream(this.GTPMfilename);
 			System.out.println("search size of GTPM: "+ TermSorter.globalTokenPositionMap.size());
 		} else {
-			File datasetDir = new File(SearchManager.DATASET_DIR2);
+			File datasetDir = new File(SearchManager.DATASET_DIR);
 			if (datasetDir.isDirectory()) {
 				System.out.println("Directory: " + datasetDir.getName());
 				for (File inputFile : datasetDir.listFiles()) {
