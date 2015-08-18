@@ -36,8 +36,9 @@ public class CandidateProcessor implements IListener, Runnable {
 		// System.out.println("HERE, thread_id: " + Util.debug_thread() +
 		// ", query_id "+ queryBlock.getId());
 		Map<Long, CandidateSimInfo> codeBlockIds = result.getSimMap();
-		SearchManager.updateNumCandidates(codeBlockIds.size());
-
+		if(SearchManager.isGenCandidateStats){
+			SearchManager.updateNumCandidates(codeBlockIds.size());
+		}
 		for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
 			Document doc = null;
 			try {
@@ -46,8 +47,8 @@ public class CandidateProcessor implements IListener, Runnable {
 				long candidateId = Long.parseLong(doc.get("id"));
 				long functionIdCandidate = Long
 						.parseLong(doc.get("functionId"));
-				if ((candidateId <= queryBlock.getId())){ 
-					 //|| (functionIdCandidate == queryBlock.getFunctionId())) {
+				if ((candidateId <= queryBlock.getId())
+					 || (functionIdCandidate == queryBlock.getFunctionId())) {
 					continue; // we reject the candidate
 				}
 				int newCt = -1;

@@ -24,19 +24,11 @@ public class CandidateSearcher implements IListener, Runnable {
 	private void searchCandidates(QueryBlock queryBlock) throws IOException,
 			InterruptedException {
 		TermSearcher termSearcher = new TermSearcher();
-		// SearchManager.searcher.setTermSearcher(termSearcher);
-		long searchCandidatesTimeStart = System.currentTimeMillis();
 		SearchManager.searcher.search(queryBlock, termSearcher);
-		SearchManager.timeSpentInSearchingCandidates += System
-				.currentTimeMillis() - searchCandidatesTimeStart;
 		QueryCandidates qc = new QueryCandidates();
 		qc.queryBlock = queryBlock;
 		qc.termSearcher = termSearcher;
-		// System.out.println("before putting in qcq "+ Util.debug_thread() +
-		// " query_id "+ queryBlock.getId());
 		SearchManager.queryCandidatesQueue.put(qc);
-		// System.out.println("after putting in qcq "+ Util.debug_thread() +
-		// " query_id "+ queryBlock.getId());
 	}
 
 }

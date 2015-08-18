@@ -5,16 +5,9 @@ package indexbased;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map.Entry;
 
-import models.QueryBlock;
-import models.TokenInfo;
-import noindex.CloneHelper;
-
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -22,12 +15,13 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
-import utility.Util;
+import models.QueryBlock;
+import models.TokenInfo;
+import noindex.CloneHelper;
 
 /**
  * @author vaibhavsaini
@@ -38,50 +32,26 @@ public class CodeSearcher {
     private IndexSearcher searcher;
     private Analyzer analyzer;
     private IndexReader reader;
-    private String queryDir;
-    private CloneHelper cloneHelper;
     private QueryParser queryParser;
     private String field;
 
-    public CodeSearcher(String indexDir) {
-        this.field = "tokens";
+    public CodeSearcher(String indexDir, String field) {
+        this.field = field;
         this.indexDir = indexDir;
-        RAMDirectory directory = null;
         try {
-        	FSDirectory fsDirectory = FSDirectory.open(new File(
-                    this.indexDir));
-        	directory = new RAMDirectory(fsDirectory, null);
-            this.reader = DirectoryReader.open(directory);
+        	this.reader = DirectoryReader.open(new RAMDirectory(FSDirectory.open(new File(
+                    this.indexDir)),null));
         } catch (IOException e) {
-            System.out.println("cant get the reader to index dir, exiting");
+            System.out.println("cant get the reader to index dir, exiting, "+ indexDir);
             e.printStackTrace();
             System.exit(1);
         }
         this.searcher = new IndexSearcher(this.reader);
         this.analyzer = new WhitespaceAnalyzer(Version.LUCENE_46);
-        this.cloneHelper = new CloneHelper();
+        new CloneHelper();
         this.queryParser = new QueryParser(Version.LUCENE_46, this.field,
                 analyzer);
     }
-
-    public CodeSearcher(boolean searchOnForwardIndex) {
-        this.field = "id";
-        this.indexDir = Util.FWD_INDEX_DIR;
-        try {
-            this.reader = DirectoryReader.open(FSDirectory.open(new File(
-                    this.indexDir)));
-        } catch (IOException e) {
-            System.out.println("cant get the reader to fwdindex dir, exiting");
-            e.printStackTrace();
-            System.exit(1);
-        }
-        this.searcher = new IndexSearcher(reader);
-        this.analyzer = new KeywordAnalyzer();
-        this.cloneHelper = new CloneHelper();
-        this.queryParser = new QueryParser(Version.LUCENE_46, this.field,
-                analyzer);
-    }
-
 
     public void search(QueryBlock queryBlock, TermSearcher termSearcher)
             throws IOException {
@@ -131,7 +101,6 @@ public class CodeSearcher {
     public synchronized CustomCollectorFwdIndex search(Document doc, int i) throws IOException {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
         Query query;
-        String s = "sdsdasdasdsd";
         try {
     		 query = queryParser.parse(doc.get("id"));
             /*

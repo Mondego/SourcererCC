@@ -13,11 +13,16 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
@@ -88,10 +93,17 @@ public class SearchManager {
 	public static Queue<ClonePair> reportCloneQueue;
 	public static Queue<CandidatePair> verifyCandidateQueue;
 	public static Object lock = new Object();
-	private int qbq_num;
-	private int qcq_num;
-	private int vcq_num;
-	private int rcq_num;
+	private int qbq_thread_count;
+	private int qcq_thread_count;
+	private int vcq_thread_count;
+	private int rcq_thread_count;
+	private int qbq_size;
+	private int qcq_size;
+	private int vcq_size;
+	private int rcq_size;
+	public static boolean isGenCandidateStats;
+	public static int statusCounter;
+	public static boolean isStatusCounterOn;
 
 	public SearchManager(String[] args) throws IOException {
 		SearchManager.clonePairsCount = 0;
@@ -107,26 +119,31 @@ public class SearchManager {
 		this.ramBufferSizeMB = 1024 * 1;
 		this.bagsSortTime = 0;
 		this.action = args[0];
+		SearchManager.statusCounter = 0;
 		SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
-		this.qbq_num = Integer.parseInt(args[2]);
-		this.qcq_num = Integer.parseInt(args[3]);
-		this.vcq_num = Integer.parseInt(args[4]);
-		this.rcq_num = Integer.parseInt(args[5]);
-		System.out.println("acton: "+ this.action + 
-				", threshold: "+ args[1]+ 
-				", QBQ_NUM: "+ this.qbq_num+
-				", QCQ_NUM: "+ this.qcq_num+ 
-				", VCQ_NUM: "+ this.vcq_num+
-				", RCQ_NUM: "+ this.rcq_num);
-		SearchManager.queryBlockQueue = new Queue<QueryBlock>(this.qbq_num, 500);
-		SearchManager.queryCandidatesQueue = new Queue<QueryCandidates>(this.qcq_num, 300);
-		SearchManager.verifyCandidateQueue = new Queue<CandidatePair>(this.vcq_num, 100);
-		SearchManager.reportCloneQueue = new Queue<ClonePair>(this.rcq_num, 500);
+		this.qbq_thread_count = Integer.parseInt(args[2]);
+		this.qcq_thread_count = Integer.parseInt(args[3]);
+		this.vcq_thread_count = Integer.parseInt(args[4]);
+		this.rcq_thread_count = Integer.parseInt(args[5]);
+		this.qbq_size = Integer.parseInt(args[6]);
+		this.qcq_size = Integer.parseInt(args[7]);
+		this.vcq_size = Integer.parseInt(args[8]);
+		this.rcq_size = Integer.parseInt(args[9]);
+		System.out.println("acton: " + this.action + System.lineSeparator() + "threshold: " + args[1]
+				+ System.lineSeparator() + "QBQ_THREADS: " + this.qbq_thread_count + ", QBQ_SIZE: " + this.qbq_size
+				+ System.lineSeparator() + "QCQ_THREADS: " + this.qcq_thread_count + ", QCQ_SIZE: " + this.qcq_size
+				+ System.lineSeparator() + "VCQ_THREADS: " + this.vcq_thread_count + ", VCQ_SIZE: " + this.vcq_size
+				+ System.lineSeparator() + "RCQ_THREADS: " + this.rcq_thread_count + ", RCQ_SIZE: " + this.rcq_size
+				+ System.lineSeparator());
+		SearchManager.queryBlockQueue = new Queue<QueryBlock>(this.qbq_thread_count, this.qbq_size);
+		SearchManager.queryCandidatesQueue = new Queue<QueryCandidates>(this.qcq_thread_count, this.qcq_size);
+		SearchManager.verifyCandidateQueue = new Queue<CandidatePair>(this.vcq_thread_count, this.vcq_size);
+		SearchManager.reportCloneQueue = new Queue<ClonePair>(this.rcq_thread_count, this.rcq_size);
 
-		this.registerListeners(this.qbq_num, SearchManager.queryBlockQueue, CANDIDATE_SEARCHER);
-		this.registerListeners(this.qcq_num, SearchManager.queryCandidatesQueue, CANDIDATE_PROCESSOR);
-		this.registerListeners(this.vcq_num, SearchManager.verifyCandidateQueue, CLONE_VALIDATOR);
-		this.registerListeners(this.rcq_num, SearchManager.reportCloneQueue, CLONE_REPORTER);
+		this.registerListeners(this.qbq_thread_count, SearchManager.queryBlockQueue, CANDIDATE_SEARCHER);
+		this.registerListeners(this.qcq_thread_count, SearchManager.queryCandidatesQueue, CANDIDATE_PROCESSOR);
+		this.registerListeners(this.vcq_thread_count, SearchManager.verifyCandidateQueue, CLONE_VALIDATOR);
+		this.registerListeners(this.rcq_thread_count, SearchManager.reportCloneQueue, CLONE_REPORTER);
 
 	}
 
@@ -153,35 +170,32 @@ public class SearchManager {
 		SearchManager searchManager = null;
 		Properties properties = new Properties();
 		FileInputStream fis = null;
-		boolean readQParamsFromProperties = true;
-		if (args.length >= 6) {
-			System.out.println("reading Q values from command line");
-			searchManager = new SearchManager(args);
-			readQParamsFromProperties= false;
-			
-		}
 		System.out.println("reading Q values from properties file");
 		fis = new FileInputStream("sourcerer-cc.properties");
 		try {
 			properties.load(fis);
-			if(readQParamsFromProperties){
-				String[] params = new String[6];
-				params[0]= args[0];
-				params[1]= args[1];
-				params[2]= properties.getProperty("QBQ_NUM");
-				params[3]= properties.getProperty("QCQ_NUM");
-				params[4]= properties.getProperty("VCQ_NUM");
-				params[5]= properties.getProperty("RCQ_NUM");
-				searchManager = new SearchManager(params);
-			}
-			
+			String[] params = new String[10];
+			params[0] = args[0];
+			params[1] = args[1];
+			params[2] = properties.getProperty("QBQ_THREADS");
+			params[3] = properties.getProperty("QCQ_THREADS");
+			params[4] = properties.getProperty("VCQ_THREADS");
+			params[5] = properties.getProperty("RCQ_THREADS");
+			params[6] = properties.getProperty("QBQ_SIZE");
+			params[7] = properties.getProperty("QCQ_SIZE");
+			params[8] = properties.getProperty("VCQ_SIZE");
+			params[9] = properties.getProperty("RCQ_SIZE");
+			searchManager = new SearchManager(params);
 		} catch (IOException e) {
-			System.out.println("ERROR READING PROPERTIES FILE, "+ e.getMessage());
+			System.out.println("ERROR READING PROPERTIES FILE, " + e.getMessage());
 			System.exit(1);
-		}finally{
-			SearchManager.QUERY_DIR_PATH=properties.getProperty("QUERY_DIR_PATH");
-			SearchManager.DATASET_DIR=properties.getProperty("DATASET_DIR_PATH");
-			if(null!=fis){
+		} finally {
+			SearchManager.QUERY_DIR_PATH = properties.getProperty("QUERY_DIR_PATH");
+			SearchManager.DATASET_DIR = properties.getProperty("DATASET_DIR_PATH");
+			SearchManager.isGenCandidateStats = Boolean
+					.parseBoolean(properties.getProperty("IS_GEN_CANDIDATE_STATISTICS"));
+			SearchManager.isStatusCounterOn = Boolean.parseBoolean(properties.getProperty("IS_STATUS_REPORTER_ON"));
+			if (null != fis) {
 				fis.close();
 			}
 		}
@@ -203,21 +217,41 @@ public class SearchManager {
 			searchManager.initSearchEnv();
 			long timeStartSearch = System.currentTimeMillis();
 			searchManager.findCandidates();
-			System.out.println("shutting down QBQ, " + System.currentTimeMillis());
-			SearchManager.queryBlockQueue.shutdown();
-			System.out.println("shutting down QCQ, " + System.currentTimeMillis());
-			SearchManager.queryCandidatesQueue.shutdown();
-			System.out.println("shutting down VCQ, " + System.currentTimeMillis());
-			SearchManager.verifyCandidateQueue.shutdown();
-			System.out.println("shutting down RCQ, " + System.currentTimeMillis());
-			SearchManager.reportCloneQueue.shutdown();
+			while (true) {
+				if (SearchManager.queryBlockQueue.size() == 0 && SearchManager.queryCandidatesQueue.size() == 0
+						&& SearchManager.verifyCandidateQueue.size() == 0
+						&& SearchManager.reportCloneQueue.size() == 0) {
+					System.out.println("shutting down QBQ, " + (System.currentTimeMillis()));
+					SearchManager.queryBlockQueue.shutdown();
+					System.out.println("shutting down QCQ, " + System.currentTimeMillis());
+					SearchManager.queryCandidatesQueue.shutdown();
+					System.out.println("shutting down VCQ, " + System.currentTimeMillis());
+					SearchManager.verifyCandidateQueue.shutdown();
+					System.out.println("shutting down RCQ, " + System.currentTimeMillis());
+					SearchManager.reportCloneQueue.shutdown();
+					break;
+				}else{
+					Thread.sleep(2*1000);
+				}
+			}
 			searchManager.timeSearch = System.currentTimeMillis() - timeStartSearch;
 		}
 		long end_time = System.currentTimeMillis();
-		System.out.println(
-				"total run time in milliseconds:" + (end_time - start_time) + " , " + System.currentTimeMillis());
-		System.out.println("Search Candidates time: " + SearchManager.timeSpentInSearchingCandidates);
-		System.out.println("Process Result  time: " + searchManager.timeSpentInProcessResult);
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis((end_time - start_time));
+		try {
+			Duration duration = DatatypeFactory.newInstance().newDuration(end_time - start_time);
+			System.out.printf("Total run Time:  %02dh:%02dm:%02ds", duration.getDays() * 24 + duration.getHours(),
+					duration.getMinutes(), duration.getSeconds());
+			System.out.println();
+		} catch (DatatypeConfigurationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		/*
+		 * System.out.println( "total run time: " + cal.get(Calendar.HOUR)+
+		 * "::"+ cal.get(Calendar.MINUTE)+ "::"+ cal.get(Calendar.SECOND));
+		 */
 		System.out.println("number of clone pairs detected: " + SearchManager.clonePairsCount);
 		searchManager.timeTotal = end_time - start_time;
 		searchManager.genReport();
@@ -349,9 +383,8 @@ public class SearchManager {
 				String filename = queryFile.getName().replaceFirst("[.][^.]+$", "");
 				try {
 
-					SearchManager.clonesWriter = Util.openFile(
-							"output" + SearchManager.th / SearchManager.MUL_FACTOR + "/" + filename + "clones_index_WITH_FILTER.txt",
-							false);
+					SearchManager.clonesWriter = Util.openFile("output" + SearchManager.th / SearchManager.MUL_FACTOR
+							+ "/" + filename + "clones_index_WITH_FILTER.txt", false);
 				} catch (IOException e) {
 					System.out.println(e.getMessage() + " exiting");
 					System.exit(1);
@@ -363,6 +396,12 @@ public class SearchManager {
 					while ((line = br.readLine()) != null && line.trim().length() > 0) {
 						try {
 							queryBlock = this.getNextQueryBlock(line);
+							if (SearchManager.isStatusCounterOn) {
+								SearchManager.statusCounter += 1;
+								if ((SearchManager.statusCounter % 10000) == 0) {
+									System.out.println("queries processed: " + SearchManager.statusCounter);
+								}
+							}
 							SearchManager.queryBlockQueue.put(queryBlock);
 						} catch (ParseException e) {
 							System.out.println(e.getMessage() + " skiping to next bag");
@@ -392,8 +431,8 @@ public class SearchManager {
 		// line.
 		Util.createDirs("output" + SearchManager.th / SearchManager.MUL_FACTOR + "/cloneGroups/");
 		try {
-			this.cloneSiblingCountWriter = Util
-					.openFile("output" + SearchManager.th / SearchManager.MUL_FACTOR + "/cloneGroups/siblings_count.csv", false);
+			this.cloneSiblingCountWriter = Util.openFile(
+					"output" + SearchManager.th / SearchManager.MUL_FACTOR + "/cloneGroups/siblings_count.csv", false);
 			Util.writeToFile(this.cloneSiblingCountWriter, "query_block_id,siblings", true);
 		} catch (IOException e1) {
 			e1.printStackTrace();
@@ -410,8 +449,11 @@ public class SearchManager {
 			System.out.println("Error in Parsing: " + e.getMessage());
 			e.printStackTrace();
 		}
-		SearchManager.fwdSearcher = new CodeSearcher(true); // searches on fwd index
-		SearchManager.searcher = new CodeSearcher(Util.INDEX_DIR);
+		SearchManager.fwdSearcher = new CodeSearcher(Util.FWD_INDEX_DIR, "id"); // searches
+																				// on
+																				// fwd
+																				// index
+		SearchManager.searcher = new CodeSearcher(Util.INDEX_DIR, "tokens");
 
 	}
 
