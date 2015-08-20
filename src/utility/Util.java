@@ -3,8 +3,6 @@
  */
 package utility;
 
-import indexbased.TermSorter;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,14 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import models.Bag;
-import models.TokenFrequency;
-import models.TokenInfo;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+
+import indexbased.TermSorter;
+import models.Bag;
+import models.TokenFrequency;
 
 /**
  * @author vaibhavsaini
@@ -71,14 +69,12 @@ public class Util {
 			try {
 				pWriter.write(text + System.lineSeparator());
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
 			try {
 				pWriter.write(text);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -95,7 +91,7 @@ public class Util {
 			throws IOException {
 		try {
 			Writer pWriter = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(filename, append), "UTF-8"));
+					new FileOutputStream(filename, append), "UTF-8"),1024*1000*2);
 			return pWriter;
 
 		} catch (IOException e) {
@@ -113,13 +109,11 @@ public class Util {
 			try {
 				pWriter.flush();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			try {
 				pWriter.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -156,13 +150,11 @@ public class Util {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			try {
 				writer.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -189,16 +181,13 @@ public class Util {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (JsonSyntaxException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			try {
 				br.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

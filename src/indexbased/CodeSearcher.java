@@ -39,8 +39,8 @@ public class CodeSearcher {
         this.field = field;
         this.indexDir = indexDir;
         try {
-        	this.reader = DirectoryReader.open(new RAMDirectory(FSDirectory.open(new File(
-                    this.indexDir)),null));
+        	this.reader = DirectoryReader.open(FSDirectory.open(new File(
+                    this.indexDir)));
         } catch (IOException e) {
             System.out.println("cant get the reader to index dir, exiting, "+ indexDir);
             e.printStackTrace();

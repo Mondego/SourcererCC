@@ -3,12 +3,11 @@ package models;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 
 import org.apache.lucene.document.Document;
 
-import utility.Util;
 import indexbased.CustomCollectorFwdIndex;
 import indexbased.SearchManager;
 import indexbased.TermSearcher;
@@ -76,6 +75,7 @@ public class CandidateProcessor implements IListener, Runnable {
 									candidateSize, candidateId);
 						}
 						SearchManager.verifyCandidateQueue.put(candidatePair);
+						entry=null;
 					} else {
 						System.out
 								.println("ERROR: more that one doc found. some error here.");
@@ -93,6 +93,7 @@ public class CandidateProcessor implements IListener, Runnable {
 						+ entry.getKey());
 			}
 		}
+		result=null;
 	}
 
 }

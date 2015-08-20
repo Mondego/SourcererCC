@@ -26,6 +26,9 @@ public class CloneValidator implements IListener, Runnable {
 				ClonePair cp = new ClonePair(candidatePair.queryBlock.getId(), candidatePair.candidateId);
 				SearchManager.reportCloneQueue.put(cp);
 			}
+			candidatePair.queryBlock=null;
+			candidatePair.simInfo=null;
+			candidatePair=null;
 		} else {
 			System.out.println("tokens not found for document");
 		}

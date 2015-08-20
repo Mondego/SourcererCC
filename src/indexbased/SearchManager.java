@@ -104,6 +104,7 @@ public class SearchManager {
 	public static boolean isGenCandidateStats;
 	public static int statusCounter;
 	public static boolean isStatusCounterOn;
+	private static int printAfterEveryXQueries;
 
 	public SearchManager(String[] args) throws IOException {
 		SearchManager.clonePairsCount = 0;
@@ -195,6 +196,7 @@ public class SearchManager {
 			SearchManager.isGenCandidateStats = Boolean
 					.parseBoolean(properties.getProperty("IS_GEN_CANDIDATE_STATISTICS"));
 			SearchManager.isStatusCounterOn = Boolean.parseBoolean(properties.getProperty("IS_STATUS_REPORTER_ON"));
+			SearchManager.printAfterEveryXQueries = Integer.parseInt(properties.getProperty("PRINT_STATUS_AFTER_EVERY_X_QUERIES_ARE_PROCESSED"));
 			if (null != fis) {
 				fis.close();
 			}
@@ -245,7 +247,6 @@ public class SearchManager {
 					duration.getMinutes(), duration.getSeconds());
 			System.out.println();
 		} catch (DatatypeConfigurationException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		/*
@@ -375,6 +376,7 @@ public class SearchManager {
 	}
 
 	private void findCandidates() throws InterruptedException {
+		long start_time=System.currentTimeMillis();
 		try {
 			File queryDirectory = this.getQueryDirectory();
 			File[] queryFiles = this.getQueryFiles(queryDirectory);
@@ -398,8 +400,19 @@ public class SearchManager {
 							queryBlock = this.getNextQueryBlock(line);
 							if (SearchManager.isStatusCounterOn) {
 								SearchManager.statusCounter += 1;
-								if ((SearchManager.statusCounter % 10000) == 0) {
-									System.out.println("queries processed: " + SearchManager.statusCounter);
+								if ((SearchManager.statusCounter % SearchManager.printAfterEveryXQueries) == 0) {
+									long end_time = System.currentTimeMillis();
+									Duration duration;
+									try {
+										duration = DatatypeFactory.newInstance().newDuration(end_time - start_time);
+										System.out.printf("queries processed: " +  SearchManager.statusCounter + " time taken: %02dh:%02dm:%02ds", duration.getDays() * 24 + duration.getHours(),
+												duration.getMinutes(), duration.getSeconds());
+										start_time=end_time;
+										System.out.println();
+									} catch (DatatypeConfigurationException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
 								}
 							}
 							SearchManager.queryBlockQueue.put(queryBlock);
