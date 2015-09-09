@@ -39,12 +39,11 @@ public class TermSearcher {
 		if(null!=this.reader){
 			if(null!= this.reader.getContext()){
 				if(null!=this.reader.getContext().leaves()){
+					Term term = new Term("tokens", this.searchTerm);
 					for (AtomicReaderContext ctx : this.reader.getContext().leaves()) {
 						int base = ctx.docBase;
-						
 						// SpanTermQuery spanQ = new SpanTermQuery(term);
 						try {
-							Term term = new Term("tokens", this.searchTerm);
 							DocsAndPositionsEnum docEnum = MultiFields
 									.getTermPositionsEnum(ctx.reader(),
 											MultiFields.getLiveDocs(ctx.reader()),
@@ -88,7 +87,9 @@ public class TermSearcher {
 									}
 								}
 							}else{
-								System.out.println("docEnum is null, " + base + ", term: "+ this.searchTerm + Util.debug_thread());
+								if(SearchManager.loggingMode.equals("D")){
+									System.out.println("docEnum is null, " + base + ", term: "+ this.searchTerm + Util.debug_thread());
+								}
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -97,16 +98,20 @@ public class TermSearcher {
 
 					}
 				}else{
-					System.out.println("leaves are null, "+ this.searchTerm + Util.debug_thread());
+					if(SearchManager.loggingMode.equals("D")){
+						System.out.println("leaves are null, "+ this.searchTerm + Util.debug_thread());
+					}
 				}
 			}else{
-				System.out.println("getContext is null, "+ this.searchTerm + Util.debug_thread());
+				if(SearchManager.loggingMode.equals("D")){
+					System.out.println("getContext is null, "+ this.searchTerm + Util.debug_thread());
+				}
 			}
 		}else{
-			System.out.println("this.reader is null, "+ this.searchTerm + Util.debug_thread());
+			if(SearchManager.loggingMode.equals("D")){
+				System.out.println("this.reader is null, "+ this.searchTerm + Util.debug_thread());
+			}
 		}
-		
-
 	}
 
 	/**

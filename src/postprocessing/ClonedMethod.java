@@ -13,7 +13,7 @@ import java.util.Set;
 import utility.Util;
 
 public class ClonedMethod {
-	private static Map<Long,String> idMethodMap;
+	public static Map<Long,String> idMethodMap;
 	private static Set<String> clonedMethods;
 	
 	public ClonedMethod(){
@@ -42,12 +42,32 @@ public class ClonedMethod {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		}finally{
+			try {
+				br.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	public void writeClonedMethodsToFile(String filename) throws IOException{
 		Writer writer = Util.openFile(filename, false);
 		for (String methodName : this.clonedMethods){
 			Util.writeToFile(writer, methodName, true);
+		}
+		Util.closeOutputFile(writer);
+	}
+	
+	public static void generateOutput(Set<String> methods, String filename) throws IOException{
+		Writer writer = Util.openFile(filename, false);
+		Util.writeToFile(writer, "FQMN"+",hasClone", true);
+		for (String method: methods){
+			if(ClonedMethod.clonedMethods.contains(method)){
+				Util.writeToFile(writer, method+",1", true);
+			}
+			else{
+				Util.writeToFile(writer, method+",0", true);
+			}
 		}
 		Util.closeOutputFile(writer);
 	}
@@ -64,4 +84,28 @@ public class ClonedMethod {
         String[] tokens = line.split(" ");
         ClonedMethod.idMethodMap.put(Long.parseLong(tokens[0]), tokens[1]);
     }
+	
+	public static void main(String[] args){
+		ClonedMethod clonedMethod = new ClonedMethod();
+		String filename = args[0]; 
+		String projectInfo = filename.split("-clone-INPUT.txt")[0];
+		//"/home/saini/code/repos/codeclonedetection/";
+		final String baseDir = "/home/sourcerer/hitesh-vaibhav/metrics/clone-detection/";
+		final String outputDir = baseDir+"output7.0/";
+		final String methodCloneDir = outputDir+"fixed_method-clone/";
+		Util.createDirs(methodCloneDir);
+		final String idMethodDir = baseDir+"input/output_ast/idMethod_fixed/";
+		try {
+			System.out.println("processing project: "+ projectInfo);
+			ClonedMethod.populateIdMethodNameMap(idMethodDir+projectInfo+"-idMethodMap.txt"); // activity-state-machine@1.0-alpha-1-idMethodMap.txt
+			ClonedMethod.populateClonedMethodsSet(outputDir+projectInfo+"-clone-INPUTclones_index_WITH_FILTER.txt");
+			Set<String> methods = new HashSet<String>(ClonedMethod.idMethodMap.values());
+			ClonedMethod.generateOutput(methods, methodCloneDir+projectInfo+".csv");
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

@@ -104,7 +104,8 @@ public class SearchManager {
 	public static boolean isGenCandidateStats;
 	public static int statusCounter;
 	public static boolean isStatusCounterOn;
-	private static int printAfterEveryXQueries;
+	public static int printAfterEveryXQueries;
+	public static String loggingMode;
 
 	public SearchManager(String[] args) throws IOException {
 		SearchManager.clonePairsCount = 0;
@@ -197,6 +198,7 @@ public class SearchManager {
 					.parseBoolean(properties.getProperty("IS_GEN_CANDIDATE_STATISTICS"));
 			SearchManager.isStatusCounterOn = Boolean.parseBoolean(properties.getProperty("IS_STATUS_REPORTER_ON"));
 			SearchManager.printAfterEveryXQueries = Integer.parseInt(properties.getProperty("PRINT_STATUS_AFTER_EVERY_X_QUERIES_ARE_PROCESSED"));
+			SearchManager.loggingMode=properties.getProperty("LOGGING_MODE").toUpperCase();
 			if (null != fis) {
 				fis.close();
 			}

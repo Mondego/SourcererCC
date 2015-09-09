@@ -11,6 +11,9 @@
     <property name="clonesNamesAssembler"  value="postprocessing.ClonesNamesAssembler"/>
     <property name="clonesBugPattern"  value="validation.CloneBugPattern"/>
     <property name="aggregatorClones"  value="postprocessing.Aggregator"/>
+	<property name="clonedMethod"  value="postprocessing.ClonedMethod"/>
+	<property name="fixIdMethodMap"  value="postprocessing.FixIdMethodMap"/>
+	
     <property name="cdIndex"  value="indexbased.SearchManager"/>
     <property name="lib"  value="lib"/>
     
@@ -98,7 +101,28 @@
             </manifest>
         </jar>
     </target>
+	
+	<target name="jarCM" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${clonedMethod}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${clonedMethod}"/>
+            </manifest>
+        	<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+        </jar>
+    </target>
+	
+	<target name="jarFix" depends="compile">
+	        <mkdir dir="${jar.dir}"/>
+	        <jar destfile="${jar.dir}/${fixIdMethodMap}.jar" basedir="${classes.dir}">
+	            <manifest>
+	                <attribute name="Main-Class" value="${fixIdMethodMap}"/>
+	            </manifest>
+	        	<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+	        </jar>
+	    </target>
 
+	
 <!--     <target name="clean-build" depends="clean,jar"/> -->
     <target name="cdwf" depends="clean,runWF"/>
     <target name="cdwof" depends="clean,runWOF"/>
@@ -108,4 +132,5 @@
     <target name="cda" depends="jarAg"/>
     <target name="cdi" depends="jarCDI"/>
 	<target name="cdini" depends="cdboth, cdi"/>
+	<target name="ppm" depends="clean, jarCM, jarFix"/>
 </project>
