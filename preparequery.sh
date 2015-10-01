@@ -7,4 +7,5 @@ do
   rm -rf $foldername	
   mkdir -p $foldername
   mv $queryfile $foldername/
+  cp sourcerer-cc.properties $foldername/
 done

@@ -5,7 +5,7 @@
 
 # Configuration stuff
 
-queryfile="input/dataset_melody/project-melody-clone-INPUT.txt"
+queryfile="input/dataset/uf8.blocks"
 num_files="${1:-2}"
 
 # Work out lines per file.

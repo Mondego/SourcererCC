@@ -191,7 +191,9 @@ public class SearchManager {
         EProperties properties = new EProperties();
         FileInputStream fis = null;
         System.out.println("reading Q values from properties file");
-        fis = new FileInputStream("sourcerer-cc.properties");
+        String propertiesPath = System.getProperty("properties.location");
+        System.out.println("propertiesPath: "+ propertiesPath);
+        fis = new FileInputStream(propertiesPath);
         try {
             properties.load(fis);
             String[] params = new String[10];
