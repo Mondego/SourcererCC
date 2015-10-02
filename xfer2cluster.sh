@@ -2,11 +2,11 @@
 echo "creating jar"
 ant clean cdi
 echo "xfering input folder"
-starcluster put sd6 input /home
+starcluster put sdx input /home
 echo "xfering dist folder"
-starcluster put sd6 dist /home/
+starcluster put sdx dist /home/
 echo "xfering properties file"
-starcluster put sd6 sourcerer-cc.properties /home/
+starcluster put sdx sourcerer-cc.properties /home/
 echo "xfering .sh files"
-starcluster put sd6 *.sh /home/
+starcluster put sdx *.sh /home/
 echo "xfering finished"
