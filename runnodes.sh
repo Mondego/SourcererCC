@@ -5,7 +5,7 @@ num_nodes="${1:-6}"
 num_nodes=$((num_nodes-1))
 threshold="${2:-8}"
 echo "indexing on master"
-#java -Dproperties.location="/home/NODE_0/query/sourcerer-cc.properties" -Xms512m -Xmx512m  -jar dist/indexbased.SearchManager.jar index $threshold
+java -Dproperties.location="/home/NODE_0/query/sourcerer-cc.properties" -Xms512m -Xmx512m  -jar dist/indexbased.SearchManager.jar index $threshold
 
 for i in $(seq 1 1 $num_nodes)
 do

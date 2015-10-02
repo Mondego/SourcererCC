@@ -474,7 +474,7 @@ public class SearchManager {
                                                 .newInstance().newDuration(
                                                         end_time - start_time);
                                         System.out
-                                                .printf("queries processed: "
+                                                .printf(SearchManager.NODE_PREFIX +", queries processed: "
                                                         + SearchManager.statusCounter
                                                         + " time taken: %02dh:%02dm:%02ds",
                                                         duration.getDays()
