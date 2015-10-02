@@ -1,12 +1,14 @@
 #!/bin/bash
+cluster_name="${1:-sdx2}"
+echo "cluster is $cluster_name"
 echo "creating jar"
 ant clean cdi
 echo "xfering input folder"
-starcluster put sdx input /home
+starcluster put $cluster_name input /home
 echo "xfering dist folder"
-starcluster put sdx dist /home/
+starcluster put $cluster_name dist /home/
 echo "xfering properties file"
-starcluster put sdx sourcerer-cc.properties /home/
+starcluster put $cluster_name sourcerer-cc.properties /home/
 echo "xfering .sh files"
-starcluster put sdx *.sh /home/
+starcluster put $cluster_name *.sh /home/
 echo "xfering finished"
