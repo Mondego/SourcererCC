@@ -11,7 +11,7 @@ num_files="${1:-2}"
 # Work out lines per file.
 
 total_lines=$(wc -l <${queryfile})
-((lines_per_file = (total_lines + num_files - 1) / num_files))
+((lines_per_file = ($total_lines + $num_files - 1) / $num_files))
 
 # Split the actual file, maintaining lines.
 

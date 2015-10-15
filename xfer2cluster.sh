@@ -1,5 +1,5 @@
 #!/bin/bash
-cluster_name="${1:-sdx2}"
+cluster_name="${1:-sdx}"
 echo "cluster is $cluster_name"
 echo "creating jar"
 ant clean cdi
