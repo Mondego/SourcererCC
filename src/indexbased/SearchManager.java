@@ -382,6 +382,7 @@ public class SearchManager {
                 BufferedReader br = null;
                 for (File inputFile : datasetDir.listFiles()) {
                     try {
+                        System.out.println("indexing file : " + inputFile.getName());
                         br = new BufferedReader(new InputStreamReader(
                                 new FileInputStream(inputFile), "UTF-8"));
                         String line;

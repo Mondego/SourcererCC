@@ -14,6 +14,7 @@
 	<property name="clonedMethod" value="postprocessing.ClonedMethod" />
 	<property name="fixIdMethodMap" value="postprocessing.FixIdMethodMap" />
 	<property name="fileParser" value="parser.FileParser" />
+	<property name="conc" value="parser.ConcurrentReader" />
 
 	<property name="cdIndex" value="indexbased.SearchManager" />
 	<property name="lib" value="lib" />
@@ -133,6 +134,15 @@
 	        </jar>
 	</target>
 
+	<target name="jarConc" depends="compile">
+	            <mkdir dir="${jar.dir}" />
+	            <jar destfile="${jar.dir}/${conc}.jar" basedir="${classes.dir}">
+	                <manifest>
+	                    <attribute name="Main-Class" value="${conc}" />
+	                </manifest>
+	                <zipgroupfileset dir="${lib}" includes="**/*.jar" />
+	            </jar>
+	    </target>
 
 	<!--     <target name="clean-build" depends="clean,jar"/> -->
 	<target name="cdwf" depends="clean,runWF" />
@@ -145,4 +155,5 @@
 	<target name="cdini" depends="cdboth, cdi" />
 	<target name="ppm" depends="clean, jarCM, jarFix" />
 	<target name="cdparse" depends="clean, jarParse, cdi" />
+	<target name="conc" depends="clean,jarConc" />
 </project>
