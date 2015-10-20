@@ -25,7 +25,7 @@ public class FileParser {
     long startFileIdCounter = 0;
     long endFileIdCounter = 0;
     long project_id = 0l;
-    public static final int MIN_TOKEN_IN_FILE = 0;
+    public static final int MIN_TOKEN_IN_FILE = 65;
     Writer parsedFileWriter = null;
     Writer idFileWriter = null;
     String parsedFilePath = "";
@@ -100,6 +100,7 @@ public class FileParser {
                             List<String> tokens = Tokenizer
                                     .processMethodBody(fileContent);
                             if (tokens.size() > MIN_TOKEN_IN_FILE) {
+                                System.out.println("tokens size of file: "+ file.getAbsolutePath() +", "+tokens.size());
                                 Map<String, Integer> tokenToFrequencyMap = this
                                         .makeTokenToFrequencyMap(tokens);
                                 StringBuilder sb = new StringBuilder();
