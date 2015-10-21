@@ -12,11 +12,15 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.ReversedLinesFileReader;
 
 import utility.Util;
 
@@ -33,6 +37,10 @@ public class FileParser {
     String datasetPath;
     String bookkeepingPath;
     String idGenFile;
+    String idGenFileStatus;
+    Set<String> processedProjects;
+    Set<String> processedFiles;
+    long maxIdProcessed;
 
     public FileParser(String processName) throws IOException {
         this.datasetPath = "input/dataset";
@@ -46,7 +54,129 @@ public class FileParser {
         this.parsedFileWriter = Util.openFile(this.parsedFilePath, true);
         this.idFileWriter = Util.openFile(this.idFilePath, true);
         this.idGenFile = "idgen.txt";
+        this.idGenFileStatus = "idgenstatus.txt";
+        this.processedProjects = new HashSet<String>();
+        this.processedFiles = new HashSet<String>();
+        this.maxIdProcessed = Long.MIN_VALUE;
+        this.populateProcessedInfo();
+        
+        System.out.println("calling updateIds");
         this.updateIds();
+    }
+
+    private void populateProcessedInfo() throws FileNotFoundException {
+        File bookkeepingDir = new File(this.bookkeepingPath);
+        if(bookkeepingDir.isDirectory()){
+            File[] files = bookkeepingDir.listFiles();
+            for (File bkfile : files){
+                if (FilenameUtils.getExtension(bkfile.getName()).equals(
+                        "txt")) {
+                    ReversedLinesFileReader rlfr = null;
+                    try {
+                        rlfr = new ReversedLinesFileReader(bkfile,4*1024,Charsets.UTF_8);
+                        String line;
+                        boolean lastLineRead = false;
+                        String projectIdToIgnore="";
+                        while ((line = rlfr.readLine()) != null
+                                && line.trim().length() > 0) {
+                            String[] info = line.split(",");
+                            if(lastLineRead && !info[0].equals(projectIdToIgnore)){
+                                // last line alread processed, add project ids from here
+                                this.processedProjects.add(info[0]); // project id
+                            }else{
+                                projectIdToIgnore=info[0];
+                                //System.out.println("projectIdToIgnore, "+projectIdToIgnore);
+                                lastLineRead=true;
+                            }
+                            this.processedFiles.add(info[2]); // file name. file id is not deterministic hence not using it.
+                            long fileIdProcessed = Long.parseLong(info[1]);
+                            if(this.maxIdProcessed< fileIdProcessed){
+                                this.maxIdProcessed=fileIdProcessed;
+                            }
+                        }
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    
+                }
+            }
+        }else{
+            System.out.println("bookkeeping dir not found, exiting");
+            System.exit(1);
+        }
+        System.out.println("max id processed : "+ this.maxIdProcessed);
+        if(!this.isIdGenUpdated()){
+            try {
+                File file = new File(this.idGenFile);
+                FileLock lock = null;
+                RandomAccessFile raf = new RandomAccessFile(file, "rw");
+                FileChannel channel = raf.getChannel();
+                try {
+                    lock = channel.lock();
+                    ByteBuffer outBuffer = ByteBuffer.allocate(8);
+                    outBuffer.clear();
+                    String endidStr = (this.maxIdProcessed+1) + "";
+                    outBuffer.put(endidStr.getBytes());
+                    outBuffer.flip();
+                    // System.out.println(new String(outBuffer.array()));
+                    channel.write(outBuffer, 0);
+                    channel.force(false);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        lock.release();
+                        raf.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private boolean isIdGenUpdated() throws FileNotFoundException {
+        File file = new File(this.idGenFileStatus);
+        FileLock lock = null;
+        RandomAccessFile raf = new RandomAccessFile(file, "rw");
+        FileChannel channel = raf.getChannel();
+        try {
+            lock = channel.lock();
+            long fileSize = channel.size();
+            ByteBuffer buffer = ByteBuffer.allocate((int) fileSize);
+            channel.read(buffer);
+            String line = new String(buffer.array());
+            if(line.trim().equalsIgnoreCase("true")){
+                // ignore updating the idgenFile
+                return true;
+            }else{
+                ByteBuffer outBuffer = ByteBuffer.allocate(8);
+                outBuffer.clear();
+                String statusStr = "true";
+                outBuffer.put(statusStr.getBytes());
+                outBuffer.flip();
+                // System.out.println(new String(outBuffer.array()));
+                channel.write(outBuffer, 0);
+                channel.force(false);
+                return false;
+            }
+        } catch (IOException e) {
+            System.out.println("exiting");
+            e.printStackTrace();
+            System.exit(1);
+        } finally {
+            try {
+                lock.release();
+                raf.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
     }
 
     public void updateIds() throws FileNotFoundException {
@@ -61,6 +191,7 @@ public class FileParser {
             ByteBuffer buffer = ByteBuffer.allocate((int) fileSize);
             channel.read(buffer);
             String line = new String(buffer.array());
+            //System.out.println("line in updateid: "+ line.trim());
             this.startFileIdCounter = Long.parseLong(line.trim());
             this.endFileIdCounter = this.startFileIdCounter + 250000;
             // System.out.println("start_id: "+ this.startId + ", end_id: "+
@@ -78,6 +209,7 @@ public class FileParser {
         } finally {
             try {
                 lock.release();
+                raf.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -87,75 +219,78 @@ public class FileParser {
     public void parseAllFilesInDir(File root) throws FileNotFoundException {
         File[] files = root.listFiles();
         for (File file : files) {
-            if (file.canRead()) {
-                if (file.isFile()) {
+            if(!this.processedFiles.contains(file.getAbsolutePath())){
+                if (file.canRead()) {
+                    if (file.isFile()) {
 
-                    if (FilenameUtils.getExtension(file.getName()).equals(
-                            "java")) {
-                        try {
-                            //System.out
-                              //      .println("reading file " + file.getName());
-                            String fileContent = FileUtils.readFileToString(
-                                    file, "utf-8");
-                            List<String> tokens = Tokenizer
-                                    .processMethodBody(fileContent);
-                            if (tokens.size() > MIN_TOKEN_IN_FILE) {
-                                System.out.println("tokens size of file: "+ file.getAbsolutePath() +", "+tokens.size());
-                                Map<String, Integer> tokenToFrequencyMap = this
-                                        .makeTokenToFrequencyMap(tokens);
-                                StringBuilder sb = new StringBuilder();
-                                for (String token : tokenToFrequencyMap
-                                        .keySet()) {
-                                    sb.append(token + "@@::@@"
-                                            + tokenToFrequencyMap.get(token)
-                                            + ",");
-                                }
-                                if (sb.length() > 0) {
-                                    Util.writeToFile(this.parsedFileWriter,
+                        if (FilenameUtils.getExtension(file.getName()).equals(
+                                "java")) {
+                            try {
+                                //System.out
+                                  //      .println("reading file " + file.getName());
+                                String fileContent = FileUtils.readFileToString(
+                                        file, "utf-8");
+                                List<String> tokens = Tokenizer
+                                        .processMethodBody(fileContent);
+                                if (tokens.size() > MIN_TOKEN_IN_FILE) {
+                                    //System.out.println("tokens size of file: "+ file.getAbsolutePath() +", "+tokens.size());
+                                    Map<String, Integer> tokenToFrequencyMap = this
+                                            .makeTokenToFrequencyMap(tokens);
+                                    StringBuilder sb = new StringBuilder();
+                                    for (String token : tokenToFrequencyMap
+                                            .keySet()) {
+                                        sb.append(token + "@@::@@"
+                                                + tokenToFrequencyMap.get(token)
+                                                + ",");
+                                    }
+                                    if (sb.length() > 0) {
+                                        Util.writeToFile(this.parsedFileWriter,
+                                                this.project_id + ","
+                                                        + this.startFileIdCounter
+                                                        + "@#@", false);
+                                        Util.writeToFile(this.parsedFileWriter,
+                                                sb.substring(0, sb.length() - 1),
+                                                true);
+                                    } else {
+                                        System.out
+                                                .println("No tokens found in file: "
+                                                        + file.getAbsolutePath());
+                                    }
+                                    Util.writeToFile(this.idFileWriter,
                                             this.project_id + ","
-                                                    + this.startFileIdCounter
-                                                    + "@#@", false);
-                                    Util.writeToFile(this.parsedFileWriter,
-                                            sb.substring(0, sb.length() - 1),
-                                            true);
+                                                    + this.startFileIdCounter + ","
+                                                    + file.getAbsolutePath(), true);
+                                    this.startFileIdCounter += 1;
+                                    if (this.startFileIdCounter == this.endFileIdCounter) {
+                                        this.updateIds();
+                                    }
                                 } else {
-                                    System.out
-                                            .println("No tokens found in file: "
-                                                    + file.getAbsolutePath());
+                                    //System.out
+                                      //      .println("ignoring file, num tokens can not match min token threshold: "
+                                        //            + file.getAbsolutePath());
                                 }
-                                Util.writeToFile(this.idFileWriter,
-                                        this.project_id + ","
-                                                + this.startFileIdCounter + ","
-                                                + file.getAbsolutePath(), true);
-                                this.startFileIdCounter += 1;
-                                if (this.startFileIdCounter == this.endFileIdCounter) {
-                                    this.updateIds();
-                                }
-                            } else {
-                                System.out
-                                        .println("ignoring file, num tokens can not match min token threshold: "
-                                                + file.getAbsolutePath());
+                            } catch (IOException e) {
+                                System.out.println("Error in reading file, "
+                                        + file.getAbsolutePath());
+                                e.printStackTrace();
                             }
-                        } catch (IOException e) {
-                            System.out.println("Error in reading file, "
-                                    + file.getAbsolutePath());
-                            e.printStackTrace();
                         }
+                    } else if (file.isDirectory()) {
+                        this.parseAllFilesInDir(file);
                     }
-                } else if (file.isDirectory()) {
-                    this.parseAllFilesInDir(file);
+                    try {
+                        this.idFileWriter.flush();
+                        this.parsedFileWriter.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("No permission to read : "
+                            + file.getAbsolutePath());
                 }
-                try {
-                    this.idFileWriter.flush();
-                    this.parsedFileWriter.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                System.out.println("No permission to read : "
-                        + file.getAbsolutePath());
+            }else{
+                //System.out.println("ignoring file, reason: already processed, "+ file.getAbsolutePath());
             }
-
         }
     }
 
@@ -184,34 +319,40 @@ public class FileParser {
                 line = line.trim();
                 String[] projectInfo = line.split(",");
                 try {
-                    this.project_id = Long.parseLong(projectInfo[0].trim());
-                    System.out.println("reading project: " + line);
-                    String content_folder = projectInfo[1].trim()
-                            + File.separator + "content";
-                    String latest_folder = projectInfo[1].trim()
-                            + File.separator + "latest";
-                    File rootDir = new File(content_folder);
-                    if (rootDir.isDirectory()) {
-                        if (rootDir.canRead()) {
-                            this.parseAllFilesInDir(rootDir);
-                        } else {
-                            System.out.println("No permission to read Dir: "
-                                    + rootDir.getAbsolutePath());
-                        }
-                    } else {
-                        rootDir = new File(latest_folder);
+                    String project_id_str = projectInfo[0].trim();
+                    if(!this.processedProjects.contains(project_id_str)){
+                        this.project_id = Long.parseLong(project_id_str);
+                        System.out.println("reading project: " + line);
+                        String content_folder = projectInfo[1].trim()
+                                + File.separator + "content";
+                        String latest_folder = projectInfo[1].trim()
+                                + File.separator + "latest";
+                        File rootDir = new File(content_folder);
                         if (rootDir.isDirectory()) {
                             if (rootDir.canRead()) {
                                 this.parseAllFilesInDir(rootDir);
                             } else {
-                                System.out
-                                        .println("No permission to read Dir: "
-                                                + rootDir.getAbsolutePath());
+                                System.out.println("No permission to read Dir: "
+                                        + rootDir.getAbsolutePath());
                             }
                         } else {
-                            // ignore
+                            rootDir = new File(latest_folder);
+                            if (rootDir.isDirectory()) {
+                                if (rootDir.canRead()) {
+                                    this.parseAllFilesInDir(rootDir);
+                                } else {
+                                    System.out
+                                            .println("No permission to read Dir: "
+                                                    + rootDir.getAbsolutePath());
+                                }
+                            } else {
+                                // ignore
+                            }
                         }
+                    }else{
+                        //System.out.println("ignoring project, "+ project_id_str+ ", reason: already processed");
                     }
+                    
                 } catch (NumberFormatException e) {
                     // ignore this project
                     System.out
@@ -231,15 +372,15 @@ public class FileParser {
             }
         }
     }
-
+    
     public static void main(String[] args) {
         String projectsFilePath = args[0];
         try {
             FileParser fp = new FileParser(args[0]);
             fp.traverseProjectPath(projectsFilePath);
+            System.out.println("Done for process, "+ args[0]);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 }

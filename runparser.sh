@@ -1,10 +1,10 @@
 #!/bin/bash
 processes="${1:-3}"
-rm -rf input/dataset
-rm -rf input/bookkeeping
+#rm -rf input/dataset
+#rm -rf input/bookkeeping
 rm numberedProjects*
-
 echo 0 > idgen.txt
+echo "f" > idgenstatus.txt
 input_file="projects_numbered.txt"
 nl -ba -s ',' projects.txt > $input_file
 
@@ -28,5 +28,6 @@ ant cdparse
 for c in `ls numberedProjects*`
 do
 	echo "running java -jar dist/parser.FileParser.jar $c"
-	java -Xms2g -Xmx2g -Xss100M -jar dist/parser.FileParser.jar $c &
+	java -Xms1536M -Xmx1536M -Xss100M -jar dist/parser.FileParser.jar $c &
 done
+echo "done!"
