@@ -41,8 +41,10 @@ public class FileParser {
     Set<String> processedProjects;
     Set<String> processedFiles;
     long maxIdProcessed;
+    String processName;
 
     public FileParser(String processName) throws IOException {
+        this.processName=processName;
         this.datasetPath = "input/dataset";
         this.bookkeepingPath = "input/bookkeeping";
         this.parsedFilePath = this.datasetPath + "/" + processName
@@ -98,8 +100,8 @@ public class FileParser {
                                     System.out.println("processedprojects size: "+ this.processedProjects.size());
                                 }
                             }catch(ArrayIndexOutOfBoundsException e){
-                                System.out.println("EXCEPTION caught for line: "+ line);
-                                System.out.println("exiting");
+                                System.out.println("EXCEPTION caught for line: "+ line + ", file: "+ bkfile.getAbsolutePath());
+                                System.out.println("exiting, + "+ this.processName);
                                 System.exit(1);
                             }
                             
