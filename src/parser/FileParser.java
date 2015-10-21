@@ -79,8 +79,13 @@ public class FileParser {
                         String line;
                         boolean lastLineRead = false;
                         String projectIdToIgnore="";
+                        String previousLine="";
                         while ((line = rlfr.readLine()) != null
                                 && line.trim().length() > 0) {
+                            if(!previousLine.equalsIgnoreCase("")){
+                                line = line.trim()+"^M"+previousLine.trim();
+                                previousLine="";
+                            }
                             String[] info = line.split(",");
                             try{
                                 if(lastLineRead && !info[0].equals(projectIdToIgnore)){
@@ -100,9 +105,10 @@ public class FileParser {
                                     System.out.println("processedprojects size: "+ this.processedProjects.size());
                                 }
                             }catch(ArrayIndexOutOfBoundsException e){
+                                previousLine=line;
                                 System.out.println("EXCEPTION caught for line: "+ line + ", file: "+ bkfile.getAbsolutePath());
-                                System.out.println("exiting, + "+ this.processName);
-                                System.exit(1);
+                                //System.out.println("exiting, + "+ this.processName);
+                                //System.exit(1);
                             }
                             
                         }
