@@ -80,22 +80,29 @@ public class FileParser {
                         while ((line = rlfr.readLine()) != null
                                 && line.trim().length() > 0) {
                             String[] info = line.split(",");
-                            if(lastLineRead && !info[0].equals(projectIdToIgnore)){
-                                // last line alread processed, add project ids from here
-                                this.processedProjects.add(info[0]); // project id
-                            }else{
-                                projectIdToIgnore=info[0];
-                                this.processedFiles.add(info[2]); // file name. file id is not deterministic hence not using it.
-                                //System.out.println("projectIdToIgnore, "+projectIdToIgnore);
-                                lastLineRead=true;
+                            try{
+                                if(lastLineRead && !info[0].equals(projectIdToIgnore)){
+                                    // last line alread processed, add project ids from here
+                                    this.processedProjects.add(info[0]); // project id
+                                }else{
+                                    projectIdToIgnore=info[0];
+                                    this.processedFiles.add(info[2]); // file name. file id is not deterministic hence not using it.
+                                    //System.out.println("projectIdToIgnore, "+projectIdToIgnore);
+                                    lastLineRead=true;
+                                }
+                                long fileIdProcessed = Long.parseLong(info[1]);
+                                if(this.maxIdProcessed< fileIdProcessed){
+                                    this.maxIdProcessed=fileIdProcessed;
+                                }
+                                if(this.processedProjects.size()%1000==0){
+                                    System.out.println("processedprojects size: "+ this.processedProjects.size());
+                                }
+                            }catch(ArrayIndexOutOfBoundsException e){
+                                System.out.println("EXCEPTION caught for line: "+ line);
+                                System.out.println("exiting");
+                                System.exit(1);
                             }
-                            long fileIdProcessed = Long.parseLong(info[1]);
-                            if(this.maxIdProcessed< fileIdProcessed){
-                                this.maxIdProcessed=fileIdProcessed;
-                            }
-                            if(this.processedProjects.size()%1000==0){
-                                System.out.println("processedprojects size: "+ this.processedProjects.size());
-                            }
+                            
                         }
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
@@ -381,6 +388,8 @@ public class FileParser {
         try {
             FileParser fp = new FileParser(args[0]);
             fp.traverseProjectPath(projectsFilePath);
+            Util.closeOutputFile(fp.idFileWriter);
+            Util.closeOutputFile(fp.parsedFileWriter);
             System.out.println("Done for process, "+ args[0]);
         } catch (IOException e) {
             e.printStackTrace();
