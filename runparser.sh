@@ -28,6 +28,6 @@ ant cdparse
 for c in `ls numberedProjects*`
 do
 	echo "running java -jar dist/parser.FileParser.jar $c"
-	java -Xms1536M -Xmx1536M -Xss100M -jar dist/parser.FileParser.jar $c &
+	java -Xms1024M -Xmx1024M -Xss100M -jar dist/parser.FileParser.jar $c &
 done
 echo "done!"

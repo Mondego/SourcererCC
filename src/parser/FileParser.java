@@ -85,10 +85,10 @@ public class FileParser {
                                 this.processedProjects.add(info[0]); // project id
                             }else{
                                 projectIdToIgnore=info[0];
+                                this.processedFiles.add(info[2]); // file name. file id is not deterministic hence not using it.
                                 //System.out.println("projectIdToIgnore, "+projectIdToIgnore);
                                 lastLineRead=true;
                             }
-                            this.processedFiles.add(info[2]); // file name. file id is not deterministic hence not using it.
                             long fileIdProcessed = Long.parseLong(info[1]);
                             if(this.maxIdProcessed< fileIdProcessed){
                                 this.maxIdProcessed=fileIdProcessed;
