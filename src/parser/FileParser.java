@@ -93,6 +93,9 @@ public class FileParser {
                             if(this.maxIdProcessed< fileIdProcessed){
                                 this.maxIdProcessed=fileIdProcessed;
                             }
+                            if(this.processedProjects.size()%1000==0){
+                                System.out.println("processedprojects size: "+ this.processedProjects.size());
+                            }
                         }
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
