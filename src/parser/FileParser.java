@@ -67,6 +67,7 @@ public class FileParser {
     }
 
     private void populateProcessedInfo() throws FileNotFoundException {
+        this.processedProjects.add("2120");
         File bookkeepingDir = new File(this.bookkeepingPath);
         if(bookkeepingDir.isDirectory()){
             File[] files = bookkeepingDir.listFiles();
