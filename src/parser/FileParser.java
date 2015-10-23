@@ -59,7 +59,7 @@ public class FileParser {
         this.idGenFileStatus = "idgenstatus.txt";
         this.processedProjects = new HashSet<String>();
         this.processedFiles = new HashSet<String>();
-        this.maxIdProcessed = Long.MIN_VALUE;
+        this.maxIdProcessed = 0;
         this.populateProcessedInfo();
         
         System.out.println("calling updateIds");
