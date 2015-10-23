@@ -172,7 +172,7 @@ public class Util {
         Map<String, Integer> gtpm = new HashMap<String, Integer>();
         try {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(
-                    filename), "UTF-8"));
+                    filename), "UTF-8"),1024 * 1024 * 512);
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 Gson gson = new GsonBuilder().create();

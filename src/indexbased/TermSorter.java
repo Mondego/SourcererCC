@@ -47,7 +47,7 @@ public class TermSorter {
 
 	public void populateGlobalPositionMap() throws IOException, ParseException {
 		File gptmFile = new File(this.GTPMfilename);
-		if (gptmFile.exists()) {
+		if (false && gptmFile.exists()) {
 			TermSorter.globalTokenPositionMap = Util
 					.readJsonStream(this.GTPMfilename);
 			System.out.println("search size of GTPM: "+ TermSorter.globalTokenPositionMap.size());
@@ -69,8 +69,8 @@ public class TermSorter {
 					count++;
 				}
 				System.out.println("index size of GTPM: "+ TermSorter.globalTokenPositionMap.size());
-				Util.writeJsonStream(this.GTPMfilename,
-						TermSorter.globalTokenPositionMap);
+			//	Util.writeJsonStream(this.GTPMfilename,
+			//			TermSorter.globalTokenPositionMap);
 				TermSorter.wordFreq = null;
 				sortedMap = null;
 			} else {

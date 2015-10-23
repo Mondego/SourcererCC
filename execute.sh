@@ -1,6 +1,6 @@
 #!/bin/bash
 rm -rf NODE*
-num_nodes=3
+num_nodes="${1:-2}"
 num_nodes=$((num_nodes-1))
 th="${2:-7}"
 echo "spliting query file"
