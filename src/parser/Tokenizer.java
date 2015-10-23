@@ -23,12 +23,12 @@ public class Tokenizer {
         // TODO Auto-generated method stub
         Tokenizer t = new Tokenizer();
         System.out.println("READING FILE");
-        File f = new File("/Users/vaibhavsaini/Dropbox/projects-for-metrics/test_content/content/log4j/org/apache/log4j/varia/DenyAllFilter.java");
+        File f = new File("Test.java");
         try {
             String input = FileUtils.readFileToString(
                     f, "utf-8");
             for(String token :Tokenizer.processMethodBody(input)){
-                //System.out.println(token);
+                System.out.println(token);
             }
             //System.out.println(input);
         } catch (IOException e) {
@@ -141,8 +141,10 @@ public class Tokenizer {
     }
 
     private static String handleNoiseCharacters(String input) {
-        String regexPattern = ";|@@::@@|@#@";
+        //System.out.println("input before: "+ input);
+        String regexPattern = ";|@@::@@|@#@|@|#|\\$|~|`";
         String x = input.replaceAll(regexPattern, "");
+        //System.out.println("input after: "+ x);
         return x;
     }
 
