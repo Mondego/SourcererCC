@@ -5,7 +5,7 @@
 
 # Configuration stuff
 
-queryfile="input/dataset/uf8.blocks"
+queryfile="input/dataset/blocks.file"
 num_files="${1:-2}"
 
 # Work out lines per file.
