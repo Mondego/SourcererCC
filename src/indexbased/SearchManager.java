@@ -463,6 +463,7 @@ public class SearchManager {
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         try {
+                        	
                             queryBlock = this.getNextQueryBlock(line);
                             if (SearchManager.isStatusCounterOn) {
                                 SearchManager.statusCounter += 1;
@@ -494,7 +495,11 @@ public class SearchManager {
                             SearchManager.queryBlockQueue.put(queryBlock);
                         } catch (ParseException e) {
                             System.out.println(e.getMessage()
-                                    + " skiping to next bag");
+                                    + " skiping this query block, parse exception: "+ line);
+                            e.printStackTrace();
+                        } catch (IllegalArgumentException e){
+                        	System.out.println(e.getMessage()
+                                    + " skiping this query block, illegal args: "+ line);
                             e.printStackTrace();
                         }
                     }
@@ -582,7 +587,7 @@ public class SearchManager {
         return queryDirectory.listFiles();
     }
 
-    private QueryBlock getNextQueryBlock(String line) throws ParseException {
+    private QueryBlock getNextQueryBlock(String line) throws ParseException, IllegalArgumentException {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
         QueryBlock queryBlock = this.cloneHelper.deserialiseToQueryBlock(line,
                 listOfTokens);
