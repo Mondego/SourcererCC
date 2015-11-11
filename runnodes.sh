@@ -4,12 +4,12 @@
 num_nodes="${1:-6}"
 threshold="${2:-8}"
 echo "indexing on master"
-java -Dproperties.location="/home/NODE_1/sourcerer-cc.properties" -Xms12g -Xmx12g  -jar dist/indexbased.SearchManager.jar index $threshold
+java -Dproperties.location="/home/NODE_1/sourcerer-cc.properties" -Xms14g -Xmx14g  -jar dist/indexbased.SearchManager.jar index $threshold
 
 for i in $(seq 1 1 $num_nodes)
 do
  echo "starting search on node00$i"
- script="cd /home ; java -Dproperties.location=/home/NODE_$i/sourcerer-cc.properties -Xms12g -Xmx12g -jar dist/indexbased.SearchManager.jar search $threshold "
+ script="cd /home ; java -Dproperties.location=/home/NODE_$i/sourcerer-cc.properties -Xms10g -Xmx10g -jar dist/indexbased.SearchManager.jar search $threshold > /home/NODE_$i/out.log 2>/home/NODE_$i/error.log"
  echo "script is $script"
  ssh  "node00$i" "$script" &
 done

@@ -1,4 +1,7 @@
 #!/bin/bash
+# use this createvolume command to create a volume. dont use it in this script. copy it and paste it on terminal.
+#starcluster createvolume --detach-volume 100 us-east-1a
+
 num_nodes="${1:-10}"
 cluster_name="sdx$num_nodes"
 echo "$num_nodes $cluster_name"
