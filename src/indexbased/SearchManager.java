@@ -63,6 +63,7 @@ public class SearchManager {
     private CloneHelper cloneHelper;
     private static String QUERY_DIR_PATH;
     public static String DATASET_DIR;
+    public static String GTPM_DIR_PATH;
     public static Writer clonesWriter; // writer to write the output
     public static float th; // args[2]
                             // search
@@ -231,6 +232,9 @@ public class SearchManager {
             SearchManager.QUERY_DIR_PATH = properties
                     .getProperty("QUERY_DIR_PATH");
             System.out.println("Query path:" + SearchManager.QUERY_DIR_PATH);
+            
+            SearchManager.GTPM_DIR_PATH = properties
+                    .getProperty("GTPM_DIR_PATH");
             if (null != fis) {
                 fis.close();
             }
