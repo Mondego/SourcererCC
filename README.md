@@ -42,13 +42,14 @@ In order to understand the parsing, please consider the following example. This 
 
 #### Explanation of the Parsed Output:
 
-In the parsed output file, each method is represented in a newline. Had we be parsing the source files at file level granularity, each line in the parsed output line would represent one source file. In a line, 3 delimiters are used which should be applied in the following order
-1. @#@  (this only occurs once)
-2. , (read comma)
-3. @@::@@
+In the parsed output file, each method is represented in a newline. Had we be parsing the source files at file level granularity, each line in the parsed output line would represent one source file. In a line, 3 delimiters are used which should be applied in the following order:
 
-So first when we split on @#@, we get two strings (LHS and RHS of
-@#@ delimiter). The LHS string is the `<parentId, blockId>` used to represent the method.
+ 1. `@#@`  (this only occurs once)
+ 2. `,` (read comma)
+ 3. `@@::@@`
+
+So first when we split on `@#@`, we get two strings (LHS and RHS of
+`@#@` delimiter). The LHS string is the `<parentId, blockId>` used to represent the method.
 In the above case, 2 is the parent id and 1 is the block id. We explain `<parentId, blockId>` in detail later. 
 
 Now, we split the remaining string (RHS) using ',' (comma). And we get
@@ -61,7 +62,7 @@ for@@::@@1
 perform@@::@@2
 …
 ```
-the token perform@@::@@2 in the above example means that the term “perform” is present 2 times in the given method. 
+the token `perform@@::@@2` in the above example means that the term “perform” is present 2 times in the given method. 
 
 #### What is `<parentId, blockId>` pair?
 
