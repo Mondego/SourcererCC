@@ -91,6 +91,7 @@ Currently SourcererCC doesn’t support reading this bookkeeping file. It will b
 
 ### How to run SourcererCC
 Before we move further, I recommend creating the following directory structure:
+```
 SourcererCC
 ├── LICENSE
 ├── README.md
@@ -102,6 +103,7 @@ SourcererCC
 │   └── query
 ├── sourcerer-cc.properties
 
+```
 The first step is to configure some necessary properties in the sourcerer-cc.properties file. Below are the properties that a user must specify
 ```
 DATASET_DIR_PATH=input/dataset
