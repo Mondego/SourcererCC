@@ -13,7 +13,7 @@ Unfortunately we have not yet published our parser, but here are the specificati
 #### Parser
 For SourcererCC to be able to find sourcecode clones in a given project, the first step is to parse the source files of the given project into the the format which is understandable by SourcererCC. 
 
-Clone Granularities
+##### Clone Granularities
 SourcererCC can find clones at different granularity levels. The granularity levels could be file-level, method-level, block level, or statement level. SourcererCC will find clones on the granularity level at which the source files of a project are parsed. So, if the source files are parsed at method level granularity, then SourcererCC will also find clones at the method level granularity. 
 
 Example: Parsing a java method into SourcereCC understandable format
@@ -48,8 +48,8 @@ In the parsed output file, each method is represented in a newline. Had we be pa
 3. @@::@@
 
 So first when we split on @#@, we get two strings (LHS and RHS of
-@#@ delimiter). The LHS string is the <parentId, blockId> used to represent the method.
-In the above case this is 2 is the parent id and 1 is the block id. We explain <parentId, blockId> in detail later. 
+@#@ delimiter). The LHS string is the `<parentId, blockId>` used to represent the method.
+In the above case, 2 is the parent id and 1 is the block id. We explain `<parentId, blockId>` in detail later. 
 
 Now, we split the remaining string (RHS) using ',' (comma). And we get
 all the tokens (and their frequency) of the method body (including
@@ -63,7 +63,7 @@ perform@@::@@2
 ```
 the token perform@@::@@2 in the above example means that the term “perform” is present 2 times in the given method. 
 
-#### What is <parentId, blockId> pair?
+#### What is `<parentId, blockId>` pair?
 
 ##### blockId:
 A blockId is a unique id that identifies a line in the parsed output file. A piece of code could be at any granularity level - file, method, block, or segment. For the above example “2” uniquely identifies the entire method. SourcererCC will report the clones using these blockIds. For example, if there are two duplicate methods with blockId 31 and 89, SourcererCC will report them as clones (31, 89) using their blockIds separated with a “,”. 
