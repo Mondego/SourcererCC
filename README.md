@@ -20,7 +20,7 @@ java -jar InputBuilderClassic.jar /input/path/src/ /path/blocks.file /path/heade
 ```
 
 ##### The parameter order is:
- 1. Input Folder (will search recurisvely)
+ 1. Input Folder containing source files. (will search recurisvely)
  2. Block file (output). This is the parsed output file. 
  3. Header file (output). This is the bookkeeping file.
  4. Granularity (functions or blocks(only for Java)). A function is a Java method or a C function. A block is  a code snippet within curly braces -`{}`. 
