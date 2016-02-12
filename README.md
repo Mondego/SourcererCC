@@ -9,6 +9,8 @@ We explain each of these steps below:
 ### Step 1: Parsing
 
 #### for Java, C, and C++ projects only
+**Make sure you have Java 8 installed.** 
+
 Follow the following steps to parse a project.
  1. Download and install TXL from [Here](http://www.txl.ca "txl")
  2. Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jars of SourcererCC and InputBuilderClassic.jar.
