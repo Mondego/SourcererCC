@@ -4,7 +4,7 @@ SourcererCC is Sourcerer's Code Clone project. It  detects similar code in very 
 
 ## How to use it?
 In order to use it one needs to follow three steps: i) parsing; ii) indexing and; iii) searching
-We explaing each of these steps below:
+We explain each of these steps below:
 
 ### Step 1: Parsing
 
@@ -16,7 +16,7 @@ For SourcererCC to be able to find sourcecode clones in a given project, the fir
 ##### Clone Granularities
 SourcererCC can find clones at different granularity levels. The granularity levels could be file-level, method-level, block level, or statement level. SourcererCC will find clones on the granularity level at which the source files of a project are parsed. So, if the source files are parsed at method level granularity, then SourcererCC will also find clones at the method level granularity. 
 
-Example: Parsing a java method into SourcereCC understandable format
+##### Example: Parsing a java method into SourcereCC understandable format
 In order to understand the parsing, please consider the following example. This example is based on a java method snippet. Please note that this example is based on method-level granularity. 
 
 ##### Java Method Snippet
@@ -69,9 +69,10 @@ the token `perform@@::@@2` in the above example means that the term “perform�
 ##### blockId:
 A blockId is a unique id that identifies a line in the parsed output file. A piece of code could be at any granularity level - file, method, block, or segment. For the above example “2” uniquely identifies the entire method. SourcererCC will report the clones using these blockIds. For example, if there are two duplicate methods with blockId 31 and 89, SourcererCC will report them as clones (31, 89) using their blockIds separated with a “,”. 
 There are three requirement for these blockIds.
-they should be positive integers. (including Java long type)
-they should be unique
-they should be in increasing order. (In order to not compare two blocks more than once, SourcererCC only compares a block with those blocks that have higher blockIds)
+
+ 1. they should be positive integers. (including Java long type)
+ 2. they should be unique
+ 3. they should be in increasing order. (In order to not compare two blocks more than once, SourcererCC only compares a block with those blocks that have higher blockIds)
 
 ##### parentId:
 
@@ -81,8 +82,8 @@ Suppose we have a big repository of say 10 java projects. We want to find file l
 In case users doesn’t want to create any groups, they should specify the parentId in all lines as negative 1 (-1).
 
 There are 2 requirements for the parentIds.
-they should be positive integers (including Java long type). In case a user does not want to create groups, specify -1 as parentId for all blocks. 
-each group should have a unique parentId. More than one lines in the parsed output file, however, can have same parentId. 
+ 1. they should be positive integers (including Java long type). In case a user does not want to create groups, specify -1 as parentId for all blocks. 
+ 2. each group should have a unique parentId. More than one lines in the parsed output file, however, can have same parentId. 
 
 
 #### Tracking code-snippets from blockIds
