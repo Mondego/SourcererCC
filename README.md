@@ -70,7 +70,7 @@ In order to understand the parsing, please consider the following example. This 
    ``` 
 ##### Parsed Output:
 ```
-1,2,@#@for@@::@@1,"Fileset@@::@@1,perform@@::@@2,was@@::@@1,configured"@@::@@1,throw@@::@@1,if@@::@@1,elements@@::@@1,null@@::@@2,nextElement@@::@@1,nestedTask@@::@@2,execute@@::@@1,e@@::@@3,nestedTasks@@::@@1,throws@@::@@1,getDir@@::@@1,void@@::@@1,Enumeration@@::@@1,nestedEcho@@::@@2,not@@::@@1,new@@::@@1,getProject@@::@@1,fileset@@::@@2,hasMoreElements@@::@@1,Task@@::@@2,public@@::@@1,reconfigure@@::@@1,BuildException@@::@@2
+1,2@#@for@@::@@1,"Fileset@@::@@1,perform@@::@@2,was@@::@@1,configured"@@::@@1,throw@@::@@1,if@@::@@1,elements@@::@@1,null@@::@@2,nextElement@@::@@1,nestedTask@@::@@2,execute@@::@@1,e@@::@@3,nestedTasks@@::@@1,throws@@::@@1,getDir@@::@@1,void@@::@@1,Enumeration@@::@@1,nestedEcho@@::@@2,not@@::@@1,new@@::@@1,getProject@@::@@1,fileset@@::@@2,hasMoreElements@@::@@1,Task@@::@@2,public@@::@@1,reconfigure@@::@@1,BuildException@@::@@2
 ```
 
 #### Explanation of the Parsed Output:
@@ -83,7 +83,7 @@ In the parsed output file, each method is represented in a newline. Had we be pa
 
 So first when we split on `@#@`, we get two strings (LHS and RHS of
 `@#@` delimiter). The LHS string is the `<parentId, blockId>` used to represent the method.
-In the above case, 2 is the parent id and 1 is the block id. We explain `<parentId, blockId>` in detail later. 
+In the above case, 1 is the parent id and 2 is the block id. We explain `<parentId, blockId>` in detail later. 
 
 Now, we split the remaining string (RHS) using ',' (comma). And we get
 all the tokens (and their frequency) of the method body (including
