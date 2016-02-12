@@ -20,17 +20,19 @@ java -jar InputBuilderClassic.jar /input/path/src/ /path/blocks.file /path/heade
 ```
 
 ##### The parameter order is:
-1: Input Folder (will search recurisvely)
-2: Block file (output). This is the parsed output file. 
-3: Header file (output). This is the bookkeeping file.
-4: Granularity (functions or blocks(only for Java)). A function is a Java method or a C function. A block is  a code snippet within curly braces -`{}`. 
-5: Language (cpp, java, and c)
-6: minTokens
-7: maxtokens
-8: minLines
-9: maxLines
-10.11.12: leave them as false 
-13: # of threads
+ 1. Input Folder (will search recurisvely)
+ 2. Block file (output). This is the parsed output file. 
+ 3. Header file (output). This is the bookkeeping file.
+ 4. Granularity (functions or blocks(only for Java)). A function is a Java method or a C function. A block is  a code snippet within curly braces -`{}`. 
+ 5. Language (cpp, java, and c)
+ 6. minTokens
+ 7. maxtokens
+ 8. minLines
+ 9. maxLines
+ 10. leave it as false
+ 11. leave it as false
+ 12. leave it as false 
+ 13. # of threads
 
 setting the minTokens/minLines = 0 means no bottom limit, setting maxTokens/maxLines = 0 means no upper limit.
  
