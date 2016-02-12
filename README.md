@@ -92,6 +92,8 @@ parentId, blockId, filesystem path to the file where the code snippet exists, st
 Currently SourcererCC doesn’t support reading this bookkeeping file. It will be done in the future releases. 
 
 ### How to run SourcererCC
+
+Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. 
 Before we move further, I recommend creating the following directory structure:
 ```
 SourcererCC
@@ -99,8 +101,7 @@ SourcererCC
 ├── README.md
 ├── dist
 │   └── indexbased.SearchManager.jar
-├── input
-│   ├── bookkeping
+├── input   
 │   ├── dataset
 │   └── query
 ├── sourcerer-cc.properties
