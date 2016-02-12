@@ -93,7 +93,9 @@ Currently SourcererCC doesn’t support reading this bookkeeping file. It will b
 
 ### How to run SourcererCC
 
-Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. 
+Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. Alternatively, you may also clone the SourcererCC project to your workstation and then run the following ant command to build the executable jar.
+``` ant clean cdi ```
+   
 Before we move further, I recommend creating the following directory structure:
 ```
 SourcererCC
