@@ -8,9 +8,38 @@ We explain each of these steps below:
 
 ### Step 1: Parsing
 
-Unfortunately we have not yet published our parser, but here are the specifications of the parser in case you want to build your own. 
+#### for Java, C, and C++ projects only
+Follow the following steps to parse a project.
+ 1. Download and install TXL from [Here](http://www.txl.ca "txl")
+ 2. Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jars of SourcererCC and InputBuilderClassic.jar.
+ 3. Unzip the tool.zip and using Terminal, change directory to SourcererCC/parser/java. 
+ 4. Execute the following command:
 
-#### Parser
+```
+java -jar InputBuilderClassic.jar /input/path/src/ /path/blocks.file /path/headers.file functions java 0 0 10 0 false false false 8
+```
+
+##### The parameter order is:
+1: Input Folder (will search recurisvely)
+2: Block file (output). This is the parsed output file. 
+3: Header file (output). This is the bookkeeping file.
+4: Granularity (functions or blocks(only for Java)). A function is a Java method or a C function. A block is  a code snippet within curly braces -`{}`. 
+5: Language (cpp, java, and c)
+6: minTokens
+7: maxtokens
+8: minLines
+9: maxLines
+10.11.12: leave them as false 
+13: # of threads
+
+setting the minTokens/minLines = 0 means no bottom limit, setting maxTokens/maxLines = 0 means no upper limit.
+ 
+
+
+
+
+#### Parser specifications, in case you want to build your own. 
+
 For SourcererCC to be able to find sourcecode clones in a given project, the first step is to parse the source files of the given project into the the format which is understandable by SourcererCC. 
 
 ##### Clone Granularities
@@ -94,6 +123,7 @@ Currently SourcererCC doesn’t support reading this bookkeeping file. It will b
 ### How to run SourcererCC
 
 Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. Alternatively, you may also clone the SourcererCC project to your workstation and then run the following ant command to build the executable jar.
+
 ``` ant clean cdi ```
    
 Before we move further, I recommend creating the following directory structure:
