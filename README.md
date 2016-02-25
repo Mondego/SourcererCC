@@ -53,7 +53,8 @@ SourcererCC can find clones at different granularity levels. The granularity lev
 In order to understand the parsing, please consider the following example. This example is based on a java method snippet. Please note that this example is based on method-level granularity. 
 
 ##### Java Method Snippet
-``` /**
+``` 
+     /**
      * Execute all nestedTasks.
      */
     public void execute() throws BuildException {
