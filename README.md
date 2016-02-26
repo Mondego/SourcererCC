@@ -3,7 +3,10 @@
 SourcererCC is Sourcerer's Code Clone project. It  detects similar code in very large code bases and repositories.
 
 ## How to use it?
-In order to use it one needs to follow three steps: i) parsing; ii) indexing and; iii) searching
+In order to use it one needs to follow three steps: 
+ 1. parsing
+ 2. indexing 
+ 3. searching
 We explain each of these steps below:
 
 ### Step 1: Parsing
@@ -14,40 +17,44 @@ We explain each of these steps below:
 Follow the following steps to parse a project.
  1. Download and install TXL from [Here](http://www.txl.ca "txl")
  2. Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jars of SourcererCC and InputBuilderClassic.jar.
- 3. Unzip the tool.zip and using Terminal, change directory to SourcererCC/parser/java. 
- 4. Execute the following command:
+ 3. Unzip the tool.zip.
+ 4. Using terminal, change directory to SourcererCC/parser/java. 
+ 5. Execute the following command:
 
 ```
 java -jar InputBuilderClassic.jar /input/path/src/ /path/blocks.file /path/headers.file functions java 0 0 10 0 false false false 8
 ```
 
-##### The parameter order is:
- 1. Input Folder containing source files. (will search recurisvely)
- 2. Block file (output). This is the parsed output file. 
- 3. Header file (output). This is the bookkeeping file.
+##### Explaining the parameters to the above command:
+ 1. Path to the folder containing source files. (will search recursively)
+ 2. Path where the parsed output file should get generated. Make sure that the path you enter exists on the file system. The file will be created automatically by the InputBuilderClassic.jar. 
+ 3. Path where the bookkeeping files should get generated. This file contains the mapping of code snippet ids and their path in the filesystem. 
  4. Granularity (functions or blocks(only for Java)). A function is a Java method or a C function. A block is  a code snippet within curly braces -`{}`. 
- 5. Language (cpp, java, and c)
- 6. minTokens
- 7. maxtokens
- 8. minLines
- 9. maxLines
+ 5. Language of the source files. Choose one of *cpp*, *java*, or *c*
+ 6. minTokens: A code snippet should have at least these many tokens to be considered for parsing. Setting the minTokens = 0 means no bottom limit
+ 7. maxTokens: A code snipper should have at most these many tokens to be considered for parsing. Setting the maxTokens = 0 means no upper limit
+ 8. minLines: A code snippet should have at least these many lines to be considered for parsing. Setting the minLines = 0 means no bottom limit
+ 9. maxLines: A code snippet should have at most these many lines to be considered for parsing. Setting the maxLines = 0 means no upper limit
  10. leave it as false
  11. leave it as false
  12. leave it as false 
- 13. # of threads
+ 13. # of threads. If you are not sure, set it to 8.  
 
 setting the minTokens/minLines = 0 means no bottom limit, setting maxTokens/maxLines = 0 means no upper limit.
  
 
-
-
-
 #### Parser specifications, in case you want to build your own. 
 
-For SourcererCC to be able to find sourcecode clones in a given project, the first step is to parse the source files of the given project into the the format which is understandable by SourcererCC. 
+For SourcererCC to be able to find source-code clones in a given project, the first step is to parse the source files of the given project into the the format which is understandable by SourcererCC. 
 
-##### Clone Granularities
-SourcererCC can find clones at different granularity levels. The granularity levels could be file-level, method-level, block level, or statement level. SourcererCC will find clones on the granularity level at which the source files of a project are parsed. So, if the source files are parsed at method level granularity, then SourcererCC will also find clones at the method level granularity. 
+##### Clone Granularity
+SourcererCC can find clones at different granularity levels. The granularity levels could be 
+ 1. file-level, 
+ 2. method-level, 
+ 3. block level, or 
+ 4. statement level. 
+
+SourcererCC will find clones on the granularity level at which the source files of a project are parsed. So, if the source files are parsed at the method level granularity, then SourcererCC will also find clones at the method level granularity. 
 
 ##### Example: Parsing a java method into SourcereCC understandable format
 In order to understand the parsing, please consider the following example. This example is based on a java method snippet. Please note that this example is based on method-level granularity. 
