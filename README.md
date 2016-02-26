@@ -30,7 +30,7 @@ We explain each of these steps below:
 
 #### for Java, C, and C++ projects only 
 
-**NOTE** : This parser parses only at **method** or **function** level granularity. Other parser to parse at statement or file level could be created by following the instruction in [Build you own parser](#build-your-own-parser)
+**NOTE** : This parser parses only at **function** and **block** level granularities. A block is a code snippet within curly braces -`{}`. Block level granularity is only supported for Java. Other parser to parse at statement or file level could be created by following the instruction in [Build you own parser](#build-your-own-parser)
 
 **Make sure you have Java 8 installed.** 
 
@@ -146,8 +146,8 @@ A parser should generate at least two files:
 
 ##### Clone Granularity
 SourcererCC can find clones at different granularity levels. The granularity levels could be 
- 1. file-level, 
- 2. method-level, 
+ 1. file level, 
+ 2. function level (or method level), 
  3. block level, or 
  4. statement level. 
 
