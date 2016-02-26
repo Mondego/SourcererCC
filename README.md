@@ -1,6 +1,6 @@
 # Table of Contents
-1. [What is SourcererCC](#sourcerercc)
-2. [How to use SourcererCC](#how-to-use-it)
+1. [What is SourcererCC](#what-is-sourcerercc)
+2. [How to use SourcererCC](#how-to-use-sourcerercc)
     1. [Parsing](#step-1-parsing)
     2. [Clone Detection](#step-2-clone-detection-using-sourcerercc)
 3. [Build you own parser](#build-your-own-parser)
@@ -13,11 +13,10 @@
 
 
 
-# SourcererCC
-## What is it?
+## What is SourcererCC?
 SourcererCC is Sourcerer's Code Clone project. It  detects similar code in very large code bases and repositories.
 
-## How to use it?
+## How to use SourcererCC?
 In order to use it one needs to follow two steps: 
 
 1. Parsing
