@@ -1,6 +1,6 @@
 # Table of Contents
 1. [What is SourcererCC](#sourcerercc)
-2. [How to use SourcererCC](##how-to-use-it)
+2. [How to use SourcererCC](#how-to-use-it)
     1. [Parsing](#step-1-parsing)
     2. [Clone Detection](#step-2-clone-detection-using-sourcerercc)
 3. [Build you own parser](#build-your-own-parser)
