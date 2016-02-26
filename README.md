@@ -70,7 +70,7 @@ java -jar InputBuilderClassic.jar /input/path/src/ /path/blocks.file /path/heade
  10. leave it as false
  11. leave it as false
  12. leave it as false 
- 13. # of threads. If you are not sure, set it to 8.  
+ 13. # of threads. Setting it to 8 would mean parsing will be carried out parallely using 8 threads.
 
 setting the minTokens/minLines = 0 means no bottom limit, setting maxTokens/maxLines = 0 means no upper limit.
 
