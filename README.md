@@ -28,7 +28,10 @@ We explain each of these steps below:
 
 ### Step 1: Parsing
 
-#### for Java, C, and C++ projects only
+#### for Java, C, and C++ projects only 
+
+**NOTE** : This parser parses only at **method** or **function** level granularity. Other parser to parse at statement or file level could be created by following the instruction in [Build you own parser](#build-your-own-parser)
+
 **Make sure you have Java 8 installed.** 
 
 Follow the following steps to parse a project.
