@@ -16,10 +16,22 @@ We explain each of these steps below:
 
 Follow the following steps to parse a project.
  1. Download and install TXL from [Here](http://www.txl.ca "txl")
- 2. Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jars of SourcererCC and InputBuilderClassic.jar.
- 3. Unzip the tool.zip.
- 4. Using terminal, change directory to SourcererCC/parser/java. 
- 5. Execute the following command:
+ 2. To test if the txl is installed properly, enter the following command in the termial
+ ```
+ txl
+ ```
+ you shuld see an output similar to this:
+ ```
+  TXL v10.6d (27.8.15) (c) 1988-2015 Queen's University at Kingston
+Usage:  txl [txloptions] [-o outputfile] inputfile [txlfile] [- progoptions]
+(for more information use txl -help)
+
+ ```
+ If you don't get the above output, you need to reinstall TXL OR try reopening the terminal. 
+ 3. Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jars of SourcererCC and InputBuilderClassic.jar.
+ 4. Unzip the tool.zip.
+ 5. Using Terminal, change directory to SourcererCC/parser/java. 
+ 6. Execute the following command:
 
 ```
 java -jar InputBuilderClassic.jar /input/path/src/ /path/blocks.file /path/headers.file functions java 0 0 10 0 false false false 8
@@ -41,7 +53,66 @@ java -jar InputBuilderClassic.jar /input/path/src/ /path/blocks.file /path/heade
  13. # of threads. If you are not sure, set it to 8.  
 
 setting the minTokens/minLines = 0 means no bottom limit, setting maxTokens/maxLines = 0 means no upper limit.
- 
+
+### Clone Detection using SourcererCC
+
+Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. Alternatively, you may also clone the SourcererCC project to your workstation and then run the following ant command to build the executable jar.
+
+``` ant clean cdi ```
+   
+Before we move further, I recommend creating the following directory structure:
+```
+SourcererCC
+├── LICENSE
+├── README.md
+├── dist
+│   └── indexbased.SearchManager.jar
+├── input   
+│   ├── dataset
+│   └── query
+├── sourcerer-cc.properties
+
+```
+#### Configuring SourcererCC
+The first step is to configure some necessary properties in the sourcerer-cc.properties file. Below are the properties that a user must specify
+```
+DATASET_DIR_PATH=input/dataset
+```
+This is where the parsed output files (output files created by the parser) should be kept. 
+```
+QUERY_DIR_PATH=input/query
+```
+This is where the query files should be kept. Query files are created exactly the way the dataset files are created. They have exactly same format. In case you want to find intra-dataset clones, we suggest you provide the location to the dataset folder, i.e., input/dataset.
+
+```
+IS_STATUS_REPORTER_ON=true
+```
+While SourcererCC is running in search mode, it can print how many queries it has processed on the outstream. This could be turned off by setting IS_STATUS_REPORTER_ON=false
+```
+PRINT_STATUS_AFTER_EVERY_X_QUERIES_ARE_PROCESSED=250
+```
+User can configure, after how many queries should SourcererCC print the status report on the outstream. The above setting would mean that SourcererCC will print the status report after every 250 queries are processed. 
+
+Sweet, we are done with the configurations. 
+### Step 2: Index
+The next step is to index the dataset. Use the following command to create the index. We will explain the parameter to jar later.
+```
+java -jar dist/indexbased.SearchManager.jar index 8
+```
+### Step 3: Search
+Now, to detect clones, execute the following command
+```
+java -jar dist/indexbased.SearchManager.jar search 8
+```
+Explaining arguments in the index and search 
+the jar expects two arguments:
+action : index/search and,
+similarity threshold : an integer between 1-10 (both inclusive)
+
+The action “index” is to notify SourcererCC that we want to create fresh indexes of the dataset. The action “search” is to notify SourcererCC that we want to detect the clones. The second argument, similarity threshold, tells SourcererCC  to detect clones with a minimum similarity threshold. For example, a similarity threshold of 7 would mean we want to detect clone pairs that are 70% similar. 
+Please note that the similarity threshold for both actions, index and search, should be same. That is, if you are using similarity threshold of 7 while indexing, then you should use the same similarity threshold while detecting clones. 
+
+---
 
 #### Parser specifications, in case you want to build your own. 
 
@@ -131,63 +202,6 @@ There are 2 requirements for the parentIds.
 SourcererCC reports clone pairs in the following format: blockId,blockId. In order to be able to track the code snippets of the clone pairs, the parser should generate a bookkeeping file containing following information
 parentId, blockId, filesystem path to the file where the code snippet exists, starting line number of the code snippet, ending line number of the code snippet. 
 Currently SourcererCC doesn’t support reading this bookkeeping file. It will be done in the future releases. 
-
-### How to run SourcererCC
-
-Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. Alternatively, you may also clone the SourcererCC project to your workstation and then run the following ant command to build the executable jar.
-
-``` ant clean cdi ```
-   
-Before we move further, I recommend creating the following directory structure:
-```
-SourcererCC
-├── LICENSE
-├── README.md
-├── dist
-│   └── indexbased.SearchManager.jar
-├── input   
-│   ├── dataset
-│   └── query
-├── sourcerer-cc.properties
-
-```
-The first step is to configure some necessary properties in the sourcerer-cc.properties file. Below are the properties that a user must specify
-```
-DATASET_DIR_PATH=input/dataset
-```
-This is where the parsed output files (output files created by the parser) should be kept. 
-```
-QUERY_DIR_PATH=input/query
-```
-This is where the query files should be kept. Query files are created exactly the way the dataset files are created. They have exactly same format. In case you want to find intra-dataset clones, we suggest you provide the location to the dataset folder, i.e., input/dataset.
-
-```
-IS_STATUS_REPORTER_ON=true
-```
-While SourcererCC is running in search mode, it can print how many queries it has processed on the outstream. This could be turned off by setting IS_STATUS_REPORTER_ON=false
-```
-PRINT_STATUS_AFTER_EVERY_X_QUERIES_ARE_PROCESSED=250
-```
-User can configure, after how many queries should SourcererCC print the status report on the outstream. The above setting would mean that SourcererCC will print the status report after every 250 queries are processed. 
-
-### Step 2: Index
-The next step is to index the dataset. Use the following command to create the index. We will explain the parameter to jar later.
-```
-java -jar dist/indexbased.SearchManager.jar index 8
-```
-### Step 3: Search
-Now, to detect clones, execute the following command
-```
-java -jar dist/indexbased.SearchManager.jar search 8
-```
-Explaining arguments in the index and search 
-the jar expects two arguments:
-action : index/search and,
-similarity threshold : an integer between 1-10 (both inclusive)
-
-The action “index” is to notify SourcererCC that we want to create fresh indexes of the dataset. The action “search” is to notify SourcererCC that we want to detect the clones. The second argument, similarity threshold, tells SourcererCC  to detect clones with a minimum similarity threshold. For example, a similarity threshold of 7 would mean we want to detect clone pairs that are 70% similar. 
-Please note that the similarity threshold for both actions, index and search, should be same. That is, if you are using similarity threshold of 7 while indexing, then you should use the same similarity threshold while detecting clones. 
-
 
 
 
