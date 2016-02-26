@@ -3,10 +3,13 @@
 SourcererCC is Sourcerer's Code Clone project. It  detects similar code in very large code bases and repositories.
 
 ## How to use it?
-In order to use it one needs to follow three steps: 
- 1. parsing
- 2. indexing 
- 3. searching
+In order to use it one needs to follow two steps: 
+
+1. Parsing
+2. Clone Detection
+    1. Indexing
+    2. Searching
+
 We explain each of these steps below:
 
 ### Step 1: Parsing
@@ -54,7 +57,7 @@ java -jar InputBuilderClassic.jar /input/path/src/ /path/blocks.file /path/heade
 
 setting the minTokens/minLines = 0 means no bottom limit, setting maxTokens/maxLines = 0 means no upper limit.
 
-### Clone Detection using SourcererCC
+### Step 2: Clone Detection using SourcererCC
 
 Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. Alternatively, you may also clone the SourcererCC project to your workstation and then run the following ant command to build the executable jar.
 
@@ -94,12 +97,12 @@ PRINT_STATUS_AFTER_EVERY_X_QUERIES_ARE_PROCESSED=250
 User can configure, after how many queries should SourcererCC print the status report on the outstream. The above setting would mean that SourcererCC will print the status report after every 250 queries are processed. 
 
 Sweet, we are done with the configurations. 
-### Step 2: Index
+### Step 2.1: Index
 The next step is to index the dataset. Use the following command to create the index. We will explain the parameter to jar later.
 ```
 java -jar dist/indexbased.SearchManager.jar index 8
 ```
-### Step 3: Search
+### Step 2.2: Search
 Now, to detect clones, execute the following command
 ```
 java -jar dist/indexbased.SearchManager.jar search 8
