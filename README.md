@@ -78,11 +78,11 @@ The first step is to configure some necessary properties in the sourcerer-cc.pro
 ```
 DATASET_DIR_PATH=input/dataset
 ```
-This is where the parsed output files (output files created by the parser) should be kept. 
+This is where the parser's generated output file (blocks.file created by the parser) should be kept. Do not put the headers.file in this folder. You may also have more than one file in this folder. SourcererCC will index all the files which are kept inside this folder. 
 ```
 QUERY_DIR_PATH=input/query
 ```
-This is where the query files should be kept. Query files are created exactly the way the dataset files are created. They have exactly same format. In case you want to find intra-dataset clones, we suggest you provide the location to the dataset folder, i.e., input/dataset.
+This is where the query files should be kept. Query files are created exactly the way the dataset files are created. They have exactly same format. In case you want to find intra-dataset clones, we suggest you provide the location to the dataset folder, i.e., input/dataset. You may have multiple query files as well. SourcererCC will go thorugh each of these files one by one while querring the indexes. 
 
 ```
 IS_STATUS_REPORTER_ON=true
