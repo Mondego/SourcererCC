@@ -16,7 +16,7 @@
 
 
 ## What is SourcererCC?
-SourcererCC is Sourcerer's token-based code clone detector for very large code bases and Internet-scale project repositories. SourcererCC works at many levels of granularity, from block level to project level, depending on specific clone detection needs.
+SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UCI")'s token-based code clone detector for very large code bases and Internet-scale project repositories. SourcererCC works at many levels of granularity, from block level to project level, depending on specific clone detection needs.
 
 ## How to use SourcererCC
 SourcererCC works in three steps: 
@@ -29,7 +29,7 @@ First, the source code is tokenized in a special way, producing one or more toke
 
 ### Download 
 
-Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. Alternatively, you may also clone the SourcererCC project to your workstation and then run the following ant command to build the executable jar.
+Click [here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. Alternatively, you may also clone the SourcererCC project to your workstation and then run the following ant command to build the executable jar.
 
 ``` ant clean cdi ```
    
@@ -231,7 +231,7 @@ There are 2 requirements for the parentIds.
  2. each group should have a unique parentId. More than one line in the tokens file, however, can have the same parentId. 
 
 
-#### Tracking code-units from blockIds
+#### Tracking code units from blockIds
 SourcererCC reports clone pairs in the following format: blockId,blockId. In order to be able to track the code units of the clone pairs, the tokenizer should generate a bookkeeping file containing following information:
 parentId, blockId, filesystem path to the file where the code unit exists, starting line number of the code unit, ending line number of the code unit. 
 
