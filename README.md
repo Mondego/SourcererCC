@@ -1,4 +1,4 @@
-SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UCI")'s token-based code clone detector for very large code bases and Internet-scale project repositories. SourcererCC works at many levels of granularity, from block level to project level, depending on specific clone detection needs.
+SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UCI")'s token-based code clone detector for very large code bases and Internet-scale project repositories. SourcererCC works at many levels of granularity, from block level to project level, depending on specific clone detection needs. Please see the [ICSE'16 paper](http://arxiv.org/abs/1512.06448).
 
 # Table of Contents
 1. [How to use SourcererCC](#how-to-use-sourcerercc)
