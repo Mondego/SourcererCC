@@ -73,6 +73,8 @@ Sweet, we are done with the configurations, so let's proceed to explaining how t
 
 SourcererCC includes tokenizers for some programming languages, some of which work at file level while others work at method level and even block level. We explain here one of those tokenizers that works at method level for Java, C and C++. This tokenizer also supports block-level tokenization for Java only --  in the case of Java, a block is a code unit within curly braces `{}`. Alternative tokenizers exist, and many more can be developed by following the instructions in [Build you own tokenizer](#build-your-own-tokenizer)
 
+NOTE: The example tokenzier described here works only in Linux.
+
 **Make sure you have Java 8 installed.** 
 
 Follow the following steps to tokenize a project.
