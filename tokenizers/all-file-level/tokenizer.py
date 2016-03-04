@@ -1,66 +1,1 @@
-import os
-import re
-import collections
-import itertools
-
-# Provided by the user
-separators = [',',';','#','(',')','{','}','[',']','*','+','/','\\','-','&',':','<','>','=','"','\'','.','?','\n']
-stop_words = ['return','void','int','ifndef','endif','class','private','float','>>','<<','+=','-=','define']
-comment_end_of_line = '//'
-comment_open_tag = re.escape('/*')
-comment_close_tag = re.escape('*/')
-path_with_files = 'examples/'
-
-
-bookkeeping_file = open('bookkeeping.file','w')
-blocks_file = open('blocks.file','w')
-
-# Capture all files in path. Does NOT go recursively
-onlyfiles = [f for f in os.listdir(path_with_files) if os.path.isfile(os.path.join(path_with_files, f))]
-
-# This feels dumb, but unrolling a list of tuples is such a pain
-bookkeeping = {}
-aux = 0
-for f in onlyfiles:
-	bookkeeping[aux] = f
-	aux +=1
-
-for file_number, s_file in bookkeeping.items():
-	print 'Processing file n '+str(file_number)+' ('+path_with_files+s_file+')'
-
-	source_file = open(path_with_files+s_file,'r')
-
-	with open(path_with_files+s_file,'r') as myfile:
-		file_string = myfile.read()
-
-	# Remove enf of line comments
-	file_string = re.sub(comment_end_of_line+'.*?\n','',file_string,flags=re.DOTALL)
-	# Remove tagged comments
-	file_string = re.sub(comment_open_tag+'.*?'+comment_close_tag,'',file_string,flags=re.DOTALL)
-	#Transform separators into spaces (remove them)
-	file_string = ''.join(map(lambda x: '' if x in separators else x, file_string))
-	#create list of words
-	file_string = re.sub("[^\w]", " ",  file_string).split()
-	#Remove stop words
-	file_string = filter(lambda x: x not in stop_words, file_string)
-	#Count occurrences
-	file_string = collections.Counter(file_string)
-
-	#Converting Counter to dict because according to StackOverflow is better
-	file_string=dict(file_string)
-	tokens = []
-	#SourcererCC formatting
-	for k, v in file_string.items():
-		tokens.append(k+'@@::@@'+str(v))
-	tokens = ','.join(tokens)
-
-	bookkeeping_file.write('-1,'+str(file_number)+','+path_with_files+s_file+'\n')
-	blocks_file.write('-1,'+path_with_files+s_file+'@#@'+tokens+'\n')
-	
-	bookkeeping_file.flush()
-	blocks_file.flush()
-
-	#print file_string
-
-bookkeeping_file.close()
-blocks_file.close()
+import loggingfrom multiprocessing import Processimport reimport osimport collectionsfrom lockfile import LockFile# Provided by the userPATH_proj_paths = 'projects.txt'N_PROCESSES = 4separators = ['::','.','->','[',']','(',')','++','--','~','!','-','+','&','*','.*','->*','*','/','%','<<','>>','<','>','<=','>=','++','!=','&','^','|','&&','||','?','==']file_extensions = ['cpp','hpp']comment_end_of_line = '//'comment_open_tag = re.escape('/*')comment_close_tag = re.escape('*/')# foldersPATH_tokens_folder = 'tokens'PATH_bookkeeping_file_folder = 'bookkeeping_files'PATH_bookkeeping_proj_folder = 'bookkeeping_projs'PATH_projects_success = 'projects_success.txt'# Logging codeFORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'logging.basicConfig(level=logging.DEBUG,format=FORMAT)file_handler = logging.FileHandler('results.log')file_handler.setFormatter(logging.Formatter(FORMAT))logging.getLogger().addHandler(file_handler)def tokenizer(proj_id, proj_path, FILE_tokens, FILE_bookkeeping_file, FILE_bookkeeping_proj):	if not os.path.exists(proj_path):		logging.error('Project not found <'+proj_id+','+proj_path+'>')		return	logging.info('Starting proj <'+proj_id+','+proj_path+'>')	all_files = []	for (dirpath, dirnames, filenames) in os.walk(proj_path):		all_files.extend(filenames)	right_files = []	for extension in file_extensions:		right_files += [x for x in all_files if x.endswith(extension)]	right_files = zip(range(0,len(right_files)),right_files)	for file_id, file_path in right_files:		file_path = proj_path+'/'+file_path		logging.info('Starting file <'+proj_id+','+str(file_id)+','+file_path+'>')		try:			source_file = open(file_path,'r')		except Exception:			logging.error('File not found <'+proj_id+','+str(file_id)+','+file_path+'>')			break		with open(file_path,'r') as myfile:			file_string = myfile.read()		# Remove enf of line comments		file_string = re.sub(comment_end_of_line+'.*?\n','',file_string,flags=re.DOTALL)		# Remove tagged comments		file_string = re.sub(comment_open_tag+'.*?'+comment_close_tag,'',file_string,flags=re.DOTALL)		#Transform separators into spaces (remove them)		file_string = ''.join(map(lambda x: ' ' if x in separators else x, file_string))		#create list of words		file_string = re.sub("[^\w]", " ",  file_string).split()		#Count occurrences		file_string = collections.Counter(file_string)		#Converting Counter to dict because according to StackOverflow is better		file_string=dict(file_string)		tokens = []		#SourcererCC formatting		for k, v in file_string.items():			tokens.append(k+'@@::@@'+str(v))		tokens = ','.join(tokens)		FILE_bookkeeping_file.write(proj_id+','+str(file_id)+','+file_path+'\n')		FILE_tokens.write(proj_id+','+str(file_id)+'@#@'+tokens+'\n')	FILE_bookkeeping_proj.write(proj_id+','+proj_path+'\n')	# Important to have a global loc on this file because it is shared	lock = LockFile(PATH_projects_success)	lock.acquire()	project_success = open(PATH_projects_success,'a+')	project_success.write(proj_path+'\n')	project_success.close()	lock.release()def tokenize(list_projects, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name):	# Each tokenize will represent a new process	FILE_tokens = open(FILE_tokens_name, 'w')	FILE_bookkeeping_file = open(FILE_bookkeeping_file_name, 'w+')	FILE_bookkeeping_proj = open(FILE_bookkeeping_proj_name, 'w+')	for proj_id, proj_path in list_projects:		tokenizer(str(proj_id), proj_path, FILE_tokens, FILE_bookkeeping_file, FILE_bookkeeping_proj)	FILE_tokens.close()	FILE_bookkeeping_file.close()	FILE_bookkeeping_proj.close()if __name__ == '__main__':	#In the main file we:	#	create directories if they do not exist	#	read list of PATH_projects_success, if exists, and do not process these again	# 	each process needs a unique file with tokens and file and project	# 		bookkeeping in the proper folders	#	start N_PROCESSES, and give them [(unique_id, proj_path)]	if not os.path.exists(PATH_tokens_folder):		os.makedirs(PATH_tokens_folder)	if not os.path.exists(PATH_bookkeeping_file_folder):		os.makedirs(PATH_bookkeeping_file_folder)	if not os.path.exists(PATH_bookkeeping_proj_folder):		os.makedirs(PATH_bookkeeping_proj_folder)	proj_paths = []	with open(PATH_proj_paths) as f:		for line in f:			proj_paths.append(line.strip('\n'))		projects_success = []	try:		with open(PATH_projects_success,'r') as f:			for line in f:				projects_success.append(line.strip().strip('\n'))	except IOError as e:		logging.info('File '+PATH_projects_success+' no found')		open(PATH_projects_success,'w')	projects_starting_index = len(projects_success)+1	proj_paths = list(set(proj_paths) - set(projects_success))	proj_paths = zip(range(projects_starting_index, len(proj_paths)+projects_starting_index),proj_paths)		#Split list of projects into N_PROCESSES lists	proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]		# Multiprocessing with N_PROCESSES	processes = []	for input_process in proj_paths_list:		n = 0		FILE_tokens_name = PATH_tokens_folder+'/'+'tokens_'+str(n)+'.txt'		FILE_bookkeeping_file_name = PATH_bookkeeping_file_folder+'/'+'bookkeeping_file_'+str(n)+'.txt'		FILE_bookkeeping_proj_name = PATH_bookkeeping_proj_folder+'/'+'bookkeeping_proj_'+str(n)+'.txt'		while (os.path.isfile(FILE_tokens_name) and os.path.isfile(FILE_bookkeeping_file_name) and os.path.isfile(FILE_bookkeeping_proj_name)):			n+=1			FILE_tokens_name = PATH_tokens_folder+'/'+'tokens_'+str(n)+'.txt'			FILE_bookkeeping_file_name = PATH_bookkeeping_file_folder+'/'+'bookkeeping_file_'+str(n)+'.txt'			FILE_bookkeeping_proj_name = PATH_bookkeeping_proj_folder+'/'+'bookkeeping_proj_'+str(n)+'.txt'		open(FILE_tokens_name,'w')		open(FILE_bookkeeping_file_name,'w')		open(FILE_bookkeeping_proj_name,'w')		processes.append(Process(target=tokenize, args=(input_process, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name,)))	for proc in processes:		proc.start()	for proc in processes:		proc.join()
