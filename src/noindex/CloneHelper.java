@@ -195,7 +195,7 @@ public class CloneHelper {
             	throw new ParseException("parsing error at string: "+ s , 0);
             }
             
-    	}catch(IndexOutOfBoundsException e){
+    	}catch(ArrayIndexOutOfBoundsException e){
     		System.out.println(e.getMessage()+ " possible parsing error at string: "+ s);
     		System.out.println("ignoring this block");
     	}
