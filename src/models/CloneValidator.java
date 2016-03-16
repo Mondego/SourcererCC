@@ -74,6 +74,8 @@ public class CloneValidator implements IListener, Runnable {
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("possible error in the format. tokens: " + tokens);
+		} catch (NumberFormatException e){
+			System.out.println("possible error in the format. tokens: " + tokens);
 		}
 		return -1;
 	}

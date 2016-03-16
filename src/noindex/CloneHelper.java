@@ -212,6 +212,8 @@ public class CloneHelper {
                     // System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
                     // tokenAndFreq[1]);
                     System.out.println("EXCEPTION CAUGHT: " + inputString);
+                }catch(NumberFormatException e){
+                	System.out.println("EXCEPTION CAUGHT: " + inputString + " "+ e.getMessage());
                 }
             }
         }
@@ -298,10 +300,12 @@ public class CloneHelper {
                     queryBlockSize += tokenInfo.getFrequency();
 
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    System.out.println("EXCEPTION CAUGHT, token: " + tokenStr);
+                    System.out.println("EXCEPTION CAUGHT, token: " + tokenStr + "," + e.getMessage());
                     // System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
                     // tokenAndFreq[1]);
-                    System.out.println("EXCEPTION CAUGHT, inputString : " + inputString);
+                    System.out.println("EXCEPTION CAUGHT, inputString : " + inputString + ","+ e.getMessage());
+                } catch (NumberFormatException e){
+                	System.out.println("EXCEPTION CAUGHT, inputString : " + inputString + "," +e.getMessage());
                 }
             }
 
