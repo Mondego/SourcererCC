@@ -268,6 +268,11 @@ public class CloneHelper {
                         tokenString);
                 QueryBlock queryBlock = new QueryBlock(Long.parseLong((bagId)),
                         queryBlockSize);
+                try{
+                	queryBlock.setFunctionId(Long.parseLong(functionId));
+                }catch(NumberFormatException e){
+                	throw e;
+                }
                 return queryBlock;
             }
         } catch (ArrayIndexOutOfBoundsException e) {

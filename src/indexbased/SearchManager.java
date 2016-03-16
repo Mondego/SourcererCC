@@ -104,6 +104,7 @@ public class SearchManager {
     private int qcq_size;
     private int vcq_size;
     private int rcq_size;
+    private int min_tokens;
     public static boolean isGenCandidateStats;
     public static int statusCounter;
     public static boolean isStatusCounterOn;
@@ -136,6 +137,7 @@ public class SearchManager {
         this.qcq_size = Integer.parseInt(args[7]);
         this.vcq_size = Integer.parseInt(args[8]);
         this.rcq_size = Integer.parseInt(args[9]);
+        this.min_tokens = Integer.parseInt(args[10]);
         System.out.println("acton: " + this.action + System.lineSeparator()
                 + "threshold: " + args[1] + System.lineSeparator()
                 + "QBQ_THREADS: " + this.qbq_thread_count + ", QBQ_SIZE: "
@@ -197,7 +199,7 @@ public class SearchManager {
         fis = new FileInputStream(propertiesPath);
         try {
             properties.load(fis);
-            String[] params = new String[10];
+            String[] params = new String[11];
             params[0] = args[0];
             params[1] = args[1];
             params[2] = properties.getProperty("QBQ_THREADS");
@@ -208,6 +210,7 @@ public class SearchManager {
             params[7] = properties.getProperty("QCQ_SIZE");
             params[8] = properties.getProperty("VCQ_SIZE");
             params[9] = properties.getProperty("RCQ_SIZE");
+            params[9] = properties.getProperty("MIN_TOKENS");
             searchManager = new SearchManager(params);
         } catch (IOException e) {
             System.out.println("ERROR READING PROPERTIES FILE, "
@@ -404,6 +407,9 @@ public class SearchManager {
                         while ((line = br.readLine()) != null
                                 && line.trim().length() > 0) {
                             Bag bag = cloneHelper.deserialise(line);
+                            if (bag.getSize()<this.min_tokens){
+                            	continue; // ignore this bag. 
+                            }
                             long startTime = System.currentTimeMillis();
                             Util.sortBag(bag);
                             this.bagsSortTime += System.currentTimeMillis()
@@ -464,11 +470,14 @@ public class SearchManager {
                 String line = null;
                 try {
                     QueryBlock queryBlock = null;
+                    
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         try {
-                        	
                             queryBlock = this.getNextQueryBlock(line);
+                            if(queryBlock.getSize()<this.min_tokens){
+                            	continue; // ignore this query
+                            }
                             if (SearchManager.isStatusCounterOn) {
                                 SearchManager.statusCounter += 1;
                                 if ((SearchManager.statusCounter % SearchManager.printAfterEveryXQueries) == 0) {
