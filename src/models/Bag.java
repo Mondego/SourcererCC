@@ -1,4 +1,5 @@
 package models;
+
 import java.util.LinkedHashSet;
 
 /**
@@ -9,17 +10,19 @@ import java.util.LinkedHashSet;
  * @author vaibhavsaini
  * 
  */
-public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this not a linkedhashmap?
-    /**
+public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this
+															// not a
+															// linkedhashmap?
+	/**
      * 
      */
-    private static final long serialVersionUID = 1721183896451527542L;
-    private long id;
-    private int size;
-    private int comparisions;
-    private long functionId;
+	private static final long serialVersionUID = 1721183896451527542L;
+	private long id;
+	private int size;
+	private int comparisions;
+	private long functionId;
 
-    public int getComparisions() {
+	public int getComparisions() {
 		return comparisions;
 	}
 
@@ -28,21 +31,21 @@ public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this no
 	}
 
 	/**
-     * @param bagId
-     */
-    public Bag(long bagId) {
-        super();
-        this.id = bagId;
-        this.size =0;
-        this.comparisions=0;
-        this.functionId = -1;
-    }
-    
-    public Bag(){
-        super();
-    }
+	 * @param bagId
+	 */
+	public Bag(long bagId) {
+		super();
+		this.id = bagId;
+		this.size = 0;
+		this.comparisions = 0;
+		this.functionId = -1;
+	}
 
-    public long getFunctionId() {
+	public Bag() {
+		super();
+	}
+
+	public long getFunctionId() {
 		return functionId;
 	}
 
@@ -73,54 +76,54 @@ public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this no
 	}
 
 	/**
-     * @return the id
-     */
-    public long getId() {
-        return this.id;
-    }
+	 * @return the id
+	 */
+	public long getId() {
+		return this.id;
+	}
 
-    /**
-     * @param id
-     *            the id to set
-     */
-    public void setId(int id) {
-        this.id = id;
-    }
+	/**
+	 * @param id
+	 *            the id to set
+	 */
+	public void setId(int id) {
+		this.id = id;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        String returnString = "";
-        for (TokenFrequency tokenFrequency : this) {
-            returnString += tokenFrequency.getToken().toString() + "@@::@@"
-                    + tokenFrequency.getFrequency() + ",";
-        }
-        return this.id+ "@#@"+ returnString.substring(0,returnString.length()-1) + System.getProperty("line.separator");
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		String returnString = "";
+		for (TokenFrequency tokenFrequency : this) {
+			returnString += tokenFrequency.getToken().toString() + "@@::@@"
+					+ tokenFrequency.getFrequency() + ",";
+		}
+		return this.id + "@#@"
+				+ returnString.substring(0, returnString.length() - 1)
+				+ System.getProperty("line.separator");
+	}
 
-    
-    public TokenFrequency get(TokenFrequency tokenFrequency) {
-        this.comparisions=0;
-        for (TokenFrequency tf : this) {
-            this.comparisions+=1;
-            if (tf.equals(tokenFrequency)) {
-                return tf;
-            }
-        }
-        return null;
-    }
-    
+	public TokenFrequency get(TokenFrequency tokenFrequency) {
+		this.comparisions = 0;
+		for (TokenFrequency tf : this) {
+			this.comparisions += 1;
+			if (tf.equals(tokenFrequency)) {
+				return tf;
+			}
+		}
+		return null;
+	}
 
-    public int getSize() {
-        if(this.size == 0){
-        	for (TokenFrequency tf : this) {
-                this.size += tf.getFrequency();
-            }
-        }
-        return this.size;
-    }
+	public int getSize() {
+		if (this.size == 0) {
+			for (TokenFrequency tf : this) {
+				this.size += tf.getFrequency();
+			}
+		}
+		return this.size;
+	}
 }
