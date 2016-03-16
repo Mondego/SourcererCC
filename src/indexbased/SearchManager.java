@@ -414,7 +414,7 @@ public class SearchManager {
                         while ((line = br.readLine()) != null
                                 && line.trim().length() > 0) {
                             Bag bag = cloneHelper.deserialise(line);
-                            if (bag.getSize()<this.min_tokens){
+                            if (null==bag || bag.getSize()<this.min_tokens){
                             	continue; // ignore this bag. 
                             }
                             long startTime = System.currentTimeMillis();

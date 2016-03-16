@@ -180,18 +180,26 @@ public class CloneHelper {
     }
 
     public Bag deserialise(String s) throws ParseException {
-        if (null != s && s.trim().length() > 0) {
-            String[] bagAndTokens = s.split("@#@");
-            String[] functionIdAndBagId = bagAndTokens[0].split(",");
-            String functionId = functionIdAndBagId[0];
-            String bagId = functionIdAndBagId[1];
-            Bag bag = new Bag(Long.parseLong(bagId));
-            bag.setFunctionId(Long.parseLong(functionId));
-            String tokenString = bagAndTokens[1];
-            this.parseAndPopulateBag(bag, tokenString);
-            return bag;
-        }
-        throw new ParseException("parsing error", 0);
+    	try{
+    		if (null != s && s.trim().length() > 0) {
+                String[] bagAndTokens = s.split("@#@");
+                String[] functionIdAndBagId = bagAndTokens[0].split(",");
+                String functionId = functionIdAndBagId[0];
+                String bagId = functionIdAndBagId[1];
+                Bag bag = new Bag(Long.parseLong(bagId));
+                bag.setFunctionId(Long.parseLong(functionId));
+                String tokenString = bagAndTokens[1];
+                this.parseAndPopulateBag(bag, tokenString);
+                return bag;
+            }else{
+            	throw new ParseException("parsing error at string: "+ s , 0);
+            }
+            
+    	}catch(IndexOutOfBoundsException e){
+    		System.out.println(e.getMessage()+ " possible parsing error at string: "+ s);
+    		System.out.println("ignoring this block");
+    	}
+    	return null;
     }
 
     private void parseAndPopulateBag(Bag bag, String inputString) {
