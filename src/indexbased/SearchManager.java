@@ -128,16 +128,23 @@ public class SearchManager {
         this.bagsSortTime = 0;
         this.action = args[0];
         SearchManager.statusCounter = 0;
-        SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
-        this.qbq_thread_count = Integer.parseInt(args[2]);
-        this.qcq_thread_count = Integer.parseInt(args[3]);
-        this.vcq_thread_count = Integer.parseInt(args[4]);
-        this.rcq_thread_count = Integer.parseInt(args[5]);
-        this.qbq_size = Integer.parseInt(args[6]);
-        this.qcq_size = Integer.parseInt(args[7]);
-        this.vcq_size = Integer.parseInt(args[8]);
-        this.rcq_size = Integer.parseInt(args[9]);
-        this.min_tokens = Integer.parseInt(args[10]);
+        try{
+        	
+        
+	        SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
+	        this.qbq_thread_count = Integer.parseInt(args[2]);
+	        this.qcq_thread_count = Integer.parseInt(args[3]);
+	        this.vcq_thread_count = Integer.parseInt(args[4]);
+	        this.rcq_thread_count = Integer.parseInt(args[5]);
+	        this.qbq_size = Integer.parseInt(args[6]);
+	        this.qcq_size = Integer.parseInt(args[7]);
+	        this.vcq_size = Integer.parseInt(args[8]);
+	        this.rcq_size = Integer.parseInt(args[9]);
+	        this.min_tokens = Integer.parseInt(args[10]);
+        }catch(NumberFormatException e){
+        	System.out.println(e.getMessage() + ", exiting now");
+        	System.exit(1);
+        }
         System.out.println("acton: " + this.action + System.lineSeparator()
                 + "threshold: " + args[1] + System.lineSeparator()
                 + "QBQ_THREADS: " + this.qbq_thread_count + ", QBQ_SIZE: "
