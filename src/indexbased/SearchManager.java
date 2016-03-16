@@ -217,7 +217,7 @@ public class SearchManager {
             params[7] = properties.getProperty("QCQ_SIZE");
             params[8] = properties.getProperty("VCQ_SIZE");
             params[9] = properties.getProperty("RCQ_SIZE");
-            params[9] = properties.getProperty("MIN_TOKENS");
+            params[10] = properties.getProperty("MIN_TOKENS");
             searchManager = new SearchManager(params);
         } catch (IOException e) {
             System.out.println("ERROR READING PROPERTIES FILE, "
