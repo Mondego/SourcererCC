@@ -265,6 +265,7 @@ public class SearchManager {
             searchManager.initIndexEnv();
             long begin_time = System.currentTimeMillis();
             searchManager.doIndex();
+            System.out.println("indexing over!");
             searchManager.timeIndexing = System.currentTimeMillis()
                     - begin_time;
         } else if (searchManager.action.equalsIgnoreCase(ACTION_SEARCH)) {
@@ -406,6 +407,7 @@ public class SearchManager {
             if (datasetDir.isDirectory()) {
                 System.out.println("Directory: " + datasetDir.getName());
                 BufferedReader br = null;
+                long index_start_time = System.currentTimeMillis();
                 for (File inputFile : datasetDir.listFiles()) {
                     try {
                         br = new BufferedReader(new InputStreamReader(
@@ -413,6 +415,33 @@ public class SearchManager {
                         String line;
                         while ((line = br.readLine()) != null
                                 && line.trim().length() > 0) {
+                        	SearchManager.statusCounter += 1;
+                        	if (SearchManager.isStatusCounterOn) {
+                                if ((SearchManager.statusCounter % SearchManager.printAfterEveryXQueries) == 0) {
+                                    long end_time = System.currentTimeMillis();
+                                    Duration duration;
+                                    try {
+                                        duration = DatatypeFactory
+                                                .newInstance().newDuration(
+                                                        end_time - index_start_time);
+                                        System.out
+                                                .printf(SearchManager.NODE_PREFIX +", lines indexed: "
+                                                        + SearchManager.statusCounter
+                                                        + " time taken: %02dh:%02dm:%02ds",
+                                                        duration.getDays()
+                                                                * 24
+                                                                + duration
+                                                                        .getHours(),
+                                                        duration.getMinutes(),
+                                                        duration.getSeconds());
+                                        index_start_time = end_time;
+                                    } catch (DatatypeConfigurationException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        	
                             Bag bag = cloneHelper.deserialise(line);
                             if (null==bag || bag.getSize()<this.min_tokens){
                             	continue; // ignore this bag. 
