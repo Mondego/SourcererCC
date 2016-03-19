@@ -1,8 +1,8 @@
 #!/bin/bash
 rm -rf NODE*
 num_nodes="${1:-2}"
-num_nodes=$((num_nodes-1))
-th="${2:-7}"
+#num_nodes=$((num_nodes-1))
+th="${2:-8}"
 echo "spliting query file"
 bash ./splitquery.sh $num_nodes
 echo "moving files"
