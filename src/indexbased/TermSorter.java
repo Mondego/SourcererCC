@@ -13,6 +13,7 @@ import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 
+import models.Bag;
 import noindex.CloneHelper;
 import utility.Util;
 
@@ -46,43 +47,46 @@ public class TermSorter {
 	}
 
 	public void populateGlobalPositionMap() throws IOException, ParseException {
-		/*
-		 * File gtpmFile = new File(this.GTPMfilename); if (false &&
-		 * gtpmFile.exists()) { TermSorter.globalTokenPositionMap = Util
-		 * .readJsonStream(this.GTPMfilename);
-		 * System.out.println("search size of GTPM: " +
-		 * TermSorter.globalTokenPositionMap.size()); } else {
-		 * 
-		 * }
-		 */
-		File datasetDir = new File(SearchManager.DATASET_DIR);
-		if (datasetDir.isDirectory()) {
-			System.out.println("Directory: " + datasetDir.getName());
-			for (File inputFile : datasetDir.listFiles()) {
-				this.populateWordFreqMap(inputFile);
-			}
-			Map<String, Long> sortedMap = ImmutableSortedMap.copyOf(
-					TermSorter.wordFreq,
-					Ordering.natural()
-							.onResultOf(Functions.forMap(TermSorter.wordFreq))
-							.compound(Ordering.natural()));
-			int count = 1;
-			for (Entry<String, Long> entry : sortedMap.entrySet()) {
-				TermSorter.globalTokenPositionMap.put(entry.getKey(), count);
-				count++;
-			}
-			System.out.println("index size of GTPM: "
+
+		File gtpmFile = new File(this.GTPMfilename);
+		if (gtpmFile.exists()) {
+			System.out.println("GTPM file exists, reading from file");
+			TermSorter.globalTokenPositionMap = Util
+					.readGTPMFile(this.GTPMfilename);
+			System.out.println("search size of GTPM: "
 					+ TermSorter.globalTokenPositionMap.size());
-			// Util.writeJsonStream(this.GTPMfilename,
-			// TermSorter.globalTokenPositionMap);
-			TermSorter.wordFreq = null;
-			sortedMap = null;
 		} else {
-			System.out.println("File: " + datasetDir.getName()
-					+ " is not a direcory. exiting now");
-			System.exit(1);
+			System.out.println("GTPM file doesn't exist. Creating GTPM from dataset");
+			File datasetDir = new File(SearchManager.DATASET_DIR);
+			if (datasetDir.isDirectory()) {
+				System.out.println("Directory: " + datasetDir.getName());
+				for (File inputFile : datasetDir.listFiles()) {
+					this.populateWordFreqMap(inputFile);
+				}
+				Map<String, Long> sortedMap = ImmutableSortedMap.copyOf(
+						TermSorter.wordFreq,
+						Ordering.natural()
+								.onResultOf(
+										Functions.forMap(TermSorter.wordFreq))
+								.compound(Ordering.natural()));
+				int count = 1;
+				for (Entry<String, Long> entry : sortedMap.entrySet()) {
+					TermSorter.globalTokenPositionMap
+							.put(entry.getKey(), count);
+					count++;
+				}
+				System.out.println("index size of GTPM: "
+						+ TermSorter.globalTokenPositionMap.size());
+				Util.writeToGTPMFile(this.GTPMfilename,
+						TermSorter.globalTokenPositionMap);
+				TermSorter.wordFreq = null;
+				sortedMap = null;
+			} else {
+				System.out.println("File: " + datasetDir.getName()
+						+ " is not a direcory. exiting now");
+				System.exit(1);
+			}
 		}
-		// }
 	}
 
 	private void populateWordFreqMap(File file) throws IOException,
@@ -92,7 +96,14 @@ public class TermSorter {
 		br = new BufferedReader(new FileReader(file));
 		String line;
 		while ((line = br.readLine()) != null && line.trim().length() > 0) {
-			cloneHelper.parseAndPopulateWordFreqMap(line);
+			Bag bag = cloneHelper.deserialise(line);
+			if(bag.getSize()>SearchManager.min_tokens &&
+					bag.getSize()<SearchManager.max_tokens){
+				cloneHelper.populateWordFreqMap(bag);
+			}else{
+				System.out.println("not adding tokens of line to GPTM, REASON: "+ bag.getFunctionId() + ", "+ bag.getId() + ", size: "+ bag.getSize());
+			}
+			
 		}
 		br.close();
 	}

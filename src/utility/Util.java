@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 
 import com.google.gson.Gson;
@@ -240,6 +241,53 @@ public class Util {
      * int getMinimumSimilarityThreshold(Bag bag,float threshold) { return (int)
      * Math.ceil((threshold * bag.getSize())/ (SearchManager.MUL_FACTOR*10)); }
      */
+
+	public static void writeToGTPMFile(String filename,
+			Map<String, Integer> gtpm) {
+		// TODO Auto-generated method stub
+		Writer writer = null;
+        try {
+            writer = Util.openFile(filename, false);
+            for(Entry<String, Integer> entry: gtpm.entrySet()){
+            	String text = entry.getKey() + ":"+entry.getValue();
+            	Util.writeToFile(writer, text, true);
+            }
+        } catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+	}
+
+	public static Map<String, Integer> readGTPMFile(String filename) {
+		// TODO Auto-generated method stub
+		
+		BufferedReader br = null;
+        Map<String, Integer> gtpm = new HashMap<String, Integer>();
+        try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(
+                    filename), "UTF-8"),1024 * 1024 * 512);
+            String line;
+            while ((line = br.readLine()) != null && line.trim().length() > 0) {
+            	String[] keyValPair = line.split(":");
+            	gtpm.put(keyValPair[0], Integer.parseInt(keyValPair[1]));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                br.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return gtpm;
+		
+	}
 
     /*
      * public static int getPrefixSize(QueryBlock queryBlock, float threshold) {

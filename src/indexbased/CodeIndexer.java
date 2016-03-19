@@ -169,11 +169,15 @@ public class CodeIndexer {
         TextField textField  = new TextField("id", bag.getId() + "",Field.Store.NO);
         document.add(textField);
         String tokenString = "";
+        System.out.println("fwdindex: creating tokenString ");
         for (TokenFrequency tf : bag) {
+        	//System.out.println(tf.getToken().getValue() + ":"+tf.getFrequency());
             tokenString += tf.getToken().getValue() + ":"+tf.getFrequency()+"::";
         }
+        System.out.println("fwdindex:  tokenString created ");
         StoredField strField = new StoredField("tokens", tokenString.trim());
         document.add(strField);
+        System.out.println("fwdindex: document added");
         return document;
     }
 
@@ -194,18 +198,21 @@ public class CodeIndexer {
         document.add(computedThresholdField);
         document.add(lenientComputedThresholdField);
         int prefixLength = BlockInfo.getPrefixSize(bag.getSize(), ct);
+        System.out.println("inverted index: creating tokenString");
         for (TokenFrequency tf : bag) {
             for(int i=0;i<tf.getFrequency();i++){
                 tokenString += tf.getToken().getValue() + " ";
-                
+                //System.out.println(tf.getToken().getValue());
             }
             prefixLength -=tf.getFrequency();
             if(prefixLength<=0){
                 break;
             }
         }
+        System.out.println("inverted index: tokenString created");
         Field field = new Field("tokens",tokenString.trim(),Field.Store.NO,Field.Index.ANALYZED,Field.TermVector.WITH_POSITIONS);
         document.add(field);
+        System.out.println("inverted index: document added");
         return document;
     }
     

@@ -104,7 +104,8 @@ public class SearchManager {
     private int qcq_size;
     private int vcq_size;
     private int rcq_size;
-    private int min_tokens;
+    public static int min_tokens;
+    public static int max_tokens;
     public static boolean isGenCandidateStats;
     public static int statusCounter;
     public static boolean isStatusCounterOn;
@@ -141,6 +142,7 @@ public class SearchManager {
 	        this.vcq_size = Integer.parseInt(args[8]);
 	        this.rcq_size = Integer.parseInt(args[9]);
 	        this.min_tokens = Integer.parseInt(args[10]);
+	        this.max_tokens = Integer.parseInt(args[11]);
         }catch(NumberFormatException e){
         	System.out.println(e.getMessage() + ", exiting now");
         	System.exit(1);
@@ -206,7 +208,7 @@ public class SearchManager {
         fis = new FileInputStream(propertiesPath);
         try {
             properties.load(fis);
-            String[] params = new String[11];
+            String[] params = new String[12];
             params[0] = args[0];
             params[1] = args[1];
             params[2] = properties.getProperty("QBQ_THREADS");
@@ -218,6 +220,7 @@ public class SearchManager {
             params[8] = properties.getProperty("VCQ_SIZE");
             params[9] = properties.getProperty("RCQ_SIZE");
             params[10] = properties.getProperty("MIN_TOKENS");
+            params[11] = properties.getProperty("MAX_TOKENS");
             searchManager = new SearchManager(params);
         } catch (IOException e) {
             System.out.println("ERROR READING PROPERTIES FILE, "
@@ -417,10 +420,12 @@ public class SearchManager {
                                 && line.trim().length() > 0) {
                         	SearchManager.statusCounter += 1;
                             Bag bag = cloneHelper.deserialise(line);
-                            if (null==bag || bag.getSize()<this.min_tokens){
+                            if (null==bag || bag.getSize()<this.min_tokens || bag.size()> this.max_tokens){
+                            	System.out.println("ignoring file, "+ bag.getFunctionId()+", " + bag.getId() + ", size is: "+ bag.getSize());
                             	continue; // ignore this bag. 
                             }
                             long startTime = System.currentTimeMillis();
+                            System.out.println("begin sort");
                             Util.sortBag(bag);
                             System.out.println("sort done");
                             this.bagsSortTime += System.currentTimeMillis()
@@ -515,7 +520,8 @@ public class SearchManager {
                             && line.trim().length() > 0) {
                         try {
                             queryBlock = this.getNextQueryBlock(line);
-                            if(queryBlock.getSize()<this.min_tokens){
+                            if(queryBlock.getSize()<this.min_tokens || queryBlock.getSize()>this.max_tokens){
+                            	System.out.println("ignoring query, REASON:  "+ queryBlock.getFunctionId()+", "+ queryBlock.getId()+", size: "+ queryBlock.getSize());
                             	continue; // ignore this query
                             }
                             if (SearchManager.isStatusCounterOn) {
@@ -644,45 +650,47 @@ public class SearchManager {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
         QueryBlock queryBlock = this.cloneHelper.deserialiseToQueryBlock(line,
                 listOfTokens);
-
-        Collections.sort(listOfTokens,
-                new Comparator<Entry<String, TokenInfo>>() {
-                    public int compare(Entry<String, TokenInfo> tfFirst,
-                            Entry<String, TokenInfo> tfSecond) {
-                        long position1 = 0;
-                        try {
-                            position1 = TermSorter.globalTokenPositionMap
-                                    .get(tfFirst.getKey());
-                        } catch (Exception e) {
-                            position1 = -1;
+        if (queryBlock.getSize() > this.min_tokens && queryBlock.getSize()<this.max_tokens){
+        	Collections.sort(listOfTokens,
+                    new Comparator<Entry<String, TokenInfo>>() {
+                        public int compare(Entry<String, TokenInfo> tfFirst,
+                                Entry<String, TokenInfo> tfSecond) {
+                            long position1 = 0;
+                            try {
+                                position1 = TermSorter.globalTokenPositionMap
+                                        .get(tfFirst.getKey());
+                            } catch (Exception e) {
+                                position1 = -1;
+                            }
+                            long position2 = 0;
+                            try {
+                                position2 = TermSorter.globalTokenPositionMap
+                                        .get(tfSecond.getKey());
+                            } catch (Exception e) {
+                                position2 = -1;
+                            }
+                            if (position1 - position2 != 0) {
+                                return (int) (position1 - position2);
+                            } else {
+                                return 1;
+                            }
                         }
-                        long position2 = 0;
-                        try {
-                            position2 = TermSorter.globalTokenPositionMap
-                                    .get(tfSecond.getKey());
-                        } catch (Exception e) {
-                            position2 = -1;
-                        }
-                        if (position1 - position2 != 0) {
-                            return (int) (position1 - position2);
-                        } else {
-                            return 1;
-                        }
-                    }
-                });
-        int position = 0;
-        for (Entry<String, TokenInfo> entry : listOfTokens) {
-            TokenInfo tokenInfo = entry.getValue();
-            if (position < queryBlock.getPrefixSize()) {
-                queryBlock.getPrefixMap().put(entry.getKey(), tokenInfo);
-                position += tokenInfo.getFrequency();
-                queryBlock.setPrefixMapSize(position);
-            } else {
-                queryBlock.getSuffixMap().put(entry.getKey(), tokenInfo);
-                position += tokenInfo.getFrequency();
+                    });
+            int position = 0;
+            for (Entry<String, TokenInfo> entry : listOfTokens) {
+                TokenInfo tokenInfo = entry.getValue();
+                if (position < queryBlock.getPrefixSize()) {
+                    queryBlock.getPrefixMap().put(entry.getKey(), tokenInfo);
+                    position += tokenInfo.getFrequency();
+                    queryBlock.setPrefixMapSize(position);
+                } else {
+                    queryBlock.getSuffixMap().put(entry.getKey(), tokenInfo);
+                    position += tokenInfo.getFrequency();
+                }
+                tokenInfo.setPosition(position);
             }
-            tokenInfo.setPosition(position);
         }
+        
         return queryBlock;
     }
 }
