@@ -416,7 +416,20 @@ public class SearchManager {
                         while ((line = br.readLine()) != null
                                 && line.trim().length() > 0) {
                         	SearchManager.statusCounter += 1;
-                        	if (SearchManager.isStatusCounterOn) {
+                            Bag bag = cloneHelper.deserialise(line);
+                            if (null==bag || bag.getSize()<this.min_tokens){
+                            	continue; // ignore this bag. 
+                            }
+                            long startTime = System.currentTimeMillis();
+                            Util.sortBag(bag);
+                            System.out.println("sort done");
+                            this.bagsSortTime += System.currentTimeMillis()
+                                    - startTime;
+                            fwdIndexer.fwdIndexCodeBlock(bag);
+                            System.out.println("fwd index done");
+                            this.indexer.indexCodeBlock(bag);
+                            System.out.println("inverted index done");
+                            if (SearchManager.isStatusCounterOn) {
                                 if ((SearchManager.statusCounter % SearchManager.printAfterEveryXQueries) == 0) {
                                     long end_time = System.currentTimeMillis();
                                     Duration duration;
@@ -435,23 +448,14 @@ public class SearchManager {
                                                         duration.getMinutes(),
                                                         duration.getSeconds());
                                         index_start_time = end_time;
+                                        System.out.println(); // this is needed
                                     } catch (DatatypeConfigurationException e) {
                                         // TODO Auto-generated catch block
+                                    	System.out.println("ERROR WHILE PRINTING DURATION "+ e.getMessage());
                                         e.printStackTrace();
                                     }
                                 }
                             }
-                        	
-                            Bag bag = cloneHelper.deserialise(line);
-                            if (null==bag || bag.getSize()<this.min_tokens){
-                            	continue; // ignore this bag. 
-                            }
-                            long startTime = System.currentTimeMillis();
-                            Util.sortBag(bag);
-                            this.bagsSortTime += System.currentTimeMillis()
-                                    - startTime;
-                            fwdIndexer.fwdIndexCodeBlock(bag);
-                            this.indexer.indexCodeBlock(bag);
                         }
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
