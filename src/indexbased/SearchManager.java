@@ -332,12 +332,12 @@ public class SearchManager {
     private void initIndexEnv() throws IOException, ParseException {
         TermSorter termSorter = new TermSorter();
         long timeGlobalPositionStart = System.currentTimeMillis();
-        try {
+        /*try {
             FileUtils.deleteDirectory(new File(Util.GTPM_DIR));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Util.createDirs(Util.GTPM_DIR);
+        Util.createDirs(Util.GTPM_DIR);*/
         termSorter.populateGlobalPositionMap();
         this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
                 - timeGlobalPositionStart;
