@@ -39,8 +39,8 @@ public class CloneValidator implements IListener, Runnable {
 			CandidateSimInfo simInfo) {
 		int tokensSeenInCandidate = 0;
 		int similarity = simInfo.similarity;
+		Scanner scanner = new Scanner(tokens);
 		try {
-			Scanner scanner = new Scanner(tokens);
 			scanner.useDelimiter("::");
 			while(scanner.hasNext()){
 				String tokenfreqFrame = scanner.next();
@@ -75,11 +75,13 @@ public class CloneValidator implements IListener, Runnable {
 					break;
 				}
 			}
-			scanner.close();
+			
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("possible error in the format. tokens: " + tokens);
 		} catch (NumberFormatException e){
 			System.out.println("possible error in the format. tokens: " + tokens);
+		}finally {
+			scanner.close();
 		}
 		return -1;
 	}
