@@ -96,6 +96,8 @@ public class TermSorter {
         BufferedReader br = null;
         br = new BufferedReader(new FileReader(file));
         String line;
+        System.out.println("populating GPTM");
+        long lineNumber =0;
         while ((line = br.readLine()) != null && line.trim().length() > 0) {
             Bag bag = cloneHelper.deserialise(line);
             
@@ -112,7 +114,8 @@ public class TermSorter {
                             + ", size: " + bag.getSize());
                 }
             }
-
+            System.out.println("GTPM line_number: "+ lineNumber);
+            lineNumber++;
         }
         br.close();
     }

@@ -200,6 +200,9 @@ public class CloneHelper {
             System.out.println(e.getMessage()
                     + " possible parsing error at string: " + s);
             System.out.println("ignoring this block");
+        } catch (NumberFormatException e){
+            System.out.println(e.getMessage() +
+                    ", ignoring this block");
         }
         return null;
     }
@@ -302,6 +305,8 @@ public class CloneHelper {
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("EXCEPTION CAUGHT, string: " + s);
+        } catch (NumberFormatException e){
+            System.out.println(e.getMessage() + ", ignoring query: "+ s);
         }
         throw new ParseException("parsing error", 0);
     }
