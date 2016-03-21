@@ -98,14 +98,19 @@ public class TermSorter {
         String line;
         while ((line = br.readLine()) != null && line.trim().length() > 0) {
             Bag bag = cloneHelper.deserialise(line);
+            
             if (null!=bag && bag.getSize() > SearchManager.min_tokens
                     && bag.getSize() < SearchManager.max_tokens) {
                 cloneHelper.populateWordFreqMap(bag);
             } else {
-                System.out
-                        .println("not adding tokens of line to GPTM, REASON: "
-                                + bag.getFunctionId() + ", " + bag.getId()
-                                + ", size: " + bag.getSize());
+                if(null==bag){
+                    System.out.println("empty block, ignoring");
+                }else{
+                    System.out
+                    .println("not adding tokens of line to GPTM, REASON: "
+                            + bag.getFunctionId() + ", " + bag.getId()
+                            + ", size: " + bag.getSize());
+                }
             }
 
         }
