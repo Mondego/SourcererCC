@@ -1,6 +1,7 @@
 package models;
 
 import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 import utility.Util;
 import indexbased.SearchManager;
@@ -39,7 +40,10 @@ public class CloneValidator implements IListener, Runnable {
 		int tokensSeenInCandidate = 0;
 		int similarity = simInfo.similarity;
 		try {
-			for (String tokenfreqFrame : tokens.split("::")) {
+			Scanner scanner = new Scanner(tokens);
+			scanner.useDelimiter("::");
+			while(scanner.hasNext()){
+				String tokenfreqFrame = scanner.next();
 				String[] tokenFreqInfo = tokenfreqFrame.split(":");
 				if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(), simInfo.queryMatchPosition, candidateSize,
 						simInfo.candidateMatchPosition, computedThreshold)) {
@@ -70,8 +74,8 @@ public class CloneValidator implements IListener, Runnable {
 				} else {
 					break;
 				}
-
 			}
+			scanner.close();
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("possible error in the format. tokens: " + tokens);
 		} catch (NumberFormatException e){
