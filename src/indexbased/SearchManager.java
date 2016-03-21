@@ -332,12 +332,12 @@ public class SearchManager {
     private void initIndexEnv() throws IOException, ParseException {
         TermSorter termSorter = new TermSorter();
         long timeGlobalPositionStart = System.currentTimeMillis();
-        try {
+        /*try {
             FileUtils.deleteDirectory(new File(Util.GTPM_DIR));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Util.createDirs(Util.GTPM_DIR);
+        Util.createDirs(Util.GTPM_DIR);*/
         termSorter.populateGlobalPositionMap();
         this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
                 - timeGlobalPositionStart;
@@ -421,7 +421,11 @@ public class SearchManager {
                         	SearchManager.statusCounter += 1;
                             Bag bag = cloneHelper.deserialise(line);
                             if (null==bag || bag.getSize()<this.min_tokens || bag.size()> this.max_tokens){
-                            	System.out.println("ignoring file, "+ bag.getFunctionId()+", " + bag.getId() + ", size is: "+ bag.getSize());
+                            	if(null==bag){
+                            		System.out.println("empty bag, ignoring. statusCounter= "+ SearchManager.statusCounter);
+                            	}else{
+                            		System.out.println("ignoring file, "+ bag.getFunctionId()+", " + bag.getId() + ", size is: "+ bag.getSize() + ", statusCounter= "+ SearchManager.statusCounter);
+                            	}
                             	continue; // ignore this bag. 
                             }
                             long startTime = System.currentTimeMillis();

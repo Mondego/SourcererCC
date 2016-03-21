@@ -125,6 +125,7 @@ public class Util {
     public static boolean createDirs(String dirname) {
         File dir = new File(dirname);
         if (!dir.exists()) {
+        	System.out.println("creating directory: "+ dirname);
             return dir.mkdirs();
         } else {
             return true;
