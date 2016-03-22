@@ -176,6 +176,7 @@ public class TermSorter {
 				}
 				Util.writeMapToFile("temp_gwfm.txt",
 						SearchManager.globalWordFreqMap);
+				System.out.println("writing to processedWFMfilesWriter");
 				Util.writeToFile(processedWFMfilesWriter,
 						currFile.getAbsolutePath(), true);
 				try {
