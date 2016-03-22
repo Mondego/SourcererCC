@@ -159,6 +159,7 @@ public class TermSorter {
 					cloneHelper, SearchManager.th);
 
 			BufferedReader br = null;
+			int count=0;
 			try {
 				br = new BufferedReader(new InputStreamReader(
 						new FileInputStream(gtpmFile), "UTF-8"));
@@ -166,6 +167,8 @@ public class TermSorter {
 				while ((line = br.readLine()) != null
 						&& line.trim().length() > 0) {
 					gtpmIndexer.indexGtpmEntry(line);
+					count++;
+					System.out.println("gtpm entries indexed: "+ count);
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();

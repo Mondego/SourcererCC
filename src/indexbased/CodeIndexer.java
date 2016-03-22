@@ -204,7 +204,6 @@ public class CodeIndexer {
             document.add(textField);
             StoredField strField = new StoredField("position", keyValPair[1]);
             document.add(strField);
-            System.out.println("gtpm: document added");
             return document;
         }
         return null;
