@@ -178,6 +178,11 @@ public class TermSorter {
 						SearchManager.globalWordFreqMap);
 				Util.writeToFile(processedWFMfilesWriter,
 						currFile.getAbsolutePath(), true);
+				try {
+					processedWFMfilesWriter.flush();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		Util.closeOutputFile(processedWFMfilesWriter);
