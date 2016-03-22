@@ -677,17 +677,9 @@ public class SearchManager {
 						public int compare(Entry<String, TokenInfo> tfFirst,
 								Entry<String, TokenInfo> tfSecond) {
 							long position1 = 0;
-							try {
 								position1 = SearchManager.gtpmSearcher.getPosition(tfFirst.getKey());
-							} catch (Exception e) {
-								position1 = -1;
-							}
 							long position2 = 0;
-							try {
 								position2 = SearchManager.gtpmSearcher.getPosition(tfSecond.getKey());
-							} catch (Exception e) {
-								position2 = -1;
-							}
 							if (position1 - position2 != 0) {
 								return (int) (position1 - position2);
 							} else {
