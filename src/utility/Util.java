@@ -214,6 +214,7 @@ public class Util {
 						.getToken().getValue());
 				position2 = SearchManager.gtpmSearcher.getPosition(tfSecond
 						.getToken().getValue());
+				System.out.println("position1 and position2: "+ position1+", "+ position2);
 				if (position1 - position2 != 0) {
 					return (int) (position1 - position2);
 				} else {
