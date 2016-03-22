@@ -137,6 +137,7 @@ public class TermSorter {
 		System.out.println("current Dir: " + root.getName());
 		Set<String> processedWFMset = new HashSet<String>();
 		Util.populateProcessedWFMSet(processedWFMFilename, processedWFMset);
+		System.out.println("size of populateProcessedWFMSet "+ processedWFMset.size());
 		Stack<File> fileStack = new Stack<File>();
 		fileStack.push(root);
 		while (!fileStack.isEmpty()) {
@@ -147,6 +148,7 @@ public class TermSorter {
 							"wfm")) {
 						if (processedWFMset
 								.contains(currFile.getAbsolutePath())) {
+							System.out.println("ignore wfm file, "+ currFile.getAbsolutePath());
 							continue;
 						}
 						System.out
@@ -167,6 +169,16 @@ public class TermSorter {
 							SearchManager.globalWordFreqMap.put(entry.getKey(),
 									value);
 						}
+						Util.writeMapToFile("temp_gwfm.txt",
+								SearchManager.globalWordFreqMap);
+						System.out.println("writing to processedWFMfilesWriter");
+						Util.writeToFile(processedWFMfilesWriter,
+								currFile.getAbsolutePath(), true);
+						try {
+							processedWFMfilesWriter.flush();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 				} else if (currFile.isDirectory()) {
 					if (currFile.getName().contains("NODE_")
@@ -174,16 +186,7 @@ public class TermSorter {
 						fileStack.push(currFile);
 					}
 				}
-				Util.writeMapToFile("temp_gwfm.txt",
-						SearchManager.globalWordFreqMap);
-				System.out.println("writing to processedWFMfilesWriter");
-				Util.writeToFile(processedWFMfilesWriter,
-						currFile.getAbsolutePath(), true);
-				try {
-					processedWFMfilesWriter.flush();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				
 			}
 		}
 		Util.closeOutputFile(processedWFMfilesWriter);
