@@ -95,8 +95,10 @@ public class TermSorter {
 			System.out
 					.println("GTPM files doesn't exist. reading from wfm files");
 			File currentDir = new File(System.getProperty("user.dir"));
-
+			
 			this.populateGlobalWordFreqMapIttrative(currentDir);
+			System.out.println("sorting globalWordFreqMap to creat GTPM");
+			
 			Map<String, Long> sortedMap = ImmutableSortedMap
 					.copyOf(SearchManager.globalWordFreqMap,
 							Ordering.natural()
