@@ -4,11 +4,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Writer;
 import java.text.ParseException;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Stack;
 
 import models.Bag;
@@ -118,16 +120,35 @@ public class TermSorter {
 	}
 
 	private void populateGlobalWordFreqMapIttrative(File root) {
+		Writer processedWFMfilesWriter = null;
+		String processedWFMFilename = "processedWFMFiles.txt";
+		try {
+			processedWFMfilesWriter = Util.openFile(processedWFMFilename, true);
+		} catch (IOException e) {
+			System.out.println("cant open processedWFMFiles.txt");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		File tempgtpm = new File("temp_gwfm.txt");
+		if (tempgtpm.exists()) {
+			SearchManager.globalWordFreqMap = Util
+					.readMapFromFile("temp_gwfm.txt");
+		}
 		System.out.println("current Dir: " + root.getName());
-		
+		Set<String> processedWFMset = new HashSet<String>();
+		Util.populateProcessedWFMSet(processedWFMFilename, processedWFMset);
 		Stack<File> fileStack = new Stack<File>();
 		fileStack.push(root);
-		while(!fileStack.isEmpty()){
+		while (!fileStack.isEmpty()) {
 			File[] files = fileStack.pop().listFiles();
 			for (File currFile : files) {
 				if (currFile.isFile()) {
-					if (FilenameUtils.getExtension(currFile.getName())
-							.equals("wfm")) {
+					if (FilenameUtils.getExtension(currFile.getName()).equals(
+							"wfm")) {
+						if (processedWFMset
+								.contains(currFile.getAbsolutePath())) {
+							continue;
+						}
 						System.out
 								.println("populating globalWordFreqMap, reading file: "
 										+ currFile.getAbsolutePath());
@@ -136,10 +157,10 @@ public class TermSorter {
 						for (Entry<String, Long> entry : wordFreqMap.entrySet()) {
 
 							long value = 0;
-							if (SearchManager.globalWordFreqMap.containsKey(entry
-									.getKey())) {
-								value = SearchManager.globalWordFreqMap.get(entry
-										.getKey()) + entry.getValue();
+							if (SearchManager.globalWordFreqMap
+									.containsKey(entry.getKey())) {
+								value = SearchManager.globalWordFreqMap
+										.get(entry.getKey()) + entry.getValue();
 							} else {
 								value = entry.getValue();
 							}
@@ -153,8 +174,13 @@ public class TermSorter {
 						fileStack.push(currFile);
 					}
 				}
+				Util.writeMapToFile("temp_gwfm.txt",
+						SearchManager.globalWordFreqMap);
+				Util.writeToFile(processedWFMfilesWriter,
+						currFile.getAbsolutePath(), true);
 			}
 		}
+		Util.closeOutputFile(processedWFMfilesWriter);
 	}
 
 	private void populateWordFreqMap(File file) throws IOException,
@@ -184,8 +210,9 @@ public class TermSorter {
 				}
 			}
 			lineNumber++;
-			System.out.println(SearchManager.NODE_PREFIX +" , GTPM line_number: " + lineNumber);
-			
+			System.out.println(SearchManager.NODE_PREFIX
+					+ " , GTPM line_number: " + lineNumber);
+
 		}
 		br.close();
 	}

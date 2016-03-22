@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -300,6 +301,30 @@ public class Util {
 		}
 		return gtpm;
 
+	}
+
+	public static void populateProcessedWFMSet(String filename,Set<String> processedWFMset) {
+		BufferedReader br = null;
+		File f = new File(filename);
+		System.out.println("file is "+ f);
+		FileInputStream fis;
+		try {
+			fis = new FileInputStream(f);
+			System.out.println(fis);
+			InputStreamReader ir = new InputStreamReader(fis,"UTF-8");
+			System.out.println(ir);
+			br = new BufferedReader(ir);
+			String line;
+			while ((line = br.readLine()) != null && line.trim().length() > 0) {
+				processedWFMset.add(line);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/*
