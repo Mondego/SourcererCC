@@ -30,6 +30,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
+import indexbased.SearchManager;
 import indexbased.TermSorter;
 import models.Bag;
 import models.TokenFrequency;
@@ -44,6 +45,7 @@ public class Util {
 	public static final String INDEX_DIR = "index";
 	public static final String GTPM_DIR = "gtpm";
 	public static final String FWD_INDEX_DIR = "fwdindex";
+	public static final String GTPM_INDEX_DIR = "gtpmindex";
 	public static final String INDEX_DIR_NO_FILTER = "index_nofilter";
 
 	/**
@@ -208,22 +210,10 @@ public class Util {
 			public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
 				long position1 = 0;
 				long position2 = 0;
-				try {
-					position1 = TermSorter.globalTokenPositionMap.get(tfFirst
-							.getToken().getValue());
-				} catch (Exception e) {
-					position1 = -1;
-					System.out.println("Exception in sort "
-							+ tfFirst.getToken().getValue());
-				}
-				try {
-					position2 = TermSorter.globalTokenPositionMap.get(tfSecond
-							.getToken().getValue());
-				} catch (Exception e) {
-					position2 = -1;
-					System.out.println("Exception in sort "
-							+ tfSecond.getToken().getValue());
-				}
+				position1 = SearchManager.gtpmSearcher.getPosition(tfFirst
+						.getToken().getValue());
+				position2 = SearchManager.gtpmSearcher.getPosition(tfSecond
+						.getToken().getValue());
 				if (position1 - position2 != 0) {
 					return (int) (position1 - position2);
 				} else {
@@ -274,16 +264,17 @@ public class Util {
 		try {
 			System.out.println("here " + filename);
 			File f = new File(filename);
-			System.out.println("file is "+ f);
+			System.out.println("file is " + f);
 			FileInputStream fis = new FileInputStream(f);
 			System.out.println(fis);
-			InputStreamReader ir = new InputStreamReader(fis,"UTF-8");
+			InputStreamReader ir = new InputStreamReader(fis, "UTF-8");
 			System.out.println(ir);
 			br = new BufferedReader(ir);
 			System.out.println(br);
-				//br = new BufferedReader(new InputStreamReader(new FileInputStream(
-					//	new File(filename)), "UTF-8"), 1024 * 1024 * 512);
-			
+			// br = new BufferedReader(new InputStreamReader(new
+			// FileInputStream(
+			// new File(filename)), "UTF-8"), 1024 * 1024 * 512);
+
 			System.out.println("hi");
 			String line;
 			while ((line = br.readLine()) != null && line.trim().length() > 0) {
@@ -303,15 +294,16 @@ public class Util {
 
 	}
 
-	public static void populateProcessedWFMSet(String filename,Set<String> processedWFMset) {
+	public static void populateProcessedWFMSet(String filename,
+			Set<String> processedWFMset) {
 		BufferedReader br = null;
 		File f = new File(filename);
-		System.out.println("file is "+ f);
+		System.out.println("file is " + f);
 		FileInputStream fis;
 		try {
 			fis = new FileInputStream(f);
 			System.out.println(fis);
-			InputStreamReader ir = new InputStreamReader(fis,"UTF-8");
+			InputStreamReader ir = new InputStreamReader(fis, "UTF-8");
 			System.out.println(ir);
 			br = new BufferedReader(ir);
 			String line;

@@ -163,6 +163,21 @@ public class CodeIndexer {
             e.printStackTrace();
         }
     }
+    
+    public void indexGtpmEntry(String line) {
+        Document document = this.prepareDocumentForGTPMIndex(line);
+        try {
+        	if(null!=document){
+        		this.indexWriter.addDocument(document);
+        	}
+        } catch (IOException e) {
+            System.out
+                    .println("EXCEPTION caught while indexing document for gtpm entry "
+                            + line);
+            e.printStackTrace();
+        }
+    }
+    
 
     private Document prepareDocumentForFwdIndex(Bag bag) {
         Document document = new Document();
@@ -179,6 +194,21 @@ public class CodeIndexer {
         document.add(strField);
         System.out.println("fwdindex: document added");
         return document;
+    }
+    
+    private Document prepareDocumentForGTPMIndex(String line) {
+        Document document = new Document();
+        String[] keyValPair = line.split(":");
+        if(keyValPair.length==2){
+        	TextField textField  = new TextField("key", keyValPair[0] + "",Field.Store.NO);
+            document.add(textField);
+            StoredField strField = new StoredField("position", keyValPair[1]);
+            document.add(strField);
+            System.out.println("gtpm: document added");
+            return document;
+        }
+        return null;
+        
     }
 
     private Document prepareDocument(Bag bag, boolean isPrefixIndex) {

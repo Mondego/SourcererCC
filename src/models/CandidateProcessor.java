@@ -44,10 +44,10 @@ public class CandidateProcessor implements IListener, Runnable {
 				doc = SearchManager.searcher.getDocument(entry.getKey());
 				CandidateSimInfo simInfo = entry.getValue();
 				long candidateId = Long.parseLong(doc.get("id"));
-				long functionIdCandidate = Long
-						.parseLong(doc.get("functionId"));
-				if ((candidateId <= queryBlock.getId())
-					 || (functionIdCandidate == queryBlock.getFunctionId())) {
+				//long functionIdCandidate = Long
+					//	.parseLong(doc.get("functionId"));
+				if ((candidateId <= queryBlock.getId())){
+					 //|| (functionIdCandidate == queryBlock.getFunctionId())) {
 					continue; // we reject the candidate
 				}
 				int newCt = -1;

@@ -2,8 +2,11 @@ package indexbased;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.HashMap;
@@ -13,10 +16,22 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+
 import models.Bag;
 import noindex.CloneHelper;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.TieredMergePolicy;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
 
 import utility.Util;
 
@@ -86,19 +101,21 @@ public class TermSorter {
 		File gtpmFile = new File(Util.GTPM_DIR + "/gtpm.json");
 		if (gtpmFile.exists()) {
 			System.out.println("GTPM file exists, reading from file");
+			this.indexGPTM(gtpmFile);
+			/*
 			TermSorter.globalTokenPositionMap = Util
 					.readMapFromFile(Util.GTPM_DIR + "/gtpm.json");
 			System.out.println("search size of GTPM: "
-					+ TermSorter.globalTokenPositionMap.size());
+					+ TermSorter.globalTokenPositionMap.size());*/
 			return;
 		} else {
 			System.out
 					.println("GTPM files doesn't exist. reading from wfm files");
 			File currentDir = new File(System.getProperty("user.dir"));
-			
+
 			this.populateGlobalWordFreqMapIttrative(currentDir);
 			System.out.println("sorting globalWordFreqMap to creat GTPM");
-			
+
 			Map<String, Long> sortedMap = ImmutableSortedMap
 					.copyOf(SearchManager.globalWordFreqMap,
 							Ordering.natural()
@@ -116,8 +133,56 @@ public class TermSorter {
 			Util.createDirs(Util.GTPM_DIR);
 			Util.writeMapToFile(Util.GTPM_DIR + "/gtpm.json",
 					TermSorter.globalTokenPositionMap);
+			this.indexGPTM(gtpmFile);
+			TermSorter.globalTokenPositionMap=null;
 			SearchManager.globalWordFreqMap = null;
 			sortedMap = null;
+		}
+	}
+
+	private void indexGPTM(File gtpmFile) {
+		KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
+		IndexWriterConfig gtpmIndexWriterConfig = new IndexWriterConfig(
+				Version.LUCENE_46, keywordAnalyzer);
+		TieredMergePolicy mergePolicy = (TieredMergePolicy) gtpmIndexWriterConfig
+				.getMergePolicy();
+		mergePolicy.setNoCFSRatio(0);// what was this for?
+		mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
+		gtpmIndexWriterConfig.setOpenMode(OpenMode.CREATE);
+		gtpmIndexWriterConfig.setRAMBufferSizeMB(1024);
+		IndexWriter gtpmIndexWriter = null;
+		CodeIndexer gtpmIndexer = null;
+		try {
+			gtpmIndexWriter = new IndexWriter(FSDirectory.open(new File(
+					Util.GTPM_INDEX_DIR)), gtpmIndexWriterConfig);
+			gtpmIndexer = new CodeIndexer(Util.GTPM_INDEX_DIR, gtpmIndexWriter,
+					cloneHelper, SearchManager.th);
+
+			BufferedReader br = null;
+			try {
+				br = new BufferedReader(new InputStreamReader(
+						new FileInputStream(gtpmFile), "UTF-8"));
+				String line;
+				while ((line = br.readLine()) != null
+						&& line.trim().length() > 0) {
+					gtpmIndexer.indexGtpmEntry(line);
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e) {
+			System.out.println(e.getMessage() + ", exiting now.");
+			System.exit(1);
+		} finally {
+			gtpmIndexer.closeIndexWriter();
 		}
 	}
 
@@ -139,7 +204,8 @@ public class TermSorter {
 		System.out.println("current Dir: " + root.getName());
 		Set<String> processedWFMset = new HashSet<String>();
 		Util.populateProcessedWFMSet(processedWFMFilename, processedWFMset);
-		System.out.println("size of populateProcessedWFMSet "+ processedWFMset.size());
+		System.out.println("size of populateProcessedWFMSet "
+				+ processedWFMset.size());
 		Stack<File> fileStack = new Stack<File>();
 		fileStack.push(root);
 		while (!fileStack.isEmpty()) {
@@ -150,7 +216,8 @@ public class TermSorter {
 							"wfm")) {
 						if (processedWFMset
 								.contains(currFile.getAbsolutePath())) {
-							System.out.println("ignore wfm file, "+ currFile.getAbsolutePath());
+							System.out.println("ignore wfm file, "
+									+ currFile.getAbsolutePath());
 							continue;
 						}
 						System.out
@@ -173,7 +240,8 @@ public class TermSorter {
 						}
 						Util.writeMapToFile("temp_gwfm.txt",
 								SearchManager.globalWordFreqMap);
-						System.out.println("writing to processedWFMfilesWriter");
+						System.out
+								.println("writing to processedWFMfilesWriter");
 						Util.writeToFile(processedWFMfilesWriter,
 								currFile.getAbsolutePath(), true);
 						try {
@@ -188,7 +256,7 @@ public class TermSorter {
 						fileStack.push(currFile);
 					}
 				}
-				
+
 			}
 		}
 		Util.closeOutputFile(processedWFMfilesWriter);

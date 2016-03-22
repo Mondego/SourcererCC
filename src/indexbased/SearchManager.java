@@ -40,7 +40,6 @@ import models.TokenInfo;
 import net.jmatrix.eproperties.EProperties;
 import noindex.CloneHelper;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexWriter;
@@ -61,6 +60,7 @@ public class SearchManager {
 	private static long clonePairsCount;
 	public static CodeSearcher searcher;
 	public static CodeSearcher fwdSearcher;
+	public static CodeSearcher gtpmSearcher;
 	private CloneHelper cloneHelper;
 	public static String QUERY_DIR_PATH;
 	public static String DATASET_DIR;
@@ -87,7 +87,6 @@ public class SearchManager {
 	private String action;
 	private boolean appendToExistingFile;
 	TestGson testGson;
-	private Writer cloneSiblingCountWriter;
 	public static final Integer MUL_FACTOR = 100;
 	private static final String ACTION_INIT = "init";
 	int deletemeCounter = 0;
@@ -144,8 +143,8 @@ public class SearchManager {
 			this.qcq_size = Integer.parseInt(args[7]);
 			this.vcq_size = Integer.parseInt(args[8]);
 			this.rcq_size = Integer.parseInt(args[9]);
-			this.min_tokens = Integer.parseInt(args[10]);
-			this.max_tokens = Integer.parseInt(args[11]);
+			SearchManager.min_tokens = Integer.parseInt(args[10]);
+			SearchManager.max_tokens = Integer.parseInt(args[11]);
 		} catch (NumberFormatException e) {
 			System.out.println(e.getMessage() + ", exiting now");
 			System.exit(1);
@@ -303,13 +302,8 @@ public class SearchManager {
 			searchManager.timeSearch = System.currentTimeMillis()
 					- timeStartSearch;
 		} else if (searchManager.action.equalsIgnoreCase(ACTION_INIT)) {
-
-		//	long timeGlobalPositionStart = System.currentTimeMillis();
 			TermSorter termSorter = new TermSorter();
 			termSorter.populateLocalWordFreqMap();
-			//termSorter.populateGlobalPositionMap();
-			//searchManager.timeGlobalTokenPositionCreation = System.currentTimeMillis()
-				//	- timeGlobalPositionStart;
 		}
 		long end_time = System.currentTimeMillis();
 		Calendar cal = Calendar.getInstance();
@@ -324,10 +318,6 @@ public class SearchManager {
 		} catch (DatatypeConfigurationException e1) {
 			e1.printStackTrace();
 		}
-		/*
-		 * System.out.println( "total run time: " + cal.get(Calendar.HOUR)+
-		 * "::"+ cal.get(Calendar.MINUTE)+ "::"+ cal.get(Calendar.SECOND));
-		 */
 		System.out.println("number of clone pairs detected: "
 				+ SearchManager.clonePairsCount);
 		searchManager.timeTotal = end_time - start_time;
@@ -343,11 +333,6 @@ public class SearchManager {
 	private void initIndexEnv() throws IOException, ParseException {
 		TermSorter termSorter = new TermSorter();
 		long timeGlobalPositionStart = System.currentTimeMillis();
-		/*
-		 * try { FileUtils.deleteDirectory(new
-		 * File(SearchManager.GTPM_DIR_PATH)); } catch (IOException e) {
-		 * e.printStackTrace(); } Util.createDirs(SearchManager.GTPM_DIR_PATH);
-		 */
 		termSorter.populateGlobalPositionMap();
 		this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
 				- timeGlobalPositionStart;
@@ -376,7 +361,6 @@ public class SearchManager {
 		} else {
 			header += this.action;
 		}
-
 		Util.writeToFile(this.outputWriter, header, true);
 	}
 
@@ -584,18 +568,19 @@ public class SearchManager {
 							}
 							SearchManager.queryBlockQueue.put(queryBlock);
 						} catch (ParseException e) {
-							System.out.println("catching parseException, dont worry");
+							System.out
+									.println("catching parseException, dont worry");
 							System.out
 									.println(e.getMessage()
 											+ " skiping this query block, parse exception: "
 											+ line);
-							//e.printStackTrace();
+							// e.printStackTrace();
 						} catch (IllegalArgumentException e) {
 							System.out
 									.println(e.getMessage()
 											+ " skiping this query block, illegal args: "
 											+ line);
-							//e.printStackTrace();
+							// e.printStackTrace();
 						}
 					}
 				} catch (IOException e) {
@@ -620,37 +605,34 @@ public class SearchManager {
 		// validation only.
 		// testGson.populateMap(); // this is for validation only, remove this
 		// line.
-		Util.createDirs(SearchManager.OUTPUT_DIR + SearchManager.th
-				/ SearchManager.MUL_FACTOR + "/cloneGroups/");
-		try {
-			this.cloneSiblingCountWriter = Util.openFile(
-					SearchManager.OUTPUT_DIR + SearchManager.th
-							/ SearchManager.MUL_FACTOR
-							+ "/cloneGroups/siblings_count.csv", false);
-			Util.writeToFile(this.cloneSiblingCountWriter,
-					"query_block_id,siblings", true);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		TermSorter termSorter = new TermSorter();
-		try {
-
-			long timeGlobalPositionStart = System.currentTimeMillis();
-			termSorter.populateLocalWordFreqMap();
-			termSorter.populateGlobalPositionMap();
-			this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
-					- timeGlobalPositionStart;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
-			System.out.println("Error in Parsing: " + e.getMessage());
-			e.printStackTrace();
-		}
+		/*
+		 * Util.createDirs(SearchManager.OUTPUT_DIR + SearchManager.th /
+		 * SearchManager.MUL_FACTOR + "/cloneGroups/"); try {
+		 * this.cloneSiblingCountWriter = Util.openFile(
+		 * SearchManager.OUTPUT_DIR + SearchManager.th /
+		 * SearchManager.MUL_FACTOR + "/cloneGroups/siblings_count.csv", false);
+		 * Util.writeToFile(this.cloneSiblingCountWriter,
+		 * "query_block_id,siblings", true); } catch (IOException e1) {
+		 * e1.printStackTrace(); } TermSorter termSorter = new TermSorter(); try
+		 * {
+		 * 
+		 * long timeGlobalPositionStart = System.currentTimeMillis();
+		 * termSorter.populateLocalWordFreqMap();
+		 * termSorter.populateGlobalPositionMap();
+		 * this.timeGlobalTokenPositionCreation = System.currentTimeMillis() -
+		 * timeGlobalPositionStart; } catch (IOException e) {
+		 * e.printStackTrace(); } catch (ParseException e) {
+		 * System.out.println("Error in Parsing: " + e.getMessage());
+		 * e.printStackTrace(); }
+		 */
 		SearchManager.fwdSearcher = new CodeSearcher(Util.FWD_INDEX_DIR, "id"); // searches
 																				// on
 																				// fwd
 																				// index
 		SearchManager.searcher = new CodeSearcher(Util.INDEX_DIR, "tokens");
+		
+		SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR, "key");
+		
 
 	}
 
@@ -696,15 +678,13 @@ public class SearchManager {
 								Entry<String, TokenInfo> tfSecond) {
 							long position1 = 0;
 							try {
-								position1 = TermSorter.globalTokenPositionMap
-										.get(tfFirst.getKey());
+								position1 = SearchManager.gtpmSearcher.getPosition(tfFirst.getKey());
 							} catch (Exception e) {
 								position1 = -1;
 							}
 							long position2 = 0;
 							try {
-								position2 = TermSorter.globalTokenPositionMap
-										.get(tfSecond.getKey());
+								position2 = SearchManager.gtpmSearcher.getPosition(tfSecond.getKey());
 							} catch (Exception e) {
 								position2 = -1;
 							}
