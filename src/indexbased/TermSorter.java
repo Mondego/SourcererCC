@@ -6,19 +6,21 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Stack;
 
-import org.apache.commons.io.FileUtils;
+import models.Bag;
+import noindex.CloneHelper;
+
 import org.apache.commons.io.FilenameUtils;
+
+import utility.Util;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
-
-import models.Bag;
-import noindex.CloneHelper;
-import utility.Util;
 
 /**
  * for every project's input file (one file is one project) read all lines for
@@ -92,7 +94,7 @@ public class TermSorter {
 					.println("GTPM files doesn't exist. reading from wfm files");
 			File currentDir = new File(System.getProperty("user.dir"));
 
-			this.populateGlobalWordFreqMapReccursive(currentDir);
+			this.populateGlobalWordFreqMapIttrative(currentDir);
 			Map<String, Long> sortedMap = ImmutableSortedMap
 					.copyOf(SearchManager.globalWordFreqMap,
 							Ordering.natural()
@@ -115,36 +117,41 @@ public class TermSorter {
 		}
 	}
 
-	private void populateGlobalWordFreqMapReccursive(File root) {
+	private void populateGlobalWordFreqMapIttrative(File root) {
 		System.out.println("current Dir: " + root.getName());
-		File[] files = root.listFiles();
-		for (File currFile : files) {
-			if (currFile.isFile()) {
-				if (FilenameUtils.getExtension(currFile.getName())
-						.equals("wfm")) {
-					System.out
-							.println("populating globalWordFreqMap, reading file: "
-									+ currFile.getAbsolutePath());
-					Map<String, Long> wordFreqMap = Util
-							.readMapFromFile(currFile.getAbsolutePath());
-					for (Entry<String, Long> entry : wordFreqMap.entrySet()) {
+		
+		Stack<File> fileStack = new Stack<File>();
+		fileStack.push(root);
+		while(!fileStack.isEmpty()){
+			File[] files = fileStack.pop().listFiles();
+			for (File currFile : files) {
+				if (currFile.isFile()) {
+					if (FilenameUtils.getExtension(currFile.getName())
+							.equals("wfm")) {
+						System.out
+								.println("populating globalWordFreqMap, reading file: "
+										+ currFile.getAbsolutePath());
+						Map<String, Long> wordFreqMap = Util
+								.readMapFromFile(currFile.getAbsolutePath());
+						for (Entry<String, Long> entry : wordFreqMap.entrySet()) {
 
-						long value = 0;
-						if (SearchManager.globalWordFreqMap.containsKey(entry
-								.getKey())) {
-							value = SearchManager.globalWordFreqMap.get(entry
-									.getKey()) + entry.getValue();
-						} else {
-							value = entry.getValue();
+							long value = 0;
+							if (SearchManager.globalWordFreqMap.containsKey(entry
+									.getKey())) {
+								value = SearchManager.globalWordFreqMap.get(entry
+										.getKey()) + entry.getValue();
+							} else {
+								value = entry.getValue();
+							}
+							SearchManager.globalWordFreqMap.put(entry.getKey(),
+									value);
 						}
-						SearchManager.globalWordFreqMap.put(entry.getKey(),
-								value);
 					}
-				}
-			} else if (currFile.isDirectory()) {
-				if (currFile.getName().contains("NODE_")
-						|| currFile.getName().contains("gtpm")) {
-					this.populateGlobalWordFreqMapReccursive(currFile);
+				} else if (currFile.isDirectory()) {
+					if (currFile.getName().contains("NODE_")
+							|| currFile.getName().contains("gtpm")) {
+						fileStack.push(currFile);
+					}
 				}
 			}
 		}
@@ -176,8 +183,9 @@ public class TermSorter {
 									+ ", size: " + bag.getSize());
 				}
 			}
-			System.out.println(SearchManager.NODE_PREFIX +" , GTPM line_number: " + lineNumber);
 			lineNumber++;
+			System.out.println(SearchManager.NODE_PREFIX +" , GTPM line_number: " + lineNumber);
+			
 		}
 		br.close();
 	}
