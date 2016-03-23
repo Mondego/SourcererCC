@@ -43,8 +43,10 @@ public class Util {
 	static Random rand = new Random(5);
 	public static final String CSV_DELIMITER = "~";
 	public static final String INDEX_DIR = "index";
+	public static final String INDEX_DIR_TEMP = "index_temp";
 	public static final String GTPM_DIR = "gtpm";
 	public static final String FWD_INDEX_DIR = "fwdindex";
+	public static final String FWD_INDEX_DIR_TEMP = "fwdindex_temp";
 	public static final String GTPM_INDEX_DIR = "gtpmindex";
 	public static final String INDEX_DIR_NO_FILTER = "index_nofilter";
 

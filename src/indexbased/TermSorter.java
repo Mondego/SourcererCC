@@ -103,10 +103,11 @@ public class TermSorter {
 			System.out.println("GTPM file exists, reading from file");
 			this.indexGPTM(gtpmFile);
 			/*
-			TermSorter.globalTokenPositionMap = Util
-					.readMapFromFile(Util.GTPM_DIR + "/gtpm.json");
-			System.out.println("search size of GTPM: "
-					+ TermSorter.globalTokenPositionMap.size());*/
+			 * TermSorter.globalTokenPositionMap = Util
+			 * .readMapFromFile(Util.GTPM_DIR + "/gtpm.json");
+			 * System.out.println("search size of GTPM: " +
+			 * TermSorter.globalTokenPositionMap.size());
+			 */
 			return;
 		} else {
 			System.out
@@ -134,7 +135,7 @@ public class TermSorter {
 			Util.writeMapToFile(Util.GTPM_DIR + "/gtpm.json",
 					TermSorter.globalTokenPositionMap);
 			this.indexGPTM(gtpmFile);
-			TermSorter.globalTokenPositionMap=null;
+			TermSorter.globalTokenPositionMap = null;
 			SearchManager.globalWordFreqMap = null;
 			sortedMap = null;
 		}
@@ -155,11 +156,10 @@ public class TermSorter {
 		try {
 			gtpmIndexWriter = new IndexWriter(FSDirectory.open(new File(
 					Util.GTPM_INDEX_DIR)), gtpmIndexWriterConfig);
-			gtpmIndexer = new CodeIndexer(Util.GTPM_INDEX_DIR, gtpmIndexWriter,
-					cloneHelper, SearchManager.th);
+			gtpmIndexer = new CodeIndexer(gtpmIndexWriter);
 
 			BufferedReader br = null;
-			int count=0;
+			int count = 0;
 			try {
 				br = new BufferedReader(new InputStreamReader(
 						new FileInputStream(gtpmFile), "UTF-8"));
@@ -168,7 +168,7 @@ public class TermSorter {
 						&& line.trim().length() > 0) {
 					gtpmIndexer.indexGtpmEntry(line);
 					count++;
-					System.out.println("gtpm entries indexed: "+ count);
+					System.out.println("gtpm entries indexed: " + count);
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
