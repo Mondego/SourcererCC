@@ -384,6 +384,26 @@ public class SearchManager {
 			searchManager.initIndexEnv();
 			long begin_time = System.currentTimeMillis();
 			searchManager.doIndex();
+			
+			System.out.println("attempting to shutdown Qs");
+			while (true) {
+				if (SearchManager.bagsToSortQueue.size() == 0
+						&& SearchManager.bagsToInvertedIndexQueue.size() == 0
+						&& SearchManager.bagsToForwardIndexQueue.size() == 0) {
+					System.out.println("shutting down BTSQ, "
+							+ (System.currentTimeMillis()));
+					SearchManager.bagsToSortQueue.shutdown();
+					System.out.println("shutting down BTIIQ, "
+							+ System.currentTimeMillis());
+					SearchManager.bagsToInvertedIndexQueue.shutdown();
+					System.out.println("shutting down BTFIQ, "
+							+ System.currentTimeMillis());
+					SearchManager.bagsToForwardIndexQueue.shutdown();
+					break;
+				} else {
+					Thread.sleep(2 * 1000);
+				}
+			}
 			for (IListener listener : SearchManager.bagsToInvertedIndexQueue
 					.getListeners()) {
 				InvertedIndexCreator indexCreator = (InvertedIndexCreator) listener;
@@ -408,25 +428,6 @@ public class SearchManager {
 			System.out.println("merging indexes");
 			searchManager.mergeindexes();
 			System.out.println("merge done");
-			System.out.println("attempting to shutdown Qs");
-			while (true) {
-				if (SearchManager.bagsToSortQueue.size() == 0
-						&& SearchManager.bagsToInvertedIndexQueue.size() == 0
-						&& SearchManager.bagsToForwardIndexQueue.size() == 0) {
-					System.out.println("shutting down BTSQ, "
-							+ (System.currentTimeMillis()));
-					SearchManager.bagsToSortQueue.shutdown();
-					System.out.println("shutting down BTIIQ, "
-							+ System.currentTimeMillis());
-					SearchManager.bagsToInvertedIndexQueue.shutdown();
-					System.out.println("shutting down BTFIQ, "
-							+ System.currentTimeMillis());
-					SearchManager.bagsToForwardIndexQueue.shutdown();
-					break;
-				} else {
-					Thread.sleep(2 * 1000);
-				}
-			}
 			System.out.println("indexing over!");
 			searchManager.timeIndexing = System.currentTimeMillis()
 					- begin_time;
