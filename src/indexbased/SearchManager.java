@@ -316,7 +316,7 @@ public class SearchManager {
 		fis = new FileInputStream(propertiesPath);
 		try {
 			properties.load(fis);
-			String[] params = new String[12];
+			String[] params = new String[18];
 			params[0] = args[0];
 			params[1] = args[1];
 			params[2] = properties.getProperty("QBQ_THREADS");
