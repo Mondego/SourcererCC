@@ -567,7 +567,7 @@ public class SearchManager {
             InterruptedException {
         File datasetDir = new File(SearchManager.DATASET_DIR);
         if (datasetDir.isDirectory()) {
-            System.out.println("Directory: " + datasetDir.getName());
+            System.out.println("Directory: " + this.getQueryDirectory().getName());
             BufferedReader br = null;
             for (File inputFile : datasetDir.listFiles()) {
                 try {
