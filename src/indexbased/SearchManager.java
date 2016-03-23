@@ -502,9 +502,15 @@ public class SearchManager {
 				e.printStackTrace();
 			}
 		}
+		
+		KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
+		IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
+				Version.LUCENE_46, keywordAnalyzer);
+		fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
 		try {
+			
 			FSDirectory dir = FSDirectory.open(new File(Util.FWD_INDEX_DIR));
-			indexWriter = new IndexWriter(dir, indexWriterConfig);
+			indexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
 			FSDirectory[] dirs = this.forwardIndexDirectories
 					.toArray(new FSDirectory[this.forwardIndexDirectories
 							.size()]);
