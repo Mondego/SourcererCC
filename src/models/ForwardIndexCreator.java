@@ -30,7 +30,7 @@ public class ForwardIndexCreator  implements IListener, Runnable {
 
 	private void index(Bag bag) throws InterruptedException {
 		this.indexer.fwdIndexCodeBlock(bag);
-		System.out.println("Bag indexed: "+ bag.getFunctionId()+", "+ bag.getId() + ", size: "+ bag.getSize());
+		System.out.println(SearchManager.NODE_PREFIX +", lines processed: "+ SearchManager.statusCounter+", Bag indexed: "+ bag.getFunctionId()+", "+ bag.getId() + ", size: "+ bag.getSize() + "");
 	}
 
 

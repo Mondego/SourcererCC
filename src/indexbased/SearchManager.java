@@ -147,7 +147,7 @@ public class SearchManager {
 		SearchManager.numCandidates = 0;
 		this.timeTotal = 0;
 		this.appendToExistingFile = true;
-		this.ramBufferSizeMB = 512 * 1;
+		this.ramBufferSizeMB = 256;
 		this.bagsSortTime = 0;
 		this.action = args[0];
 		SearchManager.statusCounter = 0;
@@ -270,6 +270,7 @@ public class SearchManager {
 				IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
 						Version.LUCENE_46, whitespaceAnalyzer);
 				indexWriterConfig.setOpenMode(OpenMode.CREATE);
+				indexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
 				IndexWriter indexWriter = null;
 				try {
 					FSDirectory dir = FSDirectory.open(new File(
@@ -289,6 +290,7 @@ public class SearchManager {
 				IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
 						Version.LUCENE_46, keywordAnalyzer);
 				fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
+				fwdIndexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
 				IndexWriter fwdIndexWriter = null;
 				try {
 					FSDirectory dir = FSDirectory.open(new File(
@@ -584,10 +586,10 @@ public class SearchManager {
 								|| bag.size() > SearchManager.max_tokens) {
 							if (null == bag) {
 								System.out
-										.println("empty bag, ignoring. statusCounter= "
+										.println(SearchManager.NODE_PREFIX+ "empty bag, ignoring. statusCounter= "
 												+ SearchManager.statusCounter);
 							} else {
-								System.out.println("ignoring file, "
+								System.out.println(SearchManager.NODE_PREFIX+ "ignoring file, "
 										+ bag.getFunctionId() + ", "
 										+ bag.getId() + ", size is: "
 										+ bag.getSize() + ", statusCounter= "

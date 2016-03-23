@@ -83,14 +83,14 @@ public class CodeIndexer {
 				Field.Store.NO);
 		document.add(textField);
 		String tokenString = "";
-		System.out.println("fwdindex: creating tokenString ");
+		System.out.println(SearchManager.NODE_PREFIX+ "fwdindex: creating tokenString ");
 		for (TokenFrequency tf : bag) {
 			// System.out.println(tf.getToken().getValue() +
 			// ":"+tf.getFrequency());
 			tokenString += tf.getToken().getValue() + ":" + tf.getFrequency()
 					+ "::";
 		}
-		System.out.println("fwdindex:  tokenString created ");
+		System.out.println(SearchManager.NODE_PREFIX+ ", fwdindex:  tokenString created ");
 		StoredField strField = new StoredField("tokens", tokenString.trim());
 		document.add(strField);
 		System.out.println("fwdindex: document added");
@@ -144,12 +144,12 @@ public class CodeIndexer {
 				break;
 			}
 		}
-		System.out.println("inverted index: tokenString created");
+		System.out.println(SearchManager.NODE_PREFIX+ "inverted index: tokenString created");
 		@SuppressWarnings("deprecation")
 		Field field = new Field("tokens", tokenString.trim(), Field.Store.NO,
 				Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS);
 		document.add(field);
-		System.out.println("inverted index: document added");
+		System.out.println(SearchManager.NODE_PREFIX+ "inverted index: document added");
 		return document;
 	}
 
