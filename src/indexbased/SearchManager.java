@@ -329,14 +329,14 @@ public class SearchManager {
 			params[9] = properties.getProperty("RCQ_SIZE");
 			params[10] = properties.getProperty("MIN_TOKENS");
 			params[11] = properties.getProperty("MAX_TOKENS");
-			
+
 			params[12] = properties.getProperty("BTSQ_THREADS");
 			params[13] = properties.getProperty("BTIIQ_THREADS");
 			params[14] = properties.getProperty("BTFIQ_THREADS");
 			params[15] = properties.getProperty("BTSQ_SIZE");
 			params[16] = properties.getProperty("BTIIQ_SIZE");
 			params[17] = properties.getProperty("BTFIQ_SIZE");
-			
+
 			searchManager = new SearchManager(params);
 		} catch (IOException e) {
 			System.out.println("ERROR READING PROPERTIES FILE, "
@@ -405,7 +405,28 @@ public class SearchManager {
 					e.printStackTrace();
 				}
 			}
+			System.out.println("merging indexes");
 			searchManager.mergeindexes();
+			System.out.println("merge done");
+			System.out.println("attempting to shutdown Qs");
+			while (true) {
+				if (SearchManager.bagsToSortQueue.size() == 0
+						&& SearchManager.bagsToInvertedIndexQueue.size() == 0
+						&& SearchManager.bagsToForwardIndexQueue.size() == 0) {
+					System.out.println("shutting down BTSQ, "
+							+ (System.currentTimeMillis()));
+					SearchManager.bagsToSortQueue.shutdown();
+					System.out.println("shutting down BTIIQ, "
+							+ System.currentTimeMillis());
+					SearchManager.bagsToInvertedIndexQueue.shutdown();
+					System.out.println("shutting down BTFIQ, "
+							+ System.currentTimeMillis());
+					SearchManager.bagsToForwardIndexQueue.shutdown();
+					break;
+				} else {
+					Thread.sleep(2 * 1000);
+				}
+			}
 			System.out.println("indexing over!");
 			searchManager.timeIndexing = System.currentTimeMillis()
 					- begin_time;
