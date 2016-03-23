@@ -529,10 +529,11 @@ public class SearchManager {
 
 	private void initIndexEnv() throws IOException, ParseException {
 		TermSorter termSorter = new TermSorter();
-		SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
-				"key");
+		
 		long timeGlobalPositionStart = System.currentTimeMillis();
 		termSorter.populateGlobalPositionMap();
+		SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
+				"key");
 		this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
 				- timeGlobalPositionStart;
 	}
