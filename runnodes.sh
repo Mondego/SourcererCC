@@ -15,7 +15,7 @@ done
 
 for i in $(seq 1 1 $num_nodes)
 do
-    java -Dproperties.location="$rootPATH/NODE_$i/sourcerer-cc.properties" -Xms256m -Xmx2g  -jar dist/indexbased.SearchManager.jar index $threshold
+    java -Dproperties.location="$rootPATH/NODE_$i/sourcerer-cc.properties" -Xms256m -Xmx2g  -jar dist/indexbased.SearchManager.jar index $threshold &
 done
 
 for i in $(seq 1 1 $num_nodes)
