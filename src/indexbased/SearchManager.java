@@ -48,7 +48,6 @@ import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
@@ -109,6 +108,7 @@ public class SearchManager {
 	private final static int FORWARD_INDEX_CREATOR = 3;
 	private List<FSDirectory> invertedIndexDirectories;
 	private List<FSDirectory> forwardIndexDirectories;
+	private List<IndexWriter> indexerWriters;
 
 	public static Object lock = new Object();
 	private int qbq_thread_count;
@@ -207,6 +207,7 @@ public class SearchManager {
 		} else if (this.action.equals(ACTION_INDEX)) {
 			invertedIndexDirectories = new ArrayList<FSDirectory>();
 			forwardIndexDirectories = new ArrayList<FSDirectory>();
+			indexerWriters = new ArrayList<IndexWriter>();
 			System.out.println("acton: " + this.action + System.lineSeparator()
 					+ "threshold: " + args[1] + System.lineSeparator()
 					+ "BQ_THREADS: " + this.threadsToProcessBagsToSortQueue
@@ -277,6 +278,7 @@ public class SearchManager {
 					indexWriter = new IndexWriter(dir, indexWriterConfig);
 					listener = new InvertedIndexCreator(new CodeIndexer(
 							indexWriter));
+					indexerWriters.add(indexWriter);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -295,6 +297,7 @@ public class SearchManager {
 					fwdIndexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
 					listener = new ForwardIndexCreator(new CodeIndexer(
 							fwdIndexWriter));
+					indexerWriters.add(fwdIndexWriter);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -404,23 +407,10 @@ public class SearchManager {
 					Thread.sleep(2 * 1000);
 				}
 			}
-			for (IListener listener : SearchManager.bagsToInvertedIndexQueue
-					.getListeners()) {
-				InvertedIndexCreator indexCreator = (InvertedIndexCreator) listener;
-				CodeIndexer indexer = indexCreator.getIndexer();
+			
+			for(IndexWriter writer : searchManager.indexerWriters){
 				try {
-					indexer.getIndexWriter().close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-			}
-			for (IListener listener : SearchManager.bagsToForwardIndexQueue
-					.getListeners()) {
-				InvertedIndexCreator indexCreator = (InvertedIndexCreator) listener;
-				CodeIndexer indexer = indexCreator.getIndexer();
-				try {
-					indexer.getIndexWriter().close();
+					writer.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
