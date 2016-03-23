@@ -224,16 +224,6 @@ public class SearchManager {
                     this.threadToProcessIIQueue, this.sizeBagsToIIQ);
             SearchManager.bagsToForwardIndexQueue = new Queue<Bag>(
                     this.threadsToProcessFIQueue, this.sizeBagsToFIQ);
-
-            this.registerListenersForIndex(
-                    this.threadsToProcessBagsToSortQueue,
-                    SearchManager.bagsToSortQueue, BAG_SORTER);
-            this.registerListenersForIndex(this.threadToProcessIIQueue,
-                    SearchManager.bagsToInvertedIndexQueue,
-                    INVERTED_INDEX_CREATOR);
-            this.registerListenersForIndex(this.threadsToProcessFIQueue,
-                    SearchManager.bagsToForwardIndexQueue,
-                    FORWARD_INDEX_CREATOR);
         }
 
     }
@@ -340,13 +330,6 @@ public class SearchManager {
             params[16] = properties.getProperty("BTIIQ_SIZE");
             params[17] = properties.getProperty("BTFIQ_SIZE");
 
-            searchManager = new SearchManager(params);
-        } catch (IOException e) {
-            System.out.println("ERROR READING PROPERTIES FILE, "
-                    + e.getMessage());
-            System.exit(1);
-        } finally {
-
             SearchManager.DATASET_DIR = properties
                     .getProperty("DATASET_DIR_PATH");
             SearchManager.isGenCandidateStats = Boolean.parseBoolean(properties
@@ -367,6 +350,12 @@ public class SearchManager {
 
             SearchManager.GTPM_DIR_PATH = properties
                     .getProperty("GTPM_DIR_PATH");
+            searchManager = new SearchManager(params);
+        } catch (IOException e) {
+            System.out.println("ERROR READING PROPERTIES FILE, "
+                    + e.getMessage());
+            System.exit(1);
+        } finally {
             if (null != fis) {
                 fis.close();
             }
