@@ -147,7 +147,7 @@ public class SearchManager {
         SearchManager.numCandidates = 0;
         this.timeTotal = 0;
         this.appendToExistingFile = true;
-        this.ramBufferSizeMB = 512 * 1;
+        this.ramBufferSizeMB = 1024 * 1;
         this.bagsSortTime = 0;
         this.action = args[0];
         SearchManager.statusCounter = 0;
@@ -269,6 +269,7 @@ public class SearchManager {
                         Version.LUCENE_46);
                 IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
                         Version.LUCENE_46, whitespaceAnalyzer);
+                indexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
                 indexWriterConfig.setOpenMode(OpenMode.CREATE);
                 IndexWriter indexWriter = null;
                 try {
@@ -288,6 +289,7 @@ public class SearchManager {
                 KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
                 IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
                         Version.LUCENE_46, keywordAnalyzer);
+                fwdIndexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
                 fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
                 IndexWriter fwdIndexWriter = null;
                 try {
@@ -565,9 +567,9 @@ public class SearchManager {
 
     private void doIndex() throws IOException, ParseException,
             InterruptedException {
-        File datasetDir = new File(SearchManager.DATASET_DIR);
+        File datasetDir = this.getQueryDirectory();
         if (datasetDir.isDirectory()) {
-            System.out.println("Directory: " + this.getQueryDirectory().getName());
+            System.out.println("Directory: " + this.getQueryDirectory().getAbsolutePath());
             BufferedReader br = null;
             for (File inputFile : datasetDir.listFiles()) {
                 try {
