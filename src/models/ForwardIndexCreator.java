@@ -16,6 +16,9 @@ public class ForwardIndexCreator implements IListener, Runnable {
     @Override
     public void run() {
         try {
+            /*System.out.println(SearchManager.NODE_PREFIX
+                    + ", size of bagsToForwardIndexQueue "
+                    + SearchManager.bagsToForwardIndexQueue.size());*/
             Bag bag = SearchManager.bagsToForwardIndexQueue.remove();
             this.index(bag);
         } catch (NoSuchElementException e) {
