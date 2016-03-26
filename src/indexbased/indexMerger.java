@@ -6,11 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-
-import models.Bag;
 
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
@@ -19,6 +16,8 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+
+import utility.Util;
 
 public class indexMerger {
     private List<FSDirectory> invertedIndexDirectories;
@@ -36,7 +35,10 @@ public class indexMerger {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(
                     inputFile), "UTF-8"));
             String line;
+            int count =0;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
+                System.out.println(count + ", "+line);
+                count++;
                 String invertedIndexDirPath = line+"/index";
                 String forwardIndexDirPath = line+"/fwd/index";
                 FSDirectory idir = FSDirectory.open(new File(invertedIndexDirPath));
@@ -59,6 +61,7 @@ public class indexMerger {
 
     private void mergeindexes() {
         // TODO Auto-generated method stub
+        System.out.println("mering inverted indexes");
         WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
                 Version.LUCENE_46);
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
@@ -66,7 +69,7 @@ public class indexMerger {
         indexWriterConfig.setOpenMode(OpenMode.CREATE);
         IndexWriter indexWriter = null;
         try {
-            FSDirectory dir = FSDirectory.open(new File("master/index"));
+            FSDirectory dir = FSDirectory.open(new File(Util.INDEX_DIR));
             indexWriter = new IndexWriter(dir, indexWriterConfig);
             FSDirectory[] dirs = this.invertedIndexDirectories
                     .toArray(new FSDirectory[this.invertedIndexDirectories
@@ -81,14 +84,14 @@ public class indexMerger {
                 e.printStackTrace();
             }
         }
-
+        System.out.println("mergin fwd indexes");
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
         IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
                 Version.LUCENE_46, keywordAnalyzer);
         fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
         try {
 
-            FSDirectory dir = FSDirectory.open(new File("master/fwd/index"));
+            FSDirectory dir = FSDirectory.open(new File(Util.FWD_INDEX_DIR));
             indexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
             FSDirectory[] dirs = this.forwardIndexDirectories
                     .toArray(new FSDirectory[this.forwardIndexDirectories
@@ -104,5 +107,14 @@ public class indexMerger {
                 e.printStackTrace();
             }
         }
+    }
+    public static void main(String [] args){
+        indexMerger indexMerger = new indexMerger();
+        String inputFile = "/home/sourcerer/hades/hpc_backup/kmaster";
+        System.out.println("populating index dirs");
+        indexMerger.populateIndeXdirs(inputFile);
+        System.out.println("merging");
+        indexMerger.mergeindexes();
+        System.out.println("done!");
     }
 }
