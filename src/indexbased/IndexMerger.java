@@ -19,11 +19,11 @@ import org.apache.lucene.util.Version;
 
 import utility.Util;
 
-public class indexMerger {
+public class IndexMerger {
     private List<FSDirectory> invertedIndexDirectories;
     private List<FSDirectory> forwardIndexDirectories;
 
-    public indexMerger() {
+    public IndexMerger() {
         super();
         this.invertedIndexDirectories = new ArrayList<FSDirectory>();
         this.forwardIndexDirectories = new ArrayList<FSDirectory>();
@@ -109,7 +109,7 @@ public class indexMerger {
         }
     }
     public static void main(String [] args){
-        indexMerger indexMerger = new indexMerger();
+        IndexMerger indexMerger = new IndexMerger();
         String inputFile = "/home/sourcerer/hades/hpc_backup/kmaster";
         System.out.println("populating index dirs");
         indexMerger.populateIndeXdirs(inputFile);
