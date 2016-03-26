@@ -13,9 +13,10 @@
     <property name="aggregatorClones"  value="postprocessing.Aggregator"/>
 	<property name="clonedMethod"  value="postprocessing.ClonedMethod"/>
 	<property name="fixIdMethodMap"  value="postprocessing.FixIdMethodMap"/>
-	
     <property name="cdIndex"  value="indexbased.SearchManager"/>
-    <property name="lib"  value="lib"/>
+	<property name="indexMerge"  value="indexbased.IndexMerger"/>
+	
+	<property name="lib"  value="lib"/>
     
     <property name="dist.dir" value="dist"/>
 
@@ -122,6 +123,15 @@
 	        </jar>
 	    </target>
 
+	<target name="jarMerge" depends="compile">
+	            <mkdir dir="${jar.dir}"/>
+	            <jar destfile="${jar.dir}/${indexMerge}.jar" basedir="${classes.dir}">
+	                <manifest>
+	                    <attribute name="Main-Class" value="${indexMerge}"/>
+	                </manifest>
+	                <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+	            </jar>
+	        </target>
 	
 <!--     <target name="clean-build" depends="clean,jar"/> -->
     <target name="cdwf" depends="clean,runWF"/>
@@ -133,4 +143,5 @@
     <target name="cdi" depends="jarCDI"/>
 	<target name="cdini" depends="cdboth, cdi"/>
 	<target name="ppm" depends="clean, jarCM, jarFix"/>
+	<target name="cdmerge" depends="jarMerge"/>
 </project>
