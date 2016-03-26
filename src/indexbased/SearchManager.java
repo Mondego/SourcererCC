@@ -77,7 +77,6 @@ public class SearchManager {
     private final static int CLONE_VALIDATOR = 3;
     private final static int CLONE_REPORTER = 4;
 
-    private CodeIndexer indexer;
     private long timeSpentInProcessResult;
     public static long timeSpentInSearchingCandidates;
     private long timeIndexing;
@@ -274,7 +273,7 @@ public class SearchManager {
                 IndexWriter indexWriter = null;
                 try {
                     FSDirectory dir = FSDirectory.open(new File(
-                            this.NODE_PREFIX + "/index/temp/_" + i));
+                            SearchManager.NODE_PREFIX + "/index/temp/_" + i));
                     invertedIndexDirectories.add(dir);
                     indexWriter = new IndexWriter(dir, indexWriterConfig);
                     listener = new InvertedIndexCreator(new CodeIndexer(
@@ -294,7 +293,7 @@ public class SearchManager {
                 IndexWriter fwdIndexWriter = null;
                 try {
                     FSDirectory dir = FSDirectory.open(new File(
-                            this.NODE_PREFIX + "/fwdindex/temp/_" + i));
+                            SearchManager.NODE_PREFIX + "/fwdindex/temp/_" + i));
                     forwardIndexDirectories.add(dir);
                     fwdIndexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
                     listener = new ForwardIndexCreator(new CodeIndexer(
@@ -488,7 +487,7 @@ public class SearchManager {
         indexWriterConfig.setOpenMode(OpenMode.CREATE);
         IndexWriter indexWriter = null;
         try {
-            FSDirectory dir = FSDirectory.open(new File(this.NODE_PREFIX+"/master/index"));
+            FSDirectory dir = FSDirectory.open(new File(SearchManager.NODE_PREFIX+"/master/index"));
             indexWriter = new IndexWriter(dir, indexWriterConfig);
             FSDirectory[] dirs = this.invertedIndexDirectories
                     .toArray(new FSDirectory[this.invertedIndexDirectories
@@ -510,7 +509,7 @@ public class SearchManager {
         fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
         try {
 
-            FSDirectory dir = FSDirectory.open(new File(this.NODE_PREFIX+"/master/fwd/index"));
+            FSDirectory dir = FSDirectory.open(new File(SearchManager.NODE_PREFIX+"/master/fwd/index"));
             indexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
             FSDirectory[] dirs = this.forwardIndexDirectories
                     .toArray(new FSDirectory[this.forwardIndexDirectories
