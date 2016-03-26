@@ -75,6 +75,7 @@ public class IndexMerger {
                     .toArray(new FSDirectory[this.invertedIndexDirectories
                             .size()]);
             indexWriter.addIndexes(dirs);
+            indexWriter.forceMerge(20);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -89,6 +90,7 @@ public class IndexMerger {
         IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
                 Version.LUCENE_46, keywordAnalyzer);
         fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
+        indexWriter = null;
         try {
 
             FSDirectory dir = FSDirectory.open(new File(Util.FWD_INDEX_DIR));
@@ -97,6 +99,7 @@ public class IndexMerger {
                     .toArray(new FSDirectory[this.forwardIndexDirectories
                             .size()]);
             indexWriter.addIndexes(dirs);
+            indexWriter.forceMerge(20);
 
         } catch (Exception e) {
             e.printStackTrace();
