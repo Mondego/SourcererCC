@@ -3,6 +3,8 @@
  */
 package utility;
 
+import indexbased.SearchManager;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -21,19 +23,17 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
+
+import models.Bag;
+import models.TokenFrequency;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-
-import indexbased.SearchManager;
-import indexbased.TermSorter;
-import models.Bag;
-import models.TokenFrequency;
 
 /**
  * @author vaibhavsaini
@@ -42,10 +42,10 @@ import models.TokenFrequency;
 public class Util {
     static Random rand = new Random(5);
     public static final String CSV_DELIMITER = "~";
-    public static final String INDEX_DIR = "index2";
+    public static final String INDEX_DIR = "index";
     public static final String INDEX_DIR_TEMP = "index_temp";
     public static final String GTPM_DIR = "gtpm";
-    public static final String FWD_INDEX_DIR = "fwdindex2";
+    public static final String FWD_INDEX_DIR = "fwdindex";
     public static final String FWD_INDEX_DIR_TEMP = "fwdindex_temp";
     public static final String GTPM_INDEX_DIR = "gtpmindex";
     public static final String INDEX_DIR_NO_FILTER = "index_nofilter";

@@ -78,15 +78,20 @@ public class CandidateProcessor implements IListener, Runnable {
                         entry = null;
                     } else {
                         System.out
-                                .println("ERROR: more that one doc found. some error here.");
+                                .println(SearchManager.NODE_PREFIX
+                                        + "ERROR: more than one doc found. some error here."
+                                        + "," + doc.get("functionId") + ", "
+                                        + doc.get("id"));
                     }
 
                 } else {
-                    System.out.println("document not found in fwd index");
+                    System.out.println(SearchManager.NODE_PREFIX
+                            + ", document not found in fwd index" + ","
+                            + doc.get("functionId") + ", " + doc.get("id"));
                 }
             } catch (NumberFormatException e) {
-                System.out.println(e.getMessage() + ", cant parse id for "
-                        + doc.get("id"));
+                System.out.println(SearchManager.NODE_PREFIX+ e.getMessage() + ", cant parse id for "
+                        + doc.get("functionId") + ", " + doc.get("id"));
             } catch (IOException e) {
                 System.out.println(e.getMessage()
                         + ", can't find document from searcher"
