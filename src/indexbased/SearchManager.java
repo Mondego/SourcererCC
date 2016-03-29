@@ -642,11 +642,12 @@ public class SearchManager {
                 String line = null;
                 try {
                     QueryBlock queryBlock = null;
-
+                    int count =0;
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         try {
                             queryBlock = this.getNextQueryBlock(line);
+                            count++;
                             if (queryBlock.getSize() < SearchManager.min_tokens
                                     || queryBlock.getSize() > SearchManager.max_tokens) {
                                 System.out.println("ignoring query, REASON:  "
@@ -682,6 +683,7 @@ public class SearchManager {
                                     }
                                 }
                             }
+                            System.out.println(SearchManager.NODE_PREFIX + ", line number: "+ count);
                             SearchManager.queryBlockQueue.put(queryBlock);
                         } catch (ParseException e) {
                             System.out
