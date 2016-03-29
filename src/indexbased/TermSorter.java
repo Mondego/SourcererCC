@@ -190,25 +190,23 @@ public class TermSorter {
     }
 
     private void populateGlobalWordFreqMapIttrative(File root) {
-        Writer processedWFMfilesWriter = null;
-        String processedWFMFilename = "processedWFMFiles.txt";
-        try {
-            processedWFMfilesWriter = Util.openFile(processedWFMFilename, true);
-        } catch (IOException e) {
-            System.out.println("cant open processedWFMFiles.txt");
-            e.printStackTrace();
-            System.exit(1);
-        }
-        File tempgtpm = new File("temp_gwfm.txt");
-        if (tempgtpm.exists()) {
-            SearchManager.globalWordFreqMap = Util
-                    .readMapFromFile("temp_gwfm.txt");
-        }
-        System.out.println("current Dir: " + root.getName());
-        Set<String> processedWFMset = new HashSet<String>();
-        Util.populateProcessedWFMSet(processedWFMFilename, processedWFMset);
-        System.out.println("size of populateProcessedWFMSet "
-                + processedWFMset.size());
+        /*
+         * Writer processedWFMfilesWriter = null; String processedWFMFilename =
+         * "processedWFMFiles.txt"; try { processedWFMfilesWriter =
+         * Util.openFile(processedWFMFilename, true); } catch (IOException e) {
+         * System.out.println("cant open processedWFMFiles.txt");
+         * e.printStackTrace(); System.exit(1); }
+         */
+        /*
+         * File tempgtpm = new File("temp_gwfm.txt"); if (tempgtpm.exists()) {
+         * SearchManager.globalWordFreqMap = Util
+         * .readMapFromFile("temp_gwfm.txt"); }
+         * System.out.println("current Dir: " + root.getName()); Set<String>
+         * processedWFMset = new HashSet<String>();
+         * Util.populateProcessedWFMSet(processedWFMFilename, processedWFMset);
+         * System.out.println("size of populateProcessedWFMSet " +
+         * processedWFMset.size());
+         */
         Stack<File> fileStack = new Stack<File>();
         fileStack.push(root);
         while (!fileStack.isEmpty()) {
@@ -217,12 +215,12 @@ public class TermSorter {
                 if (currFile.isFile()) {
                     if (FilenameUtils.getExtension(currFile.getName()).equals(
                             "wfm")) {
-                        if (processedWFMset
-                                .contains(currFile.getAbsolutePath())) {
-                            System.out.println("ignore wfm file, "
-                                    + currFile.getAbsolutePath());
-                            continue;
-                        }
+                        /*
+                         * if (processedWFMset
+                         * .contains(currFile.getAbsolutePath())) {
+                         * System.out.println("ignore wfm file, " +
+                         * currFile.getAbsolutePath()); continue; }
+                         */
                         System.out
                                 .println("populating globalWordFreqMap, reading file: "
                                         + currFile.getAbsolutePath());
@@ -241,17 +239,20 @@ public class TermSorter {
                             SearchManager.globalWordFreqMap.put(entry.getKey(),
                                     value);
                         }
-                        Util.writeMapToFile("temp_gwfm.txt",
-                                SearchManager.globalWordFreqMap);
-                        System.out
-                                .println("writing to processedWFMfilesWriter");
-                        Util.writeToFile(processedWFMfilesWriter,
-                                currFile.getAbsolutePath(), true);
-                        try {
-                            processedWFMfilesWriter.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        /*
+                         * Util.writeMapToFile("temp_gwfm.txt",
+                         * SearchManager.globalWordFreqMap);
+                         */
+                        /*
+                         * System.out
+                         * .println("writing to processedWFMfilesWriter");
+                         * Util.writeToFile(processedWFMfilesWriter,
+                         * currFile.getAbsolutePath(), true);
+                         */
+                        /*
+                         * try { processedWFMfilesWriter.flush(); } catch
+                         * (IOException e) { e.printStackTrace(); }
+                         */
                     }
                 } else if (currFile.isDirectory()) {
                     if (currFile.getName().contains("NODE_")
@@ -262,7 +263,7 @@ public class TermSorter {
 
             }
         }
-        Util.closeOutputFile(processedWFMfilesWriter);
+        /* Util.closeOutputFile(processedWFMfilesWriter); */
     }
 
     private void populateWordFreqMap(File file) throws IOException,

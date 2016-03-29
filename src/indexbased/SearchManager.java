@@ -531,7 +531,7 @@ public class SearchManager {
         TermSorter termSorter = new TermSorter();
 
         long timeGlobalPositionStart = System.currentTimeMillis();
-        //termSorter.populateGlobalPositionMap();
+        termSorter.populateGlobalPositionMap();
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");
         this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
