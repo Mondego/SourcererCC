@@ -38,6 +38,9 @@ public class CandidateProcessor implements IListener, Runnable {
         if (SearchManager.isGenCandidateStats) {
             SearchManager.updateNumCandidates(codeBlockIds.size());
         }
+        System.out.println(SearchManager.NODE_PREFIX + ", num candidates: "
+                + codeBlockIds.entrySet().size() + ", query: "
+                + queryBlock.getFunctionId() + "," + queryBlock.getId());
         for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
             Document doc = null;
             try {
@@ -90,8 +93,9 @@ public class CandidateProcessor implements IListener, Runnable {
                             + doc.get("functionId") + ", " + doc.get("id"));
                 }
             } catch (NumberFormatException e) {
-                System.out.println(SearchManager.NODE_PREFIX+ e.getMessage() + ", cant parse id for "
-                        + doc.get("functionId") + ", " + doc.get("id"));
+                System.out.println(SearchManager.NODE_PREFIX + e.getMessage()
+                        + ", cant parse id for " + doc.get("functionId") + ", "
+                        + doc.get("id"));
             } catch (IOException e) {
                 System.out.println(e.getMessage()
                         + ", can't find document from searcher"

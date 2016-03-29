@@ -22,10 +22,10 @@ public class CloneValidator implements IListener, Runnable {
 
     private void validate(CandidatePair candidatePair)
             throws InterruptedException {
-        System.out.println(SearchManager.NODE_PREFIX + "validating, "
+       /* System.out.println(SearchManager.NODE_PREFIX + "validating, "
                 + candidatePair.candidateId + "query: "
                 + candidatePair.queryBlock.getFunctionId() + ","
-                + candidatePair.queryBlock.getId());
+                + candidatePair.queryBlock.getId());*/
         if (candidatePair.candidateTokens != null
                 && candidatePair.candidateTokens.trim().length() > 0) {
             int similarity = this.updateSimilarity(candidatePair.queryBlock,
