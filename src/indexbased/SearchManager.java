@@ -671,7 +671,7 @@ public class SearchManager {
                                                         + ", queriesBlock created: "
                                                         + queryBlock.getFunctionId() + ","
                                                         + queryBlock.getId() +", size "
-                                                        + queryBlock.getSize()
+                                                        + queryBlock.getSize()+ ", statusCounter "
                                                         + SearchManager.statusCounter
                                                         + " time taken: %02dh:%02dm:%02ds",
                                                         duration.getDays()
