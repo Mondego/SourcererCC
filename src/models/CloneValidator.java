@@ -3,6 +3,10 @@ package models;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+
 import utility.Util;
 import indexbased.SearchManager;
 
@@ -22,10 +26,14 @@ public class CloneValidator implements IListener, Runnable {
 
     private void validate(CandidatePair candidatePair)
             throws InterruptedException {
-       /* System.out.println(SearchManager.NODE_PREFIX + "validating, "
-                + candidatePair.candidateId + "query: "
-                + candidatePair.queryBlock.getFunctionId() + ","
-                + candidatePair.queryBlock.getId());*/
+        /*
+         * System.out.println(SearchManager.NODE_PREFIX + "validating, " +
+         * candidatePair.candidateId + "query: " +
+         * candidatePair.queryBlock.getFunctionId() + "," +
+         * candidatePair.queryBlock.getId());
+         */
+
+        long start_time = System.currentTimeMillis();
         if (candidatePair.candidateTokens != null
                 && candidatePair.candidateTokens.trim().length() > 0) {
             int similarity = this.updateSimilarity(candidatePair.queryBlock,
@@ -37,9 +45,30 @@ public class CloneValidator implements IListener, Runnable {
                         candidatePair.candidateId);
                 SearchManager.reportCloneQueue.put(cp);
             }
+            
+            long end_time = System.currentTimeMillis();
+            Duration duration;
+            try {
+                duration = DatatypeFactory.newInstance().newDuration(
+                        end_time - start_time);
+                System.out.printf(SearchManager.NODE_PREFIX + ", validated: "
+                        + candidatePair.candidateId + "query: "
+                        + candidatePair.queryBlock.getFunctionId() + ","
+                        + candidatePair.queryBlock.getId()
+                        + " time taken: %02dh:%02dm:%02ds", duration.getDays()
+                        * 24 + duration.getHours(), duration.getMinutes(),
+                        duration.getSeconds());
+                start_time = end_time;
+                System.out.println();
+            } catch (DatatypeConfigurationException e) {
+                e.printStackTrace();
+            }
             candidatePair.queryBlock = null;
             candidatePair.simInfo = null;
             candidatePair = null;
+
+            
+
         } else {
             System.out.println("tokens not found for document");
         }
@@ -52,19 +81,22 @@ public class CloneValidator implements IListener, Runnable {
         Scanner scanner = new Scanner(tokens);
         try {
             scanner.useDelimiter("::");
+            String tokenfreqFrame = null;
+            String[] tokenFreqInfo;
+            TokenInfo tokenInfo = null;
+            boolean matchFound = false;
+            int candidatesTokenFreq = -1;
             while (scanner.hasNext()) {
-                String tokenfreqFrame = scanner.next();
-                String[] tokenFreqInfo = tokenfreqFrame.split(":");
+                tokenfreqFrame = scanner.next();
+                tokenFreqInfo = tokenfreqFrame.split(":");
                 if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(),
                         simInfo.queryMatchPosition, candidateSize,
                         simInfo.candidateMatchPosition, computedThreshold)) {
                     // System.out.println("sim: "+ similarity);
-                    int candidatesTokenFreq = Integer
-                            .parseInt(tokenFreqInfo[1]);
+                    candidatesTokenFreq = Integer.parseInt(tokenFreqInfo[1]);
                     tokensSeenInCandidate += candidatesTokenFreq;
                     if (tokensSeenInCandidate > simInfo.candidateMatchPosition) {
-                        TokenInfo tokenInfo = null;
-                        boolean matchFound = false;
+                        matchFound = false;
                         if (simInfo.queryMatchPosition < queryBlock
                                 .getPrefixMapSize()) {
                             // check in prefix

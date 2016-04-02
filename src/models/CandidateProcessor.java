@@ -6,6 +6,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+
 import org.apache.lucene.document.Document;
 
 import indexbased.CustomCollectorFwdIndex;
@@ -34,6 +38,7 @@ public class CandidateProcessor implements IListener, Runnable {
             QueryBlock queryBlock) throws InterruptedException {
         // System.out.println("HERE, thread_id: " + Util.debug_thread() +
         // ", query_id "+ queryBlock.getId());
+        long start_time = System.currentTimeMillis();
         Map<Long, CandidateSimInfo> codeBlockIds = result.getSimMap();
         if (SearchManager.isGenCandidateStats) {
             SearchManager.updateNumCandidates(codeBlockIds.size());
@@ -78,6 +83,26 @@ public class CandidateProcessor implements IListener, Runnable {
                                     candidateSize, candidateId);
                         }
                         SearchManager.verifyCandidateQueue.put(candidatePair);
+                        
+                        
+                        long end_time = System.currentTimeMillis();
+                        Duration duration;
+                        try {
+                            duration = DatatypeFactory.newInstance().newDuration(
+                                    end_time - start_time);
+                            System.out.printf(SearchManager.NODE_PREFIX + ", candidates processed: "
+                                    + candidatePair.candidateId + "query: "
+                                    + candidatePair.queryBlock.getFunctionId() + ","
+                                    + candidatePair.queryBlock.getId()
+                                    + " time taken: %02dh:%02dm:%02ds", duration.getDays()
+                                    * 24 + duration.getHours(), duration.getMinutes(),
+                                    duration.getSeconds());
+                            start_time = end_time;
+                            System.out.println();
+                        } catch (DatatypeConfigurationException e) {
+                            e.printStackTrace();
+                        }
+
                         entry = null;
                     } else {
                         System.out

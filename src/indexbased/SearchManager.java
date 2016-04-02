@@ -656,6 +656,7 @@ public class SearchManager {
                                         + queryBlock.getSize());
                                 continue; // ignore this query
                             }
+                            SearchManager.queryBlockQueue.put(queryBlock);
                             if (SearchManager.isStatusCounterOn) {
                                 SearchManager.statusCounter += 1;
                                 if ((SearchManager.statusCounter % SearchManager.printAfterEveryXQueries) == 0) {
@@ -667,7 +668,7 @@ public class SearchManager {
                                                         end_time - start_time);
                                         System.out
                                                 .printf(SearchManager.NODE_PREFIX
-                                                        + ", queries processed: "
+                                                        + ", queriesBlock created: "
                                                         + SearchManager.statusCounter
                                                         + " time taken: %02dh:%02dm:%02ds",
                                                         duration.getDays()
@@ -684,7 +685,6 @@ public class SearchManager {
                                 }
                             }
                             System.out.println(SearchManager.NODE_PREFIX + ", line number: "+ count);
-                            SearchManager.queryBlockQueue.put(queryBlock);
                         } catch (ParseException e) {
                             System.out
                                     .println("catching parseException, dont worry");
