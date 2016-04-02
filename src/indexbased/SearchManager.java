@@ -670,7 +670,8 @@ public class SearchManager {
                                                 .printf(SearchManager.NODE_PREFIX
                                                         + ", queriesBlock created: "
                                                         + queryBlock.getFunctionId() + ","
-                                                        + queryBlock.getId()
+                                                        + queryBlock.getId() +", size "
+                                                        + queryBlock.getSize()
                                                         + SearchManager.statusCounter
                                                         + " time taken: %02dh:%02dm:%02ds",
                                                         duration.getDays()
