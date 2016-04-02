@@ -33,8 +33,6 @@ public class CandidateSearcher implements IListener, Runnable {
         QueryCandidates qc = new QueryCandidates();
         qc.queryBlock = queryBlock;
         qc.termSearcher = termSearcher;
-        SearchManager.queryCandidatesQueue.put(qc);
-        
         long end_time = System.currentTimeMillis();
         Duration duration;
         try {
@@ -51,8 +49,7 @@ public class CandidateSearcher implements IListener, Runnable {
         } catch (DatatypeConfigurationException e) {
             e.printStackTrace();
         }
-
-
+        SearchManager.queryCandidatesQueue.put(qc);
     }
 
 }

@@ -43,27 +43,26 @@ public class CloneValidator implements IListener, Runnable {
             if (similarity > 0) {
                 ClonePair cp = new ClonePair(candidatePair.queryBlock.getId(),
                         candidatePair.candidateId);
+                
+                long end_time = System.currentTimeMillis();
+                Duration duration;
+                try {
+                    duration = DatatypeFactory.newInstance().newDuration(
+                            end_time - start_time);
+                    System.out.printf(SearchManager.NODE_PREFIX + ", validated: "
+                            + candidatePair.candidateId + "query: "
+                            + candidatePair.queryBlock.getFunctionId() + ","
+                            + candidatePair.queryBlock.getId()
+                            + " time taken: %02dh:%02dm:%02ds", duration.getDays()
+                            * 24 + duration.getHours(), duration.getMinutes(),
+                            duration.getSeconds());
+                    start_time = end_time;
+                    System.out.println();
+                } catch (DatatypeConfigurationException e) {
+                    e.printStackTrace();
+                }
                 SearchManager.reportCloneQueue.put(cp);
             }
-            
-            long end_time = System.currentTimeMillis();
-            Duration duration;
-            try {
-                duration = DatatypeFactory.newInstance().newDuration(
-                        end_time - start_time);
-                System.out.printf(SearchManager.NODE_PREFIX + ", validated: "
-                        + candidatePair.candidateId + "query: "
-                        + candidatePair.queryBlock.getFunctionId() + ","
-                        + candidatePair.queryBlock.getId()
-                        + " time taken: %02dh:%02dm:%02ds", duration.getDays()
-                        * 24 + duration.getHours(), duration.getMinutes(),
-                        duration.getSeconds());
-                start_time = end_time;
-                System.out.println();
-            } catch (DatatypeConfigurationException e) {
-                e.printStackTrace();
-            }
-            
     /*        candidatePair.queryBlock = null;
             candidatePair.simInfo = null;
             candidatePair = null;*/

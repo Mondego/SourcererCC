@@ -83,8 +83,6 @@ public class CandidateProcessor implements IListener, Runnable {
                                     queryBlock.getComputedThreshold(),
                                     candidateSize, candidateId);
                         }
-                        SearchManager.verifyCandidateQueue.put(candidatePair);
-                        
                         
                         long end_time = System.currentTimeMillis();
                         Duration duration;
@@ -103,7 +101,7 @@ public class CandidateProcessor implements IListener, Runnable {
                         } catch (DatatypeConfigurationException e) {
                             e.printStackTrace();
                         }
-
+                        SearchManager.verifyCandidateQueue.put(candidatePair);
                         entry = null;
                     } else {
                         System.out
