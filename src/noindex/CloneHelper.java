@@ -319,10 +319,13 @@ public class CloneHelper {
         int queryBlockSize = 0;
         Scanner scanner = new Scanner(inputString);
         scanner.useDelimiter(",");
+        String tokenFreq = null;
+        String[] tokenAndFreq = null;
+        String tokenStr = null;
         while (scanner.hasNext()) {
-            String tokenFreq = scanner.next();
-            String[] tokenAndFreq = tokenFreq.split("@@::@@");
-            String tokenStr = this.strip(tokenAndFreq[0]).trim();
+            tokenFreq  = scanner.next();
+            tokenAndFreq = tokenFreq.split("@@::@@");
+            tokenStr = this.strip(tokenAndFreq[0]).trim();
             if (tokenStr.length() > 0) {
                 try {
                     TokenInfo tokenInfo = new TokenInfo(

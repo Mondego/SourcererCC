@@ -763,6 +763,8 @@ public class SearchManager {
                 listOfTokens);
         if (queryBlock.getSize() > SearchManager.min_tokens
                 && queryBlock.getSize() < SearchManager.max_tokens) {
+            
+            long start_time = System.currentTimeMillis();
             Collections.sort(listOfTokens,
                     new Comparator<Entry<String, TokenInfo>>() {
                         public int compare(Entry<String, TokenInfo> tfFirst,
@@ -780,6 +782,32 @@ public class SearchManager {
                             }
                         }
                     });
+            
+            long end_time = System.currentTimeMillis();
+            Duration duration;
+            try {
+                duration = DatatypeFactory
+                        .newInstance().newDuration(
+                                end_time - start_time);
+                System.out
+                        .printf(SearchManager.NODE_PREFIX
+                                + ", SORTING: "
+                                + queryBlock.getFunctionId() + ","
+                                + queryBlock.getId() +", size "
+                                + queryBlock.getSize()+ ", statusCounter "
+                                + SearchManager.statusCounter
+                                + " time taken: %02dh:%02dm:%02ds",
+                                duration.getDays()
+                                        * 24
+                                        + duration
+                                                .getHours(),
+                                duration.getMinutes(),
+                                duration.getSeconds());
+                System.out.println();
+            } catch (DatatypeConfigurationException e) {
+                e.printStackTrace();
+            }
+            
             int position = 0;
             for (Entry<String, TokenInfo> entry : listOfTokens) {
                 TokenInfo tokenInfo = entry.getValue();
