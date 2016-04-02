@@ -1,5 +1,6 @@
 package noindex;
 
+import indexbased.CustomCollectorFwdIndex;
 import indexbased.SearchManager;
 import indexbased.TermSorter;
 
@@ -19,13 +20,14 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 
-import org.apache.lucene.analysis.ngram.EdgeNGramTokenFilter.Side;
-
 import models.Bag;
 import models.QueryBlock;
 import models.Token;
 import models.TokenFrequency;
 import models.TokenInfo;
+
+import org.apache.lucene.document.Document;
+
 import utility.Util;
 
 /**
@@ -296,7 +298,7 @@ public class CloneHelper {
                 // queryBlock.setFunctionId(Long.parseLong(functionId));
                 String tokenString = bagAndTokens[1];
                 int queryBlockSize = this.parseAndPopulateQueryBlock(
-                        listOfTokens, tokenString);
+                        listOfTokens, tokenString,",","@@::@@");
                 QueryBlock queryBlock = new QueryBlock(Long.parseLong((bagId)),
                         queryBlockSize);
                 try {
@@ -314,17 +316,59 @@ public class CloneHelper {
         throw new ParseException("parsing error", 0);
     }
 
+    public QueryBlock getSortedQueryBlock(String s,
+            List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
+        try {
+            if (null != s && s.trim().length() > 0) {
+                String[] bagAndTokens = s.split("@#@");
+                String[] functionIdAndBagId = bagAndTokens[0].split(",");
+                String functionId = functionIdAndBagId[0];
+                String bagId = functionIdAndBagId[1];
+                String tokenString = null;// bagAndTokens[1];
+                CustomCollectorFwdIndex collector = SearchManager.fwdSearcher
+                        .search(bagId);
+                List<Integer> blocks = collector.getBlocks();
+                if (!blocks.isEmpty()) {
+                    if (blocks.size() == 1) {
+                        Document document = SearchManager.fwdSearcher
+                                .getDocument(blocks.get(0));
+                        tokenString = document.get("tokens");
+                        int queryBlockSize = this.parseAndPopulateQueryBlock(
+                                listOfTokens, tokenString,"::",":");
+                        QueryBlock queryBlock = new QueryBlock(
+                                Long.parseLong((bagId)), queryBlockSize);
+                        try {
+                            queryBlock
+                                    .setFunctionId(Long.parseLong(functionId));
+                        } catch (NumberFormatException e) {
+                            throw e;
+                        }
+                        return queryBlock;
+                    }
+                }
+
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("EXCEPTION CAUGHT, string: " + s);
+        } catch (NumberFormatException e) {
+            System.out.println(e.getMessage() + ", ignoring query: " + s);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        throw new ParseException("parsing error", 0);
+    }
+
     private int parseAndPopulateQueryBlock(
-            List<Entry<String, TokenInfo>> listOfTokens, String inputString) {
+            List<Entry<String, TokenInfo>> listOfTokens, String inputString, String delimeterTokenFreq, String delimeterTokenAndFreq) {
         int queryBlockSize = 0;
         Scanner scanner = new Scanner(inputString);
-        scanner.useDelimiter(",");
+        scanner.useDelimiter(delimeterTokenFreq);
         String tokenFreq = null;
         String[] tokenAndFreq = null;
         String tokenStr = null;
         while (scanner.hasNext()) {
-            tokenFreq  = scanner.next();
-            tokenAndFreq = tokenFreq.split("@@::@@");
+            tokenFreq = scanner.next();
+            tokenAndFreq = tokenFreq.split(delimeterTokenAndFreq);
             tokenStr = this.strip(tokenAndFreq[0]).trim();
             if (tokenStr.length() > 0) {
                 try {

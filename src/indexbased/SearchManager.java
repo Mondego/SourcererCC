@@ -759,12 +759,12 @@ public class SearchManager {
     private QueryBlock getNextQueryBlock(String line) throws ParseException,
             IllegalArgumentException {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
-        QueryBlock queryBlock = this.cloneHelper.deserialiseToQueryBlock(line,
+        QueryBlock queryBlock = this.cloneHelper.getSortedQueryBlock(line,
                 listOfTokens);
         if (queryBlock.getSize() > SearchManager.min_tokens
                 && queryBlock.getSize() < SearchManager.max_tokens) {
             
-            long start_time = System.currentTimeMillis();
+            /*long start_time = System.currentTimeMillis();
             Collections.sort(listOfTokens,
                     new Comparator<Entry<String, TokenInfo>>() {
                         public int compare(Entry<String, TokenInfo> tfFirst,
@@ -806,7 +806,7 @@ public class SearchManager {
                 System.out.println();
             } catch (DatatypeConfigurationException e) {
                 e.printStackTrace();
-            }
+            }*/
             
             int position = 0;
             for (Entry<String, TokenInfo> entry : listOfTokens) {

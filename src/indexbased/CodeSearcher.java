@@ -106,6 +106,24 @@ public class CodeSearcher {
         }
         return result;
     }
+    
+    public CustomCollectorFwdIndex search(String id) throws IOException {
+        CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
+        Query query;
+        try {
+            synchronized (this) {
+                query = queryParser.parse(id);
+            }
+            /*
+             * System.out.println("Searching for: " + query.toString(this.field)
+             * + " : " + doc.get("id"));
+             */
+            this.searcher.search(query, result);
+        } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+            System.out.println("cannot parse " + e.getMessage());
+        }
+        return result;
+    }
 
     public long getPosition(String key) {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
