@@ -38,7 +38,7 @@ public class CandidateProcessor implements IListener, Runnable {
             QueryBlock queryBlock) throws InterruptedException {
         // System.out.println("HERE, thread_id: " + Util.debug_thread() +
         // ", query_id "+ queryBlock.getId());
-        long start_time = System.currentTimeMillis();
+        long sstart_time = System.currentTimeMillis();
         Map<Long, CandidateSimInfo> codeBlockIds = result.getSimMap();
         if (SearchManager.isGenCandidateStats) {
             SearchManager.updateNumCandidates(codeBlockIds.size());
@@ -47,6 +47,7 @@ public class CandidateProcessor implements IListener, Runnable {
                 + codeBlockIds.entrySet().size() + ", query: "
                 + queryBlock.getFunctionId() + "," + queryBlock.getId());
         for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
+            long start_time = System.currentTimeMillis();
             Document doc = null;
             try {
                 doc = SearchManager.searcher.getDocument(entry.getKey());
@@ -128,6 +129,25 @@ public class CandidateProcessor implements IListener, Runnable {
             }
         }
         result = null;
+        
+        
+        
+        long eend_time = System.currentTimeMillis();
+        Duration duration;
+        try {
+            duration = DatatypeFactory.newInstance().newDuration(
+                    eend_time - sstart_time);
+            System.out.printf(SearchManager.NODE_PREFIX + ", TOTAL candidates processed status: "
+                    + queryBlock.getFunctionId() + ","
+                    + queryBlock.getId()
+                    + " time taken: %02dh:%02dm:%02ds", duration.getDays()
+                    * 24 + duration.getHours(), duration.getMinutes(),
+                    duration.getSeconds());
+            System.out.println();
+        } catch (DatatypeConfigurationException e) {
+            e.printStackTrace();
+        }
+        
     }
 
 }
