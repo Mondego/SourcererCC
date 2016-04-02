@@ -620,7 +620,6 @@ public class SearchManager {
     }
 
     private void findCandidates() throws InterruptedException {
-        long start_time = System.currentTimeMillis();
         try {
             File queryDirectory = this.getQueryDirectory();
             File[] queryFiles = this.getQueryFiles(queryDirectory);
@@ -645,6 +644,7 @@ public class SearchManager {
                     int count =0;
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
+                        long start_time = System.currentTimeMillis();
                         try {
                             queryBlock = this.getNextQueryBlock(line);
                             count++;
@@ -679,7 +679,6 @@ public class SearchManager {
                                                                         .getHours(),
                                                         duration.getMinutes(),
                                                         duration.getSeconds());
-                                        start_time = end_time;
                                         System.out.println();
                                     } catch (DatatypeConfigurationException e) {
                                         e.printStackTrace();

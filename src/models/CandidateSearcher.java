@@ -51,6 +51,8 @@ public class CandidateSearcher implements IListener, Runnable {
         } catch (DatatypeConfigurationException e) {
             e.printStackTrace();
         }
+
+
     }
 
 }
