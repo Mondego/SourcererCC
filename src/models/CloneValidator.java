@@ -63,9 +63,10 @@ public class CloneValidator implements IListener, Runnable {
             } catch (DatatypeConfigurationException e) {
                 e.printStackTrace();
             }
-            candidatePair.queryBlock = null;
+            
+    /*        candidatePair.queryBlock = null;
             candidatePair.simInfo = null;
-            candidatePair = null;
+            candidatePair = null;*/
 
             
 

@@ -128,10 +128,8 @@ public class CandidateProcessor implements IListener, Runnable {
                         + entry.getKey());
             }
         }
-        result = null;
-        
-        
-        
+        /*result = null;*/
+        System.out.println("here");
         long eend_time = System.currentTimeMillis();
         Duration duration;
         try {
@@ -147,7 +145,7 @@ public class CandidateProcessor implements IListener, Runnable {
         } catch (DatatypeConfigurationException e) {
             e.printStackTrace();
         }
-        
+        System.out.println("there");
     }
 
 }
