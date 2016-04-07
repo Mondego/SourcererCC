@@ -81,7 +81,7 @@ public class IndexMerger {
                     .toArray(new FSDirectory[this.invertedIndexDirectories
                             .size()]);
             indexWriter.addIndexes(dirs);
-            indexWriter.forceMerge(20);
+            indexWriter.forceMerge(1);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -110,7 +110,7 @@ public class IndexMerger {
                     .toArray(new FSDirectory[this.forwardIndexDirectories
                             .size()]);
             indexWriter.addIndexes(dirs);
-            indexWriter.forceMerge(20);
+            indexWriter.forceMerge(1);
 
         } catch (Exception e) {
             e.printStackTrace();
