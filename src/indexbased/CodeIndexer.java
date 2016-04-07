@@ -10,6 +10,7 @@ import models.TokenFrequency;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
@@ -82,8 +83,8 @@ public class CodeIndexer {
         Document document = new Document();
         StringField idField = new StringField("id", bag.getId() + "",
                 Field.Store.NO);
-        idField.fieldType().setIndexed(true);
-        idField.fieldType().freeze();
+        //idField.fieldType().setIndexed(true);
+        //idField.fieldType().freeze();
         document.add(idField);
         
         String tokenString = "";
@@ -106,8 +107,7 @@ public class CodeIndexer {
         if (keyValPair.length == 2) {
             StringField keyField = new StringField("key", keyValPair[0] + "",
                     Field.Store.NO);
-            keyField.fieldType().setIndexed(true);
-            keyField.fieldType().freeze();
+           // keyField.fieldType().setIndexed(true);
             document.add(keyField);
             StoredField strField = new StoredField("position", keyValPair[1]);
             document.add(strField);
@@ -152,13 +152,19 @@ public class CodeIndexer {
         @SuppressWarnings("deprecation")
         //Field field = new Field("tokens", tokenString.trim(), Field.Store.NO,
           //      Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS);
-        TextField textField = new TextField("tokens", tokenString.trim(), Field.Store.NO);
+        FieldType fieldType = new FieldType();
+        fieldType.setIndexed(true);
+        fieldType.setStoreTermVectorPositions(true);
+        fieldType.setStoreTermVectors(true);
+        fieldType.freeze();
+        Field field = new Field("tokens",tokenString.trim(),fieldType);
+       /* TextField textField = new TextField("tokens", tokenString.trim(), Field.Store.NO);
         textField.fieldType().setIndexed(true);
         textField.fieldType().setStoreTermVectorPositions(true);
         textField.fieldType().setStoreTermVectors(true);
-        textField.fieldType().freeze();
+        textField.fieldType().freeze();*/
         //field.fieldType().setIndexed(true);
-        document.add(textField);
+        document.add(field);
         return document;
     }
 
