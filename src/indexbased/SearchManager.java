@@ -499,7 +499,7 @@ public class SearchManager {
         IndexWriter indexWriter = null;
         try {
             FSDirectory dir = FSDirectory.open(new File(
-                    SearchManager.NODE_PREFIX + "/master/index"));
+                    SearchManager.NODE_PREFIX + "/mergedindex/index"));
             indexWriter = new IndexWriter(dir, indexWriterConfig);
             FSDirectory[] dirs = this.invertedIndexDirectories
                     .toArray(new FSDirectory[this.invertedIndexDirectories
