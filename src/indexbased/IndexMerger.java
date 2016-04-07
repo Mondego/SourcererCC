@@ -14,6 +14,7 @@ import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
@@ -67,6 +68,11 @@ public class IndexMerger {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
                 Version.LUCENE_46, whitespaceAnalyzer);
         indexWriterConfig.setOpenMode(OpenMode.CREATE);
+        TieredMergePolicy mergePolicy = (TieredMergePolicy) indexWriterConfig
+                .getMergePolicy();
+
+        mergePolicy.setNoCFSRatio(0);// what was this for?
+        mergePolicy.setMaxCFSSegmentSizeMB(0); 
         IndexWriter indexWriter = null;
         try {
             FSDirectory dir = FSDirectory.open(new File(Util.INDEX_DIR));
@@ -90,6 +96,11 @@ public class IndexMerger {
         IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
                 Version.LUCENE_46, keywordAnalyzer);
         fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
+        TieredMergePolicy fwdmergePolicy = (TieredMergePolicy) fwdIndexWriterConfig
+                .getMergePolicy();
+
+        fwdmergePolicy.setNoCFSRatio(0);// what was this for?
+        fwdmergePolicy.setMaxCFSSegmentSizeMB(0); 
         indexWriter = null;
         try {
 
