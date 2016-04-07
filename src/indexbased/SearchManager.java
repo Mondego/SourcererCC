@@ -522,7 +522,7 @@ public class SearchManager {
         try {
 
             FSDirectory dir = FSDirectory.open(new File(
-                    SearchManager.NODE_PREFIX + "/master/fwd/index"));
+                    SearchManager.NODE_PREFIX + "/mergedindex/fwd/index"));
             indexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
             FSDirectory[] dirs = this.forwardIndexDirectories
                     .toArray(new FSDirectory[this.forwardIndexDirectories
