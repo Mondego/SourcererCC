@@ -82,8 +82,9 @@ public class CodeIndexer {
         Document document = new Document();
         StringField idField = new StringField("id", bag.getId() + "",
                 Field.Store.NO);
-        document.add(idField);
         idField.fieldType().setIndexed(true);
+        document.add(idField);
+        
         String tokenString = "";
         System.out.println(SearchManager.NODE_PREFIX + "fwdindex: creating tokenString ");
         for (TokenFrequency tf : bag) {
