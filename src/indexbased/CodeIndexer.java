@@ -83,6 +83,7 @@ public class CodeIndexer {
         StringField idField = new StringField("id", bag.getId() + "",
                 Field.Store.NO);
         idField.fieldType().setIndexed(true);
+        idField.fieldType().freeze();
         document.add(idField);
         
         String tokenString = "";
@@ -106,6 +107,7 @@ public class CodeIndexer {
             StringField keyField = new StringField("key", keyValPair[0] + "",
                     Field.Store.NO);
             keyField.fieldType().setIndexed(true);
+            keyField.fieldType().freeze();
             document.add(keyField);
             StoredField strField = new StoredField("position", keyValPair[1]);
             document.add(strField);
@@ -153,6 +155,8 @@ public class CodeIndexer {
         TextField textField = new TextField("tokens", tokenString.trim(), Field.Store.NO);
         textField.fieldType().setIndexed(true);
         textField.fieldType().setStoreTermVectorPositions(true);
+        textField.fieldType().setStoreTermVectors(true);
+        textField.fieldType().freeze();
         //field.fieldType().setIndexed(true);
         document.add(textField);
         return document;
