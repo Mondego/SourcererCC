@@ -113,7 +113,7 @@ public class IndexMerger {
     }
     public static void main(String [] args){
         IndexMerger indexMerger = new IndexMerger();
-        String inputFile = "/home/sourcerer/hades/hpc_backup/kmaster";
+        String inputFile = "kmaster";
         System.out.println("populating index dirs");
         indexMerger.populateIndeXdirs(inputFile);
         System.out.println("merging");
