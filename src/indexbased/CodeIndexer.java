@@ -156,6 +156,7 @@ public class CodeIndexer {
         fieldType.setIndexed(true);
         fieldType.setStoreTermVectorPositions(true);
         fieldType.setStoreTermVectors(true);
+        fieldType.setTokenized(true);
         fieldType.freeze();
         Field field = new Field("tokens",tokenString.trim(),fieldType);
        /* TextField textField = new TextField("tokens", tokenString.trim(), Field.Store.NO);
