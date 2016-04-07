@@ -187,11 +187,17 @@ public class CloneHelper {
         try {
             if (null != s && s.trim().length() > 0) {
                 String[] bagAndTokens = s.split("@#@");
-                String[] functionIdAndBagId = bagAndTokens[0].split(",");
-                String functionId = functionIdAndBagId[0];
-                String bagId = functionIdAndBagId[1];
+                String[] bagMetadata = bagAndTokens[0].split(",");
+                String functionId = bagMetadata[0];
+                String bagId = bagMetadata[1];
+                int bagSize = Integer.parseInt(bagMetadata[2]);
                 Bag bag = new Bag(Long.parseLong(bagId));
                 bag.setFunctionId(Long.parseLong(functionId));
+                bag.setSize(bagSize);
+                if (bag.getSize() < SearchManager.min_tokens
+                        || bag.getSize() > SearchManager.max_tokens) {
+                    return bag; // ignore this bag, do not process it further
+                }
                 String tokenString = bagAndTokens[1];
                 this.parseAndPopulateBag(bag, tokenString);
                 return bag;
@@ -284,7 +290,7 @@ public class CloneHelper {
         }
     }
 
-    public QueryBlock deserialiseToQueryBlock(String s,
+    /*public QueryBlock deserialiseToQueryBlock(String s,
             List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
         try {
             if (null != s && s.trim().length() > 0) {
@@ -314,16 +320,30 @@ public class CloneHelper {
             System.out.println(e.getMessage() + ", ignoring query: " + s);
         }
         throw new ParseException("parsing error", 0);
-    }
+    }*/
 
     public QueryBlock getSortedQueryBlock(String s,
             List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
         try {
             if (null != s && s.trim().length() > 0) {
                 String[] bagAndTokens = s.split("@#@");
-                String[] functionIdAndBagId = bagAndTokens[0].split(",");
-                String functionId = functionIdAndBagId[0];
-                String bagId = functionIdAndBagId[1];
+                String[] bagMetadata = bagAndTokens[0].split(",");
+                String functionId = bagMetadata[0];
+                String bagId = bagMetadata[1];
+                QueryBlock queryBlock = null;
+                try {
+                    int bagSize = Integer.parseInt(bagMetadata[2]);
+                    queryBlock = new QueryBlock(
+                            Long.parseLong((bagId)), bagSize);
+                    queryBlock
+                            .setFunctionId(Long.parseLong(functionId));
+                    if (queryBlock.getSize() < SearchManager.min_tokens
+                            || queryBlock.getSize() > SearchManager.max_tokens) {
+                        return queryBlock; // do not process it further. we need to discard this query
+                    }
+                } catch (NumberFormatException e) {
+                    throw e;
+                }
                 String tokenString = null;// bagAndTokens[1];
                 CustomCollectorFwdIndex collector = SearchManager.fwdSearcher
                         .search(bagId);
@@ -333,16 +353,8 @@ public class CloneHelper {
                         Document document = SearchManager.fwdSearcher
                                 .getDocument(blocks.get(0));
                         tokenString = document.get("tokens");
-                        int queryBlockSize = this.parseAndPopulateQueryBlock(
+                        this.parseAndPopulateQueryBlock(
                                 listOfTokens, tokenString,"::",":");
-                        QueryBlock queryBlock = new QueryBlock(
-                                Long.parseLong((bagId)), queryBlockSize);
-                        try {
-                            queryBlock
-                                    .setFunctionId(Long.parseLong(functionId));
-                        } catch (NumberFormatException e) {
-                            throw e;
-                        }
                         return queryBlock;
                     }
                 }
@@ -358,9 +370,9 @@ public class CloneHelper {
         throw new ParseException("parsing error", 0);
     }
 
-    private int parseAndPopulateQueryBlock(
+    private void parseAndPopulateQueryBlock(
             List<Entry<String, TokenInfo>> listOfTokens, String inputString, String delimeterTokenFreq, String delimeterTokenAndFreq) {
-        int queryBlockSize = 0;
+        //int queryBlockSize = 0;
         Scanner scanner = new Scanner(inputString);
         scanner.useDelimiter(delimeterTokenFreq);
         String tokenFreq = null;
@@ -377,7 +389,7 @@ public class CloneHelper {
                     Entry<String, TokenInfo> entry = new AbstractMap.SimpleEntry<String, TokenInfo>(
                             tokenStr, tokenInfo);
                     listOfTokens.add(entry);
-                    queryBlockSize += tokenInfo.getFrequency();
+                    //queryBlockSize += tokenInfo.getFrequency();
 
                 } catch (ArrayIndexOutOfBoundsException e) {
                     System.out.println("EXCEPTION CAUGHT, token: " + tokenStr
@@ -394,7 +406,6 @@ public class CloneHelper {
 
         }
         scanner.close();
-        return queryBlockSize;
     }
 
     private String strip(String str) {
