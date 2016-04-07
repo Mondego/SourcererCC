@@ -14,8 +14,6 @@ import java.io.Writer;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +46,7 @@ import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
@@ -270,6 +269,12 @@ public class SearchManager {
                         Version.LUCENE_46, whitespaceAnalyzer);
                 indexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
                 indexWriterConfig.setOpenMode(OpenMode.CREATE);
+                // index
+                TieredMergePolicy mergePolicy = (TieredMergePolicy) indexWriterConfig
+                        .getMergePolicy();
+
+                mergePolicy.setNoCFSRatio(0);// what was this for?
+                mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
                 IndexWriter indexWriter = null;
                 try {
                     FSDirectory dir = FSDirectory.open(new File(
@@ -290,10 +295,16 @@ public class SearchManager {
                         Version.LUCENE_46, keywordAnalyzer);
                 fwdIndexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
                 fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
+                TieredMergePolicy mergePolicy = (TieredMergePolicy) fwdIndexWriterConfig
+                        .getMergePolicy();
+
+                mergePolicy.setNoCFSRatio(0);// what was this for?
+                mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
                 IndexWriter fwdIndexWriter = null;
                 try {
-                    FSDirectory dir = FSDirectory.open(new File(
-                            SearchManager.NODE_PREFIX + "/fwdindex/temp/_" + i));
+                    FSDirectory dir = FSDirectory
+                            .open(new File(SearchManager.NODE_PREFIX
+                                    + "/fwdindex/temp/_" + i));
                     forwardIndexDirectories.add(dir);
                     fwdIndexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
                     listener = new ForwardIndexCreator(new CodeIndexer(
@@ -487,7 +498,8 @@ public class SearchManager {
         indexWriterConfig.setOpenMode(OpenMode.CREATE);
         IndexWriter indexWriter = null;
         try {
-            FSDirectory dir = FSDirectory.open(new File(SearchManager.NODE_PREFIX+"/master/index"));
+            FSDirectory dir = FSDirectory.open(new File(
+                    SearchManager.NODE_PREFIX + "/master/index"));
             indexWriter = new IndexWriter(dir, indexWriterConfig);
             FSDirectory[] dirs = this.invertedIndexDirectories
                     .toArray(new FSDirectory[this.invertedIndexDirectories
@@ -509,7 +521,8 @@ public class SearchManager {
         fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
         try {
 
-            FSDirectory dir = FSDirectory.open(new File(SearchManager.NODE_PREFIX+"/master/fwd/index"));
+            FSDirectory dir = FSDirectory.open(new File(
+                    SearchManager.NODE_PREFIX + "/master/fwd/index"));
             indexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
             FSDirectory[] dirs = this.forwardIndexDirectories
                     .toArray(new FSDirectory[this.forwardIndexDirectories
@@ -568,14 +581,18 @@ public class SearchManager {
             InterruptedException {
         File datasetDir = this.getQueryDirectory();
         if (datasetDir.isDirectory()) {
-            System.out.println("Directory: " + this.getQueryDirectory().getAbsolutePath());
+            System.out.println("Directory: "
+                    + this.getQueryDirectory().getAbsolutePath());
             BufferedReader br = null;
             for (File inputFile : datasetDir.listFiles()) {
                 try {
                     br = new BufferedReader(new InputStreamReader(
                             new FileInputStream(inputFile), "UTF-8"));
                     String line;
-                    System.out.println(SearchManager.NODE_PREFIX + "status counter = "+ SearchManager.statusCounter);
+                    System.out
+                            .println(SearchManager.NODE_PREFIX
+                                    + "status counter = "
+                                    + SearchManager.statusCounter);
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         SearchManager.statusCounter += 1;
@@ -585,10 +602,12 @@ public class SearchManager {
                                 || bag.size() > SearchManager.max_tokens) {
                             if (null == bag) {
                                 System.out
-                                        .println(SearchManager.NODE_PREFIX + "empty bag, ignoring. statusCounter= "
+                                        .println(SearchManager.NODE_PREFIX
+                                                + "empty bag, ignoring. statusCounter= "
                                                 + SearchManager.statusCounter);
                             } else {
-                                System.out.println(SearchManager.NODE_PREFIX + "ignoring file, "
+                                System.out.println(SearchManager.NODE_PREFIX
+                                        + "ignoring file, "
                                         + bag.getFunctionId() + ", "
                                         + bag.getId() + ", size is: "
                                         + bag.getSize() + ", statusCounter= "
@@ -641,7 +660,7 @@ public class SearchManager {
                 String line = null;
                 try {
                     QueryBlock queryBlock = null;
-                    int count =0;
+                    int count = 0;
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         long start_time = System.currentTimeMillis();
@@ -668,9 +687,13 @@ public class SearchManager {
                                         System.out
                                                 .printf(SearchManager.NODE_PREFIX
                                                         + ", queriesBlock created: "
-                                                        + queryBlock.getFunctionId() + ","
-                                                        + queryBlock.getId() +", size "
-                                                        + queryBlock.getSize()+ ", statusCounter "
+                                                        + queryBlock
+                                                                .getFunctionId()
+                                                        + ","
+                                                        + queryBlock.getId()
+                                                        + ", size "
+                                                        + queryBlock.getSize()
+                                                        + ", statusCounter "
                                                         + SearchManager.statusCounter
                                                         + " time taken: %02dh:%02dm:%02ds",
                                                         duration.getDays()
@@ -686,7 +709,8 @@ public class SearchManager {
                                 }
                             }
                             SearchManager.queryBlockQueue.put(queryBlock);
-                            //System.out.println(SearchManager.NODE_PREFIX + ", line number: "+ count);
+                            // System.out.println(SearchManager.NODE_PREFIX +
+                            // ", line number: "+ count);
                         } catch (ParseException e) {
                             System.out
                                     .println("catching parseException, dont worry");
@@ -763,51 +787,31 @@ public class SearchManager {
                 listOfTokens);
         if (queryBlock.getSize() > SearchManager.min_tokens
                 && queryBlock.getSize() < SearchManager.max_tokens) {
-            
-            /*long start_time = System.currentTimeMillis();
-            Collections.sort(listOfTokens,
-                    new Comparator<Entry<String, TokenInfo>>() {
-                        public int compare(Entry<String, TokenInfo> tfFirst,
-                                Entry<String, TokenInfo> tfSecond) {
-                            long position1 = 0;
-                            position1 = SearchManager.gtpmSearcher
-                                    .getPosition(tfFirst.getKey());
-                            long position2 = 0;
-                            position2 = SearchManager.gtpmSearcher
-                                    .getPosition(tfSecond.getKey());
-                            if (position1 - position2 != 0) {
-                                return (int) (position1 - position2);
-                            } else {
-                                return 1;
-                            }
-                        }
-                    });
-            
-            long end_time = System.currentTimeMillis();
-            Duration duration;
-            try {
-                duration = DatatypeFactory
-                        .newInstance().newDuration(
-                                end_time - start_time);
-                System.out
-                        .printf(SearchManager.NODE_PREFIX
-                                + ", SORTING: "
-                                + queryBlock.getFunctionId() + ","
-                                + queryBlock.getId() +", size "
-                                + queryBlock.getSize()+ ", statusCounter "
-                                + SearchManager.statusCounter
-                                + " time taken: %02dh:%02dm:%02ds",
-                                duration.getDays()
-                                        * 24
-                                        + duration
-                                                .getHours(),
-                                duration.getMinutes(),
-                                duration.getSeconds());
-                System.out.println();
-            } catch (DatatypeConfigurationException e) {
-                e.printStackTrace();
-            }*/
-            
+
+            /*
+             * long start_time = System.currentTimeMillis();
+             * Collections.sort(listOfTokens, new Comparator<Entry<String,
+             * TokenInfo>>() { public int compare(Entry<String, TokenInfo>
+             * tfFirst, Entry<String, TokenInfo> tfSecond) { long position1 = 0;
+             * position1 = SearchManager.gtpmSearcher
+             * .getPosition(tfFirst.getKey()); long position2 = 0; position2 =
+             * SearchManager.gtpmSearcher .getPosition(tfSecond.getKey()); if
+             * (position1 - position2 != 0) { return (int) (position1 -
+             * position2); } else { return 1; } } });
+             * 
+             * long end_time = System.currentTimeMillis(); Duration duration;
+             * try { duration = DatatypeFactory .newInstance().newDuration(
+             * end_time - start_time); System.out
+             * .printf(SearchManager.NODE_PREFIX + ", SORTING: " +
+             * queryBlock.getFunctionId() + "," + queryBlock.getId() +", size "
+             * + queryBlock.getSize()+ ", statusCounter " +
+             * SearchManager.statusCounter + " time taken: %02dh:%02dm:%02ds",
+             * duration.getDays() 24 + duration .getHours(),
+             * duration.getMinutes(), duration.getSeconds());
+             * System.out.println(); } catch (DatatypeConfigurationException e)
+             * { e.printStackTrace(); }
+             */
+
             int position = 0;
             for (Entry<String, TokenInfo> entry : listOfTokens) {
                 TokenInfo tokenInfo = entry.getValue();

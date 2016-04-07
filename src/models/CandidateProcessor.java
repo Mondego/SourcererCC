@@ -47,7 +47,7 @@ public class CandidateProcessor implements IListener, Runnable {
                 + codeBlockIds.entrySet().size() + ", query: "
                 + queryBlock.getFunctionId() + "," + queryBlock.getId());
         for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
-            long start_time = System.currentTimeMillis();
+            //long start_time = System.currentTimeMillis();
             Document doc = null;
             try {
                 doc = SearchManager.searcher.getDocument(entry.getKey());
@@ -84,7 +84,7 @@ public class CandidateProcessor implements IListener, Runnable {
                                     candidateSize, candidateId);
                         }
                         
-                        long end_time = System.currentTimeMillis();
+                        /*long end_time = System.currentTimeMillis();
                         Duration duration;
                         try {
                             duration = DatatypeFactory.newInstance().newDuration(
@@ -100,7 +100,7 @@ public class CandidateProcessor implements IListener, Runnable {
                             System.out.println();
                         } catch (DatatypeConfigurationException e) {
                             e.printStackTrace();
-                        }
+                        }*/
                         SearchManager.verifyCandidateQueue.put(candidatePair);
                         entry = null;
                     } else {
