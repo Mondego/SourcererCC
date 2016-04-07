@@ -11,6 +11,7 @@ import models.TokenFrequency;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 
@@ -79,9 +80,10 @@ public class CodeIndexer {
 
     private Document prepareDocumentForFwdIndex(Bag bag) {
         Document document = new Document();
-        TextField textField = new TextField("id", bag.getId() + "",
+        StringField idField = new StringField("id", bag.getId() + "",
                 Field.Store.NO);
-        document.add(textField);
+        document.add(idField);
+        idField.fieldType().setIndexed(true);
         String tokenString = "";
         System.out.println(SearchManager.NODE_PREFIX + "fwdindex: creating tokenString ");
         for (TokenFrequency tf : bag) {
@@ -100,15 +102,15 @@ public class CodeIndexer {
         Document document = new Document();
         String[] keyValPair = line.split(":");
         if (keyValPair.length == 2) {
-            TextField textField = new TextField("key", keyValPair[0] + "",
+            StringField keyField = new StringField("key", keyValPair[0] + "",
                     Field.Store.NO);
-            document.add(textField);
+            keyField.fieldType().setIndexed(true);
+            document.add(keyField);
             StoredField strField = new StoredField("position", keyValPair[1]);
             document.add(strField);
             return document;
         }
         return null;
-
     }
 
     private Document prepareDocument(Bag bag) {
@@ -145,9 +147,13 @@ public class CodeIndexer {
         }
         System.out.println(SearchManager.NODE_PREFIX + "inverted index: tokenString created");
         @SuppressWarnings("deprecation")
-        Field field = new Field("tokens", tokenString.trim(), Field.Store.NO,
-                Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS);
-        document.add(field);
+        //Field field = new Field("tokens", tokenString.trim(), Field.Store.NO,
+          //      Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS);
+        TextField textField = new TextField("tokens", tokenString.trim(), Field.Store.NO);
+        textField.fieldType().setIndexed(true);
+        textField.fieldType().setStoreTermVectorPositions(true);
+        //field.fieldType().setIndexed(true);
+        document.add(textField);
         return document;
     }
 
