@@ -344,7 +344,6 @@ public class SearchManager {
             params[9] = properties.getProperty("RCQ_SIZE");
             params[10] = properties.getProperty("MIN_TOKENS");
             params[11] = properties.getProperty("MAX_TOKENS");
-
             params[12] = properties.getProperty("BTSQ_THREADS");
             params[13] = properties.getProperty("BTIIQ_THREADS");
             params[14] = properties.getProperty("BTFIQ_THREADS");

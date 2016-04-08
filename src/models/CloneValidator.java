@@ -33,7 +33,7 @@ public class CloneValidator implements IListener, Runnable {
          * candidatePair.queryBlock.getId());
          */
 
-        long start_time = System.currentTimeMillis();
+        //long start_time = System.currentTimeMillis();
         if (candidatePair.candidateTokens != null
                 && candidatePair.candidateTokens.trim().length() > 0) {
             int similarity = this.updateSimilarity(candidatePair.queryBlock,
@@ -44,7 +44,7 @@ public class CloneValidator implements IListener, Runnable {
                 ClonePair cp = new ClonePair(candidatePair.queryBlock.getId(),
                         candidatePair.candidateId);
                 
-                long end_time = System.currentTimeMillis();
+                /*long end_time = System.currentTimeMillis();
                 Duration duration;
                 try {
                     duration = DatatypeFactory.newInstance().newDuration(
@@ -60,7 +60,7 @@ public class CloneValidator implements IListener, Runnable {
                     System.out.println();
                 } catch (DatatypeConfigurationException e) {
                     e.printStackTrace();
-                }
+                }*/
                 SearchManager.reportCloneQueue.put(cp);
             }
     /*        candidatePair.queryBlock = null;
