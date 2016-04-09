@@ -1,24 +1,31 @@
 package models;
 
-import indexbased.CodeIndexer;
+import indexbased.DocumentMaker;
 import indexbased.SearchManager;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.NoSuchElementException;
 
-public class ForwardIndexCreator implements IListener, Runnable {
-    private CodeIndexer indexer;
+import org.apache.lucene.document.Document;
 
-    public ForwardIndexCreator(CodeIndexer indexer) {
+public class ForwardIndexCreator implements IListener, Runnable {
+    private DocumentMaker documentMaker;
+    private Document document;
+
+    public ForwardIndexCreator() {
         super();
-        this.indexer = indexer;
+        this.documentMaker = new DocumentMaker();
     }
 
     @Override
     public void run() {
         try {
-            /*System.out.println(SearchManager.NODE_PREFIX
-                    + ", size of bagsToForwardIndexQueue "
-                    + SearchManager.bagsToForwardIndexQueue.size());*/
+            /*
+             * System.out.println(SearchManager.NODE_PREFIX +
+             * ", size of bagsToForwardIndexQueue " +
+             * SearchManager.bagsToForwardIndexQueue.size());
+             */
             Bag bag = SearchManager.bagsToForwardIndexQueue.remove();
             this.index(bag);
         } catch (NoSuchElementException e) {
@@ -31,11 +38,19 @@ public class ForwardIndexCreator implements IListener, Runnable {
     }
 
     private void index(Bag bag) throws InterruptedException {
-        this.indexer.fwdIndexCodeBlock(bag);
+        List<Shard> shards = SearchManager.getShardIdsForBag(bag);
+        this.document = this.documentMaker.prepareDocumentForFwdIndex(bag);
+        for (Shard shard : shards) {
+            try {
+                shard.getForwardIndexWriter().addDocument(this.document);
+            } catch (IOException e) {
+                System.out.println(SearchManager.NODE_PREFIX
+                        + ": error in indexing bag, " + bag);
+                e.printStackTrace();
+            }
+        }
         System.out.println(SearchManager.NODE_PREFIX + ", lines processed: "
-                + SearchManager.statusCounter + ", Bag indexed: "
-                + bag.getFunctionId() + ", " + bag.getId() + ", size: "
-                + bag.getSize() + "");
+                + SearchManager.statusCounter + ", Bag indexed: " + bag);
     }
 
 }

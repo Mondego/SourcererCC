@@ -1,16 +1,21 @@
 package models;
 
-import indexbased.CodeIndexer;
+import indexbased.DocumentMaker;
 import indexbased.SearchManager;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.NoSuchElementException;
 
-public class InvertedIndexCreator implements IListener, Runnable {
-    private CodeIndexer indexer;
+import org.apache.lucene.document.Document;
 
-    public InvertedIndexCreator(CodeIndexer indexer) {
+public class InvertedIndexCreator implements IListener, Runnable {
+    private DocumentMaker documentMaker;
+    private Document document;
+
+    public InvertedIndexCreator() {
         super();
-        this.indexer = indexer;
+        this.documentMaker = new DocumentMaker();
     }
 
     @Override
@@ -31,11 +36,20 @@ public class InvertedIndexCreator implements IListener, Runnable {
     }
 
     private void index(Bag bag) throws InterruptedException {
-        this.indexer.indexCodeBlock(bag);
+        List<Shard> shards = SearchManager.getShardIdsForBag(bag);
+        this.document = this.documentMaker.prepareDocument(bag);
+        for (Shard shard : shards){
+            try {
+                shard.getInvertedIndexWriter().addDocument(this.document);
+            } catch (IOException e) {
+                System.out.println(SearchManager.NODE_PREFIX+ ": error in indexing bag, "+ bag);
+                e.printStackTrace();
+            }
+        }
         SearchManager.bagsToForwardIndexQueue.put(bag);
     }
 
-    public CodeIndexer getIndexer() {
-        return indexer;
+    public DocumentMaker getIndexer() {
+        return documentMaker;
     }
 }

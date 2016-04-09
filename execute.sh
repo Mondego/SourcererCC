@@ -10,4 +10,4 @@ bash ./preparequery.sh
 echo "done!"
 bash ./replacenodeprefix.sh $num_nodes
 echo "calling runnodes.sh"
-bash ./runnodes.sh $num_nodes $th
+#bash ./runnodes.sh $num_nodes $th

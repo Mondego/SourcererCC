@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.jmatrix.eproperties.EProperties;
+
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexWriter;
@@ -122,8 +124,35 @@ public class IndexMerger {
             }
         }
     }
-    public static void main(String [] args){
+    public static void main(String [] args) throws FileNotFoundException{
         IndexMerger indexMerger = new IndexMerger();
+        
+        EProperties properties = new EProperties();
+        FileInputStream fis = null;
+        System.out.println("reading Q values from properties file");
+        String propertiesPath = System.getProperty("properties.location");
+        System.out.println("propertiesPath: " + propertiesPath);
+        fis = new FileInputStream(propertiesPath);
+        try {
+            properties.load(fis);
+            String segmentString = properties.getProperty("SHARD_MAX_NUM_TOKENS");
+            String[] shardSegments = segmentString.split(",");
+        } catch (IOException e) {
+            System.out.println("ERROR READING PROPERTIES FILE, "
+                    + e.getMessage());
+            System.exit(1);
+        } finally {
+
+            if (null != fis) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        
         String inputFile = "kmaster";
         System.out.println("populating index dirs");
         indexMerger.populateIndeXdirs(inputFile);

@@ -22,7 +22,7 @@ import utility.BlockInfo;
  * @author vaibhavsaini
  * 
  */
-public class CodeIndexer {
+public class DocumentMaker {
     private IndexWriter indexWriter;
 
     /**
@@ -32,15 +32,19 @@ public class CodeIndexer {
      * @param isAppendIndex
      * @param isPrefixIndex
      */
-    public CodeIndexer(IndexWriter indexWriter) {
+    public DocumentMaker(IndexWriter indexWriter) {
         super();
         this.indexWriter = indexWriter;
+    }
+    
+    public DocumentMaker(){
+        super();
     }
 
     /**
      * index the code block
      */
-    public void indexCodeBlock(Bag bag) {
+/*    public void indexCodeBlock(Bag bag) {
         Document document;
         document = this.prepareDocument(bag);
         try {
@@ -51,9 +55,9 @@ public class CodeIndexer {
                             + bag.getId());
             e.printStackTrace();
         }
-    }
+    }*/
 
-    public void fwdIndexCodeBlock(Bag bag) {
+/*    public void fwdIndexCodeBlock(Bag bag) {
         Document document = this.prepareDocumentForFwdIndex(bag);
         try {
             this.indexWriter.addDocument(document);
@@ -63,7 +67,7 @@ public class CodeIndexer {
                             + bag.getId());
             e.printStackTrace();
         }
-    }
+    }*/
 
     public void indexGtpmEntry(String line) {
         Document document = this.prepareDocumentForGTPMIndex(line);
@@ -79,7 +83,7 @@ public class CodeIndexer {
         }
     }
 
-    private Document prepareDocumentForFwdIndex(Bag bag) {
+    public Document prepareDocumentForFwdIndex(Bag bag) {
         Document document = new Document();
         StringField idField = new StringField("id", bag.getId() + "",
                 Field.Store.NO);
@@ -101,7 +105,7 @@ public class CodeIndexer {
         return document;
     }
 
-    private Document prepareDocumentForGTPMIndex(String line) {
+    public Document prepareDocumentForGTPMIndex(String line) {
         Document document = new Document();
         String[] keyValPair = line.split(":");
         if (keyValPair.length == 2) {
@@ -116,7 +120,7 @@ public class CodeIndexer {
         return null;
     }
 
-    private Document prepareDocument(Bag bag) {
+    public Document prepareDocument(Bag bag) {
         Document document = new Document();
         StoredField strField = new StoredField("id", bag.getId() + "");
         document.add(strField);

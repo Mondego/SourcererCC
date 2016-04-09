@@ -97,14 +97,7 @@ public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this
      */
     @Override
     public String toString() {
-        String returnString = "";
-        for (TokenFrequency tokenFrequency : this) {
-            returnString += tokenFrequency.getToken().toString() + "@@::@@"
-                    + tokenFrequency.getFrequency() + ",";
-        }
-        return this.id + "@#@"
-                + returnString.substring(0, returnString.length() - 1)
-                + System.getProperty("line.separator");
+        return this.getFunctionId()+", "+this.getId()+", size: "+ this.getSize();
     }
 
     public TokenFrequency get(TokenFrequency tokenFrequency) {

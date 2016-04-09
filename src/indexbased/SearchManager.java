@@ -37,18 +37,13 @@ import models.InvertedIndexCreator;
 import models.QueryBlock;
 import models.QueryCandidates;
 import models.Queue;
+import models.Shard;
 import models.TokenInfo;
 import net.jmatrix.eproperties.EProperties;
 import noindex.CloneHelper;
 
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 
 import utility.Util;
 import validation.TestGson;
@@ -90,7 +85,7 @@ public class SearchManager {
     public static final Integer MUL_FACTOR = 100;
     private static final String ACTION_INIT = "init";
     int deletemeCounter = 0;
-    private double ramBufferSizeMB;
+    public static double ramBufferSizeMB;
     private long bagsSortTime;
     public static Queue<QueryCandidates> queryCandidatesQueue;
     public static Queue<QueryBlock> queryBlockQueue;
@@ -104,9 +99,11 @@ public class SearchManager {
     private final static int BAG_SORTER = 1;
     private final static int INVERTED_INDEX_CREATOR = 2;
     private final static int FORWARD_INDEX_CREATOR = 3;
-    private List<FSDirectory> invertedIndexDirectories;
-    private List<FSDirectory> forwardIndexDirectories;
-    private List<IndexWriter> indexerWriters;
+    public static Map<Integer, List<FSDirectory>> invertedIndexDirectoriesOfShard;
+    public static Map<Integer, List<FSDirectory>> forwardIndexDirectoriesOfShard;
+    // private List<FSDirectory> invertedIndexDirectories;
+    // private List<FSDirectory> forwardIndexDirectories;
+    public static List<IndexWriter> indexerWriters;
 
     public static Object lock = new Object();
     private int qbq_thread_count;
@@ -123,6 +120,7 @@ public class SearchManager {
     private int sizeBagsToIIQ;
     private int threadsToProcessFIQueue;
     private int sizeBagsToFIQ;
+    private boolean isShardOn;
     public static int min_tokens;
     public static int max_tokens;
     public static boolean isGenCandidateStats;
@@ -133,6 +131,7 @@ public class SearchManager {
     public static String NODE_PREFIX;
     public static String OUTPUT_DIR;
     public static Map<String, Long> globalWordFreqMap;
+    public static List<Shard> shards;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -145,7 +144,7 @@ public class SearchManager {
         SearchManager.numCandidates = 0;
         this.timeTotal = 0;
         this.appendToExistingFile = true;
-        this.ramBufferSizeMB = 1024 * 1;
+        SearchManager.ramBufferSizeMB = 1024 * 1;
         this.bagsSortTime = 0;
         this.action = args[0];
         SearchManager.statusCounter = 0;
@@ -169,6 +168,24 @@ public class SearchManager {
             this.sizeBagsToSortQ = Integer.parseInt(args[15]);
             this.sizeBagsToIIQ = Integer.parseInt(args[16]);
             this.sizeBagsToFIQ = Integer.parseInt(args[17]);
+            this.isShardOn = Boolean.parseBoolean(args[18]);
+            String shardSegment = args[19];
+            String[] shardSegments = shardSegment.split(",");
+            int minTokens = SearchManager.min_tokens;
+            int maxTokens = SearchManager.min_tokens;
+            int shardId = 1;
+            SearchManager.invertedIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
+            SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
+            SearchManager.shards = new ArrayList<Shard>();
+            for (String segment : shardSegments) {
+                // create shards
+                maxTokens = Integer.parseInt(segment);
+                Shard shard = new Shard(shardId, minTokens,
+                        Integer.parseInt(segment));
+                SearchManager.shards.add(shard);
+                minTokens = maxTokens + 1;
+                shardId++;
+            }
 
         } catch (NumberFormatException e) {
             System.out.println(e.getMessage() + ", exiting now");
@@ -203,8 +220,8 @@ public class SearchManager {
             this.registerListeners(this.rcq_thread_count,
                     SearchManager.reportCloneQueue, CLONE_REPORTER);
         } else if (this.action.equals(ACTION_INDEX)) {
-            invertedIndexDirectories = new ArrayList<FSDirectory>();
-            forwardIndexDirectories = new ArrayList<FSDirectory>();
+            // invertedIndexDirectories = new ArrayList<FSDirectory>();
+            // forwardIndexDirectories = new ArrayList<FSDirectory>();
             indexerWriters = new ArrayList<IndexWriter>();
             System.out.println("acton: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
@@ -236,6 +253,18 @@ public class SearchManager {
 
     }
 
+    // this bag needs to be indexed in following shards
+    public static List<Shard> getShardIdsForBag(Bag bag) {
+        List<Shard> shardsToReturn = new ArrayList<Shard>();
+        for (Shard shard : SearchManager.shards)
+            if (bag.getSize() > shard.getMinBagSizeToIndex()
+                    && bag.getSize() < shard.getMaxBagSizeToIndex()) {
+                shardsToReturn.add(shard);
+            }
+        System.out.println("returning shards");
+        return shardsToReturn;
+    }
+
     private void registerListeners(int nListeners, Queue<?> queue,
             int ListenerType) {
         List<IListener> listeners = new ArrayList<IListener>();
@@ -263,56 +292,9 @@ public class SearchManager {
             if (ListenerType == BAG_SORTER) {
                 listener = new BagSorter();
             } else if (ListenerType == INVERTED_INDEX_CREATOR) {
-                WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
-                        Version.LUCENE_46);
-                IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
-                        Version.LUCENE_46, whitespaceAnalyzer);
-                indexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
-                indexWriterConfig.setOpenMode(OpenMode.CREATE);
-                // index
-                TieredMergePolicy mergePolicy = (TieredMergePolicy) indexWriterConfig
-                        .getMergePolicy();
-
-                mergePolicy.setNoCFSRatio(0);// what was this for?
-                mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
-                IndexWriter indexWriter = null;
-                try {
-                    FSDirectory dir = FSDirectory.open(new File(
-                            SearchManager.NODE_PREFIX + "/index/temp/_" + i));
-                    invertedIndexDirectories.add(dir);
-                    indexWriter = new IndexWriter(dir, indexWriterConfig);
-                    listener = new InvertedIndexCreator(new CodeIndexer(
-                            indexWriter));
-                    indexerWriters.add(indexWriter);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
+                listener = new InvertedIndexCreator();
             } else if (ListenerType == FORWARD_INDEX_CREATOR) {
-
-                KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
-                IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
-                        Version.LUCENE_46, keywordAnalyzer);
-                fwdIndexWriterConfig.setRAMBufferSizeMB(this.ramBufferSizeMB);
-                fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
-                TieredMergePolicy mergePolicy = (TieredMergePolicy) fwdIndexWriterConfig
-                        .getMergePolicy();
-
-                mergePolicy.setNoCFSRatio(0);// what was this for?
-                mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
-                IndexWriter fwdIndexWriter = null;
-                try {
-                    FSDirectory dir = FSDirectory
-                            .open(new File(SearchManager.NODE_PREFIX
-                                    + "/fwdindex/temp/_" + i));
-                    forwardIndexDirectories.add(dir);
-                    fwdIndexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
-                    listener = new ForwardIndexCreator(new CodeIndexer(
-                            fwdIndexWriter));
-                    indexerWriters.add(fwdIndexWriter);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                listener = new ForwardIndexCreator();
             }
             listeners.add(listener);
         }
@@ -331,7 +313,7 @@ public class SearchManager {
         fis = new FileInputStream(propertiesPath);
         try {
             properties.load(fis);
-            String[] params = new String[18];
+            String[] params = new String[20];
             params[0] = args[0];
             params[1] = args[1];
             params[2] = properties.getProperty("QBQ_THREADS");
@@ -350,6 +332,11 @@ public class SearchManager {
             params[15] = properties.getProperty("BTSQ_SIZE");
             params[16] = properties.getProperty("BTIIQ_SIZE");
             params[17] = properties.getProperty("BTFIQ_SIZE");
+
+            // shard
+            params[18] = properties.getProperty("IS_SHARD_ON");
+            params[19] = properties.getProperty("SHARD_MAX_NUM_TOKENS");
+
             SearchManager.DATASET_DIR = properties
                     .getProperty("DATASET_DIR_PATH");
             SearchManager.isGenCandidateStats = Boolean.parseBoolean(properties
@@ -418,16 +405,14 @@ public class SearchManager {
                 }
             }
 
-            for (IndexWriter writer : searchManager.indexerWriters) {
-                try {
-                    writer.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            for (Shard shard : SearchManager.shards) {
+                shard.closeInvertedIndexWriter();
+                shard.closeForwardIndexWriter();
             }
-            System.out.println("merging indexes");
-            searchManager.mergeindexes();
-            System.out.println("merge done");
+            /*
+             * System.out.println("merging indexes");
+             * searchManager.mergeindexes(); System.out.println("merge done");
+             */
             System.out.println("indexing over!");
             searchManager.timeIndexing = System.currentTimeMillis()
                     - begin_time;
@@ -488,62 +473,41 @@ public class SearchManager {
         }
     }
 
-    private void mergeindexes() {
-        // TODO Auto-generated method stub
-        WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
-                Version.LUCENE_46);
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
-                Version.LUCENE_46, whitespaceAnalyzer);
-        indexWriterConfig.setOpenMode(OpenMode.CREATE);
-        IndexWriter indexWriter = null;
-        try {
-            FSDirectory dir = FSDirectory.open(new File(
-                    SearchManager.NODE_PREFIX + "/mergedindex/index"));
-            indexWriter = new IndexWriter(dir, indexWriterConfig);
-            FSDirectory[] dirs = this.invertedIndexDirectories
-                    .toArray(new FSDirectory[this.invertedIndexDirectories
-                            .size()]);
-            indexWriter.addIndexes(dirs);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                indexWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
-        IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
-                Version.LUCENE_46, keywordAnalyzer);
-        fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
-        try {
-
-            FSDirectory dir = FSDirectory.open(new File(
-                    SearchManager.NODE_PREFIX + "/mergedindex/fwd/index"));
-            indexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
-            FSDirectory[] dirs = this.forwardIndexDirectories
-                    .toArray(new FSDirectory[this.forwardIndexDirectories
-                            .size()]);
-            indexWriter.addIndexes(dirs);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                indexWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+    /*
+     * private void mergeindexes() { // TODO Auto-generated method stub
+     * WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
+     * Version.LUCENE_46); IndexWriterConfig indexWriterConfig = new
+     * IndexWriterConfig( Version.LUCENE_46, whitespaceAnalyzer);
+     * indexWriterConfig.setOpenMode(OpenMode.CREATE); IndexWriter indexWriter =
+     * null; try { FSDirectory dir = FSDirectory.open(new File(
+     * SearchManager.NODE_PREFIX + "/mergedindex/index")); indexWriter = new
+     * IndexWriter(dir, indexWriterConfig); FSDirectory[] dirs =
+     * this.invertedIndexDirectories .toArray(new
+     * FSDirectory[this.invertedIndexDirectories .size()]);
+     * indexWriter.addIndexes(dirs); } catch (Exception e) {
+     * e.printStackTrace(); } finally { try { indexWriter.close(); } catch
+     * (IOException e) { e.printStackTrace(); } }
+     * 
+     * KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
+     * IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
+     * Version.LUCENE_46, keywordAnalyzer);
+     * fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE); try {
+     * 
+     * FSDirectory dir = FSDirectory.open(new File( SearchManager.NODE_PREFIX +
+     * "/mergedindex/fwd/index")); indexWriter = new IndexWriter(dir,
+     * fwdIndexWriterConfig); FSDirectory[] dirs = this.forwardIndexDirectories
+     * .toArray(new FSDirectory[this.forwardIndexDirectories .size()]);
+     * indexWriter.addIndexes(dirs);
+     * 
+     * } catch (Exception e) { e.printStackTrace(); } finally { try {
+     * indexWriter.close(); } catch (IOException e) { e.printStackTrace(); } } }
+     */
 
     private void initIndexEnv() throws IOException, ParseException {
         TermSorter termSorter = new TermSorter();
 
         long timeGlobalPositionStart = System.currentTimeMillis();
-        termSorter.populateGlobalPositionMap();
+        // termSorter.populateGlobalPositionMap();
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");
         this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
@@ -659,13 +623,11 @@ public class SearchManager {
                 String line = null;
                 try {
                     QueryBlock queryBlock = null;
-                    int count = 0;
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         long start_time = System.currentTimeMillis();
                         try {
                             queryBlock = this.getNextQueryBlock(line);
-                            count++;
                             if (queryBlock.getSize() < SearchManager.min_tokens
                                     || queryBlock.getSize() > SearchManager.max_tokens) {
                                 System.out.println("ignoring query, REASON:  "

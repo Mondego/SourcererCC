@@ -152,11 +152,11 @@ public class TermSorter {
         gtpmIndexWriterConfig.setOpenMode(OpenMode.CREATE);
         gtpmIndexWriterConfig.setRAMBufferSizeMB(1024);
         IndexWriter gtpmIndexWriter = null;
-        CodeIndexer gtpmIndexer = null;
+        DocumentMaker gtpmIndexer = null;
         try {
             gtpmIndexWriter = new IndexWriter(FSDirectory.open(new File(
                     Util.GTPM_INDEX_DIR)), gtpmIndexWriterConfig);
-            gtpmIndexer = new CodeIndexer(gtpmIndexWriter);
+            gtpmIndexer = new DocumentMaker(gtpmIndexWriter);
 
             BufferedReader br = null;
             int count = 0;
