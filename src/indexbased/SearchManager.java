@@ -257,8 +257,8 @@ public class SearchManager {
     public static List<Shard> getShardIdsForBag(Bag bag) {
         List<Shard> shardsToReturn = new ArrayList<Shard>();
         for (Shard shard : SearchManager.shards)
-            if (bag.getSize() > shard.getMinBagSizeToIndex()
-                    && bag.getSize() < shard.getMaxBagSizeToIndex()) {
+            if (bag.getSize() >= shard.getMinBagSizeToIndex()
+                    && bag.getSize() <= shard.getMaxBagSizeToIndex()) {
                 shardsToReturn.add(shard);
             }
         System.out.println("returning shards");
