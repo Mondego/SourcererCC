@@ -161,6 +161,7 @@ public class IndexMerger {
                     .getProperty("SHARD_MAX_NUM_TOKENS");
             String[] shardSegments = segmentString.split(",");
             for (int shardId = 1; shardId <= shardSegments.length; shardId++) {
+                System.out.println("merging shard "+ shardId);
                 indexMerger.populateIndexdirs(shardId);
                 indexMerger.mergeindexes(shardId);
             }
