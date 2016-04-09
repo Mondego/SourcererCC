@@ -120,7 +120,7 @@ public class SearchManager {
     private int sizeBagsToIIQ;
     private int threadsToProcessFIQueue;
     private int sizeBagsToFIQ;
-    private boolean isShardOn;
+    private int searchShardId;
     public static int min_tokens;
     public static int max_tokens;
     public static boolean isGenCandidateStats;
@@ -168,7 +168,7 @@ public class SearchManager {
             this.sizeBagsToSortQ = Integer.parseInt(args[15]);
             this.sizeBagsToIIQ = Integer.parseInt(args[16]);
             this.sizeBagsToFIQ = Integer.parseInt(args[17]);
-            this.isShardOn = Boolean.parseBoolean(args[18]);
+            this.searchShardId = Integer.parseInt(args[18]);
             String shardSegment = args[19];
             String[] shardSegments = shardSegment.split(",");
             int minTokens = SearchManager.min_tokens;
@@ -186,7 +186,10 @@ public class SearchManager {
                 minTokens = maxTokens + 1;
                 shardId++;
             }
-
+            // create the last shard
+            Shard shard = new Shard(shardId, minTokens,
+                    SearchManager.max_tokens);
+            SearchManager.shards.add(shard);
         } catch (NumberFormatException e) {
             System.out.println(e.getMessage() + ", exiting now");
             System.exit(1);
@@ -334,7 +337,7 @@ public class SearchManager {
             params[17] = properties.getProperty("BTFIQ_SIZE");
 
             // shard
-            params[18] = properties.getProperty("IS_SHARD_ON");
+            params[18] = properties.getProperty("SEARCH_SHARD_ID");
             params[19] = properties.getProperty("SHARD_MAX_NUM_TOKENS");
 
             SearchManager.DATASET_DIR = properties
@@ -706,8 +709,10 @@ public class SearchManager {
     }
 
     private void initSearchEnv() {
-        SearchManager.fwdSearcher = new CodeSearcher(Util.FWD_INDEX_DIR, "id");
-        SearchManager.searcher = new CodeSearcher(Util.INDEX_DIR, "tokens");
+        SearchManager.fwdSearcher = new CodeSearcher(Util.FWD_INDEX_DIR + "/"
+                + this.searchShardId, "id");
+        SearchManager.searcher = new CodeSearcher(Util.INDEX_DIR + "/"
+                + this.searchShardId, "tokens");
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");
     }

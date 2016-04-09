@@ -37,6 +37,7 @@ public class CodeSearcher {
     private String field;
 
     public CodeSearcher(String indexDir, String field) {
+        System.out.println("index directory: "+ indexDir);
         this.field = field;
         this.indexDir = indexDir;
         try {
