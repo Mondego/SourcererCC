@@ -173,27 +173,8 @@ public class SearchManager {
             this.sizeBagsToIIQ = Integer.parseInt(args[16]);
             this.sizeBagsToFIQ = Integer.parseInt(args[17]);
             this.searchShardId = Integer.parseInt(args[18]);
-            String shardSegment = args[19];
-            String[] shardSegments = shardSegment.split(",");
-            int minTokens = SearchManager.min_tokens;
-            int maxTokens = SearchManager.min_tokens;
-            int shardId = 1;
-            SearchManager.invertedIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
-            SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
-            SearchManager.shards = new ArrayList<Shard>();
-            for (String segment : shardSegments) {
-                // create shards
-                maxTokens = Integer.parseInt(segment);
-                Shard shard = new Shard(shardId, minTokens,
-                        Integer.parseInt(segment));
-                SearchManager.shards.add(shard);
-                minTokens = maxTokens + 1;
-                shardId++;
-            }
-            // create the last shard
-            Shard shard = new Shard(shardId, minTokens,
-                    SearchManager.max_tokens);
-            SearchManager.shards.add(shard);
+
+            
         } catch (NumberFormatException e) {
             System.out.println(e.getMessage() + ", exiting now");
             System.exit(1);
@@ -228,9 +209,33 @@ public class SearchManager {
             this.registerListeners(this.rcq_thread_count,
                     SearchManager.reportCloneQueue, CLONE_REPORTER);
         } else if (this.action.equals(ACTION_INDEX)) {
+            
             // invertedIndexDirectories = new ArrayList<FSDirectory>();
             // forwardIndexDirectories = new ArrayList<FSDirectory>();
             indexerWriters = new ArrayList<IndexWriter>();
+            String shardSegment = args[19];
+            String[] shardSegments = shardSegment.split(",");
+            int minTokens = SearchManager.min_tokens;
+            int maxTokens = SearchManager.min_tokens;
+            int shardId = 1;
+            SearchManager.invertedIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
+            SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
+            SearchManager.shards = new ArrayList<Shard>();
+            for (String segment : shardSegments) {
+                // create shards
+                maxTokens = Integer.parseInt(segment);
+                Shard shard = new Shard(shardId, minTokens,
+                        Integer.parseInt(segment));
+                SearchManager.shards.add(shard);
+                minTokens = maxTokens + 1;
+                shardId++;
+            }
+            // create the last shard
+            Shard shard = new Shard(shardId, minTokens,
+                    SearchManager.max_tokens);
+            SearchManager.shards.add(shard);
+            
+            
             System.out.println("acton: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
                     + "BQ_THREADS: " + this.threadsToProcessBagsToSortQueue
