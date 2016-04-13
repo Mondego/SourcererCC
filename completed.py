@@ -76,7 +76,11 @@ def getJobName():
 def getCompletedQueries():
     logFiles = getLogFiles()
     queries=[]
+    print "Total {0} logs found".format(len(logFiles))
+    count=0
     for filename in logFiles:
+        count +=1
+        print "processing {0} of {1}: filename: {2}".format(count, len(logFiles),filename)
         try:
             f = open(filename,'r')
             previous=""
