@@ -225,7 +225,7 @@ public class SearchManager {
                 // create shards
                 maxTokens = Integer.parseInt(segment);
                 Shard shard = new Shard(shardId, minTokens,
-                        Integer.parseInt(segment));
+                        maxTokens);
                 SearchManager.shards.add(shard);
                 minTokens = maxTokens + 1;
                 shardId++;
@@ -819,8 +819,8 @@ public class SearchManager {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
         QueryBlock queryBlock = this.cloneHelper.getSortedQueryBlock(line,
                 listOfTokens);
-        if (queryBlock.getSize() > SearchManager.min_tokens
-                && queryBlock.getSize() < SearchManager.max_tokens) {
+        if (queryBlock.getSize() >= SearchManager.min_tokens
+                && queryBlock.getSize() <= SearchManager.max_tokens) {
 
             /*
              * long start_time = System.currentTimeMillis();
