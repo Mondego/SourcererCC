@@ -123,6 +123,21 @@ def getLogFiles():
         break
     return filesToReturn
 
+def getLogFilesNonHpc():
+    print "getting log files"
+    filesToReturn= []
+    for root, subFolders, files in os.walk('./'):
+        for f in files:
+            fileName, fileExtension = os.path.splitext(f)
+            if fileExtension.startswith('.log'):
+                try:
+                    print "adding {0}".format(f)
+                    filesToReturn.append(f)
+                except:
+                    print "sys.exc_info:", sys.exc_info()[0]
+        break
+    return filesToReturn
+
 
 def getAllNodeFolders():
     nodes=[]
