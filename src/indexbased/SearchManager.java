@@ -521,7 +521,7 @@ public class SearchManager {
                     filename), "UTF-8"));
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                this.completedQueries.add(Long.parseLong(line));
+                this.completedQueries.add(Long.parseLong(line.trim()));
             }
         } catch (FileNotFoundException e) {
             System.out.println(filename + " not found");
