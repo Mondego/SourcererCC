@@ -144,7 +144,7 @@ if __name__ == '__main__':
     elif "rr" == sys.argv[1]:
         f = open("completed_queries.txt",'a')
         queries = getCompletedQueries()
-        print "{} queries found".format(len(queries))
+        print "{0} queries found".format(len(queries))
         for query in queries:
             f.write(query+"\n")
         f.close()
