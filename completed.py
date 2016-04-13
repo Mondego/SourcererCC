@@ -109,7 +109,7 @@ def getCompletedQueries():
 def getLogFiles():
     print "getting log files"
     FILE_NAME = getJobName()
-    files= []
+    filesToReturn= []
     for root, subFolders, files in os.walk('./'):
         for f in files:
             fileName, fileExtension = os.path.splitext(f)
@@ -117,11 +117,11 @@ def getLogFiles():
                 if fileName == FILE_NAME:
                     try:
                         print "adding {0}".format(f)
-                        files.append(f)
+                        filesToReturn.append(f)
                     except:
                         print "sys.exc_info:", sys.exc_info()[0]
         break
-    return files
+    return filesToReturn
 
 
 def getAllNodeFolders():
