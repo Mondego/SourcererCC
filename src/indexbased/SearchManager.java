@@ -521,13 +521,16 @@ public class SearchManager {
         // TODO Auto-generated method stub
         BufferedReader br = null;
         String filename = "completed_queries.txt";
+        int count=0;
         try {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(
                     filename), "UTF-8"));
             String line;
+            
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 try{
                     this.completedQueries.add(Long.parseLong(line.trim()));
+                    count ++;
                 }
                 catch (NumberFormatException e) {
                     System.out.println(SearchManager.NODE_PREFIX+ ", error in parsing:" + e.getMessage()+", line: "+ line );
@@ -545,7 +548,7 @@ public class SearchManager {
             e.printStackTrace();
         }
         System.out.println("queries completed already: "
-                + this.completedQueries.size());
+                + this.completedQueries.size()+", count: "+ count);
     }
 
     private void initIndexEnv() throws IOException, ParseException {
