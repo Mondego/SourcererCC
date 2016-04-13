@@ -10,14 +10,17 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -132,6 +135,7 @@ public class SearchManager {
     public static String OUTPUT_DIR;
     public static Map<String, Long> globalWordFreqMap;
     public static List<Shard> shards;
+    public Set<Long> completedQueries;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -195,6 +199,7 @@ public class SearchManager {
             System.exit(1);
         }
         if (this.action.equals(ACTION_SEARCH)) {
+            this.completedQueries = new HashSet<Long>();
             System.out.println("acton: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
                     + "QBQ_THREADS: " + this.qbq_thread_count + ", QBQ_SIZE: "
@@ -422,6 +427,7 @@ public class SearchManager {
         } else if (searchManager.action.equalsIgnoreCase(ACTION_SEARCH)) {
             searchManager.initSearchEnv();
             long timeStartSearch = System.currentTimeMillis();
+            searchManager.populateCompletedQueries();
             searchManager.findCandidates();
             while (true) {
                 if (SearchManager.queryBlockQueue.size() == 0
@@ -505,6 +511,30 @@ public class SearchManager {
      * } catch (Exception e) { e.printStackTrace(); } finally { try {
      * indexWriter.close(); } catch (IOException e) { e.printStackTrace(); } } }
      */
+
+    private void populateCompletedQueries() {
+        // TODO Auto-generated method stub
+        BufferedReader br = null;
+        String filename = "completed_queries.txt";
+        try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(
+                    filename), "UTF-8"));
+            String line;
+            while ((line = br.readLine()) != null && line.trim().length() > 0) {
+                this.completedQueries.add(Long.parseLong(line));
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println(filename + " not found");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("queries completed already: "
+                + this.completedQueries.size());
+    }
 
     private void initIndexEnv() throws IOException, ParseException {
         TermSorter termSorter = new TermSorter();
@@ -613,19 +643,20 @@ public class SearchManager {
                 String filename = queryFile.getName().replaceFirst("[.][^.]+$",
                         "");
                 try {
-                    String cloneReportFileName = SearchManager.OUTPUT_DIR + SearchManager.th
-                            / SearchManager.MUL_FACTOR + "/" + filename
-                            + "clones_index_WITH_FILTER.txt";
+                    String cloneReportFileName = SearchManager.OUTPUT_DIR
+                            + SearchManager.th / SearchManager.MUL_FACTOR + "/"
+                            + filename + "clones_index_WITH_FILTER.txt";
                     File cloneReportFile = new File(cloneReportFileName);
-                    if(cloneReportFile.exists()){
-                        this.appendToExistingFile=true;
-                    }else{
-                        this.appendToExistingFile=false;
+                    if (cloneReportFile.exists()) {
+                        this.appendToExistingFile = true;
+                    } else {
+                        this.appendToExistingFile = false;
                     }
                     SearchManager.clonesWriter = Util.openFile(
                             SearchManager.OUTPUT_DIR + SearchManager.th
                                     / SearchManager.MUL_FACTOR + "/" + filename
-                                    + "clones_index_WITH_FILTER.txt", this.appendToExistingFile);
+                                    + "clones_index_WITH_FILTER.txt",
+                            this.appendToExistingFile);
                 } catch (IOException e) {
                     System.out.println(e.getMessage() + " exiting");
                     System.exit(1);
@@ -639,6 +670,17 @@ public class SearchManager {
                         long start_time = System.currentTimeMillis();
                         try {
                             queryBlock = this.getNextQueryBlock(line);
+                            if (this.appendToExistingFile
+                                    && this.completedQueries
+                                            .contains(queryBlock.getId())) {
+                                System.out
+                                        .println("ignoring query, REASON: completed in previous run, "
+                                                + queryBlock.getFunctionId()
+                                                + ", "
+                                                + queryBlock.getId()
+                                                + ", " + queryBlock.getSize());
+                                continue;
+                            }
                             if (queryBlock.getSize() < SearchManager.min_tokens
                                     || queryBlock.getSize() > SearchManager.max_tokens) {
                                 System.out.println("ignoring query, REASON:  "
