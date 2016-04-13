@@ -533,6 +533,7 @@ public class SearchManager {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (NumberFormatException e) {
+            System.out.println(SearchManager.NODE_PREFIX+ ", error in parsing:" + e.getMessage() );
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
