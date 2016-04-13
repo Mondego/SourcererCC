@@ -526,16 +526,22 @@ public class SearchManager {
                     filename), "UTF-8"));
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                this.completedQueries.add(Long.parseLong(line.trim()));
+                try{
+                    this.completedQueries.add(Long.parseLong(line.trim()));
+                }
+                catch (NumberFormatException e) {
+                    System.out.println(SearchManager.NODE_PREFIX+ ", error in parsing:" + e.getMessage()+", line: "+ line );
+                    e.printStackTrace();
+                } 
+                
             }
         } catch (FileNotFoundException e) {
-            System.out.println(filename + " not found");
+            System.out.println(SearchManager.NODE_PREFIX+ ", "+ filename + " not found");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (NumberFormatException e) {
-            System.out.println(SearchManager.NODE_PREFIX+ ", error in parsing:" + e.getMessage() );
+            System.out.println(SearchManager.NODE_PREFIX +", error in populateCompleteQueries" + e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
+            System.out.println(SearchManager.NODE_PREFIX +", error in populateCompleteQueries IO" + e.getMessage());
             e.printStackTrace();
         }
         System.out.println("queries completed already: "
