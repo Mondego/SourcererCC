@@ -81,15 +81,18 @@ def getCompletedQueries():
         try:
             f = open(filename,'r')
             previous=""
+            added=False
             for line in f:
                 try:
                     query = line.split(",")[0]
                     if query != previous:
+                        added=True
                         queries.append(query)
                 except:
                     pass #ignroe
             # ignore the last query as it might not be complete
-            queries = queries[:-1]
+            if added:
+                queries = queries[:-1]
             f.close()
         except:
             print("no output file in ", node)
