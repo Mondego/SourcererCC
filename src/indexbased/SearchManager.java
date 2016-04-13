@@ -398,13 +398,13 @@ public class SearchManager {
                 if (SearchManager.bagsToSortQueue.size() == 0
                         && SearchManager.bagsToInvertedIndexQueue.size() == 0
                         && SearchManager.bagsToForwardIndexQueue.size() == 0) {
-                    System.out.println("shutting down BTSQ, "
+                    System.out.println(SearchManager.NODE_PREFIX+", shutting down BTSQ, "
                             + (System.currentTimeMillis()));
                     SearchManager.bagsToSortQueue.shutdown();
-                    System.out.println("shutting down BTIIQ, "
+                    System.out.println(SearchManager.NODE_PREFIX+"shutting down BTIIQ, "
                             + System.currentTimeMillis());
                     SearchManager.bagsToInvertedIndexQueue.shutdown();
-                    System.out.println("shutting down BTFIQ, "
+                    System.out.println(SearchManager.NODE_PREFIX+"shutting down BTFIQ, "
                             + System.currentTimeMillis());
                     SearchManager.bagsToForwardIndexQueue.shutdown();
                     break;
