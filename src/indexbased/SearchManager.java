@@ -77,7 +77,7 @@ public class SearchManager {
     private long timeGlobalTokenPositionCreation;
     private long timeSearch;
     private static long numCandidates;
-    private Writer outputWriter;
+    private Writer reportWriter;
     private long timeTotal;
     private String action;
     private boolean appendToExistingFile;
@@ -381,7 +381,7 @@ public class SearchManager {
         } else {
             searchManager.appendToExistingFile = false;
         }
-        searchManager.outputWriter = Util.openFile(reportFileName,
+        searchManager.reportWriter = Util.openFile(reportFileName,
                 searchManager.appendToExistingFile);
         if (searchManager.action.equalsIgnoreCase(ACTION_INDEX)) {
             searchManager.initIndexEnv();
@@ -468,7 +468,7 @@ public class SearchManager {
                 + SearchManager.clonePairsCount);
         searchManager.timeTotal = end_time - start_time;
         searchManager.genReport();
-        Util.closeOutputFile(searchManager.outputWriter);
+        Util.closeOutputFile(searchManager.reportWriter);
         try {
             Util.closeOutputFile(SearchManager.clonesWriter);
         } catch (Exception e) {
@@ -540,7 +540,7 @@ public class SearchManager {
         } else {
             header += this.action;
         }
-        Util.writeToFile(this.outputWriter, header, true);
+        Util.writeToFile(this.reportWriter, header, true);
     }
 
     private void doIndex() throws IOException, ParseException,
@@ -613,11 +613,19 @@ public class SearchManager {
                 String filename = queryFile.getName().replaceFirst("[.][^.]+$",
                         "");
                 try {
-
+                    String cloneReportFileName = SearchManager.OUTPUT_DIR + SearchManager.th
+                            / SearchManager.MUL_FACTOR + "/" + filename
+                            + "clones_index_WITH_FILTER.txt";
+                    File cloneReportFile = new File(cloneReportFileName);
+                    if(cloneReportFile.exists()){
+                        this.appendToExistingFile=true;
+                    }else{
+                        this.appendToExistingFile=false;
+                    }
                     SearchManager.clonesWriter = Util.openFile(
                             SearchManager.OUTPUT_DIR + SearchManager.th
                                     / SearchManager.MUL_FACTOR + "/" + filename
-                                    + "clones_index_WITH_FILTER.txt", false);
+                                    + "clones_index_WITH_FILTER.txt", this.appendToExistingFile);
                 } catch (IOException e) {
                     System.out.println(e.getMessage() + " exiting");
                     System.exit(1);

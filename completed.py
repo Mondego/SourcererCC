@@ -73,6 +73,39 @@ def getJobName():
             return job.strip()
     pass
 
+def getCompletedQueries():
+    nodes = getAllNodeFolders()
+    queries=[]
+    for node in nodes:
+        filename = './{0}/{1}/{2}'.format(node,'output8.0','queryclones_index_WITH_FILTER.txt')
+        try:
+            f = open(filename,'r')
+            previous=""
+            for line in f:
+                try:
+                    query = line.split(",")[0]
+                    if query != previous:
+                        queries.append(query)
+                except:
+                    pass #ignroe
+            # ignore the last query as it might not be complete
+            queries = queries[:-1]
+            f.close()
+        except:
+            print("no output file in ", node)
+            pass # ignore
+    # ignore the last query as it might not be complete
+    return queries
+
+def getAllNodeFolders():
+    nodes=[]
+    for root, subFolders, files in os.walk('./'):
+            #print "root", root
+            for subfolder in subFolders:
+                if subfolder.startswith('NODE_'):
+                    nodes.append(subfolder)
+            break
+    return nodes
 if __name__ == '__main__':
     
     # Hello World program in Python
@@ -103,3 +136,9 @@ if __name__ == '__main__':
         finished_logs.close()
     elif "job" == sys.argv[1]:
         print(getShardId())
+    elif "rr" == sys.argv[1]:
+        f = open("completed_queries.txt",'a')
+        queries = getCompletedQueries()
+        for query in queries:
+            f.write(query)
+        f.close()
