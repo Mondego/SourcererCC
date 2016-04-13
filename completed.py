@@ -87,7 +87,7 @@ def getCompletedQueries():
             added=False
             for line in f:
                 try:
-                    if "TOTAL candidates processed status:" in line:
+                    if "TOTAL candidates" in line:
                         query = line.split(" ")[5]
                         query = query.split(",")[1]
                         if query != previous:
@@ -107,6 +107,7 @@ def getCompletedQueries():
     return queries
 
 def getLogFiles():
+    print "getting log files"
     FILE_NAME = getJobName()
     files= []
     for root, subFolders, files in os.walk('./'):
@@ -115,6 +116,7 @@ def getLogFiles():
             if fileExtension.startswith('.o'):
                 if fileName == FILE_NAME:
                     try:
+                        print "adding {0}".format(f)
                         files.append(f)
                     except:
                         print "sys.exc_info:", sys.exc_info()[0]
