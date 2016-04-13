@@ -527,11 +527,13 @@ public class SearchManager {
                     filename), "UTF-8"));
             String line;
             
-            while ((line = br.readLine()) != null && line.trim().length() > 0) {
+            while ((line = br.readLine()) != null ) {
                 try{
-                    System.out.println(count+ ", adding query: "+ line.trim());
-                    this.completedQueries.add(Long.parseLong(line.trim()));
-                    count ++;
+                    if(line.trim().length() > 0){
+                        this.completedQueries.add(Long.parseLong(line.trim()));
+                        count ++;
+                    }
+                    
                 }
                 catch (NumberFormatException e) {
                     System.out.println(SearchManager.NODE_PREFIX+ ", error in parsing:" + e.getMessage()+", line: "+ line );
