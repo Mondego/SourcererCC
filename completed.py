@@ -84,10 +84,12 @@ def getCompletedQueries():
             added=False
             for line in f:
                 try:
+                    
                     query = line.split(",")[0]
                     if query != previous:
                         added=True
                         queries.append(query)
+                        previous = query
                 except:
                     pass #ignroe
             # ignore the last query as it might not be complete
@@ -142,6 +144,7 @@ if __name__ == '__main__':
     elif "rr" == sys.argv[1]:
         f = open("completed_queries.txt",'a')
         queries = getCompletedQueries()
+        print "{} queries found".format(len(queries))
         for query in queries:
-            f.write(query)
+            f.write(query+"\n")
         f.close()
