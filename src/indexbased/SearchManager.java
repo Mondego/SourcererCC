@@ -521,7 +521,7 @@ public class SearchManager {
         // TODO Auto-generated method stub
         BufferedReader br = null;
         String filename = "completed_queries.txt";
-        int count=0;
+        int count=1;
         try {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(
                     filename), "UTF-8"));
@@ -529,6 +529,7 @@ public class SearchManager {
             
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 try{
+                    System.out.println(count+ ", adding query: "+ line.trim());
                     this.completedQueries.add(Long.parseLong(line.trim()));
                     count ++;
                 }
