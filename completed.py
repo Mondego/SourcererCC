@@ -74,22 +74,22 @@ def getJobName():
     pass
 
 def getCompletedQueries():
-    nodes = getAllNodeFolders()
+    logFiles = getLogFiles()
     queries=[]
-    for node in nodes:
-        filename = './{0}/{1}/{2}'.format(node,'output8.0','queryclones_index_WITH_FILTER.txt')
+    for filename in logFiles:
         try:
             f = open(filename,'r')
             previous=""
             added=False
             for line in f:
                 try:
-                    
-                    query = line.split(",")[0]
-                    if query != previous:
-                        added=True
-                        queries.append(query)
-                        previous = query
+                    if "TOTAL candidates processed status:" in line:
+                        query = line.split(" ")[5]
+                        query = query.split(",")[1]
+                        if query != previous:
+                            added=True
+                            queries.append(query)
+                            previous = query
                 except:
                     pass #ignroe
             # ignore the last query as it might not be complete
@@ -101,6 +101,22 @@ def getCompletedQueries():
             pass # ignore
     # ignore the last query as it might not be complete
     return queries
+
+def getLogFiles():
+    FILE_NAME = getJobName()
+    files= []
+    for root, subFolders, files in os.walk('./'):
+        for f in files:
+            fileName, fileExtension = os.path.splitext(f)
+            if fileExtension.startswith('.o'):
+                if fileName == FILE_NAME:
+                    try:
+                        files.append(f)
+                    except:
+                        print "sys.exc_info:", sys.exc_info()[0]
+        break
+    return files
+
 
 def getAllNodeFolders():
     nodes=[]
