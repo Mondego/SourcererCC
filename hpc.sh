@@ -1,15 +1,16 @@
 #!/bin/bash
 offset=0
-num_nodes="${1:-100}"
+start_id="${1:-1}"
+stop_id="${2:-256}"
+queue_name="${3:-free64}"
+
 mv completed_queries.txt completed_queries_$(date +"%Y%m%d_%H%M%S")
 python completed.py rr > rr.log
-python completed.py gw $num_nodes
+python completed.py gw $start_id $stop_id $queue_name
 ant clean cdi
-num_nodes="${1:-100}"
-for i in $(seq 1 1 $num_nodes)
+for i in $(seq $start_id $stop_id)
 #for i in `cat jmiss`
 do
-  node=$(($offset+$i))
   echo "qsub worker_$i.sh"
   qsub worker_$i.sh
 done

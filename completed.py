@@ -141,7 +141,7 @@ def getLogFilesNonHpc():
         break
     return filesToReturn
 
-def createWorkers(num_workers):
+def createWorkers(start_worker_id=1, end_worker_id=256, queue_name="free64"):
     import os
     import stat
     
@@ -157,9 +157,8 @@ echo "running on $node"
 java -Dproperties.location="$rootPATH/NODE_$node/sourcerer-cc.properties" -Xms2g -Xmx2g  -jar dist/indexbased.SearchManager.jar search $threshold
 echo "done"
 """
-    queue_name = "free64"
     
-    for i in range(1,num_workers+1):
+    for i in range(start_worker_id,end_worker_id+1):
         text = worker_template.format(queue_name=queue_name,node_id=i)
         filename="worker_{id}.sh".format(id=i)
         f = open(filename,'w')
@@ -217,6 +216,9 @@ if __name__ == '__main__':
             f.write(query + "\n")
         f.close()
     elif "gw" == sys.argv[1]:
-        num_workers = int(sys.argv[2])
-        print "num_workers", num_workers
-        createWorkers(num_workers)
+        start_worker_id = int(sys.argv[2])
+        end_worker_id = int(sys.argv[3])
+        print "creating workers ", start_worker_id, end_worker_id
+        queue_name=sys.argv[4]
+        createWorkers(start_worker_id=start_worker_id,end_worker_id=end_worker_id,queue_name=queue_name)
+        
