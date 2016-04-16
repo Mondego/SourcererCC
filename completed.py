@@ -178,6 +178,32 @@ def getAllNodeFolders():
                     nodes.append(subfolder)
             break
     return nodes
+
+def transferAllData():
+    nodes = getAllNodeFolders()
+    node_file = open("nodes.txt", 'w')
+    for node in nodes:
+        node_file.write(node)
+    node_file.close()
+#     finished_nodes = open("finishedNodes.txt", 'w')
+#     finished_logs = open("finishedLogs.txt", 'w')
+#     for root, subFolders, files in os.walk('./'):
+#         # print "root", root
+#         for f in files:
+#             fileName, fileExtension = os.path.splitext(f)
+#             if fileExtension.startswith('.o'):
+#                 if fileName == FILE_NAME:
+#                     try:
+#                         # print "processing:", os.getcwd() , f
+#                         node, log = getCompletedNodes(os.getcwd() + "/" + f)
+#                         if node and log:
+#                             finished_nodes.write(node + '\n')
+#                             finished_logs.write(f + '\n')
+#                     except:
+#                         print "sys.exc_info:", sys.exc_info()[0]
+#         break
+#     finished_nodes.close()
+#     finished_logs.close()
 if __name__ == '__main__':
     
     # Hello World program in Python
@@ -186,26 +212,7 @@ if __name__ == '__main__':
     import sys
     
     if "lc" == sys.argv[1]:
-        FILE_NAME = getJobName()
-        finished_nodes = open("finishedNodes.txt", 'w')
-        finished_logs = open("finishedLogs.txt", 'w')
-        for root, subFolders, files in os.walk('./'):
-            # print "root", root
-            for f in files:
-                fileName, fileExtension = os.path.splitext(f)
-                if fileExtension.startswith('.o'):
-                    if fileName == FILE_NAME:
-                        try:
-                            # print "processing:", os.getcwd() , f
-                            node, log = getCompletedNodes(os.getcwd() + "/" + f)
-                            if node and log:
-                                finished_nodes.write(node + '\n')
-                                finished_logs.write(f + '\n')
-                        except:
-                            print "sys.exc_info:", sys.exc_info()[0]
-            break
-        finished_nodes.close()
-        finished_logs.close()
+       transferAllData()
     elif "job" == sys.argv[1]:
         print(getShardId())
     elif "rr" == sys.argv[1]:
