@@ -183,7 +183,7 @@ def transferAllData():
     nodes = getAllNodeFolders()
     node_file = open("nodes.txt", 'w')
     for node in nodes:
-        node_file.write(node)
+        node_file.write(node+"\n")
     node_file.close()
 #     finished_nodes = open("finishedNodes.txt", 'w')
 #     finished_logs = open("finishedLogs.txt", 'w')
