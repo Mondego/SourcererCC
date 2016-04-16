@@ -219,6 +219,6 @@ if __name__ == '__main__':
         start_worker_id = int(sys.argv[2])
         end_worker_id = int(sys.argv[3])
         print "creating workers ", start_worker_id, end_worker_id
-        queue_name=sys.argv[4]
+        queue_name="free64,pub64,free48,pub8i,free40i,free32i,free24i"
         createWorkers(start_worker_id=start_worker_id,end_worker_id=end_worker_id,queue_name=queue_name)
         
