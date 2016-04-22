@@ -33,6 +33,9 @@ public class ForwardIndexCreator implements IListener, Runnable {
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        }catch (Exception e){
+            System.out.println(SearchManager.NODE_PREFIX+ ", something nasty in fwd indexing bags, exiting");
+            System.exit(1);
         }
 
     }

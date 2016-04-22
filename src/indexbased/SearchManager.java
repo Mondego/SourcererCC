@@ -637,7 +637,12 @@ public class SearchManager {
                     e.printStackTrace();
                 } catch (ParseException e) {
                     e.printStackTrace();
-                } finally {
+                } catch (Exception e){
+                    System.out.println(SearchManager.NODE_PREFIX+", something nasty, exiting");
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+                finally {
                     try {
                         br.close();
                     } catch (IOException e) {

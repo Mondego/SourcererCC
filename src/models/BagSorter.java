@@ -22,6 +22,9 @@ public class BagSorter implements IListener, Runnable {
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        }catch (Exception e){
+            System.out.println(SearchManager.NODE_PREFIX+ ", something nasty in sorting bags, exiting");
+            System.exit(1);
         }
 
     }
