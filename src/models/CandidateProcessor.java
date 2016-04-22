@@ -47,22 +47,23 @@ public class CandidateProcessor implements IListener, Runnable {
                 + codeBlockIds.entrySet().size() + ", query: "
                 + queryBlock.getFunctionId() + "," + queryBlock.getId());
         for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
-            //long start_time = System.currentTimeMillis();
+            // long start_time = System.currentTimeMillis();
             Document doc = null;
             try {
                 doc = SearchManager.searcher.getDocument(entry.getKey());
                 CandidateSimInfo simInfo = entry.getValue();
                 long candidateId = Long.parseLong(doc.get("id"));
-                // long functionIdCandidate = Long
-                // .parseLong(doc.get("functionId"));
-                
+                long functionIdCandidate = Long
+                        .parseLong(doc.get("functionId"));
+
                 if ((candidateId <= queryBlock.getId())) {
                     // || (functionIdCandidate == queryBlock.getFunctionId())) {
                     continue; // we reject the candidate
                 }
                 int newCt = -1;
                 int candidateSize = Integer.parseInt(doc.get("size"));
-                if(candidateSize<queryBlock.getComputedThreshold() || candidateSize>queryBlock.getMaxCandidateSize()){
+                if (candidateSize < queryBlock.getComputedThreshold()
+                        || candidateSize > queryBlock.getMaxCandidateSize()) {
                     continue; // ignore this candidate
                 }
                 if (candidateSize > queryBlock.getSize()) {
@@ -79,32 +80,32 @@ public class CandidateProcessor implements IListener, Runnable {
                         CandidatePair candidatePair = null;
                         if (newCt != -1) {
                             candidatePair = new CandidatePair(queryBlock,
-                                    tokens, simInfo, newCt, candidateSize,
+                                    tokens, simInfo, newCt, candidateSize,functionIdCandidate,
                                     candidateId);
                         } else {
                             candidatePair = new CandidatePair(queryBlock,
                                     tokens, simInfo,
                                     queryBlock.getComputedThreshold(),
-                                    candidateSize, candidateId);
+                                    candidateSize, functionIdCandidate,candidateId);
                         }
-                        
-                        /*long end_time = System.currentTimeMillis();
-                        Duration duration;
-                        try {
-                            duration = DatatypeFactory.newInstance().newDuration(
-                                    end_time - start_time);
-                            System.out.printf(SearchManager.NODE_PREFIX + ", candidates processed: "
-                                    + candidatePair.candidateId + "query: "
-                                    + candidatePair.queryBlock.getFunctionId() + ","
-                                    + candidatePair.queryBlock.getId()
-                                    + " time taken: %02dh:%02dm:%02ds", duration.getDays()
-                                    * 24 + duration.getHours(), duration.getMinutes(),
-                                    duration.getSeconds());
-                            start_time = end_time;
-                            System.out.println();
-                        } catch (DatatypeConfigurationException e) {
-                            e.printStackTrace();
-                        }*/
+
+                        /*
+                         * long end_time = System.currentTimeMillis(); Duration
+                         * duration; try { duration =
+                         * DatatypeFactory.newInstance().newDuration( end_time -
+                         * start_time);
+                         * System.out.printf(SearchManager.NODE_PREFIX +
+                         * ", candidates processed: " +
+                         * candidatePair.candidateId + "query: " +
+                         * candidatePair.queryBlock.getFunctionId() + "," +
+                         * candidatePair.queryBlock.getId() +
+                         * " time taken: %02dh:%02dm:%02ds", duration.getDays()
+                         * 24 + duration.getHours(), duration.getMinutes(),
+                         * duration.getSeconds()); start_time = end_time;
+                         * System.out.println(); } catch
+                         * (DatatypeConfigurationException e) {
+                         * e.printStackTrace(); }
+                         */
                         SearchManager.verifyCandidateQueue.put(candidatePair);
                         entry = null;
                     } else {
@@ -130,19 +131,21 @@ public class CandidateProcessor implements IListener, Runnable {
                         + entry.getKey());
             }
         }
-        /*result = null;*/
+        /* result = null; */
         System.out.println("here");
         long eend_time = System.currentTimeMillis();
         Duration duration;
         try {
             duration = DatatypeFactory.newInstance().newDuration(
                     eend_time - sstart_time);
-            System.out.printf(SearchManager.NODE_PREFIX + ", TOTAL candidates processed status: "
-                    + queryBlock.getFunctionId() + ","
-                    + queryBlock.getId()
-                    + " time taken: %02dh:%02dm:%02ds", duration.getDays()
-                    * 24 + duration.getHours(), duration.getMinutes(),
-                    duration.getSeconds());
+            System.out.printf(
+                    SearchManager.NODE_PREFIX
+                            + ", TOTAL candidates processed status: "
+                            + queryBlock.getFunctionId() + ","
+                            + queryBlock.getId()
+                            + " time taken: %02dh:%02dm:%02ds",
+                    duration.getDays() * 24 + duration.getHours(),
+                    duration.getMinutes(), duration.getSeconds());
             System.out.println();
         } catch (DatatypeConfigurationException e) {
             e.printStackTrace();
