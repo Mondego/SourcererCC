@@ -92,7 +92,8 @@ def getCompletedQueries():
                     #if "TOTAL candidates" in line:
                         #query = line.split(" ")[5]
                         #query = query.split(",")[1]
-                    query = line.split(",")[0]
+                    parts = line.split(",")
+                    query = parts[1]
                     if query != previous:
                         added = True
                         queries.append(query)
