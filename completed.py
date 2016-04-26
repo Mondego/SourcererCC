@@ -145,12 +145,11 @@ def getLogFilesNonHpc():
 def createWorkers(start_worker_id=1, end_worker_id=256, queue_name="free64"):
     import os
     import stat
-    
+    #$ -ckpt blcr
     worker_template = """#!/bin/bash
 #$ -N search
 #$ -q {queue_name}
-#$ -pe openmp 2-4
-#$ -ckpt blcr
+#$ -pe openmp 3
 node={node_id}
 rootPATH=`pwd`
 threshold=8
