@@ -149,7 +149,7 @@ def createWorkers(start_worker_id=1, end_worker_id=256, queue_name="free64"):
     worker_template = """#!/bin/bash
 #$ -N search
 #$ -q {queue_name}
-#$ -pe openmp 3
+#$ -pe openmp 2-3
 node={node_id}
 rootPATH=`pwd`
 threshold=8
