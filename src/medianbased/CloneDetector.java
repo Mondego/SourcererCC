@@ -45,7 +45,7 @@ public class CloneDetector {
     }
 
     private void search() throws FileNotFoundException {
-
+        Util.createDirs(properties.getProperty("MEDIAN_OUTPUT_DIR"));
         File datasetDir = this.getQueryDirectory();
         int count = 0;
         if (datasetDir.isDirectory()) {
@@ -57,7 +57,7 @@ public class CloneDetector {
                         "");
                 try {
                     CloneDetector.clonesWriter = Util
-                            .openFile(properties.getProperty("OUTPUT_DIR")
+                            .openFile(properties.getProperty("MEDIAN_OUTPUT_DIR")
                                     + "/" + filename
                                     + "clones_index_WITH_FILTER.txt", false);
                     br = new BufferedReader(new InputStreamReader(

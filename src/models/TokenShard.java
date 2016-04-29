@@ -1,7 +1,5 @@
 package models;
 
-import indexbased.SearchManager;
-
 import java.util.ArrayList;
 import java.util.List;
 
