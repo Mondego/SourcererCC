@@ -77,15 +77,17 @@ public class CloneDetector {
                             System.out.println("NUM Candidates: "+ (minmax[1]-minmax[0])+", query: "+query.project_id+","+query.file_id);
                             for (int i = minmax[0]; i <= minmax[1]; i++) {
                                 candidate = shard.candidates.get(i);
-                                if (candidate.numTokens >= query.minNumTokens
-                                        && candidate.numTokens <= query.maxNumTokens) {
-                                    String text = query.project_id + ","
-                                            + query.file_id + ","
-                                            + candidate.project_id + ","
-                                            + candidate.file_id;
-                                    Util.writeToFile(
-                                            CloneDetector.clonesWriter, text,
-                                            true);
+                                if ((candidate.file_id > query.file_id)){
+                                    if (candidate.numTokens >= query.minNumTokens
+                                            && candidate.numTokens <= query.maxNumTokens) {
+                                        String text = query.project_id + ","
+                                                + query.file_id + ","
+                                                + candidate.project_id + ","
+                                                + candidate.file_id;
+                                        Util.writeToFile(
+                                                CloneDetector.clonesWriter, text,
+                                                true);
+                                    }
                                 }
                             }
                         }
