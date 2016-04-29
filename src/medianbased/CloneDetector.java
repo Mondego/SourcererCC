@@ -92,14 +92,16 @@ public class CloneDetector {
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
                                             if (candidate.numChars >= query.minNumChars
                                                     && candidate.numChars <= query.maxNumChars) {
-                                                text = query.project_id + ","
-                                                        + query.file_id + ","
-                                                        + candidate.project_id
-                                                        + ","
-                                                        + candidate.file_id;
-                                                Util.writeToFile(
-                                                        CloneDetector.clonesWriter,
-                                                        text, true);
+                                                if(candidate.stdDev>=query.minStdDev && candidate.stdDev<=query.maxStdDev){
+                                                    text = query.project_id + ","
+                                                            + query.file_id + ","
+                                                            + candidate.project_id
+                                                            + ","
+                                                            + candidate.file_id;
+                                                    Util.writeToFile(
+                                                            CloneDetector.clonesWriter,
+                                                            text, true);
+                                                }
                                             }
                                         }
                                     }

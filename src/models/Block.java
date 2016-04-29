@@ -24,6 +24,8 @@ public class Block implements Comparable<Block> {
     public int minUniqueTokens;
     public int maxUniqueTokens;
     public float stdDev;
+    public float minStdDev;
+    public float maxStdDev;
     
     
     public Block(float median, int project_id, int file_id, int numTokens,float stdDev, float variance, long numChars, int uniqueTokens) {
@@ -34,6 +36,7 @@ public class Block implements Comparable<Block> {
         this.variance = variance;
         this.numChars = numChars;
         this.uniqueTokens=uniqueTokens;
+        this.stdDev=stdDev;
         this.min_median = BlockInfo.getMinimumSimilarityThreshold(this.median, CloneDetector.th+Util.MUL_FACTOR);
         this.max_median = BlockInfo.getMaximumSimilarityThreshold(this.median, CloneDetector.th+Util.MUL_FACTOR);
         this.minNumTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTokens, CloneDetector.th);
@@ -44,6 +47,8 @@ public class Block implements Comparable<Block> {
         this.maxNumChars = BlockInfo.getMaximumSimilarityThreshold(this.numChars, CloneDetector.th-Util.MUL_FACTOR);
         this.minUniqueTokens = BlockInfo.getMinimumSimilarityThreshold(this.uniqueTokens, CloneDetector.th);
         this.maxUniqueTokens = BlockInfo.getMaximumSimilarityThreshold(this.uniqueTokens, CloneDetector.th);
+        this.minStdDev = BlockInfo.getMaximumSimilarityThreshold(this.stdDev, CloneDetector.th-Util.MUL_FACTOR);
+        this.maxStdDev = BlockInfo.getMaximumSimilarityThreshold(this.stdDev, CloneDetector.th-Util.MUL_FACTOR);
     }
     
     
