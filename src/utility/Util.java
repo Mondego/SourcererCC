@@ -49,6 +49,7 @@ public class Util {
     public static final String FWD_INDEX_DIR_TEMP = "fwdindex_temp";
     public static final String GTPM_INDEX_DIR = "gtpmindex";
     public static final String INDEX_DIR_NO_FILTER = "index_nofilter";
+    public static final Integer MUL_FACTOR = 100;
 
     /**
      * generates a random integer

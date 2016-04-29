@@ -1,6 +1,5 @@
 package utility;
 
-import indexbased.SearchManager;
 import models.Bag;
 import models.QueryBlock;
 
@@ -27,17 +26,17 @@ public class BlockInfo {
 	}
 
 	private int getMinimumSimilarityThreshold(QueryBlock queryBlock,float threshold) {
-        return (int) Math.ceil((threshold * queryBlock.getSize())/ (SearchManager.MUL_FACTOR*10));
+        return (int) Math.ceil((threshold * queryBlock.getSize())/ (Util.MUL_FACTOR*10));
     }
 	private int getMinimumSimilarityThreshold(Bag bag,float threshold) {
-        return (int) Math.ceil((threshold * bag.getSize())/ (SearchManager.MUL_FACTOR*10));
+        return (int) Math.ceil((threshold * bag.getSize())/ (Util.MUL_FACTOR*10));
     }
 	
 	public static int getMinimumSimilarityThreshold(int size,float threshold) {
-        return (int) Math.ceil((threshold * size)/ (SearchManager.MUL_FACTOR*10));
+        return (int) Math.ceil((threshold * size)/ (Util.MUL_FACTOR*10));
     }
 	public static int getMaximumSimilarityThreshold(int size,float threshold) {
-        return (int) Math.floor((size*SearchManager.MUL_FACTOR*10)/threshold);
+        return (int) Math.floor((size*Util.MUL_FACTOR*10)/threshold);
     }
 	
 	public static int getPrefixSize(int size, int computedThreshold){

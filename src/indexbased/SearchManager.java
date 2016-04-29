@@ -85,7 +85,6 @@ public class SearchManager {
     private String action;
     private boolean appendToExistingFile;
     TestGson testGson;
-    public static final Integer MUL_FACTOR = 100;
     private static final String ACTION_INIT = "init";
     int deletemeCounter = 0;
     public static double ramBufferSizeMB;
@@ -155,7 +154,7 @@ public class SearchManager {
         SearchManager.globalWordFreqMap = new HashMap<String, Long>();
         try {
 
-            SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
+            SearchManager.th = (Float.parseFloat(args[1]) * Util.MUL_FACTOR);
             this.qbq_thread_count = Integer.parseInt(args[2]);
             this.qcq_thread_count = Integer.parseInt(args[3]);
             this.vcq_thread_count = Integer.parseInt(args[4]);
@@ -174,7 +173,6 @@ public class SearchManager {
             this.sizeBagsToFIQ = Integer.parseInt(args[17]);
             this.searchShardId = Integer.parseInt(args[18]);
 
-            
         } catch (NumberFormatException e) {
             System.out.println(e.getMessage() + ", exiting now");
             System.exit(1);
@@ -209,7 +207,7 @@ public class SearchManager {
             this.registerListeners(this.rcq_thread_count,
                     SearchManager.reportCloneQueue, CLONE_REPORTER);
         } else if (this.action.equals(ACTION_INDEX)) {
-            
+
             // invertedIndexDirectories = new ArrayList<FSDirectory>();
             // forwardIndexDirectories = new ArrayList<FSDirectory>();
             indexerWriters = new ArrayList<IndexWriter>();
@@ -224,8 +222,7 @@ public class SearchManager {
             for (String segment : shardSegments) {
                 // create shards
                 maxTokens = Integer.parseInt(segment);
-                Shard shard = new Shard(shardId, minTokens,
-                        maxTokens);
+                Shard shard = new Shard(shardId, minTokens, maxTokens);
                 SearchManager.shards.add(shard);
                 minTokens = maxTokens + 1;
                 shardId++;
@@ -234,8 +231,7 @@ public class SearchManager {
             Shard shard = new Shard(shardId, minTokens,
                     SearchManager.max_tokens);
             SearchManager.shards.add(shard);
-            
-            
+
             System.out.println("acton: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
                     + "BQ_THREADS: " + this.threadsToProcessBagsToSortQueue
@@ -269,11 +265,12 @@ public class SearchManager {
     // this bag needs to be indexed in following shards
     public static List<Shard> getShardIdsForBag(Bag bag) {
         List<Shard> shardsToReturn = new ArrayList<Shard>();
-        for (Shard shard : SearchManager.shards)
+        for (Shard shard : SearchManager.shards) {
             if (bag.getSize() >= shard.getMinBagSizeToIndex()
                     && bag.getSize() <= shard.getMaxBagSizeToIndex()) {
                 shardsToReturn.add(shard);
             }
+        }
         System.out.println("returning shards");
         return shardsToReturn;
     }
@@ -382,9 +379,9 @@ public class SearchManager {
             }
         }
         Util.createDirs(SearchManager.OUTPUT_DIR + SearchManager.th
-                / SearchManager.MUL_FACTOR);
+                / Util.MUL_FACTOR);
         String reportFileName = SearchManager.OUTPUT_DIR + SearchManager.th
-                / SearchManager.MUL_FACTOR + "/report.csv";
+                / Util.MUL_FACTOR + "/report.csv";
         File reportFile = new File(reportFileName);
         if (reportFile.exists()) {
             searchManager.appendToExistingFile = true;
@@ -403,13 +400,16 @@ public class SearchManager {
                 if (SearchManager.bagsToSortQueue.size() == 0
                         && SearchManager.bagsToInvertedIndexQueue.size() == 0
                         && SearchManager.bagsToForwardIndexQueue.size() == 0) {
-                    System.out.println(SearchManager.NODE_PREFIX+", shutting down BTSQ, "
+                    System.out.println(SearchManager.NODE_PREFIX
+                            + ", shutting down BTSQ, "
                             + (System.currentTimeMillis()));
                     SearchManager.bagsToSortQueue.shutdown();
-                    System.out.println(SearchManager.NODE_PREFIX+"shutting down BTIIQ, "
+                    System.out.println(SearchManager.NODE_PREFIX
+                            + "shutting down BTIIQ, "
                             + System.currentTimeMillis());
                     SearchManager.bagsToInvertedIndexQueue.shutdown();
-                    System.out.println(SearchManager.NODE_PREFIX+"shutting down BTFIQ, "
+                    System.out.println(SearchManager.NODE_PREFIX
+                            + "shutting down BTFIQ, "
                             + System.currentTimeMillis());
                     SearchManager.bagsToForwardIndexQueue.shutdown();
                     break;
@@ -521,37 +521,41 @@ public class SearchManager {
         // TODO Auto-generated method stub
         BufferedReader br = null;
         String filename = "completed_queries.txt";
-        int count=1;
+        int count = 1;
         try {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(
                     filename), "UTF-8"));
             String line;
-            
-            while ((line = br.readLine()) != null ) {
-                try{
-                    if(line.trim().length() > 0){
+
+            while ((line = br.readLine()) != null) {
+                try {
+                    if (line.trim().length() > 0) {
                         this.completedQueries.add(Long.parseLong(line.trim()));
-                        count ++;
+                        count++;
                     }
-                    
-                }
-                catch (NumberFormatException e) {
-                    System.out.println(SearchManager.NODE_PREFIX+ ", error in parsing:" + e.getMessage()+", line: "+ line );
+
+                } catch (NumberFormatException e) {
+                    System.out.println(SearchManager.NODE_PREFIX
+                            + ", error in parsing:" + e.getMessage()
+                            + ", line: " + line);
                     e.printStackTrace();
-                } 
-                
+                }
+
             }
         } catch (FileNotFoundException e) {
-            System.out.println(SearchManager.NODE_PREFIX+ ", "+ filename + " not found");
+            System.out.println(SearchManager.NODE_PREFIX + ", " + filename
+                    + " not found");
         } catch (UnsupportedEncodingException e) {
-            System.out.println(SearchManager.NODE_PREFIX +", error in populateCompleteQueries" + e.getMessage());
+            System.out.println(SearchManager.NODE_PREFIX
+                    + ", error in populateCompleteQueries" + e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
-            System.out.println(SearchManager.NODE_PREFIX +", error in populateCompleteQueries IO" + e.getMessage());
+            System.out.println(SearchManager.NODE_PREFIX
+                    + ", error in populateCompleteQueries IO" + e.getMessage());
             e.printStackTrace();
         }
         System.out.println("queries completed already: "
-                + this.completedQueries.size()+", count: "+ count);
+                + this.completedQueries.size() + ", count: " + count);
     }
 
     private void initIndexEnv() throws IOException, ParseException {
@@ -637,12 +641,13 @@ public class SearchManager {
                     e.printStackTrace();
                 } catch (ParseException e) {
                     e.printStackTrace();
-                } catch (Exception e){
-                    System.out.println(SearchManager.NODE_PREFIX+", something nasty, exiting. counter:"+ SearchManager.statusCounter);
+                } catch (Exception e) {
+                    System.out.println(SearchManager.NODE_PREFIX
+                            + ", something nasty, exiting. counter:"
+                            + SearchManager.statusCounter);
                     e.printStackTrace();
                     System.exit(1);
-                }
-                finally {
+                } finally {
                     try {
                         br.close();
                     } catch (IOException e) {
@@ -659,15 +664,15 @@ public class SearchManager {
 
     private void findCandidates() throws InterruptedException {
         try {
-            File queryDirectory = this.getQueryDirectory();
-            File[] queryFiles = this.getQueryFiles(queryDirectory);
+            File queryDirectory = SearchManager.getQueryDirectory();
+            File[] queryFiles = SearchManager.getQueryFiles(queryDirectory);
             for (File queryFile : queryFiles) {
                 System.out.println("Query File: " + queryFile);
                 String filename = queryFile.getName().replaceFirst("[.][^.]+$",
                         "");
                 try {
                     String cloneReportFileName = SearchManager.OUTPUT_DIR
-                            + SearchManager.th / SearchManager.MUL_FACTOR + "/"
+                            + SearchManager.th / Util.MUL_FACTOR + "/"
                             + filename + "clones_index_WITH_FILTER.txt";
                     File cloneReportFile = new File(cloneReportFileName);
                     if (cloneReportFile.exists()) {
@@ -677,7 +682,7 @@ public class SearchManager {
                     }
                     SearchManager.clonesWriter = Util.openFile(
                             SearchManager.OUTPUT_DIR + SearchManager.th
-                                    / SearchManager.MUL_FACTOR + "/" + filename
+                                    / Util.MUL_FACTOR + "/" + filename
                                     + "clones_index_WITH_FILTER.txt",
                             this.appendToExistingFile);
                 } catch (IOException e) {
@@ -805,7 +810,7 @@ public class SearchManager {
         return br;
     }
 
-    private File getQueryDirectory() throws FileNotFoundException {
+    public static File getQueryDirectory() throws FileNotFoundException {
         File queryDir = new File(QUERY_DIR_PATH);
         if (!queryDir.isDirectory()) {
             throw new FileNotFoundException("directory not found.");
@@ -815,7 +820,7 @@ public class SearchManager {
         }
     }
 
-    private File[] getQueryFiles(File queryDirectory) {
+    public static File[] getQueryFiles(File queryDirectory) {
         return queryDirectory.listFiles();
     }
 
