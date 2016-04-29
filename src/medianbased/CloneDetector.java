@@ -78,7 +78,11 @@ public class CloneDetector {
                                     query.min_median, query.max_median);
                             System.out.println("NUM Candidates: "
                                     + (minmax[1] - minmax[0]) + ", query: "
-                                    + query.project_id + "," + query.file_id+", shard: "+ shard.id);
+                                    + query.project_id + "," + query.file_id
+                                    + ", shard: " + shard.id + ","
+                                    + "median and min max medians: "
+                                    + query.median + "," + query.min_median
+                                    + "," + query.max_median);
                             for (int i = minmax[0]; i <= minmax[1]; i++) {
                                 candidate = shard.candidates.get(i);
                                 if ((candidate.file_id > query.file_id)) {

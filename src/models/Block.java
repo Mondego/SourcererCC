@@ -2,6 +2,7 @@ package models;
 
 import medianbased.CloneDetector;
 import utility.BlockInfo;
+import utility.Util;
 
 public class Block implements Comparable<Block> {
     public float median;
@@ -24,12 +25,12 @@ public class Block implements Comparable<Block> {
         this.project_id = project_id;
         this.file_id = file_id;
         this.numTokens = numTokens;
-        this.min_median = BlockInfo.getMinimumSimilarityThreshold(this.median, CloneDetector.th);
-        this.max_median = BlockInfo.getMaximumSimilarityThreshold(this.median, CloneDetector.th);
+        this.min_median = BlockInfo.getMinimumSimilarityThreshold(this.median, CloneDetector.th+Util.MUL_FACTOR);
+        this.max_median = BlockInfo.getMaximumSimilarityThreshold(this.median, CloneDetector.th+Util.MUL_FACTOR);
         this.minNumTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTokens, CloneDetector.th);
         this.maxNumTokens = BlockInfo.getMaximumSimilarityThreshold(this.numTokens, CloneDetector.th);
-        this.minVariance = BlockInfo.getMaximumSimilarityThreshold(this.variance, CloneDetector.th);
-        this.maxVariance = BlockInfo.getMaximumSimilarityThreshold(this.variance, CloneDetector.th);
+        this.minVariance = BlockInfo.getMaximumSimilarityThreshold(this.variance, CloneDetector.th+Util.MUL_FACTOR);
+        this.maxVariance = BlockInfo.getMaximumSimilarityThreshold(this.variance, CloneDetector.th+Util.MUL_FACTOR);
     }
     
     @Override
