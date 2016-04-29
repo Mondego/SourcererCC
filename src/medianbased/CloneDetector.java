@@ -97,6 +97,13 @@ public class CloneDetector {
                                             Util.writeToFile(
                                                     CloneDetector.clonesWriter,
                                                     text, true);
+                                            if (candidate.project_id == 61559 && candidate.file_id==6908293){
+                                                System.out
+                                                        .println("found, exiting! candidate is "+ candidate);
+                                                System.out
+                                                        .println("query: "+ query);
+                                                System.exit(0);
+                                            }
                                         }
                                     }
                                 }
@@ -129,7 +136,7 @@ public class CloneDetector {
         float stdDev = Float.parseFloat(metadataParts[6]);
         float variance = Float.parseFloat(metadataParts[7]);
         Block candidate = new Block(median, projectId, fileId, numTokens,
-                stdDev, variance);
+                stdDev, variance,numCharacters);
         return candidate;
     }
 

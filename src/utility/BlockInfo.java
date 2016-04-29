@@ -45,6 +45,12 @@ public class BlockInfo {
     public static float getMaximumSimilarityThreshold(float size,float threshold) {
         return (size*Util.MUL_FACTOR*10)/threshold;
     }
+    public static long getMinimumSimilarityThreshold(long size,float threshold) {
+        return (long) Math.ceil((threshold * size)/ (Util.MUL_FACTOR*10));
+    }
+    public static long getMaximumSimilarityThreshold(long size,float threshold) {
+        return (long) Math.floor((size*Util.MUL_FACTOR*10)/threshold);
+    }
 	
 	public static int getPrefixSize(int size, int computedThreshold){
 		return (size + 1) - computedThreshold;
