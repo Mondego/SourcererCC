@@ -25,7 +25,7 @@ public class CloneDetector {
     static FileInputStream fis;
     public static float threshold = 8.0f;
     public static final Integer MUL_FACTOR = 100;
-    public static float th = threshold*MUL_FACTOR;
+    public static float th = threshold * MUL_FACTOR;
 
     public CloneDetector() throws FileNotFoundException {
         this.properties = new EProperties();
@@ -34,20 +34,8 @@ public class CloneDetector {
 
     }
 
-    public static void main(String[] args) throws IOException {
-        CloneDetector cd = new CloneDetector();
-        System.out.println("PREPARING DATASTRUCTURES");
-        cd.prepare();
-        System.out.println("PREPARING DATASTRUCTURES DONE!");
-        cd.search();
-        if (null != fis) {
-            fis.close();
-        }
-        Util.closeOutputFile(clonesWriter);
-    }
-
     public File getQueryDirectory() throws FileNotFoundException {
-        File queryDir = new File(this.properties.getProperty("QUERY_DIR_PATH"));
+        File queryDir = new File(this.properties.getProperty("DATASET_DIR_PATH"));
         if (!queryDir.isDirectory()) {
             throw new FileNotFoundException("directory not found.");
         } else {
@@ -92,14 +80,14 @@ public class CloneDetector {
                                             + candidate.project_id + ","
                                             + candidate.file_id;
                                     Util.writeToFile(
-                                            CloneDetector.clonesWriter,
-                                            text, true);
+                                            CloneDetector.clonesWriter, text,
+                                            true);
                                 }
                             }
                         }
                     }
                     count++;
-                    System.out.println("lines processed: "+ count);
+                    System.out.println("lines processed: " + count);
                 } catch (NumberFormatException e) {
                     System.out.println("Exception caught: " + e.getMessage());
                 } catch (IOException e) {
@@ -123,8 +111,8 @@ public class CloneDetector {
         float median = Float.parseFloat(metadataParts[5]);
         float stdDev = Float.parseFloat(metadataParts[6]);
         float variance = Float.parseFloat(metadataParts[7]);
-        Block candidate = new Block(median, projectId, fileId,
-                numTokens, stdDev, variance);
+        Block candidate = new Block(median, projectId, fileId, numTokens,
+                stdDev, variance);
         return candidate;
     }
 
@@ -133,6 +121,7 @@ public class CloneDetector {
         this.setupShards();
 
         File datasetDir = this.getQueryDirectory();
+        int count =0;
         if (datasetDir.isDirectory()) {
             System.out.println("Dataset Directory: "
                     + this.getQueryDirectory().getAbsolutePath());
@@ -149,6 +138,8 @@ public class CloneDetector {
                         for (TokenShard shard : tokenShardsToIndex) {
                             shard.candidates.add(candidate);
                         }
+                        count++;
+                        System.out.println("lines indexed: "+ count);
                     }
                 } catch (Exception e) {
                     System.out.println("Exception caught: " + e.getMessage());
@@ -164,7 +155,7 @@ public class CloneDetector {
     }
 
     private void readProperties() throws FileNotFoundException {
-        
+
         String propertiesPath = System.getProperty("properties.location");
         System.out.println("propertiesPath: " + propertiesPath);
         fis = new FileInputStream(propertiesPath);
@@ -215,5 +206,17 @@ public class CloneDetector {
         }
         System.out.println("returning shards");
         return shardsToReturn;
+    }
+
+    public static void main(String[] args) throws IOException {
+        CloneDetector cd = new CloneDetector();
+        System.out.println("PREPARING DATASTRUCTURES");
+        cd.prepare();
+        System.out.println("PREPARING DATASTRUCTURES DONE!");
+        cd.search();
+        if (null != fis) {
+            fis.close();
+        }
+        Util.closeOutputFile(clonesWriter);
     }
 }
