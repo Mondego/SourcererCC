@@ -33,6 +33,7 @@ public class Block implements Comparable<Block> {
         this.numTokens = numTokens;
         this.variance = variance;
         this.numChars = numChars;
+        this.uniqueTokens=uniqueTokens;
         this.min_median = BlockInfo.getMinimumSimilarityThreshold(this.median, CloneDetector.th+Util.MUL_FACTOR);
         this.max_median = BlockInfo.getMaximumSimilarityThreshold(this.median, CloneDetector.th+Util.MUL_FACTOR);
         this.minNumTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTokens, CloneDetector.th);

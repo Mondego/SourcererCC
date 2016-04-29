@@ -88,20 +88,21 @@ public class CloneDetector {
                                 if ((candidate.file_id > query.file_id)) {
                                     if (candidate.numTokens >= query.minNumTokens
                                             && candidate.numTokens <= query.maxNumTokens) {
-                                        if (candidate.variance >= query.minVariance
-                                                && candidate.variance <= query.maxVariance) {
-                                            if (candidate.uniqueTokens >= query.minUniqueTokens
-                                                    && candidate.uniqueTokens <= query.maxUniqueTokens) {
-                                                text = query.project_id + ","
-                                                        + query.file_id + ","
-                                                        + candidate.project_id
-                                                        + ","
-                                                        + candidate.file_id;
-                                                Util.writeToFile(
-                                                        CloneDetector.clonesWriter,
-                                                        text, true);
-                                            }
+                                        // if (candidate.variance >=
+                                        // query.minVariance
+                                        // && candidate.variance <=
+                                        // query.maxVariance) {
+                                        if (candidate.uniqueTokens >= query.minUniqueTokens
+                                                && candidate.uniqueTokens <= query.maxUniqueTokens) {
+                                            text = query.project_id + ","
+                                                    + query.file_id + ","
+                                                    + candidate.project_id
+                                                    + "," + candidate.file_id;
+                                            Util.writeToFile(
+                                                    CloneDetector.clonesWriter,
+                                                    text, true);
                                         }
+                                        // }
                                     }
                                 }
                             }
