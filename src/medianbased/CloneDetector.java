@@ -35,7 +35,8 @@ public class CloneDetector {
     }
 
     public File getQueryDirectory() throws FileNotFoundException {
-        File queryDir = new File(this.properties.getProperty("DATASET_DIR_PATH"));
+        File queryDir = new File(
+                this.properties.getProperty("DATASET_DIR_PATH"));
         if (!queryDir.isDirectory()) {
             throw new FileNotFoundException("directory not found.");
         } else {
@@ -57,9 +58,11 @@ public class CloneDetector {
                         "");
                 try {
                     CloneDetector.clonesWriter = Util
-                            .openFile(properties.getProperty("MEDIAN_OUTPUT_DIR")
-                                    + "/" + filename
-                                    + "clones_index_WITH_FILTER.txt", false);
+                            .openFile(
+                                    properties.getProperty("MEDIAN_OUTPUT_DIR")
+                                            + "/" + filename
+                                            + "clones_index_WITH_FILTER.txt",
+                                    false);
                     br = new BufferedReader(new InputStreamReader(
                             new FileInputStream(inputFile), "UTF-8"));
                     String line;
@@ -76,7 +79,7 @@ public class CloneDetector {
                                 if (candidate.numTokens >= query.minNumTokens
                                         && candidate.numTokens <= query.maxNumTokens) {
                                     String text = query.project_id + ","
-                                            + query.file_id
+                                            + query.file_id + ","
                                             + candidate.project_id + ","
                                             + candidate.file_id;
                                     Util.writeToFile(
@@ -121,7 +124,7 @@ public class CloneDetector {
         this.setupShards();
 
         File datasetDir = this.getQueryDirectory();
-        int count =0;
+        int count = 0;
         if (datasetDir.isDirectory()) {
             System.out.println("Dataset Directory: "
                     + this.getQueryDirectory().getAbsolutePath());
@@ -139,7 +142,7 @@ public class CloneDetector {
                             shard.candidates.add(candidate);
                         }
                         count++;
-                        System.out.println("lines indexed: "+ count);
+                        System.out.println("lines indexed: " + count);
                     }
                 } catch (Exception e) {
                     System.out.println("Exception caught: " + e.getMessage());
@@ -204,7 +207,6 @@ public class CloneDetector {
                 shardsToReturn.add(shard);
             }
         }
-        System.out.println("returning shards");
         return shardsToReturn;
     }
 
