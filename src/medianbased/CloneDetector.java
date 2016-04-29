@@ -24,8 +24,7 @@ public class CloneDetector {
     public static Writer clonesWriter; // writer to write the output
     static FileInputStream fis;
     public static float threshold = 8.0f;
-    public static final Integer MUL_FACTOR = 100;
-    public static float th = threshold * MUL_FACTOR;
+    public static float th = threshold * Util.MUL_FACTOR;
 
     public CloneDetector() throws FileNotFoundException {
         this.properties = new EProperties();
@@ -46,6 +45,7 @@ public class CloneDetector {
     }
 
     private void search() throws FileNotFoundException {
+        System.out.println("Begin Search");
         Util.createDirs(properties.getProperty("MEDIAN_OUTPUT_DIR"));
         File datasetDir = this.getQueryDirectory();
         int count = 0;
@@ -56,6 +56,7 @@ public class CloneDetector {
             for (File inputFile : datasetDir.listFiles()) {
                 String filename = inputFile.getName().replaceFirst("[.][^.]+$",
                         "");
+                System.out.println("QUERY FILE is " + inputFile.getName());
                 try {
                     CloneDetector.clonesWriter = Util
                             .openFile(
@@ -66,6 +67,7 @@ public class CloneDetector {
                     br = new BufferedReader(new InputStreamReader(
                             new FileInputStream(inputFile), "UTF-8"));
                     String line;
+                    String text = null;
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         Block query = this.getCandidateFromLine(line);
@@ -74,19 +76,24 @@ public class CloneDetector {
                         for (TokenShard shard : tokenShardsToSearch) {
                             int[] minmax = shard.getIndexRangeCandidates(
                                     query.min_median, query.max_median);
-                            System.out.println("NUM Candidates: "+ (minmax[1]-minmax[0])+", query: "+query.project_id+","+query.file_id);
+                            System.out.println("NUM Candidates: "
+                                    + (minmax[1] - minmax[0]) + ", query: "
+                                    + query.project_id + "," + query.file_id+", shard: "+ shard.id);
                             for (int i = minmax[0]; i <= minmax[1]; i++) {
                                 candidate = shard.candidates.get(i);
-                                if ((candidate.file_id > query.file_id)){
+                                if ((candidate.file_id > query.file_id)) {
                                     if (candidate.numTokens >= query.minNumTokens
                                             && candidate.numTokens <= query.maxNumTokens) {
-                                        String text = query.project_id + ","
-                                                + query.file_id + ","
-                                                + candidate.project_id + ","
-                                                + candidate.file_id;
-                                        Util.writeToFile(
-                                                CloneDetector.clonesWriter, text,
-                                                true);
+                                        if (candidate.variance >= query.minVariance
+                                                && candidate.variance <= query.maxVariance) {
+                                            text = query.project_id + ","
+                                                    + query.file_id + ","
+                                                    + candidate.project_id
+                                                    + "," + candidate.file_id;
+                                            Util.writeToFile(
+                                                    CloneDetector.clonesWriter,
+                                                    text, true);
+                                        }
                                     }
                                 }
                             }

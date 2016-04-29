@@ -14,6 +14,8 @@ public class Block implements Comparable<Block> {
     public float variance;
     public int maxNumTokens;
     public int minNumTokens;
+    public float minVariance;
+    public float maxVariance;
     
     
     public Block(float median, int project_id, int file_id, int numTokens,float stdDev, float variance) {
@@ -26,6 +28,8 @@ public class Block implements Comparable<Block> {
         this.max_median = BlockInfo.getMaximumSimilarityThreshold(this.median, CloneDetector.th);
         this.minNumTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTokens, CloneDetector.th);
         this.maxNumTokens = BlockInfo.getMaximumSimilarityThreshold(this.numTokens, CloneDetector.th);
+        this.minVariance = BlockInfo.getMaximumSimilarityThreshold(this.variance, CloneDetector.th);
+        this.maxVariance = BlockInfo.getMaximumSimilarityThreshold(this.variance, CloneDetector.th);
     }
     
     @Override
