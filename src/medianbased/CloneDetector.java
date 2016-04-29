@@ -74,6 +74,7 @@ public class CloneDetector {
                         for (TokenShard shard : tokenShardsToSearch) {
                             int[] minmax = shard.getIndexRangeCandidates(
                                     query.min_median, query.max_median);
+                            System.out.println("NUM Candidates: "+ (minmax[1]-minmax[0])+", query: "+query.project_id+","+query.file_id);
                             for (int i = minmax[0]; i <= minmax[1]; i++) {
                                 candidate = shard.candidates.get(i);
                                 if (candidate.numTokens >= query.minNumTokens
@@ -88,9 +89,9 @@ public class CloneDetector {
                                 }
                             }
                         }
+                        count++;
+                        System.out.println("lines processed: " + count);
                     }
-                    count++;
-                    System.out.println("lines processed: " + count);
                 } catch (NumberFormatException e) {
                     System.out.println("Exception caught: " + e.getMessage());
                 } catch (IOException e) {
