@@ -90,19 +90,16 @@ public class CloneDetector {
                                             && candidate.numTokens <= query.maxNumTokens) {
                                         if (candidate.variance >= query.minVariance
                                                 && candidate.variance <= query.maxVariance) {
-                                            text = query.project_id + ","
-                                                    + query.file_id + ","
-                                                    + candidate.project_id
-                                                    + "," + candidate.file_id;
-                                            Util.writeToFile(
-                                                    CloneDetector.clonesWriter,
-                                                    text, true);
-                                            if (candidate.project_id == 61559 && candidate.file_id==6908293){
-                                                System.out
-                                                        .println("found, exiting! candidate is "+ candidate);
-                                                System.out
-                                                        .println("query: "+ query);
-                                                System.exit(0);
+                                            if (candidate.uniqueTokens >= query.minUniqueTokens
+                                                    && candidate.uniqueTokens <= query.maxUniqueTokens) {
+                                                text = query.project_id + ","
+                                                        + query.file_id + ","
+                                                        + candidate.project_id
+                                                        + ","
+                                                        + candidate.file_id;
+                                                Util.writeToFile(
+                                                        CloneDetector.clonesWriter,
+                                                        text, true);
                                             }
                                         }
                                     }
@@ -129,14 +126,13 @@ public class CloneDetector {
         int projectId = Integer.parseInt(metadataParts[0]);
         int fileId = Integer.parseInt(metadataParts[1]);
         int numTokens = Integer.parseInt(metadataParts[2]);
-        // int uniqueTokens =
-        // Integer.parseInt(metadataParts[3]);
+        int uniqueTokens = Integer.parseInt(metadataParts[3]);
         int numCharacters = Integer.parseInt(metadataParts[4]);
         float median = Float.parseFloat(metadataParts[5]);
         float stdDev = Float.parseFloat(metadataParts[6]);
         float variance = Float.parseFloat(metadataParts[7]);
         Block candidate = new Block(median, projectId, fileId, numTokens,
-                stdDev, variance,numCharacters);
+                stdDev, variance, numCharacters, uniqueTokens);
         return candidate;
     }
 
