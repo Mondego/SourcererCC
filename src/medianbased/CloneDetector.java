@@ -114,7 +114,7 @@ public class CloneDetector {
                             }
                         }
                         count++;
-                        System.out.println("lines processed: " + count);
+                       // System.out.println("lines processed: " + count);
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("Exception caught: " + e.getMessage());
@@ -163,10 +163,18 @@ public class CloneDetector {
                         Block candidate = this.getCandidateFromLine(line);
                         List<TokenShard> tokenShardsToIndex = getShardIdsForCandidate(candidate);
                         for (TokenShard shard : tokenShardsToIndex) {
+                            if(candidate.project_id==54 && candidate.file_id==80){
+                                System.out.println("FOUND, "+ shard);
+                                System.out.println(candidate);
+                            }
+                            if(candidate.project_id==54 && candidate.file_id==119){
+                                System.out.println("FOUND, "+ shard);
+                                System.out.println(candidate);
+                            }
                             shard.candidates.add(candidate);
                         }
                         count++;
-                        System.out.println("lines indexed: " + count);
+                        //System.out.println("lines indexed: " + count);
                     }
                 } catch (Exception e) {
                     System.out.println("Exception caught: " + e.getMessage());

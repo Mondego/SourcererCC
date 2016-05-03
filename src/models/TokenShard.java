@@ -105,4 +105,13 @@ public class TokenShard {
         }
         return index+1;
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "TokenShard [id=" + id + ", minTokens=" + minTokens
+                + ", maxTokens=" + maxTokens + "]";
+    }
 }
