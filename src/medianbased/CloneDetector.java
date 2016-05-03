@@ -114,7 +114,7 @@ public class CloneDetector {
                             }
                         }
                         count++;
-                       // System.out.println("lines processed: " + count);
+                        System.out.println("lines processed: " + count);
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("Exception caught: " + e.getMessage());
