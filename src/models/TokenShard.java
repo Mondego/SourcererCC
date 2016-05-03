@@ -31,7 +31,7 @@ public class TokenShard {
         int bestHigh=-1;
         while(low<=high){
             mid = (low+high)/2;
-            if(this.candidates.get(mid).median>minMedian){
+            if(this.candidates.get(mid).median>=minMedian){
                 bestHigh = mid;
                 high = mid-1;
             }else if (this.candidates.get(mid).median<minMedian){
@@ -54,7 +54,7 @@ public class TokenShard {
             mid = (low+high)/2;
             if(this.candidates.get(mid).median>maxMedian){
                 high = mid-1;
-            }else if (this.candidates.get(mid).median<maxMedian){
+            }else if (this.candidates.get(mid).median<=maxMedian){
                 bestLow = mid;
                 low = mid+1;
             }else{
@@ -103,7 +103,7 @@ public class TokenShard {
         while(index<this.candidates.size() && this.candidates.get(index).median==val){
             index=index+1;
         }
-        return index+1;
+        return index-1;
     }
 
     /* (non-Javadoc)
