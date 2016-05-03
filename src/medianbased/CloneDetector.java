@@ -84,6 +84,7 @@ public class CloneDetector {
                                     + query.median + "," + query.min_median
                                     + "," + query.max_median);*/
                             if(candidate.project_id==54 && candidate.file_id==80 && query.project_id==54 && query.file_id==119){
+                                System.out.println("FOUND");
                                 System.out.println(candidate);
                                 System.out.println(query);
                             }
