@@ -76,13 +76,17 @@ public class CloneDetector {
                         for (TokenShard shard : tokenShardsToSearch) {
                             int[] minmax = shard.getIndexRangeCandidates(
                                     query.min_median, query.max_median);
-                            System.out.println("NUM Candidates: "
+                            /*System.out.println("NUM Candidates: "
                                     + (minmax[1] - minmax[0]) + ", query: "
                                     + query.project_id + "," + query.file_id
                                     + ", shard: " + shard.id + ","
                                     + "median and min max medians: "
                                     + query.median + "," + query.min_median
-                                    + "," + query.max_median);
+                                    + "," + query.max_median);*/
+                            if(candidate.project_id==54 && candidate.file_id==80 && query.project_id==54 && query.file_id==119){
+                                System.out.println(candidate);
+                                System.out.println(query);
+                            }
                             for (int i = minmax[0]; i <= minmax[1]; i++) {
                                 candidate = shard.candidates.get(i);
                                 if ((candidate.file_id > query.file_id)) {

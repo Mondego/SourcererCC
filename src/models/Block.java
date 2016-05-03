@@ -51,8 +51,6 @@ public class Block implements Comparable<Block> {
         this.maxStdDev = BlockInfo.getMaximumSimilarityThreshold(this.stdDev, CloneDetector.th-Util.MUL_FACTOR);
     }
     
-    
-    
     @Override
     public int compareTo(Block o) {
         if (this.median<o.median){
@@ -80,7 +78,8 @@ public class Block implements Comparable<Block> {
                 + ", minNumChars=" + minNumChars + ", maxNumChars="
                 + maxNumChars + ", uniqueTokens=" + uniqueTokens
                 + ", minUniqueTokens=" + minUniqueTokens + ", maxUniqueTokens="
-                + maxUniqueTokens + ", stdDev=" + stdDev + "]";
+                + maxUniqueTokens + ", stdDev=" + stdDev + ", minStdDev="
+                + minStdDev + ", maxStdDev=" + maxStdDev + "]";
     }
 
 }
