@@ -97,7 +97,7 @@ public class CloneDetector {
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
                                             if (candidate.numChars >= query.minNumChars
                                                     && candidate.numChars <= query.maxNumChars) {
-                                                if(candidate.stdDev>=query.minStdDev && candidate.stdDev<=query.maxStdDev){
+                                                if(candidate.mad>=query.minMad && candidate.mad<=query.maxMad){
                                                     text = query.project_id + ","
                                                             + query.file_id + ","
                                                             + candidate.project_id
@@ -138,8 +138,9 @@ public class CloneDetector {
         float median = Float.parseFloat(metadataParts[5]);
         float stdDev = Float.parseFloat(metadataParts[6]);
         float variance = Float.parseFloat(metadataParts[7]);
+        float mad = Float.parseFloat(metadataParts[8]);
         Block candidate = new Block(median, projectId, fileId, numTokens,
-                stdDev, variance, numCharacters, uniqueTokens);
+                stdDev, variance, numCharacters, uniqueTokens, mad);
         return candidate;
     }
 
