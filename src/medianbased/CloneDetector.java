@@ -12,6 +12,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+
 import models.Block;
 import models.TokenShard;
 import net.jmatrix.eproperties.EProperties;
@@ -232,15 +236,40 @@ public class CloneDetector {
         return shardsToReturn;
     }
 
+    public void printDuration(long end_time, long start_time, String message){
+        Duration duration;
+        try {
+            duration = DatatypeFactory.newInstance().newDuration(
+                    end_time - start_time);
+            System.out.printf(message+ ":  %02dh:%02dm:%02ds",
+                    duration.getDays() * 24 + duration.getHours(),
+                    duration.getMinutes(), duration.getSeconds());
+            System.out.println();
+        } catch (DatatypeConfigurationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) throws IOException {
+        long time_start = System.currentTimeMillis();
         CloneDetector cd = new CloneDetector();
         System.out.println("PREPARING DATASTRUCTURES");
+        long begin_time = System.currentTimeMillis();
         cd.prepare();
+        long end_time = System.currentTimeMillis();
+        cd.printDuration(end_time, begin_time, "preparation_time");
         System.out.println("PREPARING DATASTRUCTURES DONE!");
+        begin_time = System.currentTimeMillis();
         cd.search();
+        end_time = System.currentTimeMillis();
+        cd.printDuration(end_time, begin_time, "search_time");
+        System.out.println("search over!");
         if (null != fis) {
             fis.close();
         }
         Util.closeOutputFile(clonesWriter);
+        long end_time_final = System.currentTimeMillis();
+        cd.printDuration(end_time_final,time_start,"total_time");
     }
 }
