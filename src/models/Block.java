@@ -56,11 +56,11 @@ public class Block implements Comparable<Block> {
         this.minUniqueTokens = BlockInfo.getMinimumSimilarityThreshold(this.uniqueTokens, CloneDetector.th);
         this.maxUniqueTokens = BlockInfo.getMaximumSimilarityThreshold(this.uniqueTokens, CloneDetector.th);
         
-        this.minStdDev = BlockInfo.getMinimumSimilarityThreshold(this.stdDev, CloneDetector.th+50);
-        this.maxStdDev = BlockInfo.getMaximumSimilarityThreshold(this.stdDev, CloneDetector.th+50);
+        this.minStdDev = BlockInfo.getMinimumSimilarityThreshold(this.stdDev, CloneDetector.th+Util.MUL_FACTOR);
+        this.maxStdDev = BlockInfo.getMaximumSimilarityThreshold(this.stdDev, CloneDetector.th+Util.MUL_FACTOR);
         
-        this.minMad = BlockInfo.getMinimumSimilarityThreshold(this.mad, CloneDetector.th-Util.MUL_FACTOR);
-        this.maxMad = BlockInfo.getMaximumSimilarityThreshold(this.mad, CloneDetector.th-Util.MUL_FACTOR);
+        this.minMad = BlockInfo.getMinimumSimilarityThreshold(this.mad, CloneDetector.th+Util.MUL_FACTOR);
+        this.maxMad = BlockInfo.getMaximumSimilarityThreshold(this.mad, CloneDetector.th+Util.MUL_FACTOR);
     }
     
     @Override
@@ -76,9 +76,6 @@ public class Block implements Comparable<Block> {
 
 
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return "Block [project_id=" + project_id + ", file_id=" + file_id
@@ -91,7 +88,8 @@ public class Block implements Comparable<Block> {
                 + maxNumChars + ", uniqueTokens=" + uniqueTokens
                 + ", minUniqueTokens=" + minUniqueTokens + ", maxUniqueTokens="
                 + maxUniqueTokens + ", stdDev=" + stdDev + ", minStdDev="
-                + minStdDev + ", maxStdDev=" + maxStdDev + "]";
+                + minStdDev + ", maxStdDev=" + maxStdDev + ", mad=" + mad
+                + ", minMad=" + minMad + ", maxMad=" + maxMad + "]";
     }
 
 }

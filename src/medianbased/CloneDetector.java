@@ -85,11 +85,6 @@ public class CloneDetector {
                                     + "," + query.max_median);*/
                             for (int i = minmax[0]; i <= minmax[1]; i++) {
                                 candidate = shard.candidates.get(i);
-                                if(candidate.project_id==54 && candidate.file_id==80 && query.project_id==54 && query.file_id==119){
-                                    System.out.println("FOUND");
-                                    System.out.println(candidate);
-                                    System.out.println(query);
-                                }
                                 if ((candidate.file_id > query.file_id)) {
                                     if (candidate.numTokens >= query.minNumTokens
                                             && candidate.numTokens <= query.maxNumTokens) {
@@ -98,14 +93,16 @@ public class CloneDetector {
                                             if (candidate.numChars >= query.minNumChars
                                                     && candidate.numChars <= query.maxNumChars) {
                                                 if(candidate.mad>=query.minMad && candidate.mad<=query.maxMad){
-                                                    text = query.project_id + ","
-                                                            + query.file_id + ","
-                                                            + candidate.project_id
-                                                            + ","
-                                                            + candidate.file_id;
-                                                    Util.writeToFile(
-                                                            CloneDetector.clonesWriter,
-                                                            text, true);
+                                                    if(candidate.stdDev>=query.minStdDev && candidate.stdDev<=query.maxStdDev){
+                                                        text = query.project_id + ","
+                                                                + query.file_id + ","
+                                                                + candidate.project_id
+                                                                + ","
+                                                                + candidate.file_id;
+                                                        Util.writeToFile(
+                                                                CloneDetector.clonesWriter,
+                                                                text, true);
+                                                    }
                                                 }
                                             }
                                         }
@@ -164,14 +161,6 @@ public class CloneDetector {
                         Block candidate = this.getCandidateFromLine(line);
                         List<TokenShard> tokenShardsToIndex = getShardIdsForCandidate(candidate);
                         for (TokenShard shard : tokenShardsToIndex) {
-                            if(candidate.project_id==54 && candidate.file_id==80){
-                                System.out.println("FOUND, "+ shard);
-                                System.out.println(candidate);
-                            }
-                            if(candidate.project_id==54 && candidate.file_id==119){
-                                System.out.println("FOUND, "+ shard);
-                                System.out.println(candidate);
-                            }
                             shard.candidates.add(candidate);
                         }
                         count++;
