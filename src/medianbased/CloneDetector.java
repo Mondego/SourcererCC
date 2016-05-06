@@ -199,23 +199,32 @@ public class CloneDetector {
 
     private void setupShards() throws IOException {
 
-        String shardSegment = properties.getProperty("SHARD_MAX_NUM_TOKENS");
-        String[] shardSegments = shardSegment.split(",");
-        int minTokens = Integer.parseInt(properties.getProperty("MIN_TOKENS"));
-        int maxTokens = Integer.parseInt(properties.getProperty("MAX_TOKENS"));
-        int shardId = 1;
-        int max;
-        for (String segment : shardSegments) {
-            // create shards
-            max = Integer.parseInt(segment);
-            TokenShard shard = new TokenShard(shardId, minTokens, max);
+        boolean isSharding = Boolean.parseBoolean(properties.getProperty("IS_SHARDING"));
+        if (isSharding){
+            String shardSegment = properties.getProperty("SHARD_MAX_NUM_TOKENS");
+            String[] shardSegments = shardSegment.split(",");
+            int minTokens = Integer.parseInt(properties.getProperty("MIN_TOKENS"));
+            int maxTokens = Integer.parseInt(properties.getProperty("MAX_TOKENS"));
+            int shardId = 1;
+            int max;
+            for (String segment : shardSegments) {
+                // create shards
+                max = Integer.parseInt(segment);
+                TokenShard shard = new TokenShard(shardId, minTokens, max);
+                this.tokenShards.add(shard);
+                minTokens = max + 1;
+                shardId++;
+            }
+            // create the last shard
+            TokenShard shard = new TokenShard(shardId, minTokens, maxTokens);
             this.tokenShards.add(shard);
-            minTokens = max + 1;
-            shardId++;
+        }else{
+            int minTokens = Integer.parseInt(properties.getProperty("MIN_TOKENS"));
+            int maxTokens = Integer.parseInt(properties.getProperty("MAX_TOKENS"));
+            int shardId = 1;
+            TokenShard shard = new TokenShard(shardId, minTokens, maxTokens);
+            this.tokenShards.add(shard);
         }
-        // create the last shard
-        TokenShard shard = new TokenShard(shardId, minTokens, maxTokens);
-        this.tokenShards.add(shard);
     }
 
     /*
