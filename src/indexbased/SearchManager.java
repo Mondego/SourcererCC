@@ -136,6 +136,7 @@ public class SearchManager {
     public static Map<String, Long> globalWordFreqMap;
     public static List<Shard> shards;
     public Set<Long> completedQueries;
+    private boolean isSharding;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -173,6 +174,7 @@ public class SearchManager {
             this.sizeBagsToIIQ = Integer.parseInt(args[16]);
             this.sizeBagsToFIQ = Integer.parseInt(args[17]);
             this.searchShardId = Integer.parseInt(args[18]);
+            this.isSharding = Boolean.parseBoolean(args[20]);
 
             
         } catch (NumberFormatException e) {
@@ -213,29 +215,33 @@ public class SearchManager {
             // invertedIndexDirectories = new ArrayList<FSDirectory>();
             // forwardIndexDirectories = new ArrayList<FSDirectory>();
             indexerWriters = new ArrayList<IndexWriter>();
-            String shardSegment = args[19];
-            String[] shardSegments = shardSegment.split(",");
             int minTokens = SearchManager.min_tokens;
             int maxTokens = SearchManager.min_tokens;
             int shardId = 1;
             SearchManager.invertedIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
             SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
             SearchManager.shards = new ArrayList<Shard>();
-            for (String segment : shardSegments) {
-                // create shards
-                maxTokens = Integer.parseInt(segment);
+            if(this.isSharding){
+                String shardSegment = args[19];
+                String[] shardSegments = shardSegment.split(",");
+                for (String segment : shardSegments) {
+                    // create shards
+                    maxTokens = Integer.parseInt(segment);
+                    Shard shard = new Shard(shardId, minTokens,
+                            maxTokens);
+                    SearchManager.shards.add(shard);
+                    minTokens = maxTokens + 1;
+                    shardId++;
+                }
+                // create the last shard
+                Shard shard = new Shard(shardId, minTokens,
+                        SearchManager.max_tokens);
+                SearchManager.shards.add(shard);
+            }else{
                 Shard shard = new Shard(shardId, minTokens,
                         maxTokens);
                 SearchManager.shards.add(shard);
-                minTokens = maxTokens + 1;
-                shardId++;
             }
-            // create the last shard
-            Shard shard = new Shard(shardId, minTokens,
-                    SearchManager.max_tokens);
-            SearchManager.shards.add(shard);
-            
-            
             System.out.println("acton: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
                     + "BQ_THREADS: " + this.threadsToProcessBagsToSortQueue
@@ -326,7 +332,7 @@ public class SearchManager {
         fis = new FileInputStream(propertiesPath);
         try {
             properties.load(fis);
-            String[] params = new String[20];
+            String[] params = new String[21];
             params[0] = args[0];
             params[1] = args[1];
             params[2] = properties.getProperty("QBQ_THREADS");
@@ -345,11 +351,11 @@ public class SearchManager {
             params[15] = properties.getProperty("BTSQ_SIZE");
             params[16] = properties.getProperty("BTIIQ_SIZE");
             params[17] = properties.getProperty("BTFIQ_SIZE");
-
             // shard
             params[18] = properties.getProperty("SEARCH_SHARD_ID");
             params[19] = properties.getProperty("SHARD_MAX_NUM_TOKENS");
-
+            params[20] = properties.getProperty("IS_SHARDING");
+            
             SearchManager.DATASET_DIR = properties
                     .getProperty("DATASET_DIR_PATH");
             SearchManager.isGenCandidateStats = Boolean.parseBoolean(properties
