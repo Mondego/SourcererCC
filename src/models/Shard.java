@@ -135,4 +135,13 @@ public class Shard {
             System.out.println(e.getMessage());
         }
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "Shard [id=" + id + ", minBagSizeToIndex=" + minBagSizeToIndex
+                + ", maxBagSizeToIndex=" + maxBagSizeToIndex + "]";
+    }
 }

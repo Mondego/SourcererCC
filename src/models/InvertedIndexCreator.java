@@ -43,6 +43,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
         this.document = this.documentMaker.prepareDocument(bag);
         for (Shard shard : shards){
             try {
+                System.out.println(shard);
                 shard.getInvertedIndexWriter().addDocument(this.document);
             } catch (IOException e) {
                 System.out.println(SearchManager.NODE_PREFIX+ ": error in indexing bag, "+ bag);
