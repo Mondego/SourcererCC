@@ -200,12 +200,12 @@ public class CloneDetector {
     private void setupShards() throws IOException {
 
         boolean isSharding = Boolean.parseBoolean(properties.getProperty("IS_SHARDING"));
+        int minTokens = Integer.parseInt(properties.getProperty("MIN_TOKENS"));
+        int maxTokens = Integer.parseInt(properties.getProperty("MAX_TOKENS"));
+        int shardId = 1;
         if (isSharding){
             String shardSegment = properties.getProperty("SHARD_MAX_NUM_TOKENS");
             String[] shardSegments = shardSegment.split(",");
-            int minTokens = Integer.parseInt(properties.getProperty("MIN_TOKENS"));
-            int maxTokens = Integer.parseInt(properties.getProperty("MAX_TOKENS"));
-            int shardId = 1;
             int max;
             for (String segment : shardSegments) {
                 // create shards
@@ -219,9 +219,6 @@ public class CloneDetector {
             TokenShard shard = new TokenShard(shardId, minTokens, maxTokens);
             this.tokenShards.add(shard);
         }else{
-            int minTokens = Integer.parseInt(properties.getProperty("MIN_TOKENS"));
-            int maxTokens = Integer.parseInt(properties.getProperty("MAX_TOKENS"));
-            int shardId = 1;
             TokenShard shard = new TokenShard(shardId, minTokens, maxTokens);
             this.tokenShards.add(shard);
         }
