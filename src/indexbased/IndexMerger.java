@@ -155,14 +155,22 @@ public class IndexMerger {
         fis = new FileInputStream(propertiesPath);
         try {
             properties.load(fis);
-            String segmentString = properties
-                    .getProperty("SHARD_MAX_NUM_TOKENS");
-            String[] shardSegments = segmentString.split(",");
-            for (int shardId = 1; shardId <= shardSegments.length+1; shardId++) {
-                System.out.println("merging shard "+ shardId);
-                indexMerger.populateIndexdirs(shardId);
-                indexMerger.mergeindexes(shardId);
+            boolean isSharding = Boolean.parseBoolean(properties
+                    .getProperty("IS_SHARDING"));
+            if(isSharding){
+                String segmentString = properties
+                        .getProperty("SHARD_MAX_NUM_TOKENS");
+                String[] shardSegments = segmentString.split(",");
+                for (int shardId = 1; shardId <= shardSegments.length+1; shardId++) {
+                    System.out.println("merging shard "+ shardId);
+                    indexMerger.populateIndexdirs(shardId);
+                    indexMerger.mergeindexes(shardId);
+                }
+            }else{
+                indexMerger.populateIndexdirs(1);
+                indexMerger.mergeindexes(1);
             }
+            
 
         } catch (IOException e) {
             System.out.println("ERROR READING PROPERTIES FILE, "
