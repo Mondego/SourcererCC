@@ -467,6 +467,9 @@ public class SearchManager {
         } else if (searchManager.action.equalsIgnoreCase(ACTION_INIT)) {
             TermSorter termSorter = new TermSorter();
             termSorter.populateLocalWordFreqMap();
+            if(SearchManager.NODE_PREFIX.equals("NODE_1")){
+                termSorter.populateGlobalPositionMap();
+            }
         }
         long end_time = System.currentTimeMillis();
         Calendar cal = Calendar.getInstance();
@@ -564,7 +567,6 @@ public class SearchManager {
         TermSorter termSorter = new TermSorter();
 
         long timeGlobalPositionStart = System.currentTimeMillis();
-        // termSorter.populateGlobalPositionMap();
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");
         this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
