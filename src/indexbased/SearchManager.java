@@ -219,7 +219,7 @@ public class SearchManager {
             // forwardIndexDirectories = new ArrayList<FSDirectory>();
             indexerWriters = new ArrayList<IndexWriter>();
             int minTokens = SearchManager.min_tokens;
-            int maxTokens = SearchManager.min_tokens;
+            int maxTokens = SearchManager.max_tokens;
             int shardId = 1;
             SearchManager.invertedIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
             SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
@@ -241,8 +241,8 @@ public class SearchManager {
                         SearchManager.max_tokens);
                 SearchManager.shards.add(shard);
             }else{
-                Shard shard = new Shard(shardId, minTokens,
-                        maxTokens);
+                Shard shard = new Shard(shardId, SearchManager.min_tokens,
+                        SearchManager.max_tokens);
                 SearchManager.shards.add(shard);
             }
             System.out.println("acton: " + this.action + System.lineSeparator()
