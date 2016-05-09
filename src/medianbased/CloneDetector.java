@@ -80,36 +80,43 @@ public class CloneDetector {
                         for (TokenShard shard : tokenShardsToSearch) {
                             int[] minmax = shard.getIndexRangeCandidates(
                                     query.min_median, query.max_median);
-                            /*System.out.println("NUM Candidates: "
-                                    + (minmax[1] - minmax[0]) + ", query: "
-                                    + query.project_id + "," + query.file_id
-                                    + ", shard: " + shard.id + ","
-                                    + "median and min max medians: "
-                                    + query.median + "," + query.min_median
-                                    + "," + query.max_median);*/
+                            /*
+                             * System.out.println("NUM Candidates: " +
+                             * (minmax[1] - minmax[0]) + ", query: " +
+                             * query.project_id + "," + query.file_id +
+                             * ", shard: " + shard.id + "," +
+                             * "median and min max medians: " + query.median +
+                             * "," + query.min_median + "," + query.max_median);
+                             */
                             for (int i = minmax[0]; i <= minmax[1]; i++) {
                                 candidate = shard.candidates.get(i);
                                 if ((candidate.file_id > query.file_id)) {
                                     if (candidate.numTokens >= query.minNumTokens
                                             && candidate.numTokens <= query.maxNumTokens) {
-                                        if (candidate.uniqueTokens >= query.minUniqueTokens
-                                                && candidate.uniqueTokens <= query.maxUniqueTokens) {
-                                            if (candidate.numChars >= query.minNumChars
-                                                    && candidate.numChars <= query.maxNumChars) {
-                                                if(candidate.mad>=query.minMad && candidate.mad<=query.maxMad){
-                                                    if(candidate.stdDev>=query.minStdDev && candidate.stdDev<=query.maxStdDev){
-                                                        text = query.project_id + ","
-                                                                + query.file_id + ","
-                                                                + candidate.project_id
-                                                                + ","
-                                                                + candidate.file_id;
-                                                        Util.writeToFile(
-                                                                CloneDetector.clonesWriter,
-                                                                text, true);
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        // if (candidate.uniqueTokens >=
+                                        // query.minUniqueTokens
+                                        // && candidate.uniqueTokens <=
+                                        // query.maxUniqueTokens) {
+                                        // if (candidate.numChars >=
+                                        // query.minNumChars
+                                        // && candidate.numChars <=
+                                        // query.maxNumChars) {
+                                        // if (candidate.mad >= query.minMad
+                                        // && candidate.mad <= query.maxMad) {
+                                        // if(candidate.stdDev>=query.minStdDev
+                                        // &&
+                                        // candidate.stdDev<=query.maxStdDev){
+                                        text = query.project_id + ","
+                                                + query.file_id + ","
+                                                + candidate.project_id + ","
+                                                + candidate.file_id;
+                                        Util.writeToFile(
+                                                CloneDetector.clonesWriter,
+                                                text, true);
+                                        // }
+                                        // }
+                                        // }
+                                        // }
                                     }
                                 }
                             }
@@ -168,7 +175,7 @@ public class CloneDetector {
                             shard.candidates.add(candidate);
                         }
                         count++;
-                        //System.out.println("lines indexed: " + count);
+                        // System.out.println("lines indexed: " + count);
                     }
                 } catch (Exception e) {
                     System.out.println("Exception caught: " + e.getMessage());
@@ -199,12 +206,14 @@ public class CloneDetector {
 
     private void setupShards() throws IOException {
 
-        boolean isSharding = Boolean.parseBoolean(properties.getProperty("IS_SHARDING"));
+        boolean isSharding = Boolean.parseBoolean(properties
+                .getProperty("IS_SHARDING"));
         int minTokens = Integer.parseInt(properties.getProperty("MIN_TOKENS"));
         int maxTokens = Integer.parseInt(properties.getProperty("MAX_TOKENS"));
         int shardId = 1;
-        if (isSharding){
-            String shardSegment = properties.getProperty("SHARD_MAX_NUM_TOKENS");
+        if (isSharding) {
+            String shardSegment = properties
+                    .getProperty("SHARD_MAX_NUM_TOKENS");
             String[] shardSegments = shardSegment.split(",");
             int max;
             for (String segment : shardSegments) {
@@ -218,7 +227,7 @@ public class CloneDetector {
             // create the last shard
             TokenShard shard = new TokenShard(shardId, minTokens, maxTokens);
             this.tokenShards.add(shard);
-        }else{
+        } else {
             TokenShard shard = new TokenShard(shardId, minTokens, maxTokens);
             this.tokenShards.add(shard);
         }
@@ -242,12 +251,12 @@ public class CloneDetector {
         return shardsToReturn;
     }
 
-    public void printDuration(long end_time, long start_time, String message){
+    public void printDuration(long end_time, long start_time, String message) {
         Duration duration;
         try {
             duration = DatatypeFactory.newInstance().newDuration(
                     end_time - start_time);
-            System.out.printf(message+ ":  %02dh:%02dm:%02ds",
+            System.out.printf(message + ":  %02dh:%02dm:%02ds",
                     duration.getDays() * 24 + duration.getHours(),
                     duration.getMinutes(), duration.getSeconds());
             System.out.println();
@@ -276,6 +285,6 @@ public class CloneDetector {
         }
         Util.closeOutputFile(clonesWriter);
         long end_time_final = System.currentTimeMillis();
-        cd.printDuration(end_time_final,time_start,"total_time");
+        cd.printDuration(end_time_final, time_start, "total_time");
     }
 }
