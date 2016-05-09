@@ -59,8 +59,8 @@ public class Block implements Comparable<Block> {
         this.minStdDev = BlockInfo.getMinimumSimilarityThreshold(this.stdDev, CloneDetector.th);
         this.maxStdDev = BlockInfo.getMaximumSimilarityThreshold(this.stdDev, CloneDetector.th);
         
-        this.minMad = BlockInfo.getMinimumSimilarityThreshold(this.mad, CloneDetector.th);
-        this.maxMad = BlockInfo.getMaximumSimilarityThreshold(this.mad, CloneDetector.th);
+        this.minMad = BlockInfo.getMinimumSimilarityThreshold(this.mad, CloneDetector.th-Util.MUL_FACTOR);
+        this.maxMad = BlockInfo.getMaximumSimilarityThreshold(this.mad, CloneDetector.th-Util.MUL_FACTOR);
     }
     
     @Override
