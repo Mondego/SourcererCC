@@ -110,11 +110,8 @@ public class CloneDetector {
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
                                             if (candidate.numChars >= query.minNumChars
                                                     && candidate.numChars <= query.maxNumChars) {
-                                                if (candidate.mad >= query.minMad
-                                                        && candidate.mad <= query.maxMad) {
-                                                    // if(candidate.stdDev>=query.minStdDev
-                                                    // &&
-                                                    // candidate.stdDev<=query.maxStdDev){
+                                                if ((candidate.mad >= query.minMad && candidate.mad <= query.maxMad)
+                                                        || (candidate.stdDev >= query.minStdDev && candidate.stdDev <= query.maxStdDev)) {
                                                     text = query.project_id
                                                             + ","
                                                             + query.file_id
@@ -125,7 +122,6 @@ public class CloneDetector {
                                                     Util.writeToFile(
                                                             CloneDetector.clonesWriter,
                                                             text, true);
-                                                    // }
                                                 }
                                             }
                                         }
