@@ -78,16 +78,18 @@ public class CloneDetector {
                         List<TokenShard> tokenShardsToSearch = getShardIdsForCandidate(query);
                         Block candidate = null;
                         if (query.project_id == 54 && query.file_id == 136) {
-                            System.out.println("query: " + query);
+                            // System.out.println("query: " + query);
                         }
                         for (TokenShard shard : tokenShardsToSearch) {
                             int[] minmax = shard.getIndexRangeCandidates(
-                                    query.min_median, query.max_median);
+                                    query.minStdDev, query.maxStdDev);
                             if (query.project_id == 54 && query.file_id == 136) {
-                                System.out.println("min median in shard: "
-                                        + minmax[0] + ", max median in shard: "
-                                        + minmax[1]);
+                                /*
+                                 * System.out.println("min in shard: " +
+                                 * minmax[0] + ", max in shard: " + minmax[1]);
+                                 */
                             }
+                            System.out.println(query + "\n NUM candidates: "+ (minmax[0]-minmax[1]));
                             /*
                              * System.out.println("NUM Candidates: " +
                              * (minmax[1] - minmax[0]) + ", query: " +
@@ -100,8 +102,10 @@ public class CloneDetector {
                                 candidate = shard.candidates.get(i);
                                 if (candidate.project_id == 54
                                         && candidate.file_id == 137) {
-                                    System.out.println("candidate: "
-                                            + candidate);
+                                    /*
+                                     * System.out.println("candidate: " +
+                                     * candidate);
+                                     */
                                 }
                                 if ((candidate.file_id > query.file_id)) {
                                     if (candidate.numTokens >= query.minNumTokens
@@ -110,19 +114,22 @@ public class CloneDetector {
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
                                             if (candidate.numChars >= query.minNumChars
                                                     && candidate.numChars <= query.maxNumChars) {
-                                                if ((candidate.mad >= query.minMad && candidate.mad <= query.maxMad)
-                                                        || (candidate.stdDev >= query.minStdDev && candidate.stdDev <= query.maxStdDev)) {
-                                                    text = query.project_id
-                                                            + ","
-                                                            + query.file_id
-                                                            + ","
-                                                            + candidate.project_id
-                                                            + ","
-                                                            + candidate.file_id;
-                                                    Util.writeToFile(
-                                                            CloneDetector.clonesWriter,
-                                                            text, true);
-                                                }
+                                                // if ((candidate.mad >=
+                                                // query.minMad && candidate.mad
+                                                // <= query.maxMad)
+                                                // || (candidate.stdDev >=
+                                                // query.minStdDev &&
+                                                // candidate.stdDev <=
+                                                // query.maxStdDev)) {
+                                                text = query.project_id + ","
+                                                        + query.file_id + ","
+                                                        + candidate.project_id
+                                                        + ","
+                                                        + candidate.file_id;
+                                                Util.writeToFile(
+                                                        CloneDetector.clonesWriter,
+                                                        text, true);
+                                                // }
                                             }
                                         }
                                     }
@@ -190,7 +197,7 @@ public class CloneDetector {
                 }
             }
         }
-        System.out.println("sorting dataset by medians");
+        System.out.println("sorting dataset by std_devs");
         for (TokenShard shard : this.tokenShards) {
             System.out.println("sorting shard: " + shard.id);
             Collections.sort(shard.candidates);

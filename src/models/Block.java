@@ -65,9 +65,9 @@ public class Block implements Comparable<Block> {
     
     @Override
     public int compareTo(Block o) {
-        if (this.median<o.median){
+        if (this.stdDev<o.stdDev){
             return -1;
-        }else if (this.median==o.median){
+        }else if (this.stdDev==o.stdDev){
             return 0;
         }else{
             return 1;
