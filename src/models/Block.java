@@ -93,7 +93,9 @@ public class Block implements Comparable<Block> {
                 + ", minUniqueTokens=" + minUniqueTokens + ", maxUniqueTokens="
                 + maxUniqueTokens + ", stdDev=" + stdDev + ", minStdDev="
                 + minStdDev + ", maxStdDev=" + maxStdDev + ", mad=" + mad
-                + ", minMad=" + minMad + ", maxMad=" + maxMad + "]";
+                + ", minMad=" + minMad + ", maxMad=" + maxMad + ", metric="
+                + metric + ", minMetric=" + minMetric + ", maxMetric="
+                + maxMetric + "]";
     }
 
     public void setMetric(float statistic,int includeWidth) {
