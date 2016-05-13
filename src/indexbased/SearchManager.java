@@ -274,6 +274,18 @@ public class SearchManager {
         System.out.println("returning shards");
         return shardsToReturn;
     }
+    
+    public static List<Shard> getShardIdsForBag2(Bag bag) {
+        List<Shard> shardsToReturn = new ArrayList<Shard>();
+        for (Shard shard : SearchManager.shards) {
+            if (bag.getSize() >= shard.getMinBagSizeToIndex()
+                    && bag.getSize() <= shard.getMaxBagSizeToIndex()) {
+                shardsToReturn.add(shard);
+            }
+        }
+        System.out.println("returning shards");
+        return shardsToReturn;
+    }
 
     private void registerListeners(int nListeners, Queue<?> queue,
             int ListenerType) {

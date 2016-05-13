@@ -82,7 +82,7 @@ public class CloneDetector {
                         }
                         for (TokenShard shard : tokenShardsToSearch) {
                             int[] minmax = shard.getIndexRangeCandidates(
-                                    query.minStdDev, query.maxStdDev);
+                                    query.metric, query.metric);
                             if (query.project_id == 54 && query.file_id == 136) {
                                 /*
                                  * System.out.println("min in shard: " +
@@ -158,12 +158,13 @@ public class CloneDetector {
         int numTokens = Integer.parseInt(metadataParts[2]);
         int uniqueTokens = Integer.parseInt(metadataParts[3]);
         int numCharacters = Integer.parseInt(metadataParts[4]);
-        float median = Float.parseFloat(metadataParts[7]);
-        float stdDev = Float.parseFloat(metadataParts[5]);
+        float median = Float.parseFloat(metadataParts[5]);
+        float stdDev = Float.parseFloat(metadataParts[6]);
         float variance = 0;//Float.parseFloat(metadataParts[7]);
-        float mad = Float.parseFloat(metadataParts[6]);
+        float mad = Float.parseFloat(metadataParts[7]);
         Block candidate = new Block(median, projectId, fileId, numTokens,
                 stdDev, variance, numCharacters, uniqueTokens, mad);
+        candidate.setMetric(candidate.numTokens,0);
         return candidate;
     }
 

@@ -29,6 +29,10 @@ public class Block implements Comparable<Block> {
     public float mad;
     public float minMad;
     public float maxMad;
+    public float metric;
+    public float minMetric;
+    public float maxMetric;
+    
     
     public Block(float median, int project_id, int file_id, int numTokens,float stdDev, float variance, long numChars, int uniqueTokens, float mad) {
         this.median = median;
@@ -65,9 +69,9 @@ public class Block implements Comparable<Block> {
     
     @Override
     public int compareTo(Block o) {
-        if (this.stdDev<o.stdDev){
+        if (this.metric<o.metric){
             return -1;
-        }else if (this.stdDev==o.stdDev){
+        }else if (this.metric==o.metric){
             return 0;
         }else{
             return 1;
@@ -90,6 +94,13 @@ public class Block implements Comparable<Block> {
                 + maxUniqueTokens + ", stdDev=" + stdDev + ", minStdDev="
                 + minStdDev + ", maxStdDev=" + maxStdDev + ", mad=" + mad
                 + ", minMad=" + minMad + ", maxMad=" + maxMad + "]";
+    }
+
+    public void setMetric(float statistic,int includeWidth) {
+        this.metric = statistic;
+        int width = -Util.MUL_FACTOR * includeWidth;
+        this.minMetric = BlockInfo.getMinimumSimilarityThreshold(this.metric, CloneDetector.th+width);
+        this.maxMetric = BlockInfo.getMaximumSimilarityThreshold(this.metric, CloneDetector.th+width);
     }
 
 }

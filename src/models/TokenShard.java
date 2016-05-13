@@ -31,10 +31,10 @@ public class TokenShard {
         int bestHigh=-1;
         while(low<=high){
             mid = (low+high)/2;
-            if(this.candidates.get(mid).stdDev>=min){
+            if(this.candidates.get(mid).metric>=min){
                 bestHigh = mid;
                 high = mid-1;
-            }else if (this.candidates.get(mid).stdDev<min){
+            }else if (this.candidates.get(mid).metric<min){
                 low = mid+1;
             }else{
                 // medians are equal
@@ -52,9 +52,9 @@ public class TokenShard {
         int bestLow=-1;
         while(low<=high){
             mid = (low+high)/2;
-            if(this.candidates.get(mid).stdDev>max){
+            if(this.candidates.get(mid).metric>max){
                 high = mid-1;
-            }else if (this.candidates.get(mid).stdDev<=max){
+            }else if (this.candidates.get(mid).metric<=max){
                 bestLow = mid;
                 low = mid+1;
             }else{
@@ -91,16 +91,16 @@ public class TokenShard {
     }
     
     private int getFirstOccurence(int index){
-        float val = this.candidates.get(index).stdDev;
-        while(index>0 && this.candidates.get(index).stdDev==val){
+        float val = this.candidates.get(index).metric;
+        while(index>0 && this.candidates.get(index).metric==val){
             index=index-1;
         }
         return index+1;
     }
     
     private int getLastOccurence(int index){
-        float val = this.candidates.get(index).stdDev;
-        while(index<this.candidates.size() && this.candidates.get(index).stdDev==val){
+        float val = this.candidates.get(index).metric;
+        while(index<this.candidates.size() && this.candidates.get(index).metric==val){
             index=index+1;
         }
         return index-1;
