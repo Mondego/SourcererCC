@@ -89,7 +89,7 @@ public class CloneDetector {
                                  * minmax[0] + ", max in shard: " + minmax[1]);
                                  */
                             }
-                            System.out.println(query + "\n NUM candidates: "+ (minmax[0]-minmax[1]));
+                            System.out.println(query + "\n NUM candidates: "+ (minmax[1]-minmax[0]));
                             /*
                              * System.out.println("NUM Candidates: " +
                              * (minmax[1] - minmax[0]) + ", query: " +
