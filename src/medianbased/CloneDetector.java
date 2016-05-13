@@ -159,9 +159,9 @@ public class CloneDetector {
         int uniqueTokens = Integer.parseInt(metadataParts[3]);
         int numCharacters = Integer.parseInt(metadataParts[4]);
         float median = Float.parseFloat(metadataParts[5]);
-        float stdDev = Float.parseFloat(metadataParts[6]);
+        float stdDev = Float.parseFloat(metadataParts[7]);
         float variance = 0;//Float.parseFloat(metadataParts[7]);
-        float mad = Float.parseFloat(metadataParts[7]);
+        float mad = Float.parseFloat(metadataParts[6]);
         Block candidate = new Block(median, projectId, fileId, numTokens,
                 stdDev, variance, numCharacters, uniqueTokens, mad);
         return candidate;
