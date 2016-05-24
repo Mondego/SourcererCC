@@ -24,20 +24,20 @@ while ('tokens_'+str(number)+'.txt') in token_files and ('bookkeeping_proj_'+str
 		files_dict = {}
 		for file in files:
 			if len(file) > 2:
-				file = file.split(',')
+				file = file.strip('\n').split(',')
 				# Derive file name from file path and map it to (proj_id, file_id)
-				files_dict[(file[0], file[1])] = os.path.split(file[2])[1].strip()
+				files_dict[(file[0], file[1])] = file[2]
 
 		print 'Reading ','bookkeeping_proj_'+str(number)+'.txt'
 		projs_dict = {}
 		for project in projects:
 			if len(project) > 2:
-				project = project.split(',')
+				project = project.strip('\n').split(',')
 				# Get project path name
-				projs_dict[project[0]] = project[1][1:-1]
+				projs_dict[project[0]] = project[1]
 				# Create folder if does not exist
-				if not os.path.exists(os.path.join(PATH_TARGET,project[1][1:-1])):
-					os.makedirs(os.path.join(PATH_TARGET,project[1][1:-1]))
+				if not os.path.exists(os.path.join(PATH_TARGET,project[1])):
+					os.makedirs(os.path.join(PATH_TARGET,project[1]))
 
 		print 'Reading ','tokens_'+str(number)+'.txt'
 		for token in tokens:
@@ -45,6 +45,8 @@ while ('tokens_'+str(number)+'.txt') in token_files and ('bookkeeping_proj_'+str
 			if len(token) > 2:
 				# Write the mirror to corresponding file
 				with open(os.path.join(PATH_TARGET,projs_dict[token.split(',')[0]])+'/tokens.txt','a') as tokens_file:
-					tokens_file.write(files_dict[(token.split(',')[0],token.split(',')[1])]+'@#@'+token.split('@#@')[1])
+					file_path = files_dict[(token.split(',')[0],token.split(',')[1])].split(projs_dict[token.split(',')[0]])[1][1:]
+					# print file_path
+					tokens_file.write(file_path+'@#@'+token.split('@#@')[1])
 
 	number +=1
