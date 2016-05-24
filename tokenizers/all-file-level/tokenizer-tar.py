@@ -220,7 +220,7 @@ def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, 
 
 				with open(FILE_tokens_name, 'a+') as FILE_tokens_file:
 					FILE_tokens_file.write(proj_id+','+str(file_id)+','+str(tokens_count_total)+','+str(tokens_count_unique)\
-						# +','+m.digest()\
+						+','+m.hexdigest()\
 						+'@#@'+tokens+'\n')
 
 				with open(FILE_bookkeeping_file_name, 'a+') as FILE_bookkeeping_file:
