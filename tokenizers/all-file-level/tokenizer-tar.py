@@ -85,11 +85,11 @@ except IOError:
 # else:
 # 	print 'Invalid commands combination, use default settings'
 
-PATH_proj_paths = config.get('Main', 'PATH_proj_paths')
 N_PROCESSES = config.getint('Main', 'N_PROCESSES')
 language_file = config.get('Main', 'language_file')
 
 # Folders
+PATH_proj_paths = config.get('Folders/Files', 'PATH_proj_paths')
 PATH_tokens_folder = config.get('Folders/Files', 'PATH_tokens_folder')
 PATH_bookkeeping_file_folder = config.get('Folders/Files', 'PATH_bookkeeping_file_folder')
 PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
@@ -219,7 +219,9 @@ def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, 
 				m.update(tokens)
 
 				with open(FILE_tokens_name, 'a+') as FILE_tokens_file:
-					FILE_tokens_file.write(proj_id+','+str(file_id)+','+str(tokens_count_total)+','+str(tokens_count_unique)+','+m.digest()+'@#@'+tokens+'\n')
+					FILE_tokens_file.write(proj_id+','+str(file_id)+','+str(tokens_count_total)+','+str(tokens_count_unique)\
+						# +','+m.digest()\
+						+'@#@'+tokens+'\n')
 
 				with open(FILE_bookkeeping_file_name, 'a+') as FILE_bookkeeping_file:
 					FILE_bookkeeping_file.write(proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'\n')
