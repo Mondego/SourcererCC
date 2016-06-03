@@ -1,0 +1,21 @@
+{
+  "name": "jstokenizer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jakub Žitný <jakubzitny@avocode.com> (https://github.com/jakubzitny)",
+  "license": "ISC",
+  "dependencies": {
+    "escodegen": "^1.8.0",
+    "esprima": "^2.7.2",
+    "esprima-ast-utils": "0.0.6",
+    "esprima-walk": "^0.1.0",
+    "estools": "^2.1.0",
+    "fs-extra-promise": "^0.3.1",
+    "immutable": "^3.8.1",
+    "lodash": "^4.13.1"
+  }
+}
