@@ -8,6 +8,10 @@
   },
   "author": "Jakub Žitný <jakubzitny@avocode.com> (https://github.com/jakubzitny)",
   "license": "ISC",
+  "repository": {
+    "url": "https://github.com/Mondego/SourcererCC.git",
+    "type": "git"
+  },
   "dependencies": {
     "escodegen": "^1.8.0",
     "esprima": "^2.7.2",
