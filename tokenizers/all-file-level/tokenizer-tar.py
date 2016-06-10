@@ -22,21 +22,7 @@ file_handler = logging.FileHandler('results.log')
 file_handler.setFormatter(logging.Formatter(FORMAT))
 logging.getLogger().addHandler(file_handler)
 
-'''
-	Command line argument config file name:  config.ini
-	for default setting use '-d'
-'''
-args = []
-config_file = 'config-tar.ini'
-if len(sys.argv) > 1:
-	args = sys.argv[1:]
-	if args[0] != '-d':
-		if os.path.isfile(args[0]):
-			config_file = args[0]
-		else:
-			print 'File Not Exist'
-			logging.error('Config file ['+args[0]+'] not found')
-			sys.exit()
+config_file = 'config.ini'
 
 # instantiate
 config = ConfigParser()
@@ -48,42 +34,6 @@ except IOError:
 	print 'config settings not fould'
 	logging.error('Config file ['+config_file+'] not found')
 	sys.exit()
-
-# Provided by the user
-# if len(args) == 3:
-# 	if args[0] != '-d':
-# 		if os.path.isfile(args[0]):
-# 			PATH_proj_paths = args[0]
-# 		else:
-# 			print 'File Not Exist'
-# 			sys.exit()
-# 	else:
-# 		PATH_proj_paths = config.get('Main', 'PATH_proj_paths')
-
-# 	if args[1] != '-d':
-# 		try: 
-# 			n = int(args[1])
-# 			if n > 0:
-# 				N_PROCESSES = n
-# 			else:
-# 				print 'Invalid number of process'
-# 				sys.exit()
-# 		except ValueError:
-# 			print 'Invalid number of process'
-# 			sys.exit()
-# 	else:
-# 		N_PROCESSES = config.getint('Main', 'N_PROCESSES')
-
-# 	if args[2] != '-d':
-# 		if args[2].isalpha():
-# 			language = args[2]
-# 		else:
-# 			print 'Invalid language name'
-# 			sys.exit()
-# 	else:
-# 		language = config.get('Main', 'language')
-# else:
-# 	print 'Invalid commands combination, use default settings'
 
 N_PROCESSES = config.getint('Main', 'N_PROCESSES')
 language_file = config.get('Main', 'language_file')
@@ -105,8 +55,8 @@ except IOError:
 	sys.exit()
 
 # Read language settings
-separators = config.get('Language', 'separators').split(', ')
-file_extensions = config.get('Language', 'file_extensions').split(', ')
+separators = config.get('Language', 'separators').split(' ')
+file_extensions = config.get('Language', 'file_extensions').split(' ')
 comment_end_of_line = config.get('Language', 'comment_inline')
 comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
 comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
@@ -152,8 +102,6 @@ def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, 
 			all_files = []
 			for member in my_tar_file.getmembers():
 				all_files.append(member.name)
-
-			print all_files
 
 			# Filter them by the correct extension
 			aux = []
@@ -299,11 +247,10 @@ if __name__ == '__main__':
 			FILE_project_starting_index.write(str(projects_starting_index+len(proj_paths))+'\n')
 
 	proj_paths = zip(range(projects_starting_index, len(proj_paths)+projects_starting_index),proj_paths)
-#       print proj_paths
 
 	#Split list of projects into N_PROCESSES lists
 	proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
-	# print proj_paths_list
+	
 	# Multiprocessing with N_PROCESSES
 	processes = []
 	process_num = 0

@@ -6,11 +6,36 @@ import os
 import collections
 from lockfile import LockFile
 
+try:
+	from configparser import ConfigParser
+except ImportError:
+	from ConfigParser import ConfigParser # ver. < 3.0
+
+# Logging code
+FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
+logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+file_handler = logging.FileHandler('results.log')
+file_handler.setFormatter(logging.Formatter(FORMAT))
+logging.getLogger().addHandler(file_handler)
+
+config_file = 'config.ini'
+
+# instantiate
+config = ConfigParser()
+
+# parse existing file
+try:
+	config.read(config_file)
+except IOError:
+	print 'config settings not fould'
+	logging.error('Config file ['+config_file+'] not found')
+	sys.exit()
+
 # folders
-PATH_tokens_folder = 'tokens'
-PATH_bookkeeping_file_folder = 'bookkeeping_files'
-PATH_bookkeeping_proj_folder = 'bookkeeping_projs'
-PATH_TARGET = 'MUSE_MIRROR_C++_tokens'
+PATH_tokens_folder = config.get('Folders/Files', 'PATH_tokens_folder')
+PATH_bookkeeping_file_folder = config.get('Folders/Files', 'PATH_bookkeeping_file_folder')
+PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
+PATH_TARGET = config.get('Folders/Files', 'PATH_mirror_repo')
 
 token_files = [f for f in os.listdir(PATH_tokens_folder) if os.path.isfile(os.path.join(PATH_tokens_folder, f))]
 book_proj_files = [f for f in os.listdir(PATH_bookkeeping_proj_folder) if os.path.isfile(os.path.join(PATH_bookkeeping_proj_folder, f))]
