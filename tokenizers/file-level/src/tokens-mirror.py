@@ -69,7 +69,12 @@ while ('tokens_'+str(number)+'.txt') in token_files and ('bookkeeping_proj_'+str
 			# Proceed if token file is not empty
 			if len(token) > 2:
 				# Write the mirror to corresponding file
-				with open(os.path.join(PATH_TARGET,projs_dict[token.split(',')[0]])+'/tokens.txt','a') as tokens_file:
+				target = projs_dict[token.split(',')[0]]
+				if target[0] == '/':
+					target = target[1:]
+				if not os.path.isdir(os.path.join(PATH_TARGET,target)):
+					os.makedirs(os.path.join(PATH_TARGET,target))
+				with open(os.path.join(PATH_TARGET,target)+'/tokens.txt','a+') as tokens_file:
 					file_path = files_dict[(token.split(',')[0],token.split(',')[1])].split(projs_dict[token.split(',')[0]])[1][1:]
 					# print file_path
 					tokens_file.write(file_path+'@#@'+token.split('@#@')[1])
