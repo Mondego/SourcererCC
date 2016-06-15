@@ -250,7 +250,7 @@ if __name__ == '__main__':
 
 	#Split list of projects into N_PROCESSES lists
 	proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
-	
+
 	# Multiprocessing with N_PROCESSES
 	processes = []
 	process_num = 0
