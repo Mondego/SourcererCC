@@ -8,6 +8,7 @@ const COUNT_DELIMITER = '@@::@@'
 const TOKEN_DELIMITER = ','
 const TOKEN_DELIMITER_REPLACEMENT = "_"
 const WHITESPACE = /(\s+)/
+const HASHBANG_LINE = '#!/usr/bin/env node'
 
 const filterTokens = function (type, token) {
   return token.type == type
@@ -30,13 +31,28 @@ const tokenFilters = tokenTypes.map((tokenType) => {
   return _.partial(filterTokens, tokenType)
 })
 
+// TODO: handle "#!/usr/bin/env node"
+// TODO: handle
 const tokenizer = function(code, parentId, blockId) {
   const options = { }
-  // TODO: refactor this
+  // TODO: refactor these
+  // NOTE: handle hashbang line
+  const firstLineOfCode = code.toString().substr(0, HASHBANG_LINE.length)
+  if (firstLineOfCode.indexOf(HASHBANG_LINE) != -1)
+    code = Buffer.from(code.toString().substr(HASHBANG_LINE.length))
+
   const tokens = immutable.List(esprima.tokenize(code, options)).flatMap((token) => {
     if (token.value.indexOf(TOKEN_DELIMITER) != -1)
       token.value =
         token.value.replace(TOKEN_DELIMITER, TOKEN_DELIMITER_REPLACEMENT)
+
+    // NOTE: get rid of all whitespaces, dey sak
+    if (token.value.indexOf(WHITESPACE) != -1)
+      token.value = token.value.replace(WHITESPACE, '')
+
+    // NOTE: skip RegExes, SCC has weird problems with it
+    if (token.type == 'RegularExpression')
+      return immutable.List()
 
     if (token.type != 'String')
       return immutable.List.of(token);
