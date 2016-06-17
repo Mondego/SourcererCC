@@ -6,6 +6,8 @@ const esprima = require('esprima')
 const MAIN_DELIMITER = '@#@'
 const COUNT_DELIMITER = '@@::@@'
 const TOKEN_DELIMITER = ','
+const TOKEN_DELIMITER_REPLACEMENT = "_"
+const WHITESPACE = /(\s+)/
 
 const filterTokens = function (type, token) {
   return token.type == type
@@ -30,7 +32,22 @@ const tokenFilters = tokenTypes.map((tokenType) => {
 
 const tokenizer = function(code, parentId, blockId) {
   const options = { }
-  const tokens = immutable.List(esprima.tokenize(code, options))
+  // TODO: refactor this
+  const tokens = immutable.List(esprima.tokenize(code, options)).flatMap((token) => {
+    if (token.value.indexOf(TOKEN_DELIMITER) != -1)
+      token.value =
+        token.value.replace(TOKEN_DELIMITER, TOKEN_DELIMITER_REPLACEMENT)
+
+    if (token.type != 'String')
+      return immutable.List.of(token);
+
+    // NOTE: now it's string
+    const stringTokensRaw = token.value.split(WHITESPACE)
+    const stringTokens = stringTokensRaw.map((stringToken) => {
+      return { value: stringToken }
+    })
+    return immutable.List(stringTokens)
+  })
 
   // TODO: reduce to map
   // const filteredTokens = tokenFilters.map((tokenFilter) => {
