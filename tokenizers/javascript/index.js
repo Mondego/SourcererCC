@@ -63,8 +63,10 @@ const processFile = function(fileName, data) {
       const functionAstShallow = node
       const functionCode = regenerateFunctionCode(functionAstShallow)
       functions = functions.push(functionCode)
+
       const tokenizedFunction = tokenizer(functionCode, parentId, blockId++)
-      functionTokens = functionTokens.push(tokenizedFunction)
+      if (tokenizedFunction)
+        functionTokens = functionTokens.push(tokenizedFunction)
     }
   })
 

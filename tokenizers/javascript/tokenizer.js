@@ -96,6 +96,9 @@ const tokenizer = function(code, parentId, blockId) {
     return `${token}${COUNT_DELIMITER}${count}`
   })
 
+  if (tokenPairs.size == 0)
+    return ''
+
   const lhs = `${parentId},${blockId},`
   const rhs = tokenPairs.join(TOKEN_DELIMITER)
   const output = `${lhs}${MAIN_DELIMITER}${rhs}`
