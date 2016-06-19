@@ -7,8 +7,7 @@ const MAIN_DELIMITER = '@#@'
 const COUNT_DELIMITER = '@@::@@'
 const TOKEN_DELIMITER = ','
 const TOKEN_DELIMITER_REPLACEMENT = "_"
-const WHITESPACE = /(\s+)/
-const HASHBANG_LINE = '#!/usr/bin/env node'
+const WHITESPACES = /(\s+)/g
 
 const filterTokens = function (type, token) {
   return token.type == type
@@ -21,48 +20,57 @@ const tokenTypes = immutable.List.of(
   'Identifier',
   'Keyword',
   'Null',
-  'Numeric', 
+  'Numeric',
   'Punctuator',
   'String',
   'RegularExpression'
 )
-
+// jakubkoo.. ako sa spraví to šedé s hviezdičkou, že dve a tri
+// že kde presne interakcie sú v organizme
 const tokenFilters = tokenTypes.map((tokenType) => {
   return _.partial(filterTokens, tokenType)
 })
+
+// NOTE: Filter out hashbang lines
+const HASHBANG = /^#!/
+const filterHashbangLine = function(code) {
+  const firstLineLoc = code.indexOf('\n')
+  const firstLine = code.slice(0, firstLineLoc).toString()
+  if (firstLine.search(HASHBANG) == -1)
+    return code
+
+  return code.slice(firstLineLoc)
+}
 
 // TODO: handle "#!/usr/bin/env node"
 // TODO: handle
 const tokenizer = function(code, parentId, blockId) {
   const options = { }
-  // TODO: refactor these
-  // NOTE: handle hashbang line
-  const firstLineOfCode = code.toString().substr(0, HASHBANG_LINE.length)
-  if (firstLineOfCode.indexOf(HASHBANG_LINE) != -1)
-    code = Buffer.from(code.toString().substr(HASHBANG_LINE.length))
+  tokensRaw = esprima.tokenize(filterHashbangLine(code), options)
 
-  const tokens = immutable.List(esprima.tokenize(code, options)).flatMap((token) => {
+  // TODO: refactor these
+  const tokens = immutable.List(tokensRaw).flatMap((token) => {
     if (token.value.indexOf(TOKEN_DELIMITER) != -1)
       token.value =
         token.value.replace(TOKEN_DELIMITER, TOKEN_DELIMITER_REPLACEMENT)
 
     // NOTE: get rid of all whitespaces, dey sak
-    if (token.value.indexOf(WHITESPACE) != -1)
-      token.value = token.value.replace(WHITESPACE, '')
+    if (token.value.search(WHITESPACES) != -1)
+      token.value = token.value.replace(WHITESPACES, '')
 
     // NOTE: skip RegExes, SCC has weird problems with it
     if (token.type == 'RegularExpression')
       return immutable.List()
 
-    if (token.type != 'String')
-      return immutable.List.of(token);
+    //if (token.type != 'String')
+    return immutable.List.of(token);
 
     // NOTE: now it's string
-    const stringTokensRaw = token.value.split(WHITESPACE)
-    const stringTokens = stringTokensRaw.map((stringToken) => {
-      return { value: stringToken }
-    })
-    return immutable.List(stringTokens)
+    // const stringTokensRaw = token.value.split(WHITESPACE)
+    // const stringTokens = stringTokensRaw.map((stringToken) => {
+    //   return { value: stringToken }
+    // })
+    // return immutable.List(stringTokens)
   })
 
   // TODO: reduce to map
