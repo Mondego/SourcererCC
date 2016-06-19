@@ -51,8 +51,9 @@ const tokenizer = function(code, parentId, blockId) {
   // TODO: refactor these
   const tokens = immutable.List(tokensRaw).flatMap((token) => {
     if (token.value.indexOf(TOKEN_DELIMITER) != -1)
+      tokenDelimiters = new RegExep(TOKEN_DELIMITER, 'g')
       token.value =
-        token.value.replace(TOKEN_DELIMITER, TOKEN_DELIMITER_REPLACEMENT)
+        token.value.replace(tokenDelimiters, TOKEN_DELIMITER_REPLACEMENT)
 
     // NOTE: get rid of all whitespaces, dey sak
     if (token.value.search(WHITESPACES) != -1)
