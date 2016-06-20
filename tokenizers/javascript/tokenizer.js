@@ -51,7 +51,11 @@ const tokenizer = function(code, parentId, blockId) {
   // TODO: refactor these
   const tokens = immutable.List(tokensRaw).flatMap((token) => {
     if (token.value.indexOf(TOKEN_DELIMITER) != -1)
+<<<<<<< HEAD
       tokenDelimiters = new RegExep(TOKEN_DELIMITER, 'g')
+=======
+      const tokenDelimiters = new RegExep(TOKEN_DELIMITER, 'g')
+>>>>>>> 49cd0c299445f7322e46c0a75c129e35c1199602
       token.value =
         token.value.replace(tokenDelimiters, TOKEN_DELIMITER_REPLACEMENT)
 
