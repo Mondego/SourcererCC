@@ -3,10 +3,11 @@
 # Create Index Configuration
 file: sourcerer-cc.properties
   set  following:
-  IS_SHARDING=true
+  ```IS_SHARDING=true
   MIN_TOKENS=65
   MAX_TOKENS=500000
   SHARD_MAX_NUM_TOKENS=<comma seperated list of numbers. 75,90,100  would mean we want 4 shards: 65-75, 76-90, 91-100, 101-500000>
+  ```
   
   
 # Running SourcererCC
