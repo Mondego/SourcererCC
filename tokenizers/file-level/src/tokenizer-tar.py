@@ -132,8 +132,7 @@ def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, 
 					logging.error('Unable to open file (2) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'>')
 					break
 
-				file_string_raw = myfile.read()
-				file_string = file_string_raw
+				file_string = myfile.read()
 
 				if is_binary_string(file_string):
 					logging.error('Unable to open file (3) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'>')
@@ -165,7 +164,7 @@ def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, 
 
 				# MD5
 				m = hashlib.md5()
-				m.update(file_string_raw)
+				m.update(tokens)
 
 				with open(FILE_tokens_name, 'a+') as FILE_tokens_file:
 					FILE_tokens_file.write(proj_id+','+str(file_id)+','+str(tokens_count_total)+','+str(tokens_count_unique)\
