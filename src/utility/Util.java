@@ -84,7 +84,11 @@ public class Util {
                 e.printStackTrace();
             }
         }
-        pWriter.flush();
+        try {
+            pWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
