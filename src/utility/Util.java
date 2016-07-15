@@ -84,6 +84,7 @@ public class Util {
                 e.printStackTrace();
             }
         }
+        pWriter.flush();
     }
 
     /**
