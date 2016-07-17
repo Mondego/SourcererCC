@@ -226,12 +226,14 @@ public class SearchManager {
             SearchManager.shards = new ArrayList<Shard>();
             if(this.isSharding){
                 String shardSegment = args[19];
+		System.out.println("shardSegments String is : "+ shardSegment);
                 String[] shardSegments = shardSegment.split(",");
                 for (String segment : shardSegments) {
                     // create shards
                     maxTokens = Integer.parseInt(segment);
                     Shard shard = new Shard(shardId, minTokens,
                             maxTokens);
+                    System.out.println("Shard Created: "+ shard);
                     SearchManager.shards.add(shard);
                     minTokens = maxTokens + 1;
                     shardId++;
