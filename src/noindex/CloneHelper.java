@@ -356,8 +356,13 @@ public class CloneHelper {
                         this.parseAndPopulateQueryBlock(
                                 listOfTokens, tokenString,"::",":");
                         return queryBlock;
+                    }else{
+                         System.out.println("blocks found in fwdIndex while parsing query: "+ blocks.size());
                     }
+                }else{
+                     System.out.println("warning! "+ bagId+ " not in fwdindex, cant get query string");
                 }
+                
 
             }
         } catch (ArrayIndexOutOfBoundsException e) {
