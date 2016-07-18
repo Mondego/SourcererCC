@@ -1,5 +1,5 @@
 #!/bin/bash
-num_nodes="${1:-6}"
+num_nodes="${1:-0}"
 src_text="NODE_PREFIX=NODE"
 for i in  $(seq 1 1 $num_nodes)
 do
