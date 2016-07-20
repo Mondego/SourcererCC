@@ -226,7 +226,8 @@ if __name__ == '__main__':
     elif "gw" == sys.argv[1]:
         start_worker_id = int(sys.argv[2])
         end_worker_id = int(sys.argv[3])
-        print "creating workers ", start_worker_id, end_worker_id
+        action = sys.argv[4]
+        print "creating workers ", start_worker_id, end_worker_id, action
         queue_name="free64,pub64,free48,pub8i,free40i,free32i,free24i"
-        createWorkers(start_worker_id=start_worker_id,end_worker_id=end_worker_id,queue_name=queue_name)
+        createWorkers(start_worker_id=start_worker_id,end_worker_id=end_worker_id,queue_name=queue_name,action=action)
         
