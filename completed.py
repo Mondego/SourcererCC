@@ -142,12 +142,12 @@ def getLogFilesNonHpc():
         break
     return filesToReturn
 
-def createWorkers(start_worker_id=1, end_worker_id=256, queue_name="free64"):
+def createWorkers(start_worker_id=1, end_worker_id=256, queue_name="free64", action="search"):
     import os
     import stat
     #$ -ckpt blcr
     worker_template = """#!/bin/bash
-#$ -N search
+#$ -N {task}
 #$ -q {queue_name}
 #$ -pe openmp 2-3
 node={node_id}
@@ -155,12 +155,12 @@ rootPATH=`pwd`
 threshold=8
 #ant clean cdi
 echo "running on $node"
-java -Dproperties.location="$rootPATH/NODE_$node/sourcerer-cc.properties" -Xms2g -Xmx2g  -jar dist/indexbased.SearchManager.jar search $threshold
+java -Dproperties.location="$rootPATH/NODE_$node/sourcerer-cc.properties" -Xms6g -Xmx6g  -jar dist/indexbased.SearchManager.jar {task} $threshold
 echo "done"
 """
     
     for i in range(start_worker_id,end_worker_id+1):
-        text = worker_template.format(queue_name=queue_name,node_id=i)
+        text = worker_template.format(queue_name=queue_name,node_id=i,task=action)
         filename="worker_{id}.sh".format(id=i)
         f = open(filename,'w')
         f.write(text)
