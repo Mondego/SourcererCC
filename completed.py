@@ -150,6 +150,7 @@ def createWorkers(start_worker_id=1, end_worker_id=256, queue_name="free64", act
 #$ -N {task}
 #$ -q {queue_name}
 #$ -pe openmp 2-3
+#$ -ckpt blcr
 node={node_id}
 rootPATH=`pwd`
 threshold=8
