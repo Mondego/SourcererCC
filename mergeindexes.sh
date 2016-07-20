@@ -1,5 +1,6 @@
 #!/bin/bash
 # run this script on master
+ant cdmerge
 echo "merging..."
 rootPATH=`pwd`
 echo $rootPATH
