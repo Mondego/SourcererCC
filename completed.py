@@ -142,25 +142,26 @@ def getLogFilesNonHpc():
         break
     return filesToReturn
 
-def createWorkers(start_worker_id=1, end_worker_id=256, queue_name="free64"):
+def createWorkers(start_worker_id=1, end_worker_id=256, queue_name="free64", action="search"):
     import os
     import stat
     #$ -ckpt blcr
     worker_template = """#!/bin/bash
-#$ -N search
+#$ -N {task}
 #$ -q {queue_name}
 #$ -pe openmp 2-3
+#$ -ckpt blcr
 node={node_id}
 rootPATH=`pwd`
 threshold=8
 #ant clean cdi
 echo "running on $node"
-java -Dproperties.location="$rootPATH/NODE_$node/sourcerer-cc.properties" -Xms2g -Xmx2g  -jar dist/indexbased.SearchManager.jar search $threshold
+java -Dproperties.location="$rootPATH/NODE_$node/sourcerer-cc.properties" -Xms6g -Xmx6g  -jar dist/indexbased.SearchManager.jar {task} $threshold
 echo "done"
 """
     
     for i in range(start_worker_id,end_worker_id+1):
-        text = worker_template.format(queue_name=queue_name,node_id=i)
+        text = worker_template.format(queue_name=queue_name,node_id=i,task=action)
         filename="worker_{id}.sh".format(id=i)
         f = open(filename,'w')
         f.write(text)
@@ -226,7 +227,8 @@ if __name__ == '__main__':
     elif "gw" == sys.argv[1]:
         start_worker_id = int(sys.argv[2])
         end_worker_id = int(sys.argv[3])
-        print "creating workers ", start_worker_id, end_worker_id
+        action = sys.argv[4]
+        print "creating workers ", start_worker_id, end_worker_id, action
         queue_name="free64,pub64,free48,pub8i,free40i,free32i,free24i"
-        createWorkers(start_worker_id=start_worker_id,end_worker_id=end_worker_id,queue_name=queue_name)
+        createWorkers(start_worker_id=start_worker_id,end_worker_id=end_worker_id,queue_name=queue_name,action=action)
         
