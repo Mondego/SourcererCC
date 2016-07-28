@@ -4,8 +4,9 @@
 
 # Usage:
 # $ python split-unique-hash.py > unique-hashes.txt
+import sys
 
-file = 'tokens-file-path'
+file = sys.argv[1]
 
 res = dict()
 
@@ -17,3 +18,4 @@ with open(file,'r') as file:
 
 for k in res.keys():
         print res[k]
+
