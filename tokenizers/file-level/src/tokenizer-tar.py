@@ -1,6 +1,6 @@
 import logging
 import multiprocessing as mp
-from multiprocessing import Process
+from multiprocessing import Process, Value
 import re
 import os
 import collections
@@ -71,7 +71,7 @@ separators.extend(ALWAYS)
 textchars = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
 is_binary_string = lambda bytes: bool(bytes.translate(None, textchars))
 
-def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name):
+def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name, file_starting_id):
 	logging.info('Starting project <'+proj_id+','+proj_path+'>')
 
 	if not os.path.isdir(proj_path):
@@ -116,7 +116,11 @@ def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, 
 			# In case process names need to be logged
 			# process_name = '['+mp.current_process().name+'] '
 
-			all_files = zip(range(0,len(all_files)),all_files)
+			with file_starting_id.get_lock():
+				all_files = zip(range(file_starting_id.value,file_starting_id.value+len(all_files)),all_files)
+				file_starting_id.value = file_starting_id.value+len(all_files)
+
+			#all_files = zip(range(0,len(all_files)),all_files)
 
 			for file_id, file_path in all_files:
 
@@ -194,11 +198,11 @@ def tokenizer(proj_id, proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, 
 	logging.info('Project finished <'+proj_id+','+proj_path+'>')
 
 
-def tokenize(list_projects, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name):
+def tokenize(list_projects, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name, file_starting_id):
 
 	# Each tokenize will represent a new process
 	for proj_id, proj_path in list_projects:
-		tokenizer(str(proj_id), proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name)
+		tokenizer(str(proj_id), proj_path, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name, file_starting_id)
 
 
 if __name__ == '__main__':
@@ -253,6 +257,9 @@ if __name__ == '__main__':
 
 	# Multiprocessing with N_PROCESSES
 	processes = []
+	# Multiprocessing shared variable instance for recording file_id
+	file_starting_id = Value('i', 1)
+
 	process_num = 0
 	n =0
 	for input_process in proj_paths_list:
@@ -273,7 +280,7 @@ if __name__ == '__main__':
 			FILE_bookkeeping_proj_name = PATH_bookkeeping_proj_folder+'/'+'bookkeeping_proj_'+str(n)+'.txt'
 
 		n += 1
-		processes.append(Process(name='Process '+str(process_num), target=tokenize, args=(input_process, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name,)))
+		processes.append(Process(name='Process '+str(process_num), target=tokenize, args=(input_process, FILE_tokens_name, FILE_bookkeeping_file_name, FILE_bookkeeping_proj_name,file_starting_id,)))
 
 	for proc in processes:
 		proc.start()
