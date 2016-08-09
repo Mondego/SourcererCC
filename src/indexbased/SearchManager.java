@@ -175,7 +175,7 @@ public class SearchManager {
             this.sizeBagsToFIQ = Integer.parseInt(args[17]);
             this.searchShardId = Integer.parseInt(args[18]);
             this.isSharding = Boolean.parseBoolean(args[20]);
-            if(this.isSharding){
+            if(!this.isSharding){
                 this.searchShardId=1;
             }
 
