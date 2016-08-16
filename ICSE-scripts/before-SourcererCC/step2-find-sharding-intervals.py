@@ -5,7 +5,7 @@
 #   inside the running environmnt of SourcererCC
 
 # Usage:
-# $ python find-sharding-intervals.py unique-hashes.txt
+# $ python step2-find-sharding-intervals.py unique-hashes.txt
 import sys
 
 interval_size = 50000 #half a million

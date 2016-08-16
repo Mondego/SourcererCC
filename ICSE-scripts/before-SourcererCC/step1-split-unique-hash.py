@@ -6,7 +6,7 @@
 # The result of this script will be the input to SourcererCC
 
 # Usage:
-# $ python split-unique-hash.py > unique-hashes.txt
+# $ python step1-split-unique-hash.py > unique-hashes.txt
 import sys
 
 file = sys.argv[1]
