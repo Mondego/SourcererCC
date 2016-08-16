@@ -1,6 +1,9 @@
-# Script that takes a list of tokens
-# and creates a list of files representing
-# unique tokens based on their md5 hash
+# Script that takes a list of tokens and creates a list of files representing
+#   unique tokens based on their md5 hash. In practice, this removes file
+#   clones at 100%
+# The input of this script will be the concatenation of all files under the
+#   folder 'tokens\', as produced by the tokenizer
+# The result of this script will be the input to SourcererCC
 
 # Usage:
 # $ python split-unique-hash.py > unique-hashes.txt

@@ -1,11 +1,16 @@
-#Script used for optimizing runs of SourcererCC
+# Script used for optimizing runs of SourcererCC. The number of shards will correspond to the
+#   input sizes and to the number of times SourcererCC will have to run, so ajust
+#   *interval_size* accordingly.
+# The result of this script should be copy-paste into the file *sourcerer-cc-properties*
+#   inside the running environmnt of SourcererCC
 
 # Usage:
-# $ python find-sharding-intervals.py tokens-file.txt
+# $ python find-sharding-intervals.py unique-hashes.txt
 import sys
 
-file = sys.argv[1]
 interval_size = 50000 #half a million
+
+file = sys.argv[1]
 filter_threshold = 65
 
 res = dict()
