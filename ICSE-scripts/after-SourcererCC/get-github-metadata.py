@@ -21,7 +21,7 @@ def good_metas(meta1,meta2):
 		return False
 	if (('ERROR' in ''.join(meta1)) or ('ERROR' in ''.join(meta2))):
 		return False
-	return ((meta1[0] is 'False') or (meta2[0] is 'False') or ('Java' in meta1[1]) or ('Java' in meta2[1]))
+	return ((meta1[0] is 'False') and (meta2[0] is 'False') and (meta1[1] is 'Java') and (meta2[1] is 'Java'))
 
 def get_file_url(path):
 	return path[path.find('latest')+7:]
