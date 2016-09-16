@@ -168,7 +168,8 @@ public class TermSorter {
                         && line.trim().length() > 0) {
                     gtpmIndexer.indexGtpmEntry(line);
                     count++;
-                    System.out.println("gtpm entries indexed: " + count);
+		    if ((count % 100000) == 0)
+			System.out.println("gtpm entries indexed: " + count);
                 }
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -274,29 +275,46 @@ public class TermSorter {
         String line;
         System.out.println("populating GPTM");
         long lineNumber = 0;
-        while ((line = br.readLine()) != null && line.trim().length() > 0) {
-            Bag bag = cloneHelper.deserialise(line);
+	char[] buf = new char[256];
+        while (br.read(buf, 0, 256) != -1) {
+	    String prefix = new String(buf);
+	    String[] parts = prefix.split(",");
+	    int ntokens = Integer.parseInt(parts[2]);
+	    System.out.println("*** Processing file "+parts[1]+". Number of tokens is " + ntokens);
+	    if (ntokens > SearchManager.max_tokens) {
+		System.out.println("File " +parts[1]+ " is too big. Ignoring...");
+		char c;
+		while ((c = (char)br.read()) != '\n');
+	    }
+	    else {
 
-            if (null != bag && bag.getSize() > SearchManager.min_tokens
-                    && bag.getSize() < SearchManager.max_tokens) {
-                cloneHelper.populateWordFreqMap(bag);
-            } else {
-                if (null == bag) {
-                    System.out.println("empty block, ignoring");
-                } else {
-                    System.out
-                            .println("not adding tokens of line to GPTM, REASON: "
-                                    + bag.getFunctionId()
-                                    + ", "
-                                    + bag.getId()
-                                    + ", size: " + bag.getSize());
-                }
-            }
-            lineNumber++;
-            System.out.println(SearchManager.NODE_PREFIX
-                    + " , GTPM line_number: " + lineNumber);
+		if ((line = br.readLine()) != null && line.trim().length() > 0) {
+		    Bag bag = cloneHelper.deserialise(prefix + line);
 
+		    if (null != bag && bag.getSize() > SearchManager.min_tokens
+			&& bag.getSize() < SearchManager.max_tokens) {
+			cloneHelper.populateWordFreqMap(bag);
+		    } else {
+			if (null == bag) {
+			    System.out.println("empty block, ignoring");
+			} else {
+			    System.out
+				.println("not adding tokens of line to GPTM, REASON: "
+					 + bag.getFunctionId()
+					 + ", "
+					 + bag.getId()
+					 + ", size: " + bag.getSize()
+					 + " (max tokens is " + SearchManager.max_tokens + ")");
+			}
+		    }
+		}
+	    }
         }
+        lineNumber++;
+        System.out.println(SearchManager.NODE_PREFIX
+                + " , GTPM line_number: " + lineNumber);
+	System.out.println("Size: " + TermSorter.wordFreq.size());
+
         br.close();
     }
 

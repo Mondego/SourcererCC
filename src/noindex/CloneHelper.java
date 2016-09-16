@@ -285,7 +285,7 @@ public class CloneHelper {
                         + tf.getFrequency();
                 TermSorter.wordFreq.put(tokenStr, value);
             } else {
-                TermSorter.wordFreq.put(tokenStr, (long) tf.getFrequency());
+                TermSorter.wordFreq.put(tokenStr, (long)tf.getFrequency());
             }
         }
     }
