@@ -18,7 +18,7 @@ public class ThreadedChannel<E> {
     }
 
     public void send(E e) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-        Runnable o = this.workerType.getDeclaredConstructor(this.workerType).newInstance(e);
+        Runnable o = this.workerType.getDeclaredConstructor(e.getClass()).newInstance(e);
         executor.execute((Runnable)o);
     }
 

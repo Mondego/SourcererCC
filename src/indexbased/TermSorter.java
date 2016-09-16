@@ -297,7 +297,7 @@ public class TermSorter implements ITokensFileProcessor {
     }
 
     private void populateWordFreqMap(File file) throws IOException, ParseException {
-	TokensFileReader tfr = new TokensFileReader(file, this, SearchManager.max_tokens);
+	TokensFileReader tfr = new TokensFileReader(file, SearchManager.max_tokens, this);
 	tfr.read();
     }
 

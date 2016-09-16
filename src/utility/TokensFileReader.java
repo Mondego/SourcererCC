@@ -14,7 +14,7 @@ public class TokensFileReader {
     private File file;
     private ITokensFileProcessor processor;
     private int maxTokens;
-    public TokensFileReader(File f, ITokensFileProcessor p, int max_tokens) throws IOException {
+    public TokensFileReader(File f, int max_tokens, ITokensFileProcessor p) throws IOException {
 	this.file = f;
 	this.processor = p;
 	this.maxTokens = max_tokens;

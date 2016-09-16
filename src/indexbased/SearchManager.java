@@ -43,6 +43,7 @@ import models.QueryCandidates;
 import models.ThreadedChannel;
 import models.Shard;
 import models.TokenInfo;
+import models.ITokensFileProcessor;
 import net.jmatrix.eproperties.EProperties;
 import noindex.CloneHelper;
 
@@ -50,6 +51,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
 
 import utility.Util;
+import utility.TokensFileReader;
 import validation.TestGson;
 
 /**
@@ -527,33 +529,42 @@ public class SearchManager {
         Util.writeToFile(this.reportWriter, header, true);
     }
 
-    private void doIndex() throws IOException, ParseException, InterruptedException {
+    private void doIndex() throws InterruptedException, FileNotFoundException {
         File datasetDir = this.getQueryDirectory();
         if (datasetDir.isDirectory()) {
             System.out.println("Directory: " + this.getQueryDirectory().getAbsolutePath());
             BufferedReader br = null;
             for (File inputFile : datasetDir.listFiles()) {
                 try {
-                    br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-8"));
-                    String line;
-                    System.out.println(SearchManager.NODE_PREFIX + "status counter = " + SearchManager.statusCounter);
-                    while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                        SearchManager.statusCounter += 1;
-                        Bag bag = cloneHelper.deserialise(line);
-                        if (null == bag || bag.getSize() < SearchManager.min_tokens
-                                || bag.size() > SearchManager.max_tokens) {
-                            if (null == bag) {
-                                System.out.println(SearchManager.NODE_PREFIX + "empty bag, ignoring. statusCounter= "
-                                        + SearchManager.statusCounter);
-                            } else {
-                                System.out.println(SearchManager.NODE_PREFIX + "ignoring file, " + bag.getFunctionId()
-                                        + ", " + bag.getId() + ", size is: " + bag.getSize() + ", statusCounter= "
-                                        + SearchManager.statusCounter);
-                            }
-                            continue; // ignore this bag.
-                        }
-                        SearchManager.bagsToSortQueue.send(bag);
-                    }
+
+		    TokensFileReader tfr = new TokensFileReader(inputFile, SearchManager.max_tokens, 
+								new ITokensFileProcessor () {
+								    public void processLine(String line) throws ParseException {
+									System.out.println("Processing line " + line.substring(0, 20));
+									Bag bag = cloneHelper.deserialise(line);
+									if (null == bag || bag.getSize() < SearchManager.min_tokens) {
+									    if (null == bag) {
+										System.out.println(SearchManager.NODE_PREFIX + "empty bag, ignoring. statusCounter= "
+												   + SearchManager.statusCounter);
+									    } else {
+										System.out.println(SearchManager.NODE_PREFIX + "ignoring file, " + bag.getFunctionId()
+												   + ", " + bag.getId() + ", size is: " + bag.getSize() + ", statusCounter= "
+												   + SearchManager.statusCounter);
+									    }
+									    return; // ignore this bag.
+									}
+									try {
+									    System.out.println("Sending bag "+bag.getId()+" to queue");
+									    SearchManager.bagsToSortQueue.send(bag);
+									} catch (Exception e) {
+									    System.out.println(SearchManager.NODE_PREFIX + "Unable to send bag "+bag.getId()+" to queue");
+									    e.printStackTrace();
+									}
+
+								    }
+								});
+		    tfr.read();
+
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -565,16 +576,10 @@ public class SearchManager {
                             + SearchManager.statusCounter);
                     e.printStackTrace();
                     System.exit(1);
-                } finally {
-                    try {
-                        br.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
         } else {
-            System.out.println("File: " + datasetDir.getName() + " is not a direcory. exiting now");
+            System.out.println("File: " + datasetDir.getName() + " is not a directory. Exiting now");
             System.exit(1);
         }
     }
