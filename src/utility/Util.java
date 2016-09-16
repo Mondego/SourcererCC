@@ -212,14 +212,28 @@ public class Util {
 
     public static void sortBag(Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
+	final Map<String, Long> cache = new HashMap<String, Long>();
+
         Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
             public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
                 long position1 = 0;
                 long position2 = 0;
-                position1 = SearchManager.gtpmSearcher.getPosition(tfFirst
-                        .getToken().getValue());
-                position2 = SearchManager.gtpmSearcher.getPosition(tfSecond
-                        .getToken().getValue());
+		String k1 = tfFirst.getToken().getValue();
+		String k2 = tfSecond.getToken().getValue();
+		if (cache.containsKey(k1)) {
+		    position1 = cache.get(k1);
+		}
+		else {
+		    position1 = SearchManager.gtpmSearcher.getPosition(k1);
+		    cache.put(k1, position1);
+		}
+		if (cache.containsKey(k2)) {
+		    position2 = cache.get(k2);
+		}
+		else {
+		    position2 = SearchManager.gtpmSearcher.getPosition(k2);
+		    cache.put(k2, position2);
+		}
                 if (position1 - position2 != 0) {
                     return (int) (position1 - position2);
                 } else {
