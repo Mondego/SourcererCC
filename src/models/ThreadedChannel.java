@@ -7,12 +7,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class ThreadChannel<E> {
+public class ThreadedChannel<E> {
 
     private ExecutorService executor;
     private Class<Runnable> workerType;
 
-    public ThreadChannel(int nThreads, Class clazz) {
+    public ThreadedChannel(int nThreads, Class clazz) {
         this.executor = Executors.newFixedThreadPool(nThreads);
         this.workerType = clazz;
     }

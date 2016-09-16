@@ -40,7 +40,7 @@ import models.IListener;
 import models.InvertedIndexCreator;
 import models.QueryBlock;
 import models.QueryCandidates;
-import models.ThreadChannel;
+import models.ThreadedChannel;
 import models.Shard;
 import models.TokenInfo;
 import net.jmatrix.eproperties.EProperties;
@@ -91,14 +91,14 @@ public class SearchManager {
     int deletemeCounter = 0;
     public static double ramBufferSizeMB;
     private long bagsSortTime;
-    public static ThreadChannel<QueryCandidates> queryCandidatesQueue;
-    public static ThreadChannel<QueryBlock> queryBlockQueue;
-    public static ThreadChannel<ClonePair> reportCloneQueue;
-    public static ThreadChannel<CandidatePair> verifyCandidateQueue;
+    public static ThreadedChannel<QueryCandidates> queryCandidatesQueue;
+    public static ThreadedChannel<QueryBlock> queryBlockQueue;
+    public static ThreadedChannel<ClonePair> reportCloneQueue;
+    public static ThreadedChannel<CandidatePair> verifyCandidateQueue;
 
-    public static ThreadChannel<Bag> bagsToSortQueue;
-    public static ThreadChannel<Bag> bagsToInvertedIndexQueue;
-    public static ThreadChannel<Bag> bagsToForwardIndexQueue;
+    public static ThreadedChannel<Bag> bagsToSortQueue;
+    public static ThreadedChannel<Bag> bagsToInvertedIndexQueue;
+    public static ThreadedChannel<Bag> bagsToForwardIndexQueue;
 
     private final static int BAG_SORTER = 1;
     private final static int INVERTED_INDEX_CREATOR = 2;
@@ -192,13 +192,13 @@ public class SearchManager {
                     + System.lineSeparator() + "VCQ_THREADS: " + this.vcq_thread_count + ", VCQ_SIZE: " + this.vcq_size
                     + System.lineSeparator() + "RCQ_THREADS: " + this.rcq_thread_count + ", RCQ_SIZE: " + this.rcq_size
                     + System.lineSeparator());
-            SearchManager.queryBlockQueue = new ThreadChannel<QueryBlock>(this.qbq_thread_count,
+            SearchManager.queryBlockQueue = new ThreadedChannel<QueryBlock>(this.qbq_thread_count,
                     CandidateSearcher.class);
-            SearchManager.queryCandidatesQueue = new ThreadChannel<QueryCandidates>(this.qcq_thread_count,
+            SearchManager.queryCandidatesQueue = new ThreadedChannel<QueryCandidates>(this.qcq_thread_count,
                     CandidateProcessor.class);
-            SearchManager.verifyCandidateQueue = new ThreadChannel<CandidatePair>(this.vcq_thread_count,
+            SearchManager.verifyCandidateQueue = new ThreadedChannel<CandidatePair>(this.vcq_thread_count,
                     CloneValidator.class);
-            SearchManager.reportCloneQueue = new ThreadChannel<ClonePair>(this.rcq_thread_count, CloneReporter.class);
+            SearchManager.reportCloneQueue = new ThreadedChannel<ClonePair>(this.rcq_thread_count, CloneReporter.class);
             /*
              * this.registerListeners(this.qbq_thread_count,
              * SearchManager.queryBlockQueue, CANDIDATE_SEARCHER);
@@ -245,11 +245,11 @@ public class SearchManager {
                     + this.sizeBagsToSortQ + System.lineSeparator() + "SBQ_THREADS: " + this.threadToProcessIIQueue
                     + ", SBQ_SIZE: " + this.sizeBagsToIIQ + System.lineSeparator() + "IIQ_THREADS: "
                     + this.threadsToProcessFIQueue + ", IIQ_SIZE: " + this.sizeBagsToFIQ + System.lineSeparator());
-            SearchManager.bagsToSortQueue = new ThreadChannel<Bag>(this.threadsToProcessBagsToSortQueue,
+            SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(this.threadsToProcessBagsToSortQueue,
                     BagSorter.class);
-            SearchManager.bagsToInvertedIndexQueue = new ThreadChannel<Bag>(this.threadToProcessIIQueue,
+            SearchManager.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(this.threadToProcessIIQueue,
                     InvertedIndexCreator.class);
-            SearchManager.bagsToForwardIndexQueue = new ThreadChannel<Bag>(this.threadsToProcessFIQueue,
+            SearchManager.bagsToForwardIndexQueue = new ThreadedChannel<Bag>(this.threadsToProcessFIQueue,
                     ForwardIndexCreator.class);
             /*
              * this.registerListenersForIndex(
