@@ -240,11 +240,12 @@ public class SearchManager {
                 Shard shard = new Shard(shardId, SearchManager.min_tokens, SearchManager.max_tokens);
                 SearchManager.shards.add(shard);
             }
-            System.out.println("acton: " + this.action + System.lineSeparator() + "threshold: " + args[1]
+            System.out.println("action: " + this.action + System.lineSeparator() + "threshold: " + args[1]
                     + System.lineSeparator() + "BQ_THREADS: " + this.threadsToProcessBagsToSortQueue + ", BQ_SIZE: "
                     + this.sizeBagsToSortQ + System.lineSeparator() + "SBQ_THREADS: " + this.threadToProcessIIQueue
                     + ", SBQ_SIZE: " + this.sizeBagsToIIQ + System.lineSeparator() + "IIQ_THREADS: "
                     + this.threadsToProcessFIQueue + ", IIQ_SIZE: " + this.sizeBagsToFIQ + System.lineSeparator());
+
             SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(this.threadsToProcessBagsToSortQueue,
                     BagSorter.class);
             SearchManager.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(this.threadToProcessIIQueue,

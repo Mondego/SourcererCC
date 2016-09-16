@@ -21,7 +21,9 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
 import models.Bag;
+import models.ITokensFileProcessor;
 import noindex.CloneHelper;
+import utility.TokensFileReader;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
@@ -47,11 +49,13 @@ import com.google.common.collect.Ordering;
  * @author vaibhavsaini
  * 
  */
-public class TermSorter {
+public class TermSorter implements ITokensFileProcessor {
     private CloneHelper cloneHelper;
     public static Map<String, Long> wordFreq;
     public static String SORTED_FILES_DIR = "output/sortedFiles";
     public static Map<String, Long> globalTokenPositionMap = new HashMap<String, Long>();;
+
+    private int lineNumber = 0;
 
     public TermSorter() {
         TermSorter.wordFreq = new HashMap<String, Long>();
@@ -267,55 +271,34 @@ public class TermSorter {
         /* Util.closeOutputFile(processedWFMfilesWriter); */
     }
 
-    private void populateWordFreqMap(File file) throws IOException,
-            ParseException {
-        // System.out.println("Sorting file: " + file.getName());
-        BufferedReader br = null;
-        br = new BufferedReader(new FileReader(file));
-        String line;
-        System.out.println("populating GPTM");
-        long lineNumber = 0;
-	char[] buf = new char[256];
-        while (br.read(buf, 0, 256) != -1) {
-	    String prefix = new String(buf);
-	    String[] parts = prefix.split(",");
-	    int ntokens = Integer.parseInt(parts[2]);
-	    System.out.println("*** Processing file "+parts[1]+". Number of tokens is " + ntokens);
-	    if (ntokens > SearchManager.max_tokens) {
-		System.out.println("File " +parts[1]+ " is too big. Ignoring...");
-		char c;
-		while ((c = (char)br.read()) != '\n');
-	    }
-	    else {
+    public void processLine(String line) throws ParseException {
 
-		if ((line = br.readLine()) != null && line.trim().length() > 0) {
-		    Bag bag = cloneHelper.deserialise(prefix + line);
+	Bag bag = cloneHelper.deserialise(line);
 
-		    if (null != bag && bag.getSize() > SearchManager.min_tokens
-			&& bag.getSize() < SearchManager.max_tokens) {
-			cloneHelper.populateWordFreqMap(bag);
-		    } else {
-			if (null == bag) {
-			    System.out.println("empty block, ignoring");
-			} else {
-			    System.out
-				.println("not adding tokens of line to GPTM, REASON: "
-					 + bag.getFunctionId()
-					 + ", "
-					 + bag.getId()
-					 + ", size: " + bag.getSize()
-					 + " (max tokens is " + SearchManager.max_tokens + ")");
-			}
-		    }
-		}
+	if (null != bag && bag.getSize() > SearchManager.min_tokens
+	    && bag.getSize() < SearchManager.max_tokens) {
+	    cloneHelper.populateWordFreqMap(bag);
+	} else {
+	    if (null == bag) {
+		System.out.println("empty block, ignoring");
+	    } else {
+		System.out
+		    .println("not adding tokens of line to GPTM, REASON: "
+			 + bag.getFunctionId()
+			 + ", "
+			 + bag.getId()
+			 + ", size: " + bag.getSize()
+			 + " (max tokens is " + SearchManager.max_tokens + ")");
 	    }
-        }
-        lineNumber++;
+	}
+        this.lineNumber++;
         System.out.println(SearchManager.NODE_PREFIX
-                + " , GTPM line_number: " + lineNumber);
-	System.out.println("Size: " + TermSorter.wordFreq.size());
+                + " , GTPM line_number: " + this.lineNumber);
+    }
 
-        br.close();
+    private void populateWordFreqMap(File file) throws IOException, ParseException {
+	TokensFileReader tfr = new TokensFileReader(file, this, SearchManager.max_tokens);
+	tfr.read();
     }
 
 }
