@@ -6,13 +6,17 @@ import utility.Util;
 import indexbased.SearchManager;
 
 public class CloneReporter implements IListener, Runnable {
-
+    private ClonePair cp;
+    public CloneReporter(ClonePair cp) {
+        // TODO Auto-generated constructor stub
+        this.cp = cp;
+    }
     @Override
     public void run() {
         try {
-            ClonePair cp = SearchManager.reportCloneQueue.remove();
-            this.reportClone(cp);
+            this.reportClone(this.cp);
         } catch (NoSuchElementException e) {
+            e.printStackTrace();
         }
     }
 

@@ -1,5 +1,6 @@
 package models;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -11,21 +12,45 @@ import utility.Util;
 import indexbased.SearchManager;
 
 public class CloneValidator implements IListener, Runnable {
+    private CandidatePair candidatePair;
+
+    public CloneValidator(CandidatePair candidatePair) {
+        // TODO Auto-generated constructor stub
+        this.candidatePair = candidatePair;
+    }
 
     @Override
     public void run() {
         try {
-            CandidatePair candidatePair = SearchManager.verifyCandidateQueue
-                    .remove();
-            this.validate(candidatePair);
+            this.validate(this.candidatePair);
         } catch (NoSuchElementException e) {
+            e.printStackTrace();
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
     private void validate(CandidatePair candidatePair)
-            throws InterruptedException {
+            throws InterruptedException, InstantiationException, IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, NoSuchMethodException, SecurityException {
         /*
          * System.out.println(SearchManager.NODE_PREFIX + "validating, " +
          * candidatePair.candidateId + "query: " +
@@ -34,18 +59,12 @@ public class CloneValidator implements IListener, Runnable {
          */
 
         // long start_time = System.currentTimeMillis();
-        if (candidatePair.candidateTokens != null
-                && candidatePair.candidateTokens.trim().length() > 0) {
-            int similarity = this.updateSimilarity(candidatePair.queryBlock,
-                    candidatePair.candidateTokens,
-                    candidatePair.computedThreshold,
-                    candidatePair.candidateSize, candidatePair.simInfo);
+        if (candidatePair.candidateTokens != null && candidatePair.candidateTokens.trim().length() > 0) {
+            int similarity = this.updateSimilarity(candidatePair.queryBlock, candidatePair.candidateTokens,
+                    candidatePair.computedThreshold, candidatePair.candidateSize, candidatePair.simInfo);
             if (similarity > 0) {
-                ClonePair cp = new ClonePair(
-                        candidatePair.queryBlock.getFunctionId(),
-                        candidatePair.queryBlock.getId(),
-                        candidatePair.functionIdCandidate,
-                        candidatePair.candidateId);
+                ClonePair cp = new ClonePair(candidatePair.queryBlock.getFunctionId(), candidatePair.queryBlock.getId(),
+                        candidatePair.functionIdCandidate, candidatePair.candidateId);
 
                 /*
                  * long end_time = System.currentTimeMillis(); Duration
@@ -61,7 +80,7 @@ public class CloneValidator implements IListener, Runnable {
                  * System.out.println(); } catch (DatatypeConfigurationException
                  * e) { e.printStackTrace(); }
                  */
-                SearchManager.reportCloneQueue.put(cp);
+                SearchManager.reportCloneQueue.send(cp);
             }
             /*
              * candidatePair.queryBlock = null; candidatePair.simInfo = null;
@@ -73,8 +92,8 @@ public class CloneValidator implements IListener, Runnable {
         }
     }
 
-    private int updateSimilarity(QueryBlock queryBlock, String tokens,
-            int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {
+    private int updateSimilarity(QueryBlock queryBlock, String tokens, int computedThreshold, int candidateSize,
+            CandidateSimInfo simInfo) {
         int tokensSeenInCandidate = 0;
         int similarity = simInfo.similarity;
         Scanner scanner = new Scanner(tokens);
@@ -88,35 +107,26 @@ public class CloneValidator implements IListener, Runnable {
             while (scanner.hasNext()) {
                 tokenfreqFrame = scanner.next();
                 tokenFreqInfo = tokenfreqFrame.split(":");
-                if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(),
-                        simInfo.queryMatchPosition, candidateSize,
+                if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(), simInfo.queryMatchPosition, candidateSize,
                         simInfo.candidateMatchPosition, computedThreshold)) {
                     // System.out.println("sim: "+ similarity);
                     candidatesTokenFreq = Integer.parseInt(tokenFreqInfo[1]);
                     tokensSeenInCandidate += candidatesTokenFreq;
                     if (tokensSeenInCandidate > simInfo.candidateMatchPosition) {
                         matchFound = false;
-                        if (simInfo.queryMatchPosition < queryBlock
-                                .getPrefixMapSize()) {
+                        if (simInfo.queryMatchPosition < queryBlock.getPrefixMapSize()) {
                             // check in prefix
-                            if (queryBlock.getPrefixMap().containsKey(
-                                    tokenFreqInfo[0])) {
+                            if (queryBlock.getPrefixMap().containsKey(tokenFreqInfo[0])) {
                                 matchFound = true;
-                                tokenInfo = queryBlock.getPrefixMap().get(
-                                        tokenFreqInfo[0]);
-                                similarity = updateSimilarityHelper(simInfo,
-                                        tokenInfo, similarity,
+                                tokenInfo = queryBlock.getPrefixMap().get(tokenFreqInfo[0]);
+                                similarity = updateSimilarityHelper(simInfo, tokenInfo, similarity,
                                         candidatesTokenFreq);
                             }
                         }
                         // check in suffix
-                        if (!matchFound
-                                && queryBlock.getSuffixMap().containsKey(
-                                        tokenFreqInfo[0])) {
-                            tokenInfo = queryBlock.getSuffixMap().get(
-                                    tokenFreqInfo[0]);
-                            similarity = updateSimilarityHelper(simInfo,
-                                    tokenInfo, similarity, candidatesTokenFreq);
+                        if (!matchFound && queryBlock.getSuffixMap().containsKey(tokenFreqInfo[0])) {
+                            tokenInfo = queryBlock.getSuffixMap().get(tokenFreqInfo[0]);
+                            similarity = updateSimilarityHelper(simInfo, tokenInfo, similarity, candidatesTokenFreq);
                         }
                         if (similarity >= computedThreshold) {
                             return similarity;
@@ -128,19 +138,17 @@ public class CloneValidator implements IListener, Runnable {
             }
 
         } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("possible error in the format. tokens: "
-                    + tokens);
+            System.out.println("possible error in the format. tokens: " + tokens);
         } catch (NumberFormatException e) {
-            System.out.println("possible error in the format. tokens: "
-                    + tokens);
+            System.out.println("possible error in the format. tokens: " + tokens);
         } finally {
             scanner.close();
         }
         return -1;
     }
 
-    private int updateSimilarityHelper(CandidateSimInfo simInfo,
-            TokenInfo tokenInfo, int similarity, int candidatesTokenFreq) {
+    private int updateSimilarityHelper(CandidateSimInfo simInfo, TokenInfo tokenInfo, int similarity,
+            int candidatesTokenFreq) {
         simInfo.queryMatchPosition = tokenInfo.getPosition();
         similarity += Math.min(tokenInfo.getFrequency(), candidatesTokenFreq);
         // System.out.println("similarity: "+ similarity);
