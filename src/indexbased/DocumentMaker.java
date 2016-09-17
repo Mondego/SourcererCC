@@ -91,16 +91,15 @@ public class DocumentMaker {
         //idField.fieldType().freeze();
         document.add(idField);
         
-        String tokenString = "";
+        StringBuilder tokenString = new StringBuilder();
         System.out.println(SearchManager.NODE_PREFIX + "fwdindex: creating tokenString ");
         for (TokenFrequency tf : bag) {
             // System.out.println(tf.getToken().getValue() +
             // ":"+tf.getFrequency());
-            tokenString += tf.getToken().getValue() + ":" + tf.getFrequency()
-                    + "::";
+            tokenString.append(tf.getToken().getValue() + ":" + tf.getFrequency() + "::");
         }
         System.out.println(SearchManager.NODE_PREFIX + "fwdindex:  tokenString created ");
-        StoredField strField = new StoredField("tokens", tokenString.trim());
+        StoredField strField = new StoredField("tokens", tokenString.toString().trim());
         document.add(strField);
         return document;
     }
@@ -129,7 +128,7 @@ public class DocumentMaker {
         document.add(functionId);
         StoredField sizeField = new StoredField("size", bag.getSize() + "");
         document.add(sizeField);
-        String tokenString = "";
+        StringBuilder tokenString = new StringBuilder();
         int ct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(),
                 SearchManager.th);
         StoredField computedThresholdField = new StoredField("ct", ct + "");
@@ -144,7 +143,7 @@ public class DocumentMaker {
         System.out.println(SearchManager.NODE_PREFIX + "inverted index: creating tokenString");
         for (TokenFrequency tf : bag) {
             for (int i = 0; i < tf.getFrequency(); i++) {
-                tokenString += tf.getToken().getValue() + " ";
+                tokenString.append(tf.getToken().getValue() + " ");
                 // System.out.println(tf.getToken().getValue());
             }
             prefixLength -= tf.getFrequency();
@@ -162,7 +161,7 @@ public class DocumentMaker {
         fieldType.setStoreTermVectors(true);
         fieldType.setTokenized(true);
         fieldType.freeze();
-        Field field = new Field("tokens",tokenString.trim(),fieldType);
+        Field field = new Field("tokens",tokenString.toString().trim(),fieldType);
        /* TextField textField = new TextField("tokens", tokenString.trim(), Field.Store.NO);
         textField.fieldType().setIndexed(true);
         textField.fieldType().setStoreTermVectorPositions(true);

@@ -13,7 +13,6 @@ public class BagSorter implements IListener, Runnable {
     public BagSorter(Bag bag) {
         // TODO Auto-generated constructor stub
         this.bag = bag;
-	System.out.println("BagSorter created");
     }
 
     @Override
@@ -24,8 +23,6 @@ public class BagSorter implements IListener, Runnable {
              * ", size of bagsToSortQueue " +
              * SearchManager.bagsToSortQueue.size());
              */
-	    System.out.println("BagSorter run for bag " + this.bag.getId());
-
             this.sortBag(this.bag);
         } catch (NoSuchElementException e) {
             e.printStackTrace();
@@ -58,7 +55,7 @@ public class BagSorter implements IListener, Runnable {
 	long startTime = System.nanoTime(); 
         Util.sortBag(bag);
 	long estimatedTime = System.nanoTime() - startTime;
-	System.out.println("Bag " + bag.getId()+ " processed in " + estimatedTime);
+	System.out.println(SearchManager.NODE_PREFIX + " SB, Bag " + bag.getId()+ " processed in " + estimatedTime);
         SearchManager.bagsToInvertedIndexQueue.send(bag);
     }
 }

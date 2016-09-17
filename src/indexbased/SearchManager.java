@@ -554,7 +554,6 @@ public class SearchManager {
 									    return; // ignore this bag.
 									}
 									try {
-									    System.out.println("Sending bag "+bag.getId()+" to queue");
 									    SearchManager.bagsToSortQueue.send(bag);
 									} catch (Exception e) {
 									    System.out.println(SearchManager.NODE_PREFIX + "Unable to send bag "+bag.getId()+" to queue");

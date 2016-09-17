@@ -29,6 +29,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
              * ", size of bagsToInvertedIndexQueue " +
              * SearchManager.bagsToInvertedIndexQueue.size());
              */
+	    System.out.println("InvertedIndex run for bag " + this.bag.getId());
             this.index(this.bag);
         } catch (NoSuchElementException e) {
             e.printStackTrace();
@@ -59,6 +60,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
 
     private void index(Bag bag) throws InterruptedException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	long startTime = System.nanoTime(); 
         List<Shard> shards = SearchManager.getShardIdsForBag(bag);
         this.document = this.documentMaker.prepareDocument(bag);
         for (Shard shard : shards) {
@@ -70,6 +72,9 @@ public class InvertedIndexCreator implements IListener, Runnable {
                 e.printStackTrace();
             }
         }
+	long estimatedTime = System.nanoTime() - startTime;
+	System.out.println(SearchManager.NODE_PREFIX + " II, Bag " + bag.getId()+ " processed in " + estimatedTime);
+
         SearchManager.bagsToForwardIndexQueue.send(bag);
     }
 

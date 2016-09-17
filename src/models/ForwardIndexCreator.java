@@ -36,6 +36,8 @@ public class ForwardIndexCreator implements IListener, Runnable {
     }
 
     private void index(Bag bag) throws InterruptedException {
+	long startTime = System.nanoTime(); 
+
         List<Shard> shards = SearchManager.getShardIdsForBag(bag);
         this.document = this.documentMaker.prepareDocumentForFwdIndex(bag);
         for (Shard shard : shards) {
@@ -46,8 +48,10 @@ public class ForwardIndexCreator implements IListener, Runnable {
                 e.printStackTrace();
             }
         }
-        System.out.println(SearchManager.NODE_PREFIX + ", lines processed: " + SearchManager.statusCounter
-                + ", Bag indexed: " + bag);
+	long estimatedTime = System.nanoTime() - startTime;
+
+        System.out.println(SearchManager.NODE_PREFIX + "FI, lines processed: " + SearchManager.statusCounter
+                + ", Bag indexed: " + bag + " in " + estimatedTime/1000000 + "ms");
     }
 
 }
