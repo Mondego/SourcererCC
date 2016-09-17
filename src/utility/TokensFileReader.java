@@ -46,7 +46,7 @@ public class TokensFileReader {
 		}
 
 		long estimatedTime = System.nanoTime() - startTime;
-		System.out.println(this.nodeId + " RL, file " + parts[1] + ", " + ntokens + " tokens in " + estimatedTime/1000 + " micros");
+		System.out.println(this.nodeId + " RL "+lineNumber+", file " + parts[1] + ", " + ntokens + " tokens in " + estimatedTime/1000 + " micros");
 	    }
 	    lineNumber++;
         }
