@@ -50,8 +50,7 @@ public class ForwardIndexCreator implements IListener, Runnable {
         }
 	long estimatedTime = System.nanoTime() - startTime;
 
-        System.out.println(SearchManager.NODE_PREFIX + "FI, lines processed: " + SearchManager.statusCounter
-                + ", Bag indexed: " + bag + " in " + estimatedTime/1000000 + "ms");
+        System.out.println(SearchManager.NODE_PREFIX + " FI, Bag " + bag + " in " + estimatedTime/1000 + " micros");
     }
 
 }

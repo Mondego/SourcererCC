@@ -29,7 +29,6 @@ public class InvertedIndexCreator implements IListener, Runnable {
              * ", size of bagsToInvertedIndexQueue " +
              * SearchManager.bagsToInvertedIndexQueue.size());
              */
-	    System.out.println("InvertedIndex run for bag " + this.bag.getId());
             this.index(this.bag);
         } catch (NoSuchElementException e) {
             e.printStackTrace();
@@ -73,7 +72,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
             }
         }
 	long estimatedTime = System.nanoTime() - startTime;
-	System.out.println(SearchManager.NODE_PREFIX + " II, Bag " + bag.getId()+ " processed in " + estimatedTime);
+	System.out.println(SearchManager.NODE_PREFIX + " II, Bag " + bag + " in " + estimatedTime /1000 + " micros");
 
         SearchManager.bagsToForwardIndexQueue.send(bag);
     }

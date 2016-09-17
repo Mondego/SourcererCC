@@ -274,7 +274,7 @@ public class SearchManager {
             if (bag.getSize() >= shard.getMinBagSizeToIndex() && bag.getSize() <= shard.getMaxBagSizeToIndex()) {
                 shardsToReturn.add(shard);
             }
-        System.out.println("returning shards");
+ 
         return shardsToReturn;
     }
 
@@ -537,18 +537,17 @@ public class SearchManager {
             for (File inputFile : datasetDir.listFiles()) {
                 try {
 
-		    TokensFileReader tfr = new TokensFileReader(inputFile, SearchManager.max_tokens, 
+		    TokensFileReader tfr = new TokensFileReader(SearchManager.NODE_PREFIX, inputFile, SearchManager.max_tokens, 
 								new ITokensFileProcessor () {
 								    public void processLine(String line) throws ParseException {
-									System.out.println("Processing line " + line.substring(0, 20));
 									Bag bag = cloneHelper.deserialise(line);
 									if (null == bag || bag.getSize() < SearchManager.min_tokens) {
 									    if (null == bag) {
-										System.out.println(SearchManager.NODE_PREFIX + "empty bag, ignoring. statusCounter= "
+										System.out.println(SearchManager.NODE_PREFIX + " empty bag, ignoring. statusCounter= "
 												   + SearchManager.statusCounter);
 									    } else {
-										System.out.println(SearchManager.NODE_PREFIX + "ignoring file, " + bag.getFunctionId()
-												   + ", " + bag.getId() + ", size is: " + bag.getSize() + ", statusCounter= "
+										System.out.println(SearchManager.NODE_PREFIX + " ignoring bag " 
+												   + ", " + bag + ", statusCounter="
 												   + SearchManager.statusCounter);
 									    }
 									    return; // ignore this bag.

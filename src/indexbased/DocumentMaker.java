@@ -92,13 +92,11 @@ public class DocumentMaker {
         document.add(idField);
         
         StringBuilder tokenString = new StringBuilder();
-        System.out.println(SearchManager.NODE_PREFIX + "fwdindex: creating tokenString ");
         for (TokenFrequency tf : bag) {
             // System.out.println(tf.getToken().getValue() +
             // ":"+tf.getFrequency());
             tokenString.append(tf.getToken().getValue() + ":" + tf.getFrequency() + "::");
         }
-        System.out.println(SearchManager.NODE_PREFIX + "fwdindex:  tokenString created ");
         StoredField strField = new StoredField("tokens", tokenString.toString().trim());
         document.add(strField);
         return document;
@@ -140,7 +138,6 @@ public class DocumentMaker {
         document.add(computedThresholdField);
         document.add(lenientComputedThresholdField);
         int prefixLength = BlockInfo.getPrefixSize(bag.getSize(), ct);
-        System.out.println(SearchManager.NODE_PREFIX + "inverted index: creating tokenString");
         for (TokenFrequency tf : bag) {
             for (int i = 0; i < tf.getFrequency(); i++) {
                 tokenString.append(tf.getToken().getValue() + " ");
@@ -151,7 +148,7 @@ public class DocumentMaker {
                 break;
             }
         }
-        System.out.println(SearchManager.NODE_PREFIX + "inverted index: tokenString created");
+
         @SuppressWarnings("deprecation")
         //Field field = new Field("tokens", tokenString.trim(), Field.Store.NO,
           //      Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS);
