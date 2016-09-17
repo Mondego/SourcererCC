@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -210,9 +211,19 @@ public class Util {
 
     }
 
+    public static <K,V> Map<K,V> lruCache(final int maxSize) {
+        return Collections.synchronizedMap(new LinkedHashMap<K,V>(maxSize*4/3, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
+                return size() > maxSize;
+            }
+	    });
+    }
+
+    // This cache is shared by all threads that call sortBag
+    final static Map<String, Long> cache = lruCache(8000000);
     public static void sortBag(Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
-	final Map<String, Long> cache = new HashMap<String, Long>();
 
         Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
             public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
