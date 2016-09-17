@@ -119,7 +119,7 @@ public class TermSorter implements ITokensFileProcessor {
             File currentDir = new File(System.getProperty("user.dir"));
 
             this.populateGlobalWordFreqMapIttrative(currentDir);
-            System.out.println("sorting globalWordFreqMap to creat GTPM");
+            System.out.println("sorting globalWordFreqMap to create GTPM");
 
             Map<String, Long> sortedMap = ImmutableSortedMap
                     .copyOf(SearchManager.globalWordFreqMap,
