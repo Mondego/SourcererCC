@@ -24,8 +24,8 @@ public class TokensFileReader {
         BufferedReader br = new BufferedReader(new FileReader(file));
         String line;
         long lineNumber = 0;
-	char[] buf = new char[256];
-        while (br.read(buf, 0, 256) != -1) {
+	char[] buf = new char[40];
+        while (br.read(buf, 0, 40) != -1) {
 	    String prefix = new String(buf);
 	    String[] parts = prefix.split(",");
 	    int ntokens = Integer.parseInt(parts[2]);
