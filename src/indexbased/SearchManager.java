@@ -66,7 +66,7 @@ public class SearchManager {
     private CloneHelper cloneHelper;
     public static String QUERY_DIR_PATH;
     public static String DATASET_DIR;
-    public static String GTPM_DIR_PATH;
+    public static String WFM_DIR_PATH;
     public static Writer clonesWriter; // writer to write the output
     public static float th; // args[2]
                             // search
@@ -345,7 +345,7 @@ public class SearchManager {
             SearchManager.QUERY_DIR_PATH = properties.getProperty("QUERY_DIR_PATH");
             System.out.println("Query path:" + SearchManager.QUERY_DIR_PATH);
 
-            SearchManager.GTPM_DIR_PATH = properties.getProperty("GTPM_DIR_PATH");
+            SearchManager.WFM_DIR_PATH = properties.getProperty("WFM_DIR_PATH");
             searchManager = new SearchManager(params);
         } catch (IOException e) {
             System.out.println("ERROR READING PROPERTIES FILE, " + e.getMessage());
@@ -405,6 +405,8 @@ public class SearchManager {
         } else if (searchManager.action.equalsIgnoreCase(ACTION_INIT)) {
             TermSorter termSorter = new TermSorter();
             termSorter.populateLocalWordFreqMap();
+            // merge the .wfm files
+            termSorter.mergeWfms(SearchManager.WFM_DIR_PATH, SearchManager.WFM_DIR_PATH,true);
             if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
                 termSorter.populateGlobalPositionMap();
             }
@@ -605,7 +607,7 @@ public class SearchManager {
                     System.out.println(e.getMessage() + " exiting");
                     System.exit(1);
                 }
-                BufferedReader br = this.getReader(queryFile);
+                BufferedReader br = Util.getReader(queryFile);
                 String line = null;
                 try {
                     QueryBlock queryBlock = null;
@@ -699,12 +701,6 @@ public class SearchManager {
 
     public static synchronized void updateClonePairsCount(int num) {
         SearchManager.clonePairsCount += num;
-    }
-
-    private BufferedReader getReader(File queryFile) throws FileNotFoundException {
-        BufferedReader br = null;
-        br = new BufferedReader(new FileReader(queryFile));
-        return br;
     }
 
     private File getQueryDirectory() throws FileNotFoundException {

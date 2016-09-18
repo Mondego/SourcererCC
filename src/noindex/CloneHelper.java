@@ -1,9 +1,5 @@
 package noindex;
 
-import indexbased.CustomCollectorFwdIndex;
-import indexbased.SearchManager;
-import indexbased.TermSorter;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,15 +15,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.TreeMap;
 
+import org.apache.lucene.document.Document;
+
+import indexbased.CustomCollectorFwdIndex;
+import indexbased.SearchManager;
+import indexbased.TermSorter;
 import models.Bag;
 import models.QueryBlock;
 import models.Token;
 import models.TokenFrequency;
 import models.TokenInfo;
-
-import org.apache.lucene.document.Document;
-
 import utility.Util;
 
 /**
@@ -287,6 +286,14 @@ public class CloneHelper {
             } else {
                 TermSorter.wordFreq.put(tokenStr, (long)tf.getFrequency());
             }
+        }
+        // if map size if more than 8 Million flush it.
+        if(TermSorter.wordFreq.size()>8000000){ 
+            // write it in a file. it is a treeMap, so it is already sorted by keys (alphbatically)
+            TermSorter.wfm_file_count+=1;
+            Util.writeMapToFile(SearchManager.WFM_DIR_PATH + "/wordFreqMap_"+TermSorter.wfm_file_count+".wfm", TermSorter.wordFreq);
+            // reinti the map
+            TermSorter.wordFreq = new TreeMap<String, Long>();
         }
     }
 

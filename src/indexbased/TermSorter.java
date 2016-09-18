@@ -2,44 +2,40 @@ package indexbased;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.TieredMergePolicy;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
+
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Ordering;
 
 import models.Bag;
 import models.ITokensFileProcessor;
 import noindex.CloneHelper;
 import utility.TokensFileReader;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.TieredMergePolicy;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
-
 import utility.Util;
-
-import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Ordering;
 
 /**
  * for every project's input file (one file is one project) read all lines for
@@ -54,11 +50,12 @@ public class TermSorter implements ITokensFileProcessor {
     public static Map<String, Long> wordFreq;
     public static String SORTED_FILES_DIR = "output/sortedFiles";
     public static Map<String, Long> globalTokenPositionMap = new HashMap<String, Long>();;
-
+    public static final int mapSize = 50000;
+    public static int wfm_file_count = 0;
     private int lineNumber = 0;
 
     public TermSorter() {
-        TermSorter.wordFreq = new HashMap<String, Long>();
+        TermSorter.wordFreq = new TreeMap<String, Long>();
         Util.createDirs(SORTED_FILES_DIR);
         this.cloneHelper = new CloneHelper();
 
@@ -71,8 +68,7 @@ public class TermSorter implements ITokensFileProcessor {
 
     public void populateLocalWordFreqMap() throws IOException, ParseException {
 
-        File wfmFile = new File(SearchManager.GTPM_DIR_PATH
-                + "/wordFreqMap.wfm");
+        File wfmFile = new File(SearchManager.WFM_DIR_PATH + "/wordFreqMap.wfm");
         if (wfmFile.exists()) {
             System.out.println("wfm file exists, not creating a new one");
             /*
@@ -82,27 +78,28 @@ public class TermSorter implements ITokensFileProcessor {
              * TermSorter.globalTokenPositionMap.size());
              */
         } else {
-            System.out
-                    .println("wfm file doesn't exist. Creating WFM from query File");
+            System.out.println("wfm file doesn't exist. Creating WFM from query File");
+            Util.createDirs(SearchManager.WFM_DIR_PATH);
             File queryDir = new File(SearchManager.QUERY_DIR_PATH);
             if (queryDir.isDirectory()) {
                 System.out.println("Directory: " + queryDir.getName());
                 for (File inputFile : queryDir.listFiles()) {
                     this.populateWordFreqMap(inputFile);
                 }
-                Util.createDirs(SearchManager.GTPM_DIR_PATH);
-                Util.writeMapToFile(SearchManager.GTPM_DIR_PATH
-                        + "/wordFreqMap.wfm", TermSorter.wordFreq);
+                // write the last map to file
+                TermSorter.wfm_file_count += 1;
+                Util.writeMapToFile(SearchManager.WFM_DIR_PATH + "/wordFreqMap_" + TermSorter.wfm_file_count + ".wfm",
+                        TermSorter.wordFreq);
+                TermSorter.wordFreq = null; // we don't need it, let GC get it.
             } else {
-                System.out.println("File: " + queryDir.getName()
-                        + " is not a direcory. exiting now");
+                System.out.println("File: " + queryDir.getName() + " is not a direcory. exiting now");
                 System.exit(1);
             }
         }
     }
 
-    public void populateGlobalPositionMap() {
-        File gtpmFile = new File(Util.GTPM_DIR + "/gtpm.json");
+    public void populateGlobalPositionMap() throws IOException {
+        File gtpmFile = new File(Util.GTPM_DIR + "/tokens.gtpm");
         if (gtpmFile.exists()) {
             System.out.println("GTPM file exists, reading from file");
             this.indexGPTM(gtpmFile);
@@ -114,43 +111,47 @@ public class TermSorter implements ITokensFileProcessor {
              */
             return;
         } else {
-            System.out
-                    .println("GTPM files doesn't exist. reading from wfm files");
-            File currentDir = new File(System.getProperty("user.dir"));
+            System.out.println("GTPM files doesn't exist. reading from wfm files");
+            // File currentDir = new File(System.getProperty("user.dir"));
+            // external sort and merge the sorted wfms from all NODES.
+            // the final sorted WFM file will be present in UTIL.GLOBAL_WFM_DIR
+            Util.createDirs(Util.GLOBAL_WFM_DIR);
+            this.mergeWfms(System.getProperty("user.dir"), Util.GLOBAL_WFM_DIR, false);
+            // this.populateGlobalWordFreqMapIttrative(currentDir);
 
-            this.populateGlobalWordFreqMapIttrative(currentDir);
-            System.out.println("sorting globalWordFreqMap to create GTPM");
+            // no need to sort, GLOBAL_WFM_DIR contains the sorted WFM file
 
-            Map<String, Long> sortedMap = ImmutableSortedMap
-                    .copyOf(SearchManager.globalWordFreqMap,
-                            Ordering.natural()
-                                    .onResultOf(
-                                            Functions
-                                                    .forMap(SearchManager.globalWordFreqMap))
-                                    .compound(Ordering.natural()));
+            /*
+             * Map<String, Long> sortedMap =
+             * ImmutableSortedMap.copyOf(SearchManager.globalWordFreqMap,
+             * Ordering.natural()
+             * .onResultOf(Functions.forMap(SearchManager.globalWordFreqMap)).
+             * compound(Ordering.natural()));
+             */
             Long count = 1l;
-            for (Entry<String, Long> entry : sortedMap.entrySet()) {
-                TermSorter.globalTokenPositionMap.put(entry.getKey(), count);
+            // create the tokens.gtpm file
+            File globalWFMFile = new File(Util.GLOBAL_WFM_DIR).listFiles()[0]; // there should be only one file in this directory
+            BufferedReader br = Util.getReader(globalWFMFile);
+            String line = null;
+            Util.createDirs(Util.GTPM_DIR);
+            Writer gtpmFileWriter = Util.openFile(Util.GTPM_DIR + "/tokens.gtpm", false);
+            while ((line = br.readLine()) != null) {
+                String token = line.split(":")[0];
+                Util.writeToFile(gtpmFileWriter, token + ":" + count, true);
                 count++;
             }
-            System.out.println("index size of GTPM: "
-                    + TermSorter.globalTokenPositionMap.size());
-            Util.createDirs(Util.GTPM_DIR);
-            Util.writeMapToFile(Util.GTPM_DIR + "/gtpm.json",
-                    TermSorter.globalTokenPositionMap);
+            Util.closeOutputFile(gtpmFileWriter);
+            System.out.println("Indexing GTPM, size of GTPM: " + (count - 1) + " entries");
             this.indexGPTM(gtpmFile);
             TermSorter.globalTokenPositionMap = null;
             SearchManager.globalWordFreqMap = null;
-            sortedMap = null;
         }
     }
 
     private void indexGPTM(File gtpmFile) {
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
-        IndexWriterConfig gtpmIndexWriterConfig = new IndexWriterConfig(
-                Version.LUCENE_46, keywordAnalyzer);
-        TieredMergePolicy mergePolicy = (TieredMergePolicy) gtpmIndexWriterConfig
-                .getMergePolicy();
+        IndexWriterConfig gtpmIndexWriterConfig = new IndexWriterConfig(Version.LUCENE_46, keywordAnalyzer);
+        TieredMergePolicy mergePolicy = (TieredMergePolicy) gtpmIndexWriterConfig.getMergePolicy();
         mergePolicy.setNoCFSRatio(0);// what was this for?
         mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
         gtpmIndexWriterConfig.setOpenMode(OpenMode.CREATE);
@@ -158,22 +159,19 @@ public class TermSorter implements ITokensFileProcessor {
         IndexWriter gtpmIndexWriter = null;
         DocumentMaker gtpmIndexer = null;
         try {
-            gtpmIndexWriter = new IndexWriter(FSDirectory.open(new File(
-                    Util.GTPM_INDEX_DIR)), gtpmIndexWriterConfig);
+            gtpmIndexWriter = new IndexWriter(FSDirectory.open(new File(Util.GTPM_INDEX_DIR)), gtpmIndexWriterConfig);
             gtpmIndexer = new DocumentMaker(gtpmIndexWriter);
 
             BufferedReader br = null;
             int count = 0;
             try {
-                br = new BufferedReader(new InputStreamReader(
-                        new FileInputStream(gtpmFile), "UTF-8"));
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(gtpmFile), "UTF-8"));
                 String line;
-                while ((line = br.readLine()) != null
-                        && line.trim().length() > 0) {
+                while ((line = br.readLine()) != null && line.trim().length() > 0) {
                     gtpmIndexer.indexGtpmEntry(line);
                     count++;
-		    if ((count % 100000) == 0)
-			System.out.println("gtpm entries indexed: " + count);
+                    if ((count % 100000) == 0)
+                        System.out.println("gtpm entries indexed: " + count);
                 }
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -218,31 +216,24 @@ public class TermSorter implements ITokensFileProcessor {
             File[] files = fileStack.pop().listFiles();
             for (File currFile : files) {
                 if (currFile.isFile()) {
-                    if (FilenameUtils.getExtension(currFile.getName()).equals(
-                            "wfm")) {
+                    if (FilenameUtils.getExtension(currFile.getName()).equals("wfm")) {
                         /*
                          * if (processedWFMset
                          * .contains(currFile.getAbsolutePath())) {
                          * System.out.println("ignore wfm file, " +
                          * currFile.getAbsolutePath()); continue; }
                          */
-                        System.out
-                                .println("populating globalWordFreqMap, reading file: "
-                                        + currFile.getAbsolutePath());
-                        Map<String, Long> wordFreqMap = Util
-                                .readMapFromFile(currFile.getAbsolutePath());
+                        System.out.println("populating globalWordFreqMap, reading file: " + currFile.getAbsolutePath());
+                        Map<String, Long> wordFreqMap = Util.readMapFromFile(currFile.getAbsolutePath());
                         for (Entry<String, Long> entry : wordFreqMap.entrySet()) {
 
                             long value = 0;
-                            if (SearchManager.globalWordFreqMap
-                                    .containsKey(entry.getKey())) {
-                                value = SearchManager.globalWordFreqMap
-                                        .get(entry.getKey()) + entry.getValue();
+                            if (SearchManager.globalWordFreqMap.containsKey(entry.getKey())) {
+                                value = SearchManager.globalWordFreqMap.get(entry.getKey()) + entry.getValue();
                             } else {
                                 value = entry.getValue();
                             }
-                            SearchManager.globalWordFreqMap.put(entry.getKey(),
-                                    value);
+                            SearchManager.globalWordFreqMap.put(entry.getKey(), value);
                         }
                         /*
                          * Util.writeMapToFile("temp_gwfm.txt",
@@ -260,8 +251,7 @@ public class TermSorter implements ITokensFileProcessor {
                          */
                     }
                 } else if (currFile.isDirectory()) {
-                    if (currFile.getName().contains("NODE_")
-                            || currFile.getName().contains("gtpm")) {
+                    if (currFile.getName().contains("NODE_") || currFile.getName().contains("gtpm")) {
                         fileStack.push(currFile);
                     }
                 }
@@ -273,32 +263,122 @@ public class TermSorter implements ITokensFileProcessor {
 
     public void processLine(String line) throws ParseException {
 
-	Bag bag = cloneHelper.deserialise(line);
+        Bag bag = cloneHelper.deserialise(line);
 
-	if (null != bag && bag.getSize() > SearchManager.min_tokens
-	    && bag.getSize() < SearchManager.max_tokens) {
-	    cloneHelper.populateWordFreqMap(bag);
-	} else {
-	    if (null == bag) {
-		System.out.println("empty block, ignoring");
-	    } else {
-		System.out
-		    .println("not adding tokens of line to GPTM, REASON: "
-			 + bag.getFunctionId()
-			 + ", "
-			 + bag.getId()
-			 + ", size: " + bag.getSize()
-			 + " (max tokens is " + SearchManager.max_tokens + ")");
-	    }
-	}
+        if (null != bag && bag.getSize() > SearchManager.min_tokens && bag.getSize() < SearchManager.max_tokens) {
+            cloneHelper.populateWordFreqMap(bag);
+        } else {
+            if (null == bag) {
+                System.out.println("empty block, ignoring");
+            } else {
+                System.out.println(
+                        "not adding tokens of line to GPTM, REASON: " + bag.getFunctionId() + ", " + bag.getId()
+                                + ", size: " + bag.getSize() + " (max tokens is " + SearchManager.max_tokens + ")");
+            }
+        }
         this.lineNumber++;
-        System.out.println(SearchManager.NODE_PREFIX
-                + " , GTPM line_number: " + this.lineNumber);
+        System.out.println(SearchManager.NODE_PREFIX + " , GTPM line_number: " + this.lineNumber);
     }
 
+    /**
+     * Reads the input file and writes the partial word frequency maps to .wfm
+     * files.
+     * 
+     * @param file
+     * @throws IOException
+     * @throws ParseException
+     */
     private void populateWordFreqMap(File file) throws IOException, ParseException {
-	TokensFileReader tfr = new TokensFileReader(SearchManager.NODE_PREFIX, file, SearchManager.max_tokens, this);
-	tfr.read();
+        TokensFileReader tfr = new TokensFileReader(SearchManager.NODE_PREFIX, file, SearchManager.max_tokens, this);
+        tfr.read();
+    }
+
+    public void mergeWfms(String inputWfmDirectoryPath, String outputWfmDirectoryPath,
+            boolean deleteInputfilesAfterProcessing) throws IOException {
+        // Iterate on wfm fies in the input directory
+        // List<File> wfmFiles = (List<File>) FileUtils.listFiles(new
+        // File(inputWfmDirectoryPath), new String[]{"wfm"}, true);
+        File inputFolder = new File(inputWfmDirectoryPath);
+        File[] wfmFiles = inputFolder.listFiles(new FilenameFilter() {
+
+            @Override
+            public boolean accept(File dir, String name) {
+                return !dir.getName().startsWith(".git") 
+                        && dir.getName().contains("wfm") 
+                        && name.endsWith(".wfm");
+            }
+        });
+        File resultFile = null;
+        File previousResultFile = new File(outputWfmDirectoryPath + "/sorted_0.wfm");
+        previousResultFile.createNewFile();
+        int i = 1;
+        for (File wfmFile : wfmFiles) {
+            resultFile = new File(outputWfmDirectoryPath + "/sorted_" + i + ".wfm");
+            this.externalMerge(wfmFile, previousResultFile, resultFile);
+            previousResultFile.delete();
+            if (deleteInputfilesAfterProcessing) {
+                wfmFile.delete();
+            }
+            previousResultFile = resultFile;
+            i++;
+        }
+
+    }
+
+    private void externalMerge(File a, File b, File output) throws IOException {
+        BufferedReader aBr = Util.getReader(a);
+        BufferedReader bBr = Util.getReader(b);
+        Writer sortedFileWriter = Util.openFile(output, false);
+        try {
+            String aLine = aBr.readLine();
+            String bLine = bBr.readLine();
+            while (null != aLine || null != bLine) {
+                String[] aKeyValuepair = aLine.split(":");
+                String[] bKeyValuePair = bLine.split(":");
+                int result = aKeyValuepair[0].compareTo(bKeyValuePair[0]);
+                if (result == 0) {
+                    // add frequency
+                    long freq = Long.parseLong(aKeyValuepair[1]) + Long.parseLong(bKeyValuePair[1]);
+                    Util.writeToFile(sortedFileWriter, aKeyValuepair[0] + ":" + freq, true);
+                    // increment readers for both files.
+                    aLine = aBr.readLine();
+                    bLine = bBr.readLine();
+                } else if (result < 0) {
+                    // a has smaller key than b, write it down and increment a's
+                    // reader
+                    Util.writeToFile(sortedFileWriter, aLine, true);
+                    aLine = aBr.readLine();
+                } else {
+                    // b has smaller key than a, write it down and increment b's
+                    // reader
+                    Util.writeToFile(sortedFileWriter, bLine, true);
+                    bLine = bBr.readLine();
+                }
+            }
+            // write what is left to the output file
+            // note: one of the two lines must be null.
+            while (null != aLine) {
+                Util.writeToFile(sortedFileWriter, aLine, true);
+                aLine = aBr.readLine();
+            }
+            while (null != bLine) {
+                Util.writeToFile(sortedFileWriter, bLine, true);
+                bLine = bBr.readLine();
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } finally {
+            // close files.
+            try {
+                Util.closeOutputFile(sortedFileWriter);
+                aBr.close();
+                bBr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
 }

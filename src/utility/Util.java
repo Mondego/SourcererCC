@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -46,6 +47,7 @@ public class Util {
     public static final String INDEX_DIR = "index";
     public static final String INDEX_DIR_TEMP = "index_temp";
     public static final String GTPM_DIR = "gtpm";
+    public static final String GLOBAL_WFM_DIR = "wfm";
     public static final String FWD_INDEX_DIR = "fwdindex";
     public static final String FWD_INDEX_DIR_TEMP = "fwdindex_temp";
     public static final String GTPM_INDEX_DIR = "gtpmindex";
@@ -70,8 +72,7 @@ public class Util {
      * @param isNewline
      *            whether to start from a newline or not
      */
-    public static synchronized void writeToFile(Writer pWriter,
-            final String text, final boolean isNewline) {
+    public static synchronized void writeToFile(Writer pWriter, final String text, final boolean isNewline) {
         if (isNewline) {
             try {
                 pWriter.write(text + System.lineSeparator());
@@ -99,11 +100,10 @@ public class Util {
      * @throws IOException
      * @return PrintWriter
      */
-    public static Writer openFile(String filename, boolean append)
-            throws IOException {
+    public static Writer openFile(String filename, boolean append) throws IOException {
         try {
-            Writer pWriter = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(filename, append), "UTF-8"));
+            Writer pWriter = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(filename, append), "UTF-8"));
             return pWriter;
 
         } catch (IOException e) {
@@ -142,16 +142,13 @@ public class Util {
         }
     }
 
-    public static boolean isSatisfyPosFilter(int similarity, int querySize,
-            int termsSeenInQueryBlock, int candidateSize,
-            int termsSeenInCandidate, int computedThreshold) {
+    public static boolean isSatisfyPosFilter(int similarity, int querySize, int termsSeenInQueryBlock,
+            int candidateSize, int termsSeenInCandidate, int computedThreshold) {
         return computedThreshold <= similarity
-                + Math.min(querySize - termsSeenInQueryBlock, candidateSize
-                        - termsSeenInCandidate);
+                + Math.min(querySize - termsSeenInQueryBlock, candidateSize - termsSeenInCandidate);
     }
 
-    public static void writeJsonStream(String filename,
-            Map<String, Integer> gtpm) {
+    public static void writeJsonStream(String filename, Map<String, Integer> gtpm) {
         Writer writer = null;
         try {
             writer = Util.openFile(filename, false);
@@ -174,8 +171,7 @@ public class Util {
     }
 
     public static String debug_thread() {
-        return "  Thread_id: " + Thread.currentThread().getId()
-                + " Thread_name: " + Thread.currentThread().getName();
+        return "  Thread_id: " + Thread.currentThread().getId() + " Thread_name: " + Thread.currentThread().getName();
     }
 
     public static Map<String, Integer> readJsonStream(String filename) {
@@ -183,8 +179,7 @@ public class Util {
         BufferedReader br = null;
         Map<String, Integer> gtpm = new HashMap<String, Integer>();
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(
-                    filename), "UTF-8"), 1024 * 1024 * 512);
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"), 1024 * 1024 * 512);
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 Gson gson = new GsonBuilder().create();
@@ -211,17 +206,18 @@ public class Util {
 
     }
 
-    public static <K,V> Map<K,V> lruCache(final int maxSize) {
-        return Collections.synchronizedMap(new LinkedHashMap<K,V>(maxSize*4/3, 0.75f, true) {
+    public static <K, V> Map<K, V> lruCache(final int maxSize) {
+        return Collections.synchronizedMap(new LinkedHashMap<K, V>(maxSize * 4 / 3, 0.75f, true) {
             @Override
-            protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
+            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 return size() > maxSize;
             }
-	    });
+        });
     }
 
     // This cache is shared by all threads that call sortBag
     final static Map<String, Long> cache = lruCache(8000000);
+
     public static void sortBag(Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
 
@@ -229,22 +225,20 @@ public class Util {
             public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
                 long position1 = 0;
                 long position2 = 0;
-		String k1 = tfFirst.getToken().getValue();
-		String k2 = tfSecond.getToken().getValue();
-		if (cache.containsKey(k1)) {
-		    position1 = cache.get(k1);
-		}
-		else {
-		    position1 = SearchManager.gtpmSearcher.getPosition(k1);
-		    cache.put(k1, position1);
-		}
-		if (cache.containsKey(k2)) {
-		    position2 = cache.get(k2);
-		}
-		else {
-		    position2 = SearchManager.gtpmSearcher.getPosition(k2);
-		    cache.put(k2, position2);
-		}
+                String k1 = tfFirst.getToken().getValue();
+                String k2 = tfSecond.getToken().getValue();
+                if (cache.containsKey(k1)) {
+                    position1 = cache.get(k1);
+                } else {
+                    position1 = SearchManager.gtpmSearcher.getPosition(k1);
+                    cache.put(k1, position1);
+                }
+                if (cache.containsKey(k2)) {
+                    position2 = cache.get(k2);
+                } else {
+                    position2 = SearchManager.gtpmSearcher.getPosition(k2);
+                    cache.put(k2, position2);
+                }
                 if (position1 - position2 != 0) {
                     return (int) (position1 - position2);
                 } else {
@@ -266,13 +260,13 @@ public class Util {
      * Math.ceil((threshold * bag.getSize())/ (SearchManager.MUL_FACTOR*10)); }
      */
 
-    public static void writeMapToFile(String filename, Map<String, Long> gtpm) {
+    public static void writeMapToFile(String filename, Map<String, Long> map) {
         // TODO Auto-generated method stub
         Writer writer = null;
         try {
             System.out.println("writing to : " + filename);
             writer = Util.openFile(filename, false);
-            for (Entry<String, Long> entry : gtpm.entrySet()) {
+            for (Entry<String, Long> entry : map.entrySet()) {
                 String text = entry.getKey() + ":" + entry.getValue();
                 Util.writeToFile(writer, text, true);
             }
@@ -325,8 +319,7 @@ public class Util {
 
     }
 
-    public static void populateProcessedWFMSet(String filename,
-            Set<String> processedWFMset) {
+    public static void populateProcessedWFMSet(String filename, Set<String> processedWFMset) {
         BufferedReader br = null;
         File f = new File(filename);
         System.out.println("file is " + f);
@@ -348,6 +341,18 @@ public class Util {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static BufferedReader getReader(File queryFile) throws FileNotFoundException {
+        BufferedReader br = null;
+        br = new BufferedReader(new FileReader(queryFile));
+        return br;
+    }
+
+    public static Writer openFile(File output, boolean append) throws IOException {
+        // TODO Auto-generated method stub
+        Writer pWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output, append), "UTF-8"));
+        return pWriter;
     }
 
     /*
