@@ -44,6 +44,7 @@ local.properties
 # PDT-specific
 .buildpath
 
+#SourcererCC-specific
 index/*
 dist/*
 fwdindex/*
@@ -51,3 +52,6 @@ index_nofilter/*
 output*
 /bin/
 *.class
+wfm/*
+
+

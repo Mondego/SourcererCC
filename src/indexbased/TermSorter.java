@@ -2,14 +2,11 @@ package indexbased;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
-import java.rmi.UnexpectedException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +14,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.TreeMap;
+
+import models.Bag;
+import models.ITokensFileProcessor;
+import noindex.CloneHelper;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -28,13 +29,6 @@ import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Ordering;
-
-import models.Bag;
-import models.ITokensFileProcessor;
-import noindex.CloneHelper;
 import utility.TokensFileReader;
 import utility.Util;
 
