@@ -82,7 +82,7 @@ public class TermSorter implements ITokensFileProcessor {
             Util.createDirs(SearchManager.WFM_DIR_PATH);
             File queryDir = new File(SearchManager.QUERY_DIR_PATH);
             if (queryDir.isDirectory()) {
-                System.out.println("Directory: " + queryDir.getName());
+                System.out.println("Directory: " + queryDir.getAbsolutePath());
                 for (File inputFile : queryDir.listFiles()) {
                     this.populateWordFreqMap(inputFile);
                 }
@@ -118,8 +118,9 @@ public class TermSorter implements ITokensFileProcessor {
             Util.createDirs(Util.GLOBAL_WFM_DIR);
             this.mergeWfms(System.getProperty("user.dir"), Util.GLOBAL_WFM_DIR, false);
             // this.populateGlobalWordFreqMapIttrative(currentDir);
-
-            // no need to sort, GLOBAL_WFM_DIR contains the sorted WFM file
+            
+            // external sort the Global wfm file based on frequency.
+            
 
             /*
              * Map<String, Long> sortedMap =
@@ -141,8 +142,8 @@ public class TermSorter implements ITokensFileProcessor {
                 count++;
             }
             Util.closeOutputFile(gtpmFileWriter);
-            System.out.println("Indexing GTPM, size of GTPM: " + (count - 1) + " entries");
-            this.indexGPTM(gtpmFile);
+            //System.out.println("Indexing GTPM, size of GTPM: " + (count - 1) + " entries");
+            //this.indexGPTM(gtpmFile);
             TermSorter.globalTokenPositionMap = null;
             SearchManager.globalWordFreqMap = null;
         }
@@ -310,7 +311,8 @@ public class TermSorter implements ITokensFileProcessor {
         });
         File resultFile = null;
         File previousResultFile = new File(outputWfmDirectoryPath + "/sorted_0.wfm");
-        previousResultFile.createNewFile();
+        boolean created= previousResultFile.createNewFile();
+        System.out.println("temp efm file created, status: "+ created);
         int i = 1;
         for (File wfmFile : wfmFiles) {
             resultFile = new File(outputWfmDirectoryPath + "/sorted_" + i + ".wfm");
@@ -333,35 +335,45 @@ public class TermSorter implements ITokensFileProcessor {
             String aLine = aBr.readLine();
             String bLine = bBr.readLine();
             while (null != aLine || null != bLine) {
+                System.out.println("aLine is: "+ aLine);
+                System.out.println("bLine is: "+ bLine);
                 String[] aKeyValuepair = aLine.split(":");
                 String[] bKeyValuePair = bLine.split(":");
                 int result = aKeyValuepair[0].compareTo(bKeyValuePair[0]);
                 if (result == 0) {
                     // add frequency
+                    System.out.println("adding frequency");
                     long freq = Long.parseLong(aKeyValuepair[1]) + Long.parseLong(bKeyValuePair[1]);
                     Util.writeToFile(sortedFileWriter, aKeyValuepair[0] + ":" + freq, true);
                     // increment readers for both files.
+                    System.out.println("incrementing both file pointers");
                     aLine = aBr.readLine();
                     bLine = bBr.readLine();
                 } else if (result < 0) {
                     // a has smaller key than b, write it down and increment a's
                     // reader
+                    System.out.println("a's key is smaller");
                     Util.writeToFile(sortedFileWriter, aLine, true);
+                    System.out.println("incrementing a's file pointers");
                     aLine = aBr.readLine();
                 } else {
                     // b has smaller key than a, write it down and increment b's
                     // reader
+                    System.out.println("b's key is smaller");
                     Util.writeToFile(sortedFileWriter, bLine, true);
+                    System.out.println("incrementing b' file pointers");
                     bLine = bBr.readLine();
                 }
             }
             // write what is left to the output file
             // note: one of the two lines must be null.
             while (null != aLine) {
+                System.out.println("Writing remaining contents of file a");
                 Util.writeToFile(sortedFileWriter, aLine, true);
                 aLine = aBr.readLine();
             }
             while (null != bLine) {
+                System.out.println("Writing remaining contents of file b");
                 Util.writeToFile(sortedFileWriter, bLine, true);
                 bLine = bBr.readLine();
             }
