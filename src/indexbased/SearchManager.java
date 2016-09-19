@@ -274,7 +274,7 @@ public class SearchManager {
             if (bag.getSize() >= shard.getMinBagSizeToIndex() && bag.getSize() <= shard.getMaxBagSizeToIndex()) {
                 shardsToReturn.add(shard);
             }
- 
+
         return shardsToReturn;
     }
 
@@ -406,7 +406,7 @@ public class SearchManager {
             TermSorter termSorter = new TermSorter();
             termSorter.populateLocalWordFreqMap();
             // merge the .wfm files
-            termSorter.mergeWfms(SearchManager.WFM_DIR_PATH, SearchManager.WFM_DIR_PATH,true);
+            termSorter.mergeWfms(SearchManager.WFM_DIR_PATH, SearchManager.WFM_DIR_PATH, true);
             if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
                 termSorter.populateGlobalPositionMap();
             }
@@ -539,31 +539,32 @@ public class SearchManager {
             for (File inputFile : datasetDir.listFiles()) {
                 try {
 
-		    TokensFileReader tfr = new TokensFileReader(SearchManager.NODE_PREFIX, inputFile, SearchManager.max_tokens, 
-								new ITokensFileProcessor () {
-								    public void processLine(String line) throws ParseException {
-									Bag bag = cloneHelper.deserialise(line);
-									if (null == bag || bag.getSize() < SearchManager.min_tokens) {
-									    if (null == bag) {
-										System.out.println(SearchManager.NODE_PREFIX + " empty bag, ignoring. statusCounter= "
-												   + SearchManager.statusCounter);
-									    } else {
-										System.out.println(SearchManager.NODE_PREFIX + " ignoring bag " 
-												   + ", " + bag + ", statusCounter="
-												   + SearchManager.statusCounter);
-									    }
-									    return; // ignore this bag.
-									}
-									try {
-									    SearchManager.bagsToSortQueue.send(bag);
-									} catch (Exception e) {
-									    System.out.println(SearchManager.NODE_PREFIX + "Unable to send bag "+bag.getId()+" to queue");
-									    e.printStackTrace();
-									}
+                    TokensFileReader tfr = new TokensFileReader(SearchManager.NODE_PREFIX, inputFile,
+                            SearchManager.max_tokens, new ITokensFileProcessor() {
+                                public void processLine(String line) throws ParseException {
+                                    Bag bag = cloneHelper.deserialise(line);
+                                    if (null == bag || bag.getSize() < SearchManager.min_tokens) {
+                                        if (null == bag) {
+                                            System.out.println(
+                                                    SearchManager.NODE_PREFIX + " empty bag, ignoring. statusCounter= "
+                                                            + SearchManager.statusCounter);
+                                        } else {
+                                            System.out.println(SearchManager.NODE_PREFIX + " ignoring bag " + ", " + bag
+                                                    + ", statusCounter=" + SearchManager.statusCounter);
+                                        }
+                                        return; // ignore this bag.
+                                    }
+                                    try {
+                                        SearchManager.bagsToSortQueue.send(bag);
+                                    } catch (Exception e) {
+                                        System.out.println(SearchManager.NODE_PREFIX + "Unable to send bag "
+                                                + bag.getId() + " to queue");
+                                        e.printStackTrace();
+                                    }
 
-								    }
-								});
-		    tfr.read();
+                                }
+                            });
+                    tfr.read();
 
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();

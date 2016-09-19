@@ -59,20 +59,19 @@ public class InvertedIndexCreator implements IListener, Runnable {
 
     private void index(Bag bag) throws InterruptedException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-	long startTime = System.nanoTime(); 
+        long startTime = System.nanoTime();
         List<Shard> shards = SearchManager.getShardIdsForBag(bag);
         this.document = this.documentMaker.prepareDocument(bag);
         for (Shard shard : shards) {
             try {
-                System.out.println(shard);
                 shard.getInvertedIndexWriter().addDocument(this.document);
             } catch (IOException e) {
                 System.out.println(SearchManager.NODE_PREFIX + ": error in indexing bag, " + bag);
                 e.printStackTrace();
             }
         }
-	long estimatedTime = System.nanoTime() - startTime;
-	System.out.println(SearchManager.NODE_PREFIX + " II, Bag " + bag + " in " + estimatedTime /1000 + " micros");
+        long estimatedTime = System.nanoTime() - startTime;
+        System.out.println(SearchManager.NODE_PREFIX + " II, Bag " + bag + " in " + estimatedTime / 1000 + " micros");
 
         SearchManager.bagsToForwardIndexQueue.send(bag);
     }
