@@ -116,6 +116,10 @@ public class TermSorter implements ITokensFileProcessor {
             // File currentDir = new File(System.getProperty("user.dir"));
             // external sort and merge the sorted wfms from all NODES.
             // the final sorted WFM file will be present in UTIL.GLOBAL_WFM_DIR
+            File globalWFMDIr = new File(Util.GLOBAL_WFM_DIR);
+            if(globalWFMDIr.exists()){
+                globalWFMDIr.delete();
+            }
             Util.createDirs(Util.GLOBAL_WFM_DIR);
             this.mergeWfms(System.getProperty("user.dir"), Util.GLOBAL_WFM_DIR, false);
             // this.populateGlobalWordFreqMapIttrative(currentDir);
@@ -324,8 +328,6 @@ public class TermSorter implements ITokensFileProcessor {
         Writer sortedFileWriter = Util.openFile(output, false);
         System.out.println();
         try {
-            System.out.println(aBr);
-            System.out.println(bBr);
             String aLine = aBr.readLine();
             String bLine = bBr.readLine();
             while (null != aLine && null != bLine) {
