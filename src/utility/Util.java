@@ -223,26 +223,27 @@ public class Util {
 
         Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
             public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
-                long position1 = 0;
-                long position2 = 0;
+                Long frequency1 = 0l;
+                Long frequency2 = 0l;
                 String k1 = tfFirst.getToken().getValue();
                 String k2 = tfSecond.getToken().getValue();
                 if (cache.containsKey(k1)) {
-                    position1 = cache.get(k1);
+                    frequency1 = cache.get(k1);
                 } else {
-                    position1 = SearchManager.gtpmSearcher.getPosition(k1);
-                    cache.put(k1, position1);
+                    frequency1 = SearchManager.gtpmSearcher.getFrequency(k1);
+                    cache.put(k1, frequency1);
                 }
                 if (cache.containsKey(k2)) {
-                    position2 = cache.get(k2);
+                    frequency2 = cache.get(k2);
                 } else {
-                    position2 = SearchManager.gtpmSearcher.getPosition(k2);
-                    cache.put(k2, position2);
+                    frequency2 = SearchManager.gtpmSearcher.getFrequency(k2);
+                    cache.put(k2, frequency2);
                 }
-                if (position1 - position2 != 0) {
-                    return (int) (position1 - position2);
-                } else {
-                    return 1;
+                int result = frequency1.compareTo(frequency2);
+                if(result==0){
+                    return k1.compareTo(k2);
+                }else{
+                    return result;
                 }
             }
         });

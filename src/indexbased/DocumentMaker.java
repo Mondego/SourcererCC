@@ -110,7 +110,7 @@ public class DocumentMaker {
                     Field.Store.NO);
            // keyField.fieldType().setIndexed(true);
             document.add(keyField);
-            StoredField strField = new StoredField("position", keyValPair[1]);
+            StoredField strField = new StoredField("frequency", keyValPair[1]);
             document.add(strField);
             return document;
         }

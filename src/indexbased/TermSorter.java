@@ -9,6 +9,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.rmi.UnexpectedException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
@@ -118,38 +119,25 @@ public class TermSorter implements ITokensFileProcessor {
             Util.createDirs(Util.GLOBAL_WFM_DIR);
             this.mergeWfms(System.getProperty("user.dir"), Util.GLOBAL_WFM_DIR, false);
             // this.populateGlobalWordFreqMapIttrative(currentDir);
-            
-            // external sort the Global wfm file based on frequency.
-            
-
-            /*
-             * Map<String, Long> sortedMap =
-             * ImmutableSortedMap.copyOf(SearchManager.globalWordFreqMap,
-             * Ordering.natural()
-             * .onResultOf(Functions.forMap(SearchManager.globalWordFreqMap)).
-             * compound(Ordering.natural()));
-             */
-            Long count = 1l;
             // create the tokens.gtpm file
-            File globalWFMFile = new File(Util.GLOBAL_WFM_DIR).listFiles()[0]; // there should be only one file in this directory
-            BufferedReader br = Util.getReader(globalWFMFile);
-            String line = null;
-            Util.createDirs(Util.GTPM_DIR);
-            Writer gtpmFileWriter = Util.openFile(Util.GTPM_DIR + "/tokens.gtpm", false);
-            while ((line = br.readLine()) != null) {
-                String token = line.split(":")[0];
-                Util.writeToFile(gtpmFileWriter, token + ":" + count, true);
-                count++;
-            }
-            Util.closeOutputFile(gtpmFileWriter);
-            //System.out.println("Indexing GTPM, size of GTPM: " + (count - 1) + " entries");
-            //this.indexGPTM(gtpmFile);
+            File globalWFMFile = new File(Util.GLOBAL_WFM_DIR).listFiles()[0]; // there
+                                                                               // should
+                                                                               // be
+                                                                               // only
+                                                                               // one
+                                                                               // file
+                                                                               // in
+                                                                               // this
+                                                                               // directory
+            // System.out.println("Indexing GTPM, size of GTPM: " + (count - 1)
+            // + " entries");
+            this.indexGPTM(globalWFMFile);
             TermSorter.globalTokenPositionMap = null;
             SearchManager.globalWordFreqMap = null;
         }
     }
 
-    private void indexGPTM(File gtpmFile) {
+    private void indexGPTM(File inputFile) {
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
         IndexWriterConfig gtpmIndexWriterConfig = new IndexWriterConfig(Version.LUCENE_46, keywordAnalyzer);
         TieredMergePolicy mergePolicy = (TieredMergePolicy) gtpmIndexWriterConfig.getMergePolicy();
@@ -166,7 +154,7 @@ public class TermSorter implements ITokensFileProcessor {
             BufferedReader br = null;
             int count = 0;
             try {
-                br = new BufferedReader(new InputStreamReader(new FileInputStream(gtpmFile), "UTF-8"));
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-8"));
                 String line;
                 while ((line = br.readLine()) != null && line.trim().length() > 0) {
                     gtpmIndexer.indexGtpmEntry(line);
@@ -297,22 +285,25 @@ public class TermSorter implements ITokensFileProcessor {
     public void mergeWfms(String inputWfmDirectoryPath, String outputWfmDirectoryPath,
             boolean deleteInputfilesAfterProcessing) throws IOException {
         // Iterate on wfm fies in the input directory
-        // List<File> wfmFiles = (List<File>) FileUtils.listFiles(new
-        // File(inputWfmDirectoryPath), new String[]{"wfm"}, true);
-        File inputFolder = new File(inputWfmDirectoryPath);
-        File[] wfmFiles = inputFolder.listFiles(new FilenameFilter() {
-
-            @Override
-            public boolean accept(File dir, String name) {
-                return !dir.getName().startsWith(".git") 
-                        && dir.getName().contains("wfm") 
-                        && name.endsWith(".wfm");
-            }
-        });
+        List<File> wfmFiles = (List<File>) FileUtils.listFiles(new File(inputWfmDirectoryPath), new String[] { "wfm" },
+                true);
+        //File inputFolder = new File(inputWfmDirectoryPath);
+        /*
+         * File[] wfmFiles = inputFolder.listFiles(new FilenameFilter() {
+         * 
+         * @Override public boolean accept(File dir, String name) {
+         * System.out.println("dir to consider: "+ dir.getAbsolutePath());
+         * return !dir.getAbsolutePath().contains(".git") &&
+         * name.endsWith(".wfm"); } });
+         */
+        System.out.println("wfm files to merge: " + wfmFiles.size());
+        for (File f : wfmFiles) {
+            System.out.println("wfm files: " + f.getAbsolutePath());
+        }
         File resultFile = null;
         File previousResultFile = new File(outputWfmDirectoryPath + "/sorted_0.wfm");
-        boolean created= previousResultFile.createNewFile();
-        System.out.println("temp efm file created, status: "+ created);
+        boolean created = previousResultFile.createNewFile();
+        System.out.println("temp wfm file created, status: " + created);
         int i = 1;
         for (File wfmFile : wfmFiles) {
             resultFile = new File(outputWfmDirectoryPath + "/sorted_" + i + ".wfm");
@@ -331,49 +322,52 @@ public class TermSorter implements ITokensFileProcessor {
         BufferedReader aBr = Util.getReader(a);
         BufferedReader bBr = Util.getReader(b);
         Writer sortedFileWriter = Util.openFile(output, false);
+        System.out.println();
         try {
+            System.out.println(aBr);
+            System.out.println(bBr);
             String aLine = aBr.readLine();
             String bLine = bBr.readLine();
-            while (null != aLine || null != bLine) {
-                System.out.println("aLine is: "+ aLine);
-                System.out.println("bLine is: "+ bLine);
-                String[] aKeyValuepair = aLine.split(":");
+            while (null != aLine && null != bLine) {
+                // System.out.println("aLine is: " + aLine);
+                // System.out.println("bLine is: " + bLine);
+                String[] aKeyValuePair = aLine.split(":");
                 String[] bKeyValuePair = bLine.split(":");
-                int result = aKeyValuepair[0].compareTo(bKeyValuePair[0]);
+                int result = aKeyValuePair[0].compareTo(bKeyValuePair[0]);
                 if (result == 0) {
                     // add frequency
-                    System.out.println("adding frequency");
-                    long freq = Long.parseLong(aKeyValuepair[1]) + Long.parseLong(bKeyValuePair[1]);
-                    Util.writeToFile(sortedFileWriter, aKeyValuepair[0] + ":" + freq, true);
+                    // System.out.println("adding frequency");
+                    long freq = Long.parseLong(aKeyValuePair[1]) + Long.parseLong(bKeyValuePair[1]);
+                    Util.writeToFile(sortedFileWriter, aKeyValuePair[0] + ":" + freq, true);
                     // increment readers for both files.
-                    System.out.println("incrementing both file pointers");
+                    // System.out.println("incrementing both file pointers");
                     aLine = aBr.readLine();
                     bLine = bBr.readLine();
                 } else if (result < 0) {
                     // a has smaller key than b, write it down and increment a's
                     // reader
-                    System.out.println("a's key is smaller");
+                    // System.out.println("a's key is smaller");
                     Util.writeToFile(sortedFileWriter, aLine, true);
-                    System.out.println("incrementing a's file pointers");
+                    // System.out.println("incrementing a's file pointers");
                     aLine = aBr.readLine();
                 } else {
                     // b has smaller key than a, write it down and increment b's
                     // reader
-                    System.out.println("b's key is smaller");
+                    // System.out.println("b's key is smaller");
                     Util.writeToFile(sortedFileWriter, bLine, true);
-                    System.out.println("incrementing b' file pointers");
+                    // System.out.println("incrementing b' file pointers");
                     bLine = bBr.readLine();
                 }
             }
             // write what is left to the output file
             // note: one of the two lines must be null.
             while (null != aLine) {
-                System.out.println("Writing remaining contents of file a");
+                // System.out.println("Writing remaining contents of file a");
                 Util.writeToFile(sortedFileWriter, aLine, true);
                 aLine = aBr.readLine();
             }
             while (null != bLine) {
-                System.out.println("Writing remaining contents of file b");
+                // System.out.println("Writing remaining contents of file b");
                 Util.writeToFile(sortedFileWriter, bLine, true);
                 bLine = bBr.readLine();
             }
@@ -387,10 +381,86 @@ public class TermSorter implements ITokensFileProcessor {
                 aBr.close();
                 bBr.close();
             } catch (IOException e) {
+                System.out.println("Caught Exception");
                 e.printStackTrace();
             }
         }
-
+    }
+    
+    private void externalMergeByValue(File a, File b, File output) throws IOException {
+        BufferedReader aBr = Util.getReader(a);
+        BufferedReader bBr = Util.getReader(b);
+        Writer sortedFileWriter = Util.openFile(output, false);
+        System.out.println();
+        try {
+            System.out.println(aBr);
+            System.out.println(bBr);
+            String aLine = aBr.readLine();
+            String bLine = bBr.readLine();
+            while (null != aLine && null != bLine) {
+                String[] aKeyValuPair = aLine.split(":");
+                String[] bKeyValuePair = bLine.split(":");
+                Long aValue = Long.parseLong(aKeyValuPair[1]);
+                Long bValue = Long.parseLong(bKeyValuePair[1]);
+                int result = aValue.compareTo(bValue);
+                if (result == 0) {
+                    // compare strings alphabetically 
+                    int res = aKeyValuPair[0].compareTo(bKeyValuePair[0]);
+                    if(res==0){
+                        // this should never happen because keys can not be same
+                        throw new UnexpectedException("merging gtpm, keys are equal error.");
+                    }else if (res<0){
+                        Util.writeToFile(sortedFileWriter, aLine, true);
+                        Util.writeToFile(sortedFileWriter, bLine, true);
+                    }else{
+                        Util.writeToFile(sortedFileWriter, bLine, true);
+                        Util.writeToFile(sortedFileWriter, aLine, true);
+                    }
+                    // increment readers for both files.
+                    aLine = aBr.readLine();
+                    bLine = bBr.readLine();
+                } else if (result < 0) {
+                    // a has smaller key than b, write it down and increment a's
+                    // reader
+                    // System.out.println("a's key is smaller");
+                    Util.writeToFile(sortedFileWriter, aLine, true);
+                    // System.out.println("incrementing a's file pointers");
+                    aLine = aBr.readLine();
+                } else {
+                    // b has smaller key than a, write it down and increment b's
+                    // reader
+                    // System.out.println("b's key is smaller");
+                    Util.writeToFile(sortedFileWriter, bLine, true);
+                    // System.out.println("incrementing b' file pointers");
+                    bLine = bBr.readLine();
+                }
+            }
+            // write what is left to the output file
+            // note: one of the two lines must be null.
+            while (null != aLine) {
+                // System.out.println("Writing remaining contents of file a");
+                Util.writeToFile(sortedFileWriter, aLine, true);
+                aLine = aBr.readLine();
+            }
+            while (null != bLine) {
+                // System.out.println("Writing remaining contents of file b");
+                Util.writeToFile(sortedFileWriter, bLine, true);
+                bLine = bBr.readLine();
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } finally {
+            // close files.
+            try {
+                Util.closeOutputFile(sortedFileWriter);
+                aBr.close();
+                bBr.close();
+            } catch (IOException e) {
+                System.out.println("Caught Exception");
+                e.printStackTrace();
+            }
+        }
     }
 
 }

@@ -126,10 +126,10 @@ public class CodeSearcher {
         return result;
     }
 
-    public long getPosition(String key) {
+    public long getFrequency(String key) {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
         Query query;
-        long position = -1l;
+        long frequency = -1l;
         try {
             synchronized (this) {
                 query = queryParser.parse(key);
@@ -143,7 +143,7 @@ public class CodeSearcher {
             if (blocks.size() == 1) {
                 Document document = SearchManager.gtpmSearcher
                         .getDocument(blocks.get(0));
-                position = Long.parseLong(document.get("position"));
+                frequency = Long.parseLong(document.get("frequency"));
             }
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
             System.out.println("cannot parse " + e.getMessage());
@@ -153,7 +153,7 @@ public class CodeSearcher {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return position;
+        return frequency;
     }
 
     /*
