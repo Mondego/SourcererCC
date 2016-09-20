@@ -71,7 +71,7 @@ public class IndexMerger {
 
     private void mergeindexes(int shardId) {
         // TODO Auto-generated method stub
-        System.out.println("mering inverted indexes");
+        System.out.println("merging inverted indexes");
         WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
                 Version.LUCENE_46);
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
@@ -100,7 +100,7 @@ public class IndexMerger {
                 e.printStackTrace();
             }
         }
-        System.out.println("mergin fwd indexes");
+        System.out.println("merging fwd indexes");
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
         IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
                 Version.LUCENE_46, keywordAnalyzer);
@@ -162,7 +162,7 @@ public class IndexMerger {
                         .getProperty("SHARD_MAX_NUM_TOKENS");
                 String[] shardSegments = segmentString.split(",");
                 for (int shardId = 1; shardId <= shardSegments.length+1; shardId++) {
-                    System.out.println("merging shard "+ shardId);
+                    System.out.println("*** shard "+ shardId);
                     indexMerger.populateIndexdirs(shardId);
                     indexMerger.mergeindexes(shardId);
                 }
