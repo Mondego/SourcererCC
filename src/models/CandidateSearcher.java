@@ -53,25 +53,14 @@ public class CandidateSearcher implements IListener, Runnable {
     private void searchCandidates(QueryBlock queryBlock)
             throws IOException, InterruptedException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-        long start_time = System.currentTimeMillis();
+        long startTime = System.nanoTime();
         TermSearcher termSearcher = new TermSearcher();
         SearchManager.searcher.search(queryBlock, termSearcher);
         QueryCandidates qc = new QueryCandidates();
         qc.queryBlock = queryBlock;
         qc.termSearcher = termSearcher;
-        long end_time = System.currentTimeMillis();
-        Duration duration;
-        try {
-            duration = DatatypeFactory.newInstance().newDuration(end_time - start_time);
-            System.out.printf(
-                    SearchManager.NODE_PREFIX + ", candidates Searched for query: " + queryBlock.getFunctionId() + ","
-                            + queryBlock.getId() + " time taken: %02dh:%02dm:%02ds",
-                    duration.getDays() * 24 + duration.getHours(), duration.getMinutes(), duration.getSeconds());
-            start_time = end_time;
-            System.out.println();
-        } catch (DatatypeConfigurationException e) {
-            e.printStackTrace();
-        }
+        long estimatedTime = System.nanoTime() - startTime;
+        System.out.println(SearchManager.NODE_PREFIX + " CandidateSearcher, QueryBlock " + queryBlock + " in " + estimatedTime/1000 + " micros");
         SearchManager.queryCandidatesQueue.send(qc);
     }
 

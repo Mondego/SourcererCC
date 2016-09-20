@@ -21,4 +21,8 @@ public class CandidatePair {
         this.functionIdCandidate = functionIdCandidate;
         this.candidateId = candidateId;
     }
+    @Override
+    public String toString() {
+        return "QueryBlock["+this.queryBlock.toString()+"], Candidate["+ this.functionIdCandidate+":"+this.candidateId+":"+ this.candidateSize+"]"; 
+    }
 }

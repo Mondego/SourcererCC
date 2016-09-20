@@ -24,7 +24,7 @@ public class QueryFileProcessor implements ITokensFileProcessor {
     @Override
     public void processLine(String line) throws ParseException {
         // TODO Auto-generated method stub
-        long start_time = System.currentTimeMillis();
+        long startTime = System.nanoTime();
         try {
             QueryBlock queryBlock = this.getNextQueryBlock(line);
             if (searchManager.appendToExistingFile
@@ -42,34 +42,14 @@ public class QueryFileProcessor implements ITokensFileProcessor {
             if (queryBlock.getSize() < SearchManager.min_tokens
                     || queryBlock.getSize() > SearchManager.max_tokens) {
                 System.out.println("ignoring query, REASON:  "
-                        + queryBlock.getFunctionId() + ", "
-                        + queryBlock.getId() + ", size: "
-                        + queryBlock.getSize());
+                        + queryBlock);
                 return; // ignore this query
             }
             if (SearchManager.isStatusCounterOn) {
                 SearchManager.statusCounter += 1;
                 if ((SearchManager.statusCounter % SearchManager.printAfterEveryXQueries) == 0) {
-                    long end_time = System.currentTimeMillis();
-                    Duration duration;
-                    try {
-                        duration = DatatypeFactory.newInstance().newDuration(
-                                end_time - start_time);
-                        System.out.printf(
-                                SearchManager.NODE_PREFIX
-                                        + ", queriesBlock created: "
-                                        + queryBlock.getFunctionId() + ","
-                                        + queryBlock.getId() + ", size "
-                                        + queryBlock.getSize()
-                                        + ", statusCounter "
-                                        + SearchManager.statusCounter
-                                        + " time taken: %02dh:%02dm:%02ds",
-                                duration.getDays() * 24 + duration.getHours(),
-                                duration.getMinutes(), duration.getSeconds());
-                        System.out.println();
-                    } catch (DatatypeConfigurationException e) {
-                        e.printStackTrace();
-                    }
+                    long estimatedTime = System.nanoTime() - startTime;
+                    System.out.println(SearchManager.NODE_PREFIX + " QueryBlockProcessor, QueryBlock " + queryBlock + " in " + estimatedTime/1000 + " micros");
                 }
             }
             SearchManager.queryBlockQueue.send(queryBlock);

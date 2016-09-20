@@ -129,4 +129,9 @@ public class QueryBlock {
     public void setMaxCandidateSize(int maxCandidateSize) {
         this.maxCandidateSize = maxCandidateSize;
     }
+    
+    @Override
+    public String toString() {
+        return this.getFunctionId()+":"+this.getId()+":"+ this.getSize();
+    }
 }

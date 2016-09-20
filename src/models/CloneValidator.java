@@ -59,6 +59,7 @@ public class CloneValidator implements IListener, Runnable {
          */
 
         // long start_time = System.currentTimeMillis();
+        long startTime = System.nanoTime();
         if (candidatePair.candidateTokens != null && candidatePair.candidateTokens.trim().length() > 0) {
             int similarity = this.updateSimilarity(candidatePair.queryBlock, candidatePair.candidateTokens,
                     candidatePair.computedThreshold, candidatePair.candidateSize, candidatePair.simInfo);
@@ -80,6 +81,8 @@ public class CloneValidator implements IListener, Runnable {
                  * System.out.println(); } catch (DatatypeConfigurationException
                  * e) { e.printStackTrace(); }
                  */
+                long estimatedTime = System.nanoTime() - startTime;
+                System.out.println(SearchManager.NODE_PREFIX + " CloneValidator, QueryBlock " + candidatePair + " in " + estimatedTime/1000 + " micros");
                 SearchManager.reportCloneQueue.send(cp);
             }
             /*

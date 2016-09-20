@@ -71,7 +71,7 @@ public class CandidateProcessor implements IListener, Runnable {
         System.out.println(SearchManager.NODE_PREFIX + ", num candidates: " + codeBlockIds.entrySet().size()
                 + ", query: " + queryBlock.getFunctionId() + "," + queryBlock.getId());
         for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
-            // long start_time = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             Document doc = null;
             try {
                 doc = SearchManager.searcher.getDocument(entry.getKey());
@@ -106,24 +106,8 @@ public class CandidateProcessor implements IListener, Runnable {
                             candidatePair = new CandidatePair(queryBlock, tokens, simInfo,
                                     queryBlock.getComputedThreshold(), candidateSize, functionIdCandidate, candidateId);
                         }
-
-                        /*
-                         * long end_time = System.currentTimeMillis(); Duration
-                         * duration; try { duration =
-                         * DatatypeFactory.newInstance().newDuration( end_time -
-                         * start_time);
-                         * System.out.printf(SearchManager.NODE_PREFIX +
-                         * ", candidates processed: " +
-                         * candidatePair.candidateId + "query: " +
-                         * candidatePair.queryBlock.getFunctionId() + "," +
-                         * candidatePair.queryBlock.getId() +
-                         * " time taken: %02dh:%02dm:%02ds", duration.getDays()
-                         * 24 + duration.getHours(), duration.getMinutes(),
-                         * duration.getSeconds()); start_time = end_time;
-                         * System.out.println(); } catch
-                         * (DatatypeConfigurationException e) {
-                         * e.printStackTrace(); }
-                         */
+                        long estimatedTime = System.nanoTime() - startTime;
+                        System.out.println(SearchManager.NODE_PREFIX + " CandidateProcessor, " + candidatePair + " in " + estimatedTime/1000 + " micros");
                         SearchManager.verifyCandidateQueue.send(candidatePair);
                         entry = null;
                     } else {
