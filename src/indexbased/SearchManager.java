@@ -148,7 +148,7 @@ public class SearchManager {
         SearchManager.numCandidates = 0;
         this.timeTotal = 0;
         this.appendToExistingFile = true;
-        SearchManager.ramBufferSizeMB = 1024 * 1;
+        SearchManager.ramBufferSizeMB = 100 * 1;
         this.bagsSortTime = 0;
         this.action = args[0];
         SearchManager.statusCounter = 0;
