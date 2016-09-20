@@ -58,7 +58,7 @@ public class QueryFileProcessor implements ITokensFileProcessor {
         } catch (ParseException e) {
             System.out.println("catching parseException, dont worry");
             System.out.println(e.getMessage()
-                    + " skiping this query block, parse exception: " + line);
+			       + " skiping this query block, parse exception: " + line.substring(0, 40));
             // e.printStackTrace();
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage()

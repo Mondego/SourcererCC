@@ -184,7 +184,7 @@ public class SearchManager {
         }
         if (this.action.equals(ACTION_SEARCH)) {
             this.completedQueries = new HashSet<Long>();
-            System.out.println("acton: " + this.action + System.lineSeparator()
+            System.out.println("action: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
                     + "QBQ_THREADS: " + this.qbq_thread_count + ", QBQ_SIZE: "
                     + this.qbq_size + System.lineSeparator() + "QCQ_THREADS: "
@@ -647,7 +647,7 @@ public class SearchManager {
             File[] queryFiles = this.getQueryFiles(queryDirectory);
             QueryFileProcessor queryFileProcessor = new QueryFileProcessor(this);
             for (File queryFile : queryFiles) {
-                System.out.println("Query File: " + queryFile);
+                //System.out.println("Query File: " + queryFile);
                 String filename = queryFile.getName().replaceFirst("[.][^.]+$",
                         "");
                 try {
