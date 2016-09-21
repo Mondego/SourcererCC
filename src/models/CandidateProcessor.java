@@ -107,7 +107,7 @@ public class CandidateProcessor implements IListener, Runnable {
                                     queryBlock.getComputedThreshold(), candidateSize, functionIdCandidate, candidateId);
                         }
                         long estimatedTime = System.nanoTime() - startTime;
-                        System.out.println(SearchManager.NODE_PREFIX + " CandidateProcessor, " + candidatePair + " in " + estimatedTime/1000 + " micros");
+                        //System.out.println(SearchManager.NODE_PREFIX + " CandidateProcessor, " + candidatePair + " in " + estimatedTime/1000 + " micros");
                         SearchManager.verifyCandidateQueue.send(candidatePair);
                         entry = null;
                     } else {
