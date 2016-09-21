@@ -406,6 +406,10 @@ public class SearchManager {
 	    System.out.println(NODE_PREFIX + " Starting to search");
             theInstance.populateCompletedQueries();
             theInstance.findCandidates();
+
+            SearchManager.queryLineQueue.shutdown();
+            System.out.println("shutting down QLQ, "
+                    + System.currentTimeMillis());
             System.out.println("shutting down QBQ, "
                     + (System.currentTimeMillis()));
             SearchManager.queryBlockQueue.shutdown();
