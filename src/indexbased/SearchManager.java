@@ -117,16 +117,9 @@ public class SearchManager {
     private int qcq_thread_count;
     private int vcq_thread_count;
     private int rcq_thread_count;
-    private int qbq_size;
-    private int qcq_size;
-    private int vcq_size;
-    private int rcq_size;
     private int threadsToProcessBagsToSortQueue;
-    private int sizeBagsToSortQ;
     private int threadToProcessIIQueue;
-    private int sizeBagsToIIQ;
     private int threadsToProcessFIQueue;
-    private int sizeBagsToFIQ;
     private int searchShardId;
     public static int min_tokens;
     public static int max_tokens;
@@ -167,18 +160,11 @@ public class SearchManager {
             this.qcq_thread_count = Integer.parseInt(properties.getProperty("QCQ_THREADS", "1"));
             this.vcq_thread_count = Integer.parseInt(properties.getProperty("VCQ_THREADS", "1"));
             this.rcq_thread_count = Integer.parseInt(properties.getProperty("RCQ_THREADS", "1"));
-            this.qbq_size = Integer.parseInt(properties.getProperty("QBQ_SIZE"));
-            this.qcq_size = Integer.parseInt(properties.getProperty("QCQ_SIZE"));
-            this.vcq_size = Integer.parseInt(properties.getProperty("VCQ_SIZE"));
-            this.rcq_size = Integer.parseInt(properties.getProperty("RCQ_SIZE"));
             SearchManager.min_tokens = Integer.parseInt(properties.getProperty("MIN_TOKENS", "65"));
             SearchManager.max_tokens = Integer.parseInt(properties.getProperty("MAX_TOKENS", "500000"));
             this.threadsToProcessBagsToSortQueue = Integer.parseInt(properties.getProperty("BTSQ_THREADS", "1"));
             this.threadToProcessIIQueue = Integer.parseInt(properties.getProperty("BTIIQ_THREADS", "1"));
             this.threadsToProcessFIQueue = Integer.parseInt(properties.getProperty("BTFIQ_THREADS", "1"));
-            this.sizeBagsToSortQ = Integer.parseInt(properties.getProperty("BTSQ_SIZE"));
-            this.sizeBagsToIIQ = Integer.parseInt(properties.getProperty("BTIIQ_SIZE"));
-            this.sizeBagsToFIQ = Integer.parseInt(properties.getProperty("BTFIQ_SIZE"));
             this.searchShardId = Integer.parseInt(properties.getProperty("SEARCH_SHARD_ID", "1"));
             this.isSharding = Boolean.parseBoolean(properties.getProperty("IS_SHARDING"));
             if (!this.isSharding) {
@@ -194,13 +180,10 @@ public class SearchManager {
             System.out.println("action: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
                     + "QLQ_THREADS: " + this.qlq_thread_count
-                    + "QBQ_THREADS: " + this.qbq_thread_count + ", QBQ_SIZE: "
-                    + this.qbq_size + System.lineSeparator() + "QCQ_THREADS: "
-                    + this.qcq_thread_count + ", QCQ_SIZE: " + this.qcq_size
-                    + System.lineSeparator() + "VCQ_THREADS: "
-                    + this.vcq_thread_count + ", VCQ_SIZE: " + this.vcq_size
-                    + System.lineSeparator() + "RCQ_THREADS: "
-                    + this.rcq_thread_count + ", RCQ_SIZE: " + this.rcq_size
+                    + "QBQ_THREADS: " + this.qbq_thread_count 
+		    + "QCQ_THREADS: " + this.qcq_thread_count 
+                    + "VCQ_THREADS: " + this.vcq_thread_count 
+                    + "RCQ_THREADS: " + this.rcq_thread_count 
                     + System.lineSeparator());
             SearchManager.queryLineQueue = new ThreadedChannel<String>(
                     this.qlq_thread_count, QueryLineProcessor.class);
@@ -257,14 +240,10 @@ public class SearchManager {
             }
             System.out.println("action: " + this.action
                     + System.lineSeparator() + "threshold: " + args[1]
-                    + System.lineSeparator() + "BQ_THREADS: "
-                    + this.threadsToProcessBagsToSortQueue + ", BQ_SIZE: "
-                    + this.sizeBagsToSortQ + System.lineSeparator()
-                    + "SBQ_THREADS: " + this.threadToProcessIIQueue
-                    + ", SBQ_SIZE: " + this.sizeBagsToIIQ
+                    + System.lineSeparator() + "BQ_THREADS: " + this.threadsToProcessBagsToSortQueue 
+                    + System.lineSeparator() + "SBQ_THREADS: " + this.threadToProcessIIQueue
                     + System.lineSeparator() + "IIQ_THREADS: "
-                    + this.threadsToProcessFIQueue + ", IIQ_SIZE: "
-                    + this.sizeBagsToFIQ + System.lineSeparator());
+                    + this.threadsToProcessFIQueue + System.lineSeparator());
 
             SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
                     this.threadsToProcessBagsToSortQueue, BagSorter.class);
