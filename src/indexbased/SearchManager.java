@@ -36,6 +36,7 @@ import models.ForwardIndexCreator;
 import models.ITokensFileProcessor;
 import models.InvertedIndexCreator;
 import models.QueryBlock;
+import models.QueryLineProcessor;
 import models.QueryCandidates;
 import models.QueryFileProcessor;
 import models.Shard;
@@ -89,14 +90,16 @@ public class SearchManager {
     int deletemeCounter = 0;
     public static double ramBufferSizeMB;
     private long bagsSortTime;
-    public static ThreadedChannel<QueryCandidates> queryCandidatesQueue;
+    public static ThreadedChannel<String> queryLineQueue;
     public static ThreadedChannel<QueryBlock> queryBlockQueue;
-    public static ThreadedChannel<ClonePair> reportCloneQueue;
+    public static ThreadedChannel<QueryCandidates> queryCandidatesQueue;
     public static ThreadedChannel<CandidatePair> verifyCandidateQueue;
+    public static ThreadedChannel<ClonePair> reportCloneQueue;
 
     public static ThreadedChannel<Bag> bagsToSortQueue;
     public static ThreadedChannel<Bag> bagsToInvertedIndexQueue;
     public static ThreadedChannel<Bag> bagsToForwardIndexQueue;
+    public static SearchManager theInstance;
 
     private final static int BAG_SORTER = 1;
     private final static int INVERTED_INDEX_CREATOR = 2;
@@ -106,8 +109,10 @@ public class SearchManager {
     // private List<FSDirectory> invertedIndexDirectories;
     // private List<FSDirectory> forwardIndexDirectories;
     public static List<IndexWriter> indexerWriters;
+    private static EProperties properties = new EProperties();
 
     public static Object lock = new Object();
+    private int qlq_thread_count;
     private int qbq_thread_count;
     private int qcq_thread_count;
     private int vcq_thread_count;
@@ -156,24 +161,26 @@ public class SearchManager {
         try {
 
             SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
-            this.qbq_thread_count = Integer.parseInt(args[2]);
-            this.qcq_thread_count = Integer.parseInt(args[3]);
-            this.vcq_thread_count = Integer.parseInt(args[4]);
-            this.rcq_thread_count = Integer.parseInt(args[5]);
-            this.qbq_size = Integer.parseInt(args[6]);
-            this.qcq_size = Integer.parseInt(args[7]);
-            this.vcq_size = Integer.parseInt(args[8]);
-            this.rcq_size = Integer.parseInt(args[9]);
-            SearchManager.min_tokens = Integer.parseInt(args[10]);
-            SearchManager.max_tokens = Integer.parseInt(args[11]);
-            this.threadsToProcessBagsToSortQueue = Integer.parseInt(args[12]);
-            this.threadToProcessIIQueue = Integer.parseInt(args[13]);
-            this.threadsToProcessFIQueue = Integer.parseInt(args[14]);
-            this.sizeBagsToSortQ = Integer.parseInt(args[15]);
-            this.sizeBagsToIIQ = Integer.parseInt(args[16]);
-            this.sizeBagsToFIQ = Integer.parseInt(args[17]);
-            this.searchShardId = Integer.parseInt(args[18]);
-            this.isSharding = Boolean.parseBoolean(args[20]);
+	    
+            this.qlq_thread_count = Integer.parseInt(properties.getProperty("QLQ_THREADS", "1"));
+            this.qbq_thread_count = Integer.parseInt(properties.getProperty("QBQ_THREADS", "1"));
+            this.qcq_thread_count = Integer.parseInt(properties.getProperty("QCQ_THREADS", "1"));
+            this.vcq_thread_count = Integer.parseInt(properties.getProperty("VCQ_THREADS", "1"));
+            this.rcq_thread_count = Integer.parseInt(properties.getProperty("RCQ_THREADS", "1"));
+            this.qbq_size = Integer.parseInt(properties.getProperty("QBQ_SIZE"));
+            this.qcq_size = Integer.parseInt(properties.getProperty("QCQ_SIZE"));
+            this.vcq_size = Integer.parseInt(properties.getProperty("VCQ_SIZE"));
+            this.rcq_size = Integer.parseInt(properties.getProperty("RCQ_SIZE"));
+            SearchManager.min_tokens = Integer.parseInt(properties.getProperty("MIN_TOKENS", "65"));
+            SearchManager.max_tokens = Integer.parseInt(properties.getProperty("MAX_TOKENS", "500000"));
+            this.threadsToProcessBagsToSortQueue = Integer.parseInt(properties.getProperty("BTSQ_THREADS", "1"));
+            this.threadToProcessIIQueue = Integer.parseInt(properties.getProperty("BTIIQ_THREADS", "1"));
+            this.threadsToProcessFIQueue = Integer.parseInt(properties.getProperty("BTFIQ_THREADS", "1"));
+            this.sizeBagsToSortQ = Integer.parseInt(properties.getProperty("BTSQ_SIZE"));
+            this.sizeBagsToIIQ = Integer.parseInt(properties.getProperty("BTIIQ_SIZE"));
+            this.sizeBagsToFIQ = Integer.parseInt(properties.getProperty("BTFIQ_SIZE"));
+            this.searchShardId = Integer.parseInt(properties.getProperty("SEARCH_SHARD_ID", "1"));
+            this.isSharding = Boolean.parseBoolean(properties.getProperty("IS_SHARDING"));
             if (!this.isSharding) {
                 this.searchShardId = 1;
             }
@@ -186,6 +193,7 @@ public class SearchManager {
             this.completedQueries = new HashSet<Long>();
             System.out.println("action: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
+                    + "QLQ_THREADS: " + this.qlq_thread_count
                     + "QBQ_THREADS: " + this.qbq_thread_count + ", QBQ_SIZE: "
                     + this.qbq_size + System.lineSeparator() + "QCQ_THREADS: "
                     + this.qcq_thread_count + ", QCQ_SIZE: " + this.qcq_size
@@ -194,6 +202,8 @@ public class SearchManager {
                     + System.lineSeparator() + "RCQ_THREADS: "
                     + this.rcq_thread_count + ", RCQ_SIZE: " + this.rcq_size
                     + System.lineSeparator());
+            SearchManager.queryLineQueue = new ThreadedChannel<String>(
+                    this.qlq_thread_count, QueryLineProcessor.class);
             SearchManager.queryBlockQueue = new ThreadedChannel<QueryBlock>(
                     this.qbq_thread_count, CandidateSearcher.class);
             SearchManager.queryCandidatesQueue = new ThreadedChannel<QueryCandidates>(
@@ -224,7 +234,7 @@ public class SearchManager {
             SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
             SearchManager.shards = new ArrayList<Shard>();
             if (this.isSharding) {
-                String shardSegment = args[19];
+                String shardSegment = properties.getProperty("SHARD_MAX_NUM_TOKENS");
                 System.out.println("shardSegments String is : " + shardSegment);
                 String[] shardSegments = shardSegment.split(",");
                 for (String segment : shardSegments) {
@@ -310,8 +320,6 @@ public class SearchManager {
     public static void main(String[] args) throws IOException, ParseException,
             InterruptedException {
         long start_time = System.currentTimeMillis();
-        SearchManager searchManager = null;
-        EProperties properties = new EProperties();
         FileInputStream fis = null;
         System.out.println("reading Q values from properties file");
         String propertiesPath = System.getProperty("properties.location");
@@ -319,29 +327,9 @@ public class SearchManager {
         fis = new FileInputStream(propertiesPath);
         try {
             properties.load(fis);
-            String[] params = new String[21];
+            String[] params = new String[2];
             params[0] = args[0];
             params[1] = args[1];
-            params[2] = properties.getProperty("QBQ_THREADS");
-            params[3] = properties.getProperty("QCQ_THREADS");
-            params[4] = properties.getProperty("VCQ_THREADS");
-            params[5] = properties.getProperty("RCQ_THREADS");
-            params[6] = properties.getProperty("QBQ_SIZE");
-            params[7] = properties.getProperty("QCQ_SIZE");
-            params[8] = properties.getProperty("VCQ_SIZE");
-            params[9] = properties.getProperty("RCQ_SIZE");
-            params[10] = properties.getProperty("MIN_TOKENS");
-            params[11] = properties.getProperty("MAX_TOKENS");
-            params[12] = properties.getProperty("BTSQ_THREADS");
-            params[13] = properties.getProperty("BTIIQ_THREADS");
-            params[14] = properties.getProperty("BTFIQ_THREADS");
-            params[15] = properties.getProperty("BTSQ_SIZE");
-            params[16] = properties.getProperty("BTIIQ_SIZE");
-            params[17] = properties.getProperty("BTFIQ_SIZE");
-            // shard
-            params[18] = properties.getProperty("SEARCH_SHARD_ID");
-            params[19] = properties.getProperty("SHARD_MAX_NUM_TOKENS");
-            params[20] = properties.getProperty("IS_SHARDING");
 
             SearchManager.DATASET_DIR = properties
                     .getProperty("DATASET_DIR_PATH");
@@ -362,7 +350,7 @@ public class SearchManager {
             System.out.println("Query path:" + SearchManager.QUERY_DIR_PATH);
 
             SearchManager.WFM_DIR_PATH = properties.getProperty("WFM_DIR_PATH");
-            searchManager = new SearchManager(params);
+            theInstance = new SearchManager(params);
         } catch (IOException e) {
             System.out.println("ERROR READING PROPERTIES FILE, "
                     + e.getMessage());
@@ -379,16 +367,16 @@ public class SearchManager {
                 / SearchManager.MUL_FACTOR + "/report.csv";
         File reportFile = new File(reportFileName);
         if (reportFile.exists()) {
-            searchManager.appendToExistingFile = true;
+            theInstance.appendToExistingFile = true;
         } else {
-            searchManager.appendToExistingFile = false;
+            theInstance.appendToExistingFile = false;
         }
-        searchManager.reportWriter = Util.openFile(reportFileName,
-                searchManager.appendToExistingFile);
-        if (searchManager.action.equalsIgnoreCase(ACTION_INDEX)) {
-            searchManager.initIndexEnv();
+        theInstance.reportWriter = Util.openFile(reportFileName,
+                theInstance.appendToExistingFile);
+        if (theInstance.action.equalsIgnoreCase(ACTION_INDEX)) {
+            theInstance.initIndexEnv();
             long begin_time = System.currentTimeMillis();
-            searchManager.doIndex();
+            theInstance.doIndex();
 
             System.out.println("attempting to shutdown Qs");
             System.out.println(SearchManager.NODE_PREFIX
@@ -407,16 +395,17 @@ public class SearchManager {
             }
             /*
              * System.out.println("merging indexes");
-             * searchManager.mergeindexes(); System.out.println("merge done");
+             * theInstance.mergeindexes(); System.out.println("merge done");
              */
             System.out.println("indexing over!");
-            searchManager.timeIndexing = System.currentTimeMillis()
+            theInstance.timeIndexing = System.currentTimeMillis()
                     - begin_time;
-        } else if (searchManager.action.equalsIgnoreCase(ACTION_SEARCH)) {
-            searchManager.initSearchEnv();
+        } else if (theInstance.action.equalsIgnoreCase(ACTION_SEARCH)) {
+            theInstance.initSearchEnv();
             long timeStartSearch = System.currentTimeMillis();
-            searchManager.populateCompletedQueries();
-            searchManager.findCandidates();
+	    System.out.println(NODE_PREFIX + " Starting to search");
+            theInstance.populateCompletedQueries();
+            theInstance.findCandidates();
             System.out.println("shutting down QBQ, "
                     + (System.currentTimeMillis()));
             SearchManager.queryBlockQueue.shutdown();
@@ -429,9 +418,9 @@ public class SearchManager {
             System.out.println("shutting down RCQ, "
                     + System.currentTimeMillis());
             SearchManager.reportCloneQueue.shutdown();
-            searchManager.timeSearch = System.currentTimeMillis()
+            theInstance.timeSearch = System.currentTimeMillis()
                     - timeStartSearch;
-        } else if (searchManager.action.equalsIgnoreCase(ACTION_INIT)) {
+        } else if (theInstance.action.equalsIgnoreCase(ACTION_INIT)) {
             TermSorter termSorter = new TermSorter();
             termSorter.populateLocalWordFreqMap();
             // merge the .wfm files
@@ -456,9 +445,9 @@ public class SearchManager {
         }
         System.out.println("number of clone pairs detected: "
                 + SearchManager.clonePairsCount);
-        searchManager.timeTotal = end_time - start_time;
-        searchManager.genReport();
-        Util.closeOutputFile(searchManager.reportWriter);
+        theInstance.timeTotal = end_time - start_time;
+        theInstance.genReport();
+        Util.closeOutputFile(theInstance.reportWriter);
         try {
             Util.closeOutputFile(SearchManager.clonesWriter);
         } catch (Exception e) {
@@ -645,7 +634,7 @@ public class SearchManager {
         try {
             File queryDirectory = this.getQueryDirectory();
             File[] queryFiles = this.getQueryFiles(queryDirectory);
-            QueryFileProcessor queryFileProcessor = new QueryFileProcessor(this);
+            QueryFileProcessor queryFileProcessor = new QueryFileProcessor();
             for (File queryFile : queryFiles) {
                 //System.out.println("Query File: " + queryFile);
                 String filename = queryFile.getName().replaceFirst("[.][^.]+$",
