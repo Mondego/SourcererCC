@@ -171,7 +171,12 @@ public class CodeSearcher {
      */
 
     public Document getDocument(long docId) throws IOException {
-        return this.searcher.doc((int) docId);
+	try {
+	    return this.searcher.doc((int) docId);
+	} catch (IllegalArgumentException e) {
+	    System.out.println(SearchManager.NODE_PREFIX + ", CodeSearcher on " + indexDir + ": invalid docId " + docId);
+	    return null;
+	}
     }
 
     /**

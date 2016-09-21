@@ -16,6 +16,7 @@ import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.document.Document;
 
 import utility.Util;
 
@@ -30,9 +31,11 @@ public class TermSearcher {
     private Map<Long, CandidateSimInfo> simMap;
     private int querySize;
     private int computedThreshold;
+    private int shard;
 
-    public TermSearcher() {
+    public TermSearcher(int shard) {
         this.simMap = new HashMap<Long, CandidateSimInfo>();
+	this.shard = shard;
     }
 
     public synchronized void searchWithPosition(int queryTermsSeen) {
@@ -76,10 +79,9 @@ public class TermSearcher {
                                     simInfo.candidateMatchPosition = candidatePos
                                             + docEnum.freq();
                                     if (simInfo.candidateSize == 0) {
-                                        simInfo.candidateSize = Integer
-                                                .parseInt(SearchManager.searcher
-                                                        .getDocument(docId)
-                                                        .get("size"));
+					Document d = SearchManager.searcher.get(shard).getDocument(docId);
+					//$$$$$$$$$$$$$$
+                                        simInfo.candidateSize = Integer.parseInt(d.get("size"));
                                     }
                                     if (!Util.isSatisfyPosFilter(
                                             this.simMap.get(docId).similarity,

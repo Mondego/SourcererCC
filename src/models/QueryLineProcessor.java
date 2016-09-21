@@ -34,6 +34,8 @@ public class QueryLineProcessor implements Runnable {
         long startTime = System.nanoTime();
         try {
             QueryBlock queryBlock = this.getNextQueryBlock(line);
+	    if (queryBlock == null)
+		return;
             if (searchManager.appendToExistingFile
                     && searchManager.completedQueries.contains(queryBlock
                             .getId())) {
@@ -46,12 +48,7 @@ public class QueryLineProcessor implements Runnable {
                                 + queryBlock.getSize());
                 return;
             }
-            if (queryBlock.getSize() < SearchManager.min_tokens
-                    || queryBlock.getSize() > SearchManager.max_tokens) {
-                System.out.println("ignoring query, REASON:  "
-                        + queryBlock);
-                return; // ignore this query
-            }
+
             if (SearchManager.isStatusCounterOn) {
                 SearchManager.statusCounter += 1;
 	    }
@@ -90,24 +87,26 @@ public class QueryLineProcessor implements Runnable {
     public QueryBlock getNextQueryBlock(String line) throws ParseException,
             IllegalArgumentException {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
-        QueryBlock queryBlock = searchManager.cloneHelper.getSortedQueryBlock(
-                line, listOfTokens);
-        if (queryBlock.getSize() >= SearchManager.min_tokens
-                && queryBlock.getSize() <= SearchManager.max_tokens) {
-            int position = 0;
-            for (Entry<String, TokenInfo> entry : listOfTokens) {
-                TokenInfo tokenInfo = entry.getValue();
-                if (position < queryBlock.getPrefixSize()) {
-                    queryBlock.getPrefixMap().put(entry.getKey(), tokenInfo);
-                    position += tokenInfo.getFrequency();
-                    queryBlock.setPrefixMapSize(position);
-                } else {
-                    queryBlock.getSuffixMap().put(entry.getKey(), tokenInfo);
-                    position += tokenInfo.getFrequency();
-                }
-                tokenInfo.setPosition(position);
-            }
-        }
+        QueryBlock queryBlock = searchManager.cloneHelper.getSortedQueryBlock(line, listOfTokens);
+	if (queryBlock == null) {
+	    System.out.println(SearchManager.NODE_PREFIX + " QLP, Invalid QueryBlock " + queryBlock);
+	    return null;
+	}
+
+	int position = 0;
+	for (Entry<String, TokenInfo> entry : listOfTokens) {
+	    TokenInfo tokenInfo = entry.getValue();
+	    if (position < queryBlock.getPrefixSize()) {
+		queryBlock.getPrefixMap().put(entry.getKey(), tokenInfo);
+		position += tokenInfo.getFrequency();
+		queryBlock.setPrefixMapSize(position);
+	    } else {
+		queryBlock.getSuffixMap().put(entry.getKey(), tokenInfo);
+		position += tokenInfo.getFrequency();
+	    }
+	    tokenInfo.setPosition(position);
+	}
+
         return queryBlock;
     }
 }

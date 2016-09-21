@@ -30,7 +30,7 @@ public class CandidateProcessor implements IListener, Runnable {
         try {
             // System.out.println( "QCQ size: "+
             // SearchManager.queryCandidatesQueue.size() + Util.debug_thread());
-            this.processResultWithFilter(this.qc.termSearcher, this.qc.queryBlock);
+            this.processResultWithFilter();
         } catch (NoSuchElementException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -58,11 +58,15 @@ public class CandidateProcessor implements IListener, Runnable {
 
     }
 
-    private void processResultWithFilter(TermSearcher result, QueryBlock queryBlock)
+    private void processResultWithFilter()
             throws InterruptedException, InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
         // System.out.println("HERE, thread_id: " + Util.debug_thread() +
         // ", query_id "+ queryBlock.getId());
+	TermSearcher result = this.qc.termSearcher;
+	QueryBlock queryBlock = this.qc.queryBlock;
+	int shard = queryBlock.getShardId();
+	
         long sstart_time = System.currentTimeMillis();
         Map<Long, CandidateSimInfo> codeBlockIds = result.getSimMap();
         if (SearchManager.isGenCandidateStats) {
@@ -74,7 +78,7 @@ public class CandidateProcessor implements IListener, Runnable {
             long startTime = System.nanoTime();
             Document doc = null;
             try {
-                doc = SearchManager.searcher.getDocument(entry.getKey());
+                doc = SearchManager.searcher.get(shard).getDocument(entry.getKey());
                 CandidateSimInfo simInfo = entry.getValue();
                 long candidateId = Long.parseLong(doc.get("id"));
                 long functionIdCandidate = Long.parseLong(doc.get("functionId"));
@@ -92,11 +96,11 @@ public class CandidateProcessor implements IListener, Runnable {
                 if (candidateSize > queryBlock.getSize()) {
                     newCt = Integer.parseInt(doc.get("ct"));
                 }
-                CustomCollectorFwdIndex collector = SearchManager.fwdSearcher.search(doc);
+                CustomCollectorFwdIndex collector = SearchManager.fwdSearcher.get(shard).search(doc);
                 List<Integer> blocks = collector.getBlocks();
                 if (!blocks.isEmpty()) {
                     if (blocks.size() == 1) {
-                        Document document = SearchManager.fwdSearcher.getDocument(blocks.get(0));
+                        Document document = SearchManager.fwdSearcher.get(shard).getDocument(blocks.get(0));
                         String tokens = document.get("tokens");
                         CandidatePair candidatePair = null;
                         if (newCt != -1) {

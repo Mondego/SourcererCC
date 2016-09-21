@@ -20,20 +20,37 @@ import utility.BlockInfo;
 
 public class Shard {
     int id;
+    int minSize, maxSize;
     int minBagSizeToIndex;
     int maxBagSizeToIndex;
     IndexWriter invertedIndexWriter;
     IndexWriter forwardIndexWriter;
     
-    public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch){
+    public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch, boolean forWriting){
         this.id = id;
+	this.minSize = minBagSizeToSearch;
+	this.maxSize = maxBagSizeToSearch;
         this.minBagSizeToIndex = minBagSizeToSearch;
         this.maxBagSizeToIndex = BlockInfo.getMaximumSimilarityThreshold(maxBagSizeToSearch, SearchManager.th);
-        System.out.println("setinverted index");
-        this.setInvertedIndexWriter();
-        System.out.println("set forward index");
-        this.setForwardIndexWriter();
-        System.out.println("ok");
+	if (forWriting) {
+	    System.out.println("setinverted index");
+	    this.setInvertedIndexWriter();
+	    System.out.println("set forward index");
+	    this.setForwardIndexWriter();
+	}
+        System.out.println("shard " +this.id+ " created");
+    }
+
+    public int getId() {
+	return id;
+    }
+
+    public int getMinSize() {
+	return minSize;
+    }
+
+    public int getMaxSize() {
+	return maxSize;
     }
 
     public int getMinBagSizeToIndex() {

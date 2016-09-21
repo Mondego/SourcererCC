@@ -60,7 +60,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
     private void index(Bag bag) throws InterruptedException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         long startTime = System.nanoTime();
-        List<Shard> shards = SearchManager.getShardIdsForBag(bag);
+        List<Shard> shards = SearchManager.getShards(bag);
         this.document = this.documentMaker.prepareDocument(bag);
         for (Shard shard : shards) {
             try {

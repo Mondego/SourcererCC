@@ -26,6 +26,7 @@ import models.QueryBlock;
 import models.Token;
 import models.TokenFrequency;
 import models.TokenInfo;
+import models.Shard;
 
 import org.apache.lucene.document.Document;
 
@@ -322,18 +323,26 @@ public class CloneHelper {
                     queryBlock.setFunctionId(Long.parseLong(functionId));
                     if (queryBlock.getSize() < SearchManager.min_tokens
                             || queryBlock.getSize() > SearchManager.max_tokens) {
-                        return queryBlock; // do not process it further. we need
+                        return null; // do not process it further. we need
                                            // to discard this query
                     }
+		    Shard shard = SearchManager.getShard(queryBlock);
+		    if (shard == null) {
+			System.out.println(SearchManager.NODE_PREFIX + " unable to find shard for query block " + queryBlock);
+			return null;
+		    }
+
+		    queryBlock.setShardId(shard.getId()); 
+
                 } catch (NumberFormatException e) {
                     throw e;
                 }
                 String tokenString = null;// bagAndTokens[1];
-                CustomCollectorFwdIndex collector = SearchManager.fwdSearcher.search(bagId);
+                CustomCollectorFwdIndex collector = SearchManager.fwdSearcher.get(queryBlock.getShardId()).search(bagId);
                 List<Integer> blocks = collector.getBlocks();
                 if (!blocks.isEmpty()) {
                     if (blocks.size() == 1) {
-                        Document document = SearchManager.fwdSearcher.getDocument(blocks.get(0));
+                        Document document = SearchManager.fwdSearcher.get(queryBlock.getShardId()).getDocument(blocks.get(0));
                         tokenString = document.get("tokens");
                         this.parseAndPopulateQueryBlock(listOfTokens, tokenString, "::", ":");
                         return queryBlock;

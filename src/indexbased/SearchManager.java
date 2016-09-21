@@ -57,8 +57,8 @@ import validation.TestGson;
  */
 public class SearchManager {
     private static long clonePairsCount;
-    public static CodeSearcher searcher;
-    public static CodeSearcher fwdSearcher;
+    public static ArrayList<CodeSearcher> searcher;
+    public static ArrayList<CodeSearcher> fwdSearcher;
     public static CodeSearcher gtpmSearcher;
     public CloneHelper cloneHelper;
     public static String QUERY_DIR_PATH;
@@ -177,13 +177,16 @@ public class SearchManager {
         }
         if (this.action.equals(ACTION_SEARCH)) {
             this.completedQueries = new HashSet<Long>();
+
+	    this.createShards(false);
+
             System.out.println("action: " + this.action + System.lineSeparator()
                     + "threshold: " + args[1] + System.lineSeparator()
-                    + "QLQ_THREADS: " + this.qlq_thread_count
-                    + "QBQ_THREADS: " + this.qbq_thread_count 
-		    + "QCQ_THREADS: " + this.qcq_thread_count 
-                    + "VCQ_THREADS: " + this.vcq_thread_count 
-                    + "RCQ_THREADS: " + this.rcq_thread_count 
+                    + " QLQ_THREADS: " + this.qlq_thread_count
+                    + " QBQ_THREADS: " + this.qbq_thread_count 
+		    + " QCQ_THREADS: " + this.qcq_thread_count 
+                    + " VCQ_THREADS: " + this.vcq_thread_count 
+                    + " RCQ_THREADS: " + this.rcq_thread_count 
                     + System.lineSeparator());
             SearchManager.queryLineQueue = new ThreadedChannel<String>(
                     this.qlq_thread_count, QueryLineProcessor.class);
@@ -210,39 +213,14 @@ public class SearchManager {
             // invertedIndexDirectories = new ArrayList<FSDirectory>();
             // forwardIndexDirectories = new ArrayList<FSDirectory>();
             indexerWriters = new ArrayList<IndexWriter>();
-            int minTokens = SearchManager.min_tokens;
-            int maxTokens = SearchManager.max_tokens;
-            int shardId = 1;
-            SearchManager.invertedIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
-            SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
-            SearchManager.shards = new ArrayList<Shard>();
-            if (this.isSharding) {
-                String shardSegment = properties.getProperty("SHARD_MAX_NUM_TOKENS");
-                System.out.println("shardSegments String is : " + shardSegment);
-                String[] shardSegments = shardSegment.split(",");
-                for (String segment : shardSegments) {
-                    // create shards
-                    maxTokens = Integer.parseInt(segment);
-                    Shard shard = new Shard(shardId, minTokens, maxTokens);
-                    System.out.println("Shard Created: " + shard);
-                    SearchManager.shards.add(shard);
-                    minTokens = maxTokens + 1;
-                    shardId++;
-                }
-                // create the last shard
-                Shard shard = new Shard(shardId, minTokens,
-                        SearchManager.max_tokens);
-                SearchManager.shards.add(shard);
-            } else {
-                Shard shard = new Shard(shardId, SearchManager.min_tokens,
-                        SearchManager.max_tokens);
-                SearchManager.shards.add(shard);
-            }
+
+	    this.createShards(true);
+
             System.out.println("action: " + this.action
                     + System.lineSeparator() + "threshold: " + args[1]
-                    + System.lineSeparator() + "BQ_THREADS: " + this.threadsToProcessBagsToSortQueue 
-                    + System.lineSeparator() + "SBQ_THREADS: " + this.threadToProcessIIQueue
-                    + System.lineSeparator() + "IIQ_THREADS: "
+                    + System.lineSeparator() + " BQ_THREADS: " + this.threadsToProcessBagsToSortQueue 
+                    + System.lineSeparator() + " SBQ_THREADS: " + this.threadToProcessIIQueue
+                    + System.lineSeparator() + " IIQ_THREADS: "
                     + this.threadsToProcessFIQueue + System.lineSeparator());
 
             SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
@@ -264,8 +242,39 @@ public class SearchManager {
 
     }
 
+    private void createShards(boolean forWriting) {
+	int minTokens = SearchManager.min_tokens;
+	int maxTokens = SearchManager.max_tokens;
+	int shardId = 1;
+	SearchManager.invertedIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
+	SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
+	SearchManager.shards = new ArrayList<Shard>();
+	if (this.isSharding) {
+	    String shardSegment = properties.getProperty("SHARD_MAX_NUM_TOKENS");
+	    System.out.println("shardSegments String is : " + shardSegment);
+	    String[] shardSegments = shardSegment.split(",");
+	    for (String segment : shardSegments) {
+		// create shards
+		maxTokens = Integer.parseInt(segment);
+		Shard shard = new Shard(shardId, minTokens, maxTokens, forWriting);
+		SearchManager.shards.add(shard);
+		minTokens = maxTokens + 1;
+		shardId++;
+	    }
+	    // create the last shard
+	    Shard shard = new Shard(shardId, minTokens,
+				    SearchManager.max_tokens, forWriting);
+	    SearchManager.shards.add(shard);
+	} else {
+	    Shard shard = new Shard(shardId, SearchManager.min_tokens,
+				    SearchManager.max_tokens, forWriting);
+	    SearchManager.shards.add(shard);
+	}
+	System.out.println("Number of shards created: " + this.shards.size());
+    } 
+
     // this bag needs to be indexed in following shards
-    public static List<Shard> getShardIdsForBag(Bag bag) {
+    public static List<Shard> getShards(Bag bag) {
         List<Shard> shardsToReturn = new ArrayList<Shard>();
         for (Shard shard : SearchManager.shards)
             if (bag.getSize() >= shard.getMinBagSizeToIndex()
@@ -274,6 +283,17 @@ public class SearchManager {
             }
 
         return shardsToReturn;
+    }
+
+    // This query needs to be directed to the following shard
+    public static Shard getShard(QueryBlock qb) {
+        for (Shard shard : SearchManager.shards)
+            if (qb.getSize() >= shard.getMinSize()
+                    && qb.getSize() < shard.getMaxSize()) {
+		return shard;
+            }
+
+        return null;
     }
 
     /*
@@ -663,12 +683,15 @@ public class SearchManager {
     }
 
     private void initSearchEnv() {
-        SearchManager.fwdSearcher = new CodeSearcher(Util.FWD_INDEX_DIR + "/"
-                + this.searchShardId, "id");
-        SearchManager.searcher = new CodeSearcher(Util.INDEX_DIR + "/"
-                + this.searchShardId, "tokens");
-        SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
-                "key");
+	SearchManager.fwdSearcher = new ArrayList<CodeSearcher>();
+	SearchManager.searcher = new ArrayList<CodeSearcher>();
+	for (Shard shard : this.shards) {
+	    SearchManager.fwdSearcher.add(new CodeSearcher(Util.FWD_INDEX_DIR + "/"
+									  + shard.getId(), "id"));
+	    SearchManager.searcher.add(new CodeSearcher(Util.INDEX_DIR + "/"
+								       + shard.getId(), "tokens"));
+	}
+        SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR, "key");
     }
 
     public static synchronized void updateNumCandidates(int num) {

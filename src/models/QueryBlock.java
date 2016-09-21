@@ -23,10 +23,11 @@ public class QueryBlock {
     private Map<String,TokenInfo> prefixMap;
     private Map<String,TokenInfo> suffixMap;
     private int prefixSize;
-	private int computedThreshold;
-	private int lenientCt; 
-	private int prefixMapSize;
-	private int maxCandidateSize;
+    private int computedThreshold;
+    private int lenientCt; 
+    private int prefixMapSize;
+    private int maxCandidateSize;
+    private int shardId;
 
     /**
      * @param id
@@ -43,6 +44,7 @@ public class QueryBlock {
         this.setMaxCandidateSize(BlockInfo.getMaximumSimilarityThreshold(this.size, SearchManager.th));
         this.lenientCt = BlockInfo.getMinimumSimilarityThreshold(this.size, (SearchManager.th-0.5f));
         this.prefixSize = BlockInfo.getPrefixSize(this.size, this.computedThreshold);
+
     }
 
     /**
@@ -130,6 +132,14 @@ public class QueryBlock {
         this.maxCandidateSize = maxCandidateSize;
     }
     
+    public void setShardId(int id) {
+	this.shardId = id - 1;
+    }
+
+    public int getShardId() {
+	return this.shardId;
+    }
+
     @Override
     public String toString() {
         return this.getFunctionId()+":"+this.getId()+":"+ this.getSize();
