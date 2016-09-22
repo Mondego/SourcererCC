@@ -289,7 +289,7 @@ public class SearchManager {
     public static Shard getShard(QueryBlock qb) {
         for (Shard shard : SearchManager.shards)
             if (qb.getSize() >= shard.getMinSize()
-                    && qb.getSize() < shard.getMaxSize()) {
+                    && qb.getSize() <= shard.getMaxSize()) {
 		return shard;
             }
 
@@ -360,6 +360,8 @@ public class SearchManager {
                 fis.close();
             }
         }
+	System.out.println(SearchManager.NODE_PREFIX + " MAX_TOKENS=" + max_tokens + " MIN_TOKENS=" + min_tokens);
+
         Util.createDirs(SearchManager.OUTPUT_DIR + SearchManager.th
                 / SearchManager.MUL_FACTOR);
         String reportFileName = SearchManager.OUTPUT_DIR + SearchManager.th
