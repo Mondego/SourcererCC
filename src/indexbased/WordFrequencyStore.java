@@ -165,6 +165,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
 	System.out.println("PREPARE INDEX");
 	try {
 	    wfmIndexWriter = new IndexWriter(FSDirectory.open(new File(Util.GTPM_INDEX_DIR)), wfmIndexWriterConfig);
+	    wfmIndexWriter.commit();
 	    wfmIndexer = new DocumentMaker(wfmIndexWriter);
 	} catch (IOException e) {
 	    e.printStackTrace();
