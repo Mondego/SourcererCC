@@ -157,8 +157,6 @@ public class WordFrequencyStore implements ITokensFileProcessor {
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
         IndexWriterConfig wfmIndexWriterConfig = new IndexWriterConfig(Version.LUCENE_46, keywordAnalyzer);
         TieredMergePolicy mergePolicy = (TieredMergePolicy) wfmIndexWriterConfig.getMergePolicy();
-        mergePolicy.setNoCFSRatio(0);// what was this for?
-        mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
         wfmIndexWriterConfig.setOpenMode(OpenMode.CREATE);
         wfmIndexWriterConfig.setRAMBufferSizeMB(1024);
 
@@ -188,6 +186,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
 	}
 	this.wfmSearcher.close();
 	try {
+	    this.wfmIndexWriter.forceMerge(1);
 	    this.wfmIndexWriter.commit();
 	} catch (Exception e) {
 	    System.out.println(SearchManager.NODE_PREFIX + ", exception on commit");
