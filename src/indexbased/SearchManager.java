@@ -424,14 +424,14 @@ public class SearchManager {
             theInstance.timeSearch = System.currentTimeMillis()
                     - timeStartSearch;
         } else if (theInstance.action.equalsIgnoreCase(ACTION_INIT)) {
-            TermSorter termSorter = new TermSorter();
-            termSorter.populateLocalWordFreqMap();
+            WordFrequencyStore wfs = new WordFrequencyStore();
+            wfs.populateLocalWordFreqMap();
             // merge the .wfm files
-            termSorter.mergeWfms(SearchManager.WFM_DIR_PATH,
-                    SearchManager.WFM_DIR_PATH, true);
-            if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
-                termSorter.populateGlobalPositionMap();
-            }
+            //termSorter.mergeWfms(SearchManager.WFM_DIR_PATH,
+            //        SearchManager.WFM_DIR_PATH, true);
+            //if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
+            //    termSorter.populateGlobalPositionMap();
+	    // }
         }
         long end_time = System.currentTimeMillis();
         Calendar cal = Calendar.getInstance();
@@ -530,7 +530,7 @@ public class SearchManager {
     }
 
     private void initIndexEnv() throws IOException, ParseException {
-        TermSorter termSorter = new TermSorter();
+        //TermSorter termSorter = new TermSorter();
 
         long timeGlobalPositionStart = System.currentTimeMillis();
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,

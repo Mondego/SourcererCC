@@ -2,7 +2,6 @@ package noindex;
 
 import indexbased.CustomCollectorFwdIndex;
 import indexbased.SearchManager;
-import indexbased.TermSorter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -236,57 +235,6 @@ public class CloneHelper {
         scanner.close();
     }
 
-    public void parseAndPopulateWordFreqMap(String s) {
-        if (null != s && s.trim().length() > 0) {
-            String[] bagAndTokens = s.split("@#@");
-            try {
-                String[] tokenFreqStrings = bagAndTokens[1].split(",");
-                for (String tokenFreq : tokenFreqStrings) {
-                    String[] tokenAndFreq = tokenFreq.split("@@::@@");
-                    String tokenStr = this.strip(tokenAndFreq[0]).trim();
-                    if (tokenStr.length() > 0) {
-                        long size = Long.parseLong(tokenAndFreq[1]);
-                        try {
-                            if (TermSorter.wordFreq.containsKey(tokenStr)) {
-                                long value = TermSorter.wordFreq.get(tokenStr) + size;
-                                TermSorter.wordFreq.put(tokenStr, value);
-                            } else {
-                                TermSorter.wordFreq.put(tokenStr, size);
-                            }
-
-                        } catch (ArrayIndexOutOfBoundsException e) {
-                            System.out.println("EXCEPTION CAUGHT, token: " + tokenStr);
-                            System.out.println("EXCEPTION CAUGHT: " + bagAndTokens[1]);
-                        }
-                    }
-                }
-            } catch (ArrayIndexOutOfBoundsException e) {
-                System.out.println("EXCEPTION CAUGHT, invalid line: " + s);
-            }
-        }
-    }
-
-    public void populateWordFreqMap(Bag bag) {
-        for (TokenFrequency tf : bag) {
-            String tokenStr = tf.getToken().getValue();
-            if (TermSorter.wordFreq.containsKey(tokenStr)) {
-                long value = TermSorter.wordFreq.get(tokenStr) + tf.getFrequency();
-                TermSorter.wordFreq.put(tokenStr, value);
-            } else {
-                TermSorter.wordFreq.put(tokenStr, (long) tf.getFrequency());
-            }
-        }
-        // if map size if more than 8 Million flush it.
-        if (TermSorter.wordFreq.size() > 8000000) {
-            // write it in a file. it is a treeMap, so it is already sorted by
-            // keys (alphbatically)
-            TermSorter.wfm_file_count += 1;
-            Util.writeMapToFile(SearchManager.WFM_DIR_PATH + "/wordFreqMap_" + TermSorter.wfm_file_count + ".wfm",
-                    TermSorter.wordFreq);
-            // reinti the map
-            TermSorter.wordFreq = new TreeMap<String, Long>();
-        }
-    }
 
     /*
      * public QueryBlock deserialiseToQueryBlock(String s, List<Entry<String,

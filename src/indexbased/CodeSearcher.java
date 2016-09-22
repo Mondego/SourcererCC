@@ -141,8 +141,7 @@ public class CodeSearcher {
             this.searcher.search(query, result);
             List<Integer> blocks = result.getBlocks();
             if (blocks.size() == 1) {
-                Document document = SearchManager.gtpmSearcher
-                        .getDocument(blocks.get(0));
+                Document document = this.getDocument(blocks.get(0));
                 frequency = Long.parseLong(document.get("frequency"));
             }
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
@@ -192,6 +191,14 @@ public class CodeSearcher {
      */
     public void setReader(IndexReader reader) {
         this.reader = reader;
+    }
+
+    public void close() {
+	try {
+	    this.reader.close();
+	} catch (IOException e) {
+            System.out.println(e.getMessage());
+	}
     }
 
 }

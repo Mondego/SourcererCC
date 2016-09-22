@@ -15,6 +15,7 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.Term;
 
 import utility.BlockInfo;
 
@@ -69,16 +70,30 @@ public class DocumentMaker {
         }
     }*/
 
-    public void indexGtpmEntry(String line) {
-        Document document = this.prepareDocumentForGTPMIndex(line);
+    private Document wfmEntry;
+    private StringField wordField;
+    private StoredField freqField;
+    public void indexWFMEntry(String word, long frequency) {
+	// Create the document and fields only once, for no GC
+	if (wfmEntry == null) {
+	    wfmEntry = new Document();
+	    wordField = new StringField("key", word,
+					       Field.Store.NO);
+	    wfmEntry.add(wordField);
+	    freqField = new StoredField("frequency", frequency);
+	    wfmEntry.add(freqField);
+	}
+	else {
+	    wordField.setStringValue(word);
+	    freqField.setLongValue(frequency);
+	}
+
         try {
-            if (null != document) {
-                this.indexWriter.addDocument(document);
-            }
+	    this.indexWriter.updateDocument(new Term("key", word), wfmEntry);
         } catch (IOException e) {
             System.out
-                    .println("EXCEPTION caught while indexing document for gtpm entry "
-                            + line);
+                    .println("EXCEPTION caught while indexing document for wfm entry "
+                            + word + ":" + frequency);
             e.printStackTrace();
         }
     }
@@ -100,21 +115,6 @@ public class DocumentMaker {
         StoredField strField = new StoredField("tokens", tokenString.toString().trim());
         document.add(strField);
         return document;
-    }
-
-    public Document prepareDocumentForGTPMIndex(String line) {
-        Document document = new Document();
-        String[] keyValPair = line.split(":");
-        if (keyValPair.length == 2) {
-            StringField keyField = new StringField("key", keyValPair[0] + "",
-                    Field.Store.NO);
-           // keyField.fieldType().setIndexed(true);
-            document.add(keyField);
-            StoredField strField = new StoredField("frequency", keyValPair[1]);
-            document.add(strField);
-            return document;
-        }
-        return null;
     }
 
     public Document prepareDocument(Bag bag) {

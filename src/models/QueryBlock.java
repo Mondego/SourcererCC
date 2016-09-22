@@ -133,6 +133,8 @@ public class QueryBlock {
     }
     
     public void setShardId(int id) {
+	// We're subtracting 1, because shard ids start at 1, 
+	// but this is used an an index into an ArrayList
 	this.shardId = id - 1;
     }
 
