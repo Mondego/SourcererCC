@@ -91,7 +91,6 @@ public class WordFrequencyStore implements ITokensFileProcessor {
             }
         }
         this.lineNumber++;
-        System.out.println(SearchManager.NODE_PREFIX + " , WFM line_number: " + this.lineNumber);
     }
 
     private void populateWordFreqMap(Bag bag) {
