@@ -36,8 +36,8 @@ PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
 PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
 PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
 PATH_logs = config.get('Folders/Files', 'PATH_logs')
-        # Reading Language settings
-separators = config.get('Language', 'separators').split(' ')
+# Reading Language settings
+separators = config.get('Language', 'separators').strip('"').split(' ')
 
 comment_inline = config.get('Language', 'comment_inline')
 comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
