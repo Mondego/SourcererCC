@@ -202,8 +202,8 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
 
     p_elapsed = (dt.datetime.now() - p_start).microseconds
     logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-    logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros', 
-                 process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time)
+    logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s', 
+                 process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time)
 
 def get_project_stats(process_num,list_projects, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
     with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj:
