@@ -10,17 +10,12 @@ import sys
 import hashlib
 import datetime as dt
 
+file_count = 0
+
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import ConfigParser # ver. < 3.0
-
-# Logging code
-FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
-logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-file_handler = logging.FileHandler('LOG.log')
-file_handler.setFormatter(logging.Formatter(FORMAT))
-logging.getLogger().addHandler(file_handler)
 
 config_file = sys.argv[1]
 
@@ -40,24 +35,16 @@ FILE_projects_list = config.get('Main', 'FILE_projects_list')
 PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
 PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
 PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
+PATH_logs = config.get('Folders/Files', 'PATH_logs')
         # Reading Language settings
 separators = config.get('Language', 'separators').split(' ')
-comment_end_of_line = config.get('Language', 'comment_inline')
+
+comment_inline = config.get('Language', 'comment_inline')
 comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
 comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
 file_extensions = config.get('Language', 'File_extensions').split(' ')
 
-## Global variables 
-
-# for accumulating lines
-line_list = []
-char_count = 0
-MAX_CHAR_COUNT = 1000000
-
-file_count = 0
-
-def get_proj_stats_helper(process_num, proj_id, proj_path, file_starting_id, 
-                          FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file):
+def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
     global line_list
     global char_count
     global file_count
@@ -98,9 +85,9 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_starting_id,
             # so I am simply eliminatins them
             all_files = [x for x in all_files if '\n' not in x]
 
-            with file_starting_id.get_lock():
-                all_files = zip(range(file_starting_id.value, len(all_files)+file_starting_id.value),all_files)
-                file_starting_id.value = len(all_files)+file_starting_id.value
+            with file_id_global_var.get_lock():
+                all_files = zip(range(file_id_global_var.value, len(all_files)+file_id_global_var.value),all_files)
+                file_id_global_var.value = len(all_files)+file_id_global_var.value
 
             for file_id, file_path in all_files:
 
@@ -145,9 +132,9 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_starting_id,
                 LOC = str(file_string.count('\n'))
 
                 # Remove tagged comments
-                file_string = re.sub(re.escape('/*') + '.*?' + re.escape('*/'), '', file_string, flags=re.DOTALL)
+                file_string = re.sub(re.escape(comment_open_tag) + '.*?' + re.escape(comment_close_tag), '', file_string, flags=re.DOTALL)
                 # Remove enf of line comments
-                file_string = re.sub('//' + '.*?\n', '', file_string, flags=re.DOTALL)
+                file_string = re.sub(comment_inline + '.*?\n', '', file_string, flags=re.DOTALL)
 
                 SLOC = str(file_string.count('\n'))
 
@@ -203,11 +190,22 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_starting_id,
     logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros', 
                  process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time)
 
-def get_project_stats(process_num, list_projects, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
+def get_project_stats(process_num, list_projects, file_id_global_var):
+    # Logging code
+    FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
+    logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+    file_handler = logging.FileHandler(os.path.join(PATH_logs,'LOG-'+process_num+'.log'))
+    file_handler.setFormatter(logging.Formatter(FORMAT))
+    logging.getLogger().addHandler(file_handler)
+
+    FILE_files_stats_file = os.path.join(PATH_stats_file_folder,'files-stats-'+str(process_num)+'.stats')
+    FILE_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,'bookkeeping-proj-'+str(process_num)+'.projs')
+    FILE_files_tokens_file = os.path.join(PATH_tokens_file_folder,'files-tokens-'+str(process_num)+'.tokens')
+
     with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj, open(FILE_files_stats_file, 'a+') as FILE_stats_file:
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            get_proj_stats_helper(process_num, str(proj_id), proj_path, file_starting_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file)
+            get_proj_stats_helper(process_num, str(proj_id), proj_path, file_id_global_var, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
     logging.info('Process %s finished. %s files in %ss.', 
@@ -215,13 +213,14 @@ def get_project_stats(process_num, list_projects, FILE_files_stats_file, FILE_bo
 
 if __name__ == '__main__':
 
-    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder):
-        print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] already exists!'
+    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
+        print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'
         sys.exit()
     else:
         os.makedirs(PATH_stats_file_folder)
         os.makedirs(PATH_bookkeeping_proj_folder)
         os.makedirs(PATH_tokens_file_folder)
+        os.makedirs(PATH_logs)
 
     proj_paths = []
     with open(FILE_projects_list) as f:
@@ -237,7 +236,7 @@ if __name__ == '__main__':
     # Multiprocessing with N_PROCESSES
     processes = []
     # Multiprocessing shared variable instance for recording file_id
-    file_starting_id = Value('i', 1)
+    file_id_global_var = Value('i', 1)
 
     process_num = 0
     for input_process in proj_paths_list:
@@ -247,11 +246,8 @@ if __name__ == '__main__':
             continue
 
         process_num += 1
-        FILE_files_stats_file = PATH_stats_file_folder+'/'+'files-stats-'+str(process_num)+'.stats'
-        FILE_bookkeeping_proj_name = PATH_bookkeeping_proj_folder+'/'+'bookkeeping-proj-'+str(process_num)+'.projs'
-        FILE_files_tokens_file = PATH_tokens_file_folder+'/'+'files-tokens-'+str(process_num)+'.tokens'
 
-        p = Process(name='Process '+str(process_num), target=get_project_stats, args=(str(process_num),input_process, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id, ))
+        p = Process(name='Process '+str(process_num), target=get_project_stats, args=(str(process_num),input_process, file_id_global_var, ))
         processes.append(p)
         p.start()
 
