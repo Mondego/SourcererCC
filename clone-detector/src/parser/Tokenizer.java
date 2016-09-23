@@ -20,8 +20,6 @@ public class Tokenizer {
      * @param args
      */
     public static void main(String[] args) {
-        // TODO Auto-generated method stub
-        Tokenizer t = new Tokenizer();
         System.out.println("READING FILE");
         File f = new File("Test.java");
         try {

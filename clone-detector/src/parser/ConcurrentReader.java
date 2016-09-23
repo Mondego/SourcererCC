@@ -48,6 +48,7 @@ public class ConcurrentReader {
         }finally{
             try {
                 lock.release();
+                raf.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
