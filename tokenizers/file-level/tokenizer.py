@@ -247,9 +247,9 @@ if __name__ == '__main__':
             continue
 
         process_num += 1
-        FILE_files_stats_file = PATH_stats_file_folder+'/'+'files-stats-'+str(process_num)+'.txt'
-        FILE_bookkeeping_proj_name = PATH_bookkeeping_proj_folder+'/'+'bookkeeping-proj-'+str(process_num)+'.txt'
-        FILE_files_tokens_file = PATH_tokens_file_folder+'/'+'files-tokens-'+str(process_num)+'.txt'
+        FILE_files_stats_file = PATH_stats_file_folder+'/'+'files-stats-'+str(process_num)+'.stats'
+        FILE_bookkeeping_proj_name = PATH_bookkeeping_proj_folder+'/'+'bookkeeping-proj-'+str(process_num)+'.projs'
+        FILE_files_tokens_file = PATH_tokens_file_folder+'/'+'files-tokens-'+str(process_num)+'.tokens'
 
         p = Process(name='Process '+str(process_num), target=get_project_stats, args=(str(process_num),input_process, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id, ))
         processes.append(p)
