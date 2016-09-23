@@ -56,9 +56,8 @@ MAX_CHAR_COUNT = 1000000
 
 file_count = 0
 
-def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file, 
-                          FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id, 
-                          FILE_tokens_file, FILE_bookkeeping_proj):
+def get_proj_stats_helper(process_num, proj_id, proj_path, file_starting_id, 
+                          FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file):
     global line_list
     global char_count
     global file_count
@@ -152,8 +151,7 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
 
                 SLOC = str(file_string.count('\n'))
 
-                with open(FILE_files_stats_file, 'a+') as FILE_stats_file:
-                    FILE_stats_file.write(','.join([proj_id,str(file_id),file_path,file_url,file_hash,file_bytes,lines,LOC,SLOC])+'\n')
+                FILE_stats_file.write(','.join([proj_id,str(file_id),file_path,file_url,file_hash,file_bytes,lines,LOC,SLOC])+'\n')
 
                 # Rather a copy of the file string here for tokenization
                 file_string_for_tokenization = file_string
@@ -205,13 +203,11 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
     logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros', 
                  process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time)
 
-def get_project_stats(process_num,list_projects, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
-    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj:
+def get_project_stats(process_num, list_projects, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
+    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj, open(FILE_files_stats_file, 'a+') as FILE_stats_file:
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            get_proj_stats_helper(process_num, str(proj_id), proj_path, FILE_files_stats_file, 
-                                  FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id, 
-                                  FILE_tokens_file, FILE_bookkeeping_proj)
+            get_proj_stats_helper(process_num, str(proj_id), proj_path, file_starting_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
     logging.info('Process %s finished. %s files in %ss.', 
