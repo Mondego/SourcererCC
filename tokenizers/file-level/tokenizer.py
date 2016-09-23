@@ -56,7 +56,9 @@ MAX_CHAR_COUNT = 1000000
 
 file_count = 0
 
-def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
+def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file, 
+                          FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id, 
+                          FILE_tokens_file, FILE_bookkeeping_proj):
     global line_list
     global char_count
     global file_count
@@ -188,25 +190,15 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                 hash_time += (dt.datetime.now() - h_time).microseconds
 
                 entry = ','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens])
-
-                if char_count + len(entry) > MAX_CHAR_COUNT:
-                    # flush first
-                    w_time = dt.datetime.now()
-                    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
-                        FILE_tokens_file.write('\n'.join(line_list) + '\n')
-                    write_time += (dt.datetime.now() - w_time).microseconds
-                    line_list = []
-                    char_count = 0
-
-                line_list.append(entry)
-                char_count += len(entry)
+                w_time = dt.datetime.now()
+                FILE_tokens_file.write(entry)
+                write_time += (dt.datetime.now() - w_time).microseconds
 
     except Exception:
         logging.error('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+process_num+')')
         return
 
-    with open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj:
-        FILE_bookkeeping_proj.write(proj_id+','+proj_path+','+proj_url+'\n')
+    FILE_bookkeeping_proj.write(proj_id+','+proj_path+','+proj_url+'\n')
 
     p_elapsed = (dt.datetime.now() - p_start).microseconds
     logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
@@ -214,19 +206,16 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                  process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time)
 
 def get_project_stats(process_num,list_projects, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
-    p_start = dt.datetime.now()
-    for proj_id, proj_path in list_projects:
-        get_proj_stats_helper(process_num, str(proj_id), proj_path, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id)
-
-    # Flush the last lines
-    if len(line_list) > 0:
-        w_time = dt.datetime.now()
-        with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
-            FILE_tokens_file.write('\n'.join(line_list) + '\n')
+    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj:
+        p_start = dt.datetime.now()
+        for proj_id, proj_path in list_projects:
+            get_proj_stats_helper(process_num, str(proj_id), proj_path, FILE_files_stats_file, 
+                                  FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id, 
+                                  FILE_tokens_file, FILE_bookkeeping_proj)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
-    logging.info('Process %s finished. %s files in %ss. Last flush in %smicros', 
-                 process_num, file_count, p_elapsed, (dt.datetime.now() - w_time).microseconds)
+    logging.info('Process %s finished. %s files in %ss.', 
+                 process_num, file_count, p_elapsed)
 
 if __name__ == '__main__':
 
