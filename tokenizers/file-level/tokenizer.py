@@ -161,11 +161,8 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, F
                 tokens_count_unique = str(len(file_string_for_tokenization))
 
                 t_time = dt.datetime.now()
-                tokens = []
                 #SourcererCC formatting
-                for k, v in file_string_for_tokenization.items():
-                    tokens.append(k+'@@::@@'+str(v))
-                tokens = ','.join(tokens)
+                tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in file_string_for_tokenization.iteritems()])
                 tokens_time += (dt.datetime.now() - t_time).microseconds
 
                 # MD5
