@@ -47,7 +47,19 @@ comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
 comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
 file_extensions = config.get('Language', 'File_extensions').split(' ')
 
+## Global variables 
+
+# for accumulating lines
+line_list = []
+char_count = 0
+MAX_CHAR_COUNT = 1000000
+
+file_count = 0
+
 def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
+    global line_list
+    global char_count
+    global file_count
     proj_path, proj_url = proj_path
 
     logging.info('Starting project <'+proj_id+','+proj_path+'> (process '+process_num+')')
@@ -107,6 +119,8 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                 if myfile is None:
                     logging.error('Unable to open file (2) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
                     break
+
+                file_count += 1
 
                 f_time = dt.datetime.now()
                 file_string = myfile.read()
@@ -173,10 +187,19 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                 m.update(tokens)
                 hash_time += (dt.datetime.now() - h_time).microseconds
 
-                w_time = dt.datetime.now()
-                with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
-                    FILE_tokens_file.write(','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens+'\n']))
-                write_time += (dt.datetime.now() - w_time).microseconds
+                entry = ','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens])
+
+                if char_count + len(entry) > MAX_CHAR_COUNT:
+                    # flush first
+                    w_time = dt.datetime.now()
+                    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
+                        FILE_tokens_file.write('\n'.join(line_list) + '\n')
+                    write_time += (dt.datetime.now() - w_time).microseconds
+                    line_list = []
+                    char_count = 0
+
+                line_list.append(entry)
+                char_count += len(entry)
 
     except Exception:
         logging.error('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+process_num+')')
@@ -195,8 +218,15 @@ def get_project_stats(process_num,list_projects, FILE_files_stats_file, FILE_boo
     for proj_id, proj_path in list_projects:
         get_proj_stats_helper(process_num, str(proj_id), proj_path, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id)
 
+    # Flush the last lines
+    if len(line_list) > 0:
+        w_time = dt.datetime.now()
+        with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
+            FILE_tokens_file.write('\n'.join(line_list) + '\n')
+
     p_elapsed = (dt.datetime.now() - p_start).seconds
-    logging.info('Process finished in %ss (process %s)', p_elapsed, process_num)
+    logging.info('Process %s finished. %s files in %ss. Last flush in %smicros', 
+                 process_num, file_count, p_elapsed, (dt.datetime.now() - w_time).microseconds)
 
 if __name__ == '__main__':
 
