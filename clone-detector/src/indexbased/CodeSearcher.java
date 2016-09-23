@@ -5,6 +5,7 @@ package indexbased;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -36,6 +37,7 @@ public class CodeSearcher {
     private String field;
 
     public CodeSearcher(String indexDir, String field) {
+        System.out.println("index directory: "+ indexDir);
         this.field = field;
         this.indexDir = indexDir;
         try {
@@ -48,8 +50,14 @@ public class CodeSearcher {
             System.exit(1);
         }
         this.searcher = new IndexSearcher(this.reader);
-        this.analyzer = new WhitespaceAnalyzer(Version.LUCENE_46);
-        new CloneHelper();
+        this.analyzer = new WhitespaceAnalyzer(Version.LUCENE_46); // TODO: pass
+                                                                   // the
+                                                                   // analyzer
+                                                                   // as
+                                                                   // argument
+                                                                   // to
+                                                                   // constructor
+        new CloneHelper(); // i don't remember why we are making this object?
         this.queryParser = new QueryParser(Version.LUCENE_46, this.field,
                 analyzer);
     }
@@ -66,9 +74,9 @@ public class CodeSearcher {
         StringBuilder prefixTerms = new StringBuilder();
         for (Entry<String, TokenInfo> entry : queryBlock.getPrefixMap()
                 .entrySet()) {
+	    Query query = null;
             try {
                 prefixTerms.append(entry.getKey() + " ");
-                Query query = null;
                 synchronized (this) {
                     query = queryParser.parse("\"" + entry.getKey() + "\"");
                 }
@@ -77,14 +85,14 @@ public class CodeSearcher {
                 termsSeenInQuery += entry.getValue().getFrequency();
                 termSearcher.searchWithPosition(termsSeenInQuery);
             } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-                System.out.println("cannot parse " + e.getMessage());
+                System.out.println("cannot parse " + entry.getKey() );
             }
         }
     }
 
     public CustomCollectorFwdIndex search(Document doc) throws IOException {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
-        Query query;
+        Query query = null;
         try {
             synchronized (this) {
                 query = queryParser.parse(doc.get("id"));
@@ -95,30 +103,79 @@ public class CodeSearcher {
              */
             this.searcher.search(query, result);
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-            System.out.println("cannot parse " + e.getMessage());
+            System.out.println("cannot parse (id): " + doc.get("id") + ". Ignoring this.");
         }
         return result;
     }
-
-    public synchronized CustomCollectorFwdIndex search(Document doc, int i)
-            throws IOException {
+    
+    public CustomCollectorFwdIndex search(String id) throws IOException {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
-        Query query;
+        Query query = null;
         try {
-            query = queryParser.parse(doc.get("id"));
+            synchronized (this) {
+                query = queryParser.parse(id);
+            }
             /*
              * System.out.println("Searching for: " + query.toString(this.field)
              * + " : " + doc.get("id"));
              */
             this.searcher.search(query, result);
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-            System.out.println("cannot parse " + e.getMessage());
+            System.out.println("cannot parse (" + id +"):" + id + ". Ignoring this.");
         }
         return result;
     }
 
+    public long getFrequency(String key) {
+        CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
+        Query query = null;
+        long frequency = -1l;
+        try {
+            synchronized (this) {
+                query = queryParser.parse(key);
+            }
+            /*
+             * System.out.println("Searching for: " + query.toString(this.field)
+             * + " : " + doc.get("id"));
+             */
+            this.searcher.search(query, result);
+            List<Integer> blocks = result.getBlocks();
+            if (blocks.size() == 1) {
+                Document document = this.getDocument(blocks.get(0));
+                frequency = Long.parseLong(document.get("frequency"));
+            }
+        } catch (org.apache.lucene.queryparser.classic.ParseException e) {
+            System.out.println("cannot parse (freq): " + key + ". Ignoring this.");
+        } catch (NumberFormatException e) {
+            System.out.println("getPosition method in CodeSearcher "
+                    + e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return frequency;
+    }
+
+    /*
+     * public synchronized CustomCollectorFwdIndex search(Document doc, int i)
+     * throws IOException { CustomCollectorFwdIndex result = new
+     * CustomCollectorFwdIndex(); Query query; try { query =
+     * queryParser.parse(doc.get("id"));
+     * 
+     * System.out.println("Searching for: " + query.toString(this.field) + " : "
+     * + doc.get("id"));
+     * 
+     * this.searcher.search(query, result); } catch
+     * (org.apache.lucene.queryparser.classic.ParseException e) {
+     * System.out.println("cannot parse " + e.getMessage()); } return result; }
+     */
+
     public Document getDocument(long docId) throws IOException {
-        return this.searcher.doc((int) docId);
+	try {
+	    return this.searcher.doc((int) docId);
+	} catch (IllegalArgumentException e) {
+	    System.out.println(SearchManager.NODE_PREFIX + ", CodeSearcher on " + indexDir + ": invalid docId " + docId);
+	    return null;
+	}
     }
 
     /**
@@ -134,6 +191,14 @@ public class CodeSearcher {
      */
     public void setReader(IndexReader reader) {
         this.reader = reader;
+    }
+
+    public void close() {
+	try {
+	    this.reader.close();
+	} catch (IOException e) {
+            System.out.println(e.getMessage());
+	}
     }
 
 }
