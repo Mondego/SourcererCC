@@ -45,14 +45,12 @@ comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
 file_extensions = config.get('Language', 'File_extensions').split(' ')
 
 def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
-    global line_list
-    global char_count
     global file_count
     proj_path, proj_url = proj_path
 
     logging.info('Starting project <'+proj_id+','+proj_path+'> (process '+process_num+')')
     p_start = dt.datetime.now()
-    zip_time = file_time = string_time = tokens_time = hash_time = write_time = 0
+    zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
     if not os.path.isdir(proj_path):
         logging.error('Unable to open project <'+proj_id+','+proj_path+'> (process '+process_num+')')
@@ -131,10 +129,12 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, F
                 file_string = os.linesep.join( [s for s in file_string.splitlines() if s] )
                 LOC = str(file_string.count('\n'))
 
+                re_time = dt.datetime.now()
                 # Remove tagged comments
                 file_string = re.sub(re.escape(comment_open_tag) + '.*?' + re.escape(comment_close_tag), '', file_string, flags=re.DOTALL)
                 # Remove enf of line comments
                 file_string = re.sub(comment_inline + '.*?\n', '', file_string, flags=re.DOTALL)
+                regex_time += (dt.datetime.now() - re_time).microseconds
 
                 SLOC = str(file_string.count('\n'))
 
@@ -179,16 +179,17 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, F
                 FILE_tokens_file.write(entry)
                 write_time += (dt.datetime.now() - w_time).microseconds
 
-    except Exception:
+    except Exception as e:
         logging.error('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+process_num+')')
+        logging.error(e)
         return
 
     FILE_bookkeeping_proj.write(proj_id+','+proj_path+','+proj_url+'\n')
 
     p_elapsed = (dt.datetime.now() - p_start).microseconds
     logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-    logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s', 
-                 process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time)
+    logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
+                 process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 def get_project_stats(process_num, list_projects, file_id_global_var):
     # Logging code
