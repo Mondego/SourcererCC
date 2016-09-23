@@ -107,8 +107,6 @@ public class CloneDetectorWithFilter {
             String filename = cd.OUTPUT_DIR_PREFIX + cd.th / cd.MUL_FACTOR
                     + "/" + cd.filePrefix + "clonesAnalysis_WITH_FILTER.csv";
             System.out.println("writing in file : " + filename);
-            String prefixFilename = cd.OUTPUT_DIR_PREFIX + cd.th
-                    / cd.MUL_FACTOR + "/" + cd.filePrefix + "prefixes.csv";
             File file = new File(filename);
             boolean skipHeader = false;
             if (file.exists()) {
