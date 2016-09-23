@@ -5,8 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashSet;
-import java.util.Set;
 
 import utility.Util;
 
@@ -37,13 +35,10 @@ public class FixIdMethodMap {
 	}
 
 	public static void main(String[] args){
-		ClonedMethod clonedMethod = new ClonedMethod();
 		String filename = args[0]; 
 		String projectInfo = filename.split("-clone-INPUT.txt")[0];
 		//"/home/saini/code/repos/codeclonedetection/";
 		final String baseDir = "/home/sourcerer/hitesh-vaibhav/metrics/clone-detection/";
-		final String outputDir = baseDir+"output7.0/";
-		final String methodCloneDir = outputDir+"method-clone/";
 		final String idMethodDir = baseDir+"input/output_ast/idMethod/";
 		final String fixedIdMethodDir = baseDir+"input/output_ast/idMethod_fixed/";
 		final String parsedAstFileDir = baseDir+"input/output_ast/dataset/";

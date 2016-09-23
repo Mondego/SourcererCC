@@ -52,7 +52,7 @@ public class ClonedMethod {
 	}
 	public void writeClonedMethodsToFile(String filename) throws IOException{
 		Writer writer = Util.openFile(filename, false);
-		for (String methodName : this.clonedMethods){
+		for (String methodName : ClonedMethod.clonedMethods){
 			Util.writeToFile(writer, methodName, true);
 		}
 		Util.closeOutputFile(writer);
@@ -86,7 +86,6 @@ public class ClonedMethod {
     }
 	
 	public static void main(String[] args){
-		ClonedMethod clonedMethod = new ClonedMethod();
 		String filename = args[0]; 
 		String projectInfo = filename.split("-clone-INPUT.txt")[0];
 		//"/home/saini/code/repos/codeclonedetection/";

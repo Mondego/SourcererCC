@@ -27,9 +27,6 @@ public class Aggregator {
     private double avg_time_without_filter=0;
     private String th; // args[1]
     private String output;
-    private long numCandidates;
-    private long numPairs;
-
     /**
      * @param args
      */
@@ -136,8 +133,7 @@ public class Aggregator {
     }
     
     private void writeOutput(){
-        String header = "project,time_with_filter, time_without_filter," +
-        		"comparision_with_filter,comparision_without_filter,clones_count,threshold";
+        //String header = "project,time_with_filter, time_without_filter," + "comparision_with_filter,comparision_without_filter,clones_count,threshold";
         StringBuilder sb = new StringBuilder();
         sb.append(this.project+",");
         sb.append(this.avg_time_with_filter+",");
