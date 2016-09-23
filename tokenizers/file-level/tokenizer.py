@@ -8,6 +8,7 @@ from lockfile import LockFile
 import tarfile
 import sys
 import hashlib
+import datetime as dt
 
 try:
     from configparser import ConfigParser
@@ -50,6 +51,8 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
     proj_path, proj_url = proj_path
 
     logging.info('Starting project <'+proj_id+','+proj_path+'> (process '+process_num+')')
+    p_start = dt.datetime.now()
+    string_time = tokens_time = 0
 
     if not os.path.isdir(proj_path):
         logging.error('Unable to open project <'+proj_id+','+proj_path+'> (process '+process_num+')')
@@ -88,7 +91,7 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
 
             for file_id, file_path in all_files:
 
-                logging.info('Starting file <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
+                #logging.info('Starting file <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
 
                 file_bytes = 'ERROR'
                 file_bytes=str(my_tar_file.getmember(file_path).size)
@@ -134,8 +137,11 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                 file_string_for_tokenization = file_string
 
                 #Transform separators into spaces (remove them)
+                s_time = dt.datetime.now()
                 for x in separators:
                     file_string_for_tokenization = file_string_for_tokenization.replace(x,' ')
+                string_time += (dt.datetime.now() - s_time).microseconds
+
                 ##Create a list of tokens
                 file_string_for_tokenization = file_string_for_tokenization.split()
                 ## Total number of tokens
@@ -147,11 +153,13 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                 ## Unique number of tokens
                 tokens_count_unique = str(len(file_string_for_tokenization))
 
+                t_time = dt.datetime.now()
                 tokens = []
                 #SourcererCC formatting
                 for k, v in file_string_for_tokenization.items():
                     tokens.append(k+'@@::@@'+str(v))
                 tokens = ','.join(tokens)
+                tokens_time += (dt.datetime.now() - t_time).microseconds
 
                 # MD5
                 m = hashlib.md5()
@@ -167,11 +175,17 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
     with open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj:
         FILE_bookkeeping_proj.write(proj_id+','+proj_path+','+proj_url+'\n')
 
-    logging.info('Project finished <'+proj_id+','+proj_path+'> (process '+process_num+')')
+    p_elapsed = (dt.datetime.now() - p_start).microseconds
+    logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
+    logging.info(' (%s): Total: %smicros Separators: %smicros Tokens: %smicros', process_num,  p_elapsed, string_time, tokens_time)
 
 def get_project_stats(process_num,list_projects, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
+    p_start = dt.datetime.now()
     for proj_id, proj_path in list_projects:
         get_proj_stats_helper(process_num, str(proj_id), proj_path, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id)
+
+    p_elapsed = (dt.datetime.now() - p_start).seconds
+    logging.info('Process finished in %ss (process %s)', p_elapsed, process_num)
 
 if __name__ == '__main__':
 
