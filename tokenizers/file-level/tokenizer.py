@@ -52,7 +52,7 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
 
     logging.info('Starting project <'+proj_id+','+proj_path+'> (process '+process_num+')')
     p_start = dt.datetime.now()
-    string_time = tokens_time = 0
+    zip_time = file_time = string_time = tokens_time = hash_time = write_time = 0
 
     if not os.path.isdir(proj_path):
         logging.error('Unable to open project <'+proj_id+','+proj_path+'> (process '+process_num+')')
@@ -96,17 +96,21 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                 file_bytes = 'ERROR'
                 file_bytes=str(my_tar_file.getmember(file_path).size)
 
+                z_time = dt.datetime.now();
                 try:
                     myfile = my_tar_file.extractfile(file_path)
                 except:
                     logging.error('Unable to open file (1) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
                     break
+                zip_time += (dt.datetime.now() - z_time).microseconds
 
                 if myfile is None:
                     logging.error('Unable to open file (2) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
                     break
 
+                f_time = dt.datetime.now()
                 file_string = myfile.read()
+                file_time += (dt.datetime.now() - f_time).microseconds
 
                 file_hash = 'ERROR'
                 lines = 'ERROR'
@@ -115,9 +119,11 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                 file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
                 file_path = os.path.join(tar_file,file_path)
 
+                h_time = dt.datetime.now()
                 m = hashlib.md5()
                 m.update(file_string)
                 file_hash = m.hexdigest()
+                hash_time += (dt.datetime.now() - h_time).microseconds
 
                 lines = str(file_string.count('\n'))
                 file_string = os.linesep.join( [s for s in file_string.splitlines() if s] )
@@ -162,11 +168,15 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
                 tokens_time += (dt.datetime.now() - t_time).microseconds
 
                 # MD5
+                h_time = dt.datetime.now()
                 m = hashlib.md5()
                 m.update(tokens)
+                hash_time += (dt.datetime.now() - h_time).microseconds
 
+                w_time = dt.datetime.now()
                 with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
                     FILE_tokens_file.write(','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens+'\n']))
+                write_time += (dt.datetime.now() - w_time).microseconds
 
     except Exception:
         logging.error('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+process_num+')')
@@ -177,7 +187,8 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, FILE_files_stats_file
 
     p_elapsed = (dt.datetime.now() - p_start).microseconds
     logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-    logging.info(' (%s): Total: %smicros Separators: %smicros Tokens: %smicros', process_num,  p_elapsed, string_time, tokens_time)
+    logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros', 
+                 process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time)
 
 def get_project_stats(process_num,list_projects, FILE_files_stats_file, FILE_bookkeeping_proj_name, FILE_files_tokens_file, file_starting_id):
     p_start = dt.datetime.now()
