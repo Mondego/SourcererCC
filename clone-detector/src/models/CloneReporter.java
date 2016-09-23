@@ -6,26 +6,34 @@ import utility.Util;
 import indexbased.SearchManager;
 
 public class CloneReporter implements IListener, Runnable {
+    private ClonePair cp;
+    public CloneReporter(ClonePair cp) {
+        // TODO Auto-generated constructor stub
+        this.cp = cp;
+    }
+    @Override
+    public void run() {
+        try {
+            this.reportClone(this.cp);
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+        }
+    }
 
-	@Override
-	public void run() {
-		try {
-			ClonePair cp = SearchManager.reportCloneQueue.remove();
-			this.reportClone(cp);
-		} catch (NoSuchElementException e) {
-		}
-		
-	}
-
-	private void reportClone(ClonePair cp) {
-		/*System.out.println("QBQ: "+ SearchManager.queryBlockQueue.size()+
-				", QCQ: "+ SearchManager.queryCandidatesQueue.size()+ 
-				", VCQ: "+ SearchManager.verifyCandidateQueue.size()+
-				", RCQ: "+ SearchManager.reportCloneQueue.size() );*/
-		SearchManager.updateClonePairsCount(1);
-		String text = cp.qid + "," + cp.cid;
-		Util.writeToFile(SearchManager.clonesWriter, text, true);
-		cp=null;
-	}
+    private void reportClone(ClonePair cp) {
+        /*
+         * System.out.println("QBQ: "+ SearchManager.queryBlockQueue.size()+
+         * ", QCQ: "+ SearchManager.queryCandidatesQueue.size()+ ", VCQ: "+
+         * SearchManager.verifyCandidateQueue.size()+ ", RCQ: "+
+         * SearchManager.reportCloneQueue.size() );
+         */
+        long startTime = System.nanoTime();
+        SearchManager.updateClonePairsCount(1);
+        Util.writeToFile(SearchManager.clonesWriter, cp.toString(), true);
+        cp = null;
+        long estimatedTime = System.nanoTime() - startTime;
+        System.out.println(SearchManager.NODE_PREFIX + " CloneReporter, ClonePair " + cp + " in " + estimatedTime/1000 + " micros");
+        
+    }
 
 }

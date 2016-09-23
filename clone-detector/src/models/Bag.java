@@ -1,4 +1,5 @@
 package models;
+
 import java.util.LinkedHashSet;
 
 /**
@@ -9,7 +10,9 @@ import java.util.LinkedHashSet;
  * @author vaibhavsaini
  * 
  */
-public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this not a linkedhashmap?
+public class Bag extends LinkedHashSet<TokenFrequency>  { // TODO: why is this
+                                                         // not a
+                                                         // linkedhashmap?
     /**
      * 
      */
@@ -20,59 +23,59 @@ public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this no
     private long functionId;
 
     public int getComparisions() {
-		return comparisions;
-	}
+        return comparisions;
+    }
 
-	public void setComparisions(int comparisions) {
-		this.comparisions = comparisions;
-	}
+    public void setComparisions(int comparisions) {
+        this.comparisions = comparisions;
+    }
 
-	/**
+    /**
      * @param bagId
      */
     public Bag(long bagId) {
         super();
         this.id = bagId;
-        this.size =0;
-        this.comparisions=0;
+        this.size = 0;
+        this.comparisions = 0;
         this.functionId = -1;
     }
-    
-    public Bag(){
+
+    public Bag() {
         super();
     }
 
     public long getFunctionId() {
-		return functionId;
-	}
+        return functionId;
+    }
 
-	public void setFunctionId(long functionId) {
-		this.functionId = functionId;
-	}
+    public void setFunctionId(long functionId) {
+        this.functionId = functionId;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + (int) (id ^ (id >>> 32));
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + (int) (id ^ (id >>> 32));
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Bag other = (Bag) obj;
-		if (id != other.id)
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Bag other = (Bag) obj;
+        if (id != other.id)
+            return false;
+        return true;
+    }
 
-	/**
+    /**
      * @return the id
      */
     public long getId() {
@@ -94,33 +97,30 @@ public class Bag extends LinkedHashSet<TokenFrequency> { // TODO: why is this no
      */
     @Override
     public String toString() {
-        String returnString = "";
-        for (TokenFrequency tokenFrequency : this) {
-            returnString += tokenFrequency.getToken().toString() + "@@::@@"
-                    + tokenFrequency.getFrequency() + ",";
-        }
-        return this.id+ "@#@"+ returnString.substring(0,returnString.length()-1) + System.getProperty("line.separator");
+        return this.getFunctionId()+":"+this.getId()+":"+ this.getSize();
     }
 
-    
     public TokenFrequency get(TokenFrequency tokenFrequency) {
-        this.comparisions=0;
+        this.comparisions = 0;
         for (TokenFrequency tf : this) {
-            this.comparisions+=1;
+            this.comparisions += 1;
             if (tf.equals(tokenFrequency)) {
                 return tf;
             }
         }
         return null;
     }
-    
 
     public int getSize() {
-        if(this.size == 0){
-        	for (TokenFrequency tf : this) {
+        if (this.size == 0) {
+            for (TokenFrequency tf : this) {
                 this.size += tf.getFrequency();
             }
         }
         return this.size;
+    }
+    
+    public void setSize(int size){
+        this.size = size;
     }
 }
