@@ -35,8 +35,7 @@ public class TokensFileReader {
             if (ntokens > this.maxTokens) {
                 System.out.println(
                         this.nodeId + " RL, file " + parts[1] + ", " + ntokens + " tokens is too big. Ignoring...");
-                char c;
-                while ((c = (char) br.read()) != '\n')
+                while (((char) br.read()) != '\n')
                     ;
             } else {
                 long startTime = System.nanoTime();
