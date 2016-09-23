@@ -74,9 +74,9 @@ public class CodeSearcher {
         StringBuilder prefixTerms = new StringBuilder();
         for (Entry<String, TokenInfo> entry : queryBlock.getPrefixMap()
                 .entrySet()) {
+	    Query query = null;
             try {
                 prefixTerms.append(entry.getKey() + " ");
-                Query query = null;
                 synchronized (this) {
                     query = queryParser.parse("\"" + entry.getKey() + "\"");
                 }
@@ -85,14 +85,14 @@ public class CodeSearcher {
                 termsSeenInQuery += entry.getValue().getFrequency();
                 termSearcher.searchWithPosition(termsSeenInQuery);
             } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-                System.out.println("cannot parse " + e.getMessage());
+                System.out.println("cannot parse " + entry.getKey() );
             }
         }
     }
 
     public CustomCollectorFwdIndex search(Document doc) throws IOException {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
-        Query query;
+        Query query = null;
         try {
             synchronized (this) {
                 query = queryParser.parse(doc.get("id"));
@@ -103,14 +103,14 @@ public class CodeSearcher {
              */
             this.searcher.search(query, result);
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-            System.out.println("cannot parse " + e.getMessage());
+            System.out.println("cannot parse (id): " + doc.get("id") + ". Ignoring this.");
         }
         return result;
     }
     
     public CustomCollectorFwdIndex search(String id) throws IOException {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
-        Query query;
+        Query query = null;
         try {
             synchronized (this) {
                 query = queryParser.parse(id);
@@ -121,14 +121,14 @@ public class CodeSearcher {
              */
             this.searcher.search(query, result);
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-            System.out.println("cannot parse " + e.getMessage());
+            System.out.println("cannot parse (" + id +"):" + id + ". Ignoring this.");
         }
         return result;
     }
 
     public long getFrequency(String key) {
         CustomCollectorFwdIndex result = new CustomCollectorFwdIndex();
-        Query query;
+        Query query = null;
         long frequency = -1l;
         try {
             synchronized (this) {
@@ -145,7 +145,7 @@ public class CodeSearcher {
                 frequency = Long.parseLong(document.get("frequency"));
             }
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-            System.out.println("cannot parse " + e.getMessage());
+            System.out.println("cannot parse (freq): " + key + ". Ignoring this.");
         } catch (NumberFormatException e) {
             System.out.println("getPosition method in CodeSearcher "
                     + e.getMessage());
