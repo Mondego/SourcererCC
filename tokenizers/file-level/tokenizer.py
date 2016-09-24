@@ -1,6 +1,6 @@
 import logging
 import multiprocessing as mp
-from multiprocessing import Process, Value
+from multiprocessing import Process, Value, Queue
 import re
 import os
 import collections
@@ -31,6 +31,7 @@ except IOError:
 
 # Get info from config.ini into global variables
 N_PROCESSES = config.getint('Main', 'N_PROCESSES')
+PROJECTS_BATCH = config.getint('Main', 'PROJECTS_BATCH')
 FILE_projects_list = config.get('Main', 'FILE_projects_list')
 PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
 PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
@@ -188,7 +189,7 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, F
     logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
                  process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-def get_project_stats(process_num, list_projects, file_id_global_var):
+def get_project_stats(process_num, list_projects, file_id_global_var, global_queue):
     # Logging code
     FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
@@ -200,7 +201,10 @@ def get_project_stats(process_num, list_projects, file_id_global_var):
     FILE_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,'bookkeeping-proj-'+str(process_num)+'.projs')
     FILE_files_tokens_file = os.path.join(PATH_tokens_file_folder,'files-tokens-'+str(process_num)+'.tokens')
 
-    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj, open(FILE_files_stats_file, 'a+') as FILE_stats_file:
+    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, \
+            open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj, \
+            open(FILE_files_stats_file, 'a+') as FILE_stats_file:
+        logging.info("Process %s starting", process_num)
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
             get_proj_stats_helper(process_num, str(proj_id), proj_path, file_id_global_var, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
@@ -209,7 +213,22 @@ def get_project_stats(process_num, list_projects, file_id_global_var):
     logging.info('Process %s finished. %s files in %ss.', 
                  process_num, file_count, p_elapsed)
 
+    # Let parent know, so I can be killed
+    global_queue.put((int(process_num), file_count))
+
+
+def kill_child(processes, pid, n_files_processed):
+    global file_count
+    file_count += n_files_processed
+    if processes[pid] != None:
+        processes[pid].terminate()
+        processes[pid] = None
+        print "Process %s finished, %s files processed (current total: %s)" % (pid, n_files_processed, file_count)
+
+
 if __name__ == '__main__':
+
+    p_start = dt.datetime.now()
 
     if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
         print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'
@@ -229,23 +248,39 @@ if __name__ == '__main__':
     proj_paths = zip(range(1, len(proj_paths)+1),proj_paths)
 
     #Split list of projects into N_PROCESSES lists
-    proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
+    #proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
 
     # Multiprocessing with N_PROCESSES
-    processes = []
+    processes = [None for i in xrange(N_PROCESSES)]
     # Multiprocessing shared variable instance for recording file_id
     file_id_global_var = Value('i', 1)
+    # The queue for processes to communicate back to the parent (this process)
+    # Initialize it with N_PROCESSES number of (process_id, n_files_processed)
+    global_queue = Queue()
+    for i in xrange(N_PROCESSES):
+        global_queue.put((i, 0))
 
     process_num = 0
-    for input_process in proj_paths_list:
 
-        # Skip empty sublists
-        if len(input_process) == 0:
-            continue
+    while len(proj_paths) > 0:
+        # This is a blocking get. If the queue is empty, it waits
+        pid, n_files_processed = global_queue.get()
+        # OK, one of the processes finished. Let's get its data and kill it
+        kill_child(processes, pid, n_files_processed)
 
-        process_num += 1
+        # Get a new batch of project paths ready
+        input_process = proj_paths[:PROJECTS_BATCH]
+        del proj_paths[:PROJECTS_BATCH]
 
-        p = Process(name='Process '+str(process_num), target=get_project_stats, args=(str(process_num),input_process, file_id_global_var, ))
-        processes.append(p)
+        print "Starting new process %s" % pid
+        p = Process(name='Process '+str(pid), target=get_project_stats, args=(str(pid),input_process, file_id_global_var, global_queue, ))
+        processes[pid] = p
         p.start()
 
+    print "No more projects to process. Waiting for children to finish..."
+    while processes.count(None) < N_PROCESSES:
+        pid, n_files_processed = global_queue.get()
+        kill_child(processes, pid, n_files_processed)
+
+    p_elapsed = (dt.datetime.now() - p_start).seconds
+    print "All done. %s files in %ssec" % (file_count, p_elapsed)
