@@ -38,7 +38,7 @@ public class Shard {
 	    System.out.println("set forward index");
 	    this.setForwardIndexWriter();
 	}
-        System.out.println("shard " +this.id+ " created");
+        System.out.println("shard " +this+ " created");
     }
 
     public int getId() {
