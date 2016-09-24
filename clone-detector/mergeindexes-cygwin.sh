@@ -1,5 +1,7 @@
 #!/bin/bash
-# run this script on master
+#
+# Run this script after indexing with several nodes
+#
 ant cdmerge
 echo "merging..."
 unixPATH=`pwd`
