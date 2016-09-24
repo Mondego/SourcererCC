@@ -45,27 +45,80 @@ comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
 comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
 file_extensions = config.get('Language', 'File_extensions').split(' ')
 
-def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
+def process_file_contents(file_string, proj_id, file_id, container_path, 
+                          file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file):
     global file_count
-    proj_path, proj_url = proj_path
+    file_count += 1
+    
+    file_hash = 'ERROR'
+    lines = 'ERROR'
+    LOC = 'ERROR'
+    SLOC = 'ERROR'
+    file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
+    file_path = os.path.join(container_path, file_path)
 
-    logging.info('Starting project <'+proj_id+','+proj_path+'> (process '+process_num+')')
-    p_start = dt.datetime.now()
+    h_time = dt.datetime.now()
+    m = hashlib.md5()
+    m.update(file_string)
+    file_hash = m.hexdigest()
+    hash_time = (dt.datetime.now() - h_time).microseconds
+
+    lines = str(file_string.count('\n'))
+    file_string = os.linesep.join( [s for s in file_string.splitlines() if s] )
+    LOC = str(file_string.count('\n'))
+
+    re_time = dt.datetime.now()
+    # Remove tagged comments
+    file_string = re.sub(re.escape(comment_open_tag) + '.*?' + re.escape(comment_close_tag), '', file_string, flags=re.DOTALL)
+    # Remove end of line comments
+    file_string = re.sub(comment_inline + '.*?\n', '', file_string, flags=re.DOTALL)
+    re_time = (dt.datetime.now() - re_time).microseconds
+
+    SLOC = str(file_string.count('\n'))
+
+    FILE_stats_file.write(','.join([proj_id,str(file_id),file_path,file_url,file_hash,file_bytes,lines,LOC,SLOC])+'\n')
+
+    # Rather a copy of the file string here for tokenization
+    file_string_for_tokenization = file_string
+
+    #Transform separators into spaces (remove them)
+    s_time = dt.datetime.now()
+    for x in separators:
+        file_string_for_tokenization = file_string_for_tokenization.replace(x,' ')
+    s_time = (dt.datetime.now() - s_time).microseconds
+
+    ##Create a list of tokens
+    file_string_for_tokenization = file_string_for_tokenization.split()
+    ## Total number of tokens
+    tokens_count_total = str(len(file_string_for_tokenization))
+    ##Count occurrences
+    file_string_for_tokenization = collections.Counter(file_string_for_tokenization)
+    ##Converting Counter to dict because according to StackOverflow is better
+    file_string_for_tokenization=dict(file_string_for_tokenization)
+    ## Unique number of tokens
+    tokens_count_unique = str(len(file_string_for_tokenization))
+
+    t_time = dt.datetime.now()
+    #SourcererCC formatting
+    tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in file_string_for_tokenization.iteritems()])
+    t_time = (dt.datetime.now() - t_time).microseconds
+
+    # MD5
+    h_time = dt.datetime.now()
+    m = hashlib.md5()
+    m.update(tokens)
+    hash_time += (dt.datetime.now() - h_time).microseconds
+
+    entry = ','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens]) + '\n'
+    w_time = dt.datetime.now()
+    FILE_tokens_file.write(entry)
+    w_time = (dt.datetime.now() - w_time).microseconds
+
+    return (s_time, t_time, w_time, hash_time, re_time)
+
+def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, file_id_global_var, 
+                        FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-
-    if not os.path.isdir(proj_path):
-        logging.error('Unable to open project <'+proj_id+','+proj_path+'> (process '+process_num+')')
-        return
-
-    # Search for all tar files
-    tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
-    tar_files = [f for f in tar_files if '_code' in f]
-    if(len(tar_files) != 1):
-        logging.error('Tar not found on <'+proj_id+','+proj_path+'> (process '+process_num+')')
-        # Important to have a global loc on this file because it is shared
-        return
-
-    tar_file = tar_files[0]
 
     try:
         with tarfile.open(tar_file,'r') as my_tar_file:
@@ -81,7 +134,7 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, F
             all_files = aux
 
             # This is very strange, but I did find some paths with newlines,
-            # so I am simply eliminatins them
+            # so I am simply eliminates them
             all_files = [x for x in all_files if '\n' not in x]
 
             with file_id_global_var.get_lock():
@@ -107,80 +160,50 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, F
                     logging.error('Unable to open file (2) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
                     break
 
-                file_count += 1
-
                 f_time = dt.datetime.now()
                 file_string = myfile.read()
                 file_time += (dt.datetime.now() - f_time).microseconds
 
-                file_hash = 'ERROR'
-                lines = 'ERROR'
-                LOC = 'ERROR'
-                SLOC = 'ERROR'
-                file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
-                file_path = os.path.join(tar_file,file_path)
-
-                h_time = dt.datetime.now()
-                m = hashlib.md5()
-                m.update(file_string)
-                file_hash = m.hexdigest()
-                hash_time += (dt.datetime.now() - h_time).microseconds
-
-                lines = str(file_string.count('\n'))
-                file_string = os.linesep.join( [s for s in file_string.splitlines() if s] )
-                LOC = str(file_string.count('\n'))
-
-                re_time = dt.datetime.now()
-                # Remove tagged comments
-                file_string = re.sub(re.escape(comment_open_tag) + '.*?' + re.escape(comment_close_tag), '', file_string, flags=re.DOTALL)
-                # Remove enf of line comments
-                file_string = re.sub(comment_inline + '.*?\n', '', file_string, flags=re.DOTALL)
-                regex_time += (dt.datetime.now() - re_time).microseconds
-
-                SLOC = str(file_string.count('\n'))
-
-                FILE_stats_file.write(','.join([proj_id,str(file_id),file_path,file_url,file_hash,file_bytes,lines,LOC,SLOC])+'\n')
-
-                # Rather a copy of the file string here for tokenization
-                file_string_for_tokenization = file_string
-
-                #Transform separators into spaces (remove them)
-                s_time = dt.datetime.now()
-                for x in separators:
-                    file_string_for_tokenization = file_string_for_tokenization.replace(x,' ')
-                string_time += (dt.datetime.now() - s_time).microseconds
-
-                ##Create a list of tokens
-                file_string_for_tokenization = file_string_for_tokenization.split()
-                ## Total number of tokens
-                tokens_count_total = str(len(file_string_for_tokenization))
-                ##Count occurrences
-                file_string_for_tokenization = collections.Counter(file_string_for_tokenization)
-                ##Converting Counter to dict because according to StackOverflow is better
-                file_string_for_tokenization=dict(file_string_for_tokenization)
-                ## Unique number of tokens
-                tokens_count_unique = str(len(file_string_for_tokenization))
-
-                t_time = dt.datetime.now()
-                #SourcererCC formatting
-                tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in file_string_for_tokenization.iteritems()])
-                tokens_time += (dt.datetime.now() - t_time).microseconds
-
-                # MD5
-                h_time = dt.datetime.now()
-                m = hashlib.md5()
-                m.update(tokens)
-                hash_time += (dt.datetime.now() - h_time).microseconds
-
-                entry = ','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens]) + '\n'
-                w_time = dt.datetime.now()
-                FILE_tokens_file.write(entry)
-                write_time += (dt.datetime.now() - w_time).microseconds
+                times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes,
+                                              proj_url, FILE_tokens_file, FILE_stats_file)
+                string_time += times[0]
+                tokens_time += times[1]
+                write_time += times[2]
+                hash_time += times[3]
+                regex_time += times[4]
 
     except Exception as e:
         logging.error('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+process_num+')')
         logging.error(e)
         return
+
+    return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+
+
+def process_one_project(process_num, proj_id, proj_path, file_id_global_var, 
+                        FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
+    proj_path, proj_url = proj_path
+
+    logging.info('Starting project <'+proj_id+','+proj_path+'> (process '+process_num+')')
+    p_start = dt.datetime.now()
+
+    if not os.path.isdir(proj_path):
+        logging.error('Unable to open project <'+proj_id+','+proj_path+'> (process '+process_num+')')
+        return
+
+    # Search for tar files with _code in them
+    tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
+    tar_files = [f for f in tar_files if '_code' in f]
+    if(len(tar_files) != 1):
+        logging.info('Tar not found on <'+proj_id+','+proj_path+'> (process '+process_num+')')
+        process_regular_folder(process_num, proj_id, proj_path, proj_url, file_id_global_var, 
+                        FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+    else:
+        tar_file = tar_files[0]
+        times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, file_id_global_var, 
+                                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+
+        zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
     FILE_bookkeeping_proj.write(proj_id+','+proj_path+','+proj_url+'\n')
 
@@ -189,7 +212,7 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, F
     logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
                  process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-def get_project_stats(process_num, list_projects, file_id_global_var, global_queue):
+def process_projects(process_num, list_projects, file_id_global_var, global_queue):
     # Logging code
     FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
@@ -209,7 +232,8 @@ def get_project_stats(process_num, list_projects, file_id_global_var, global_que
         logging.info("Process %s starting", process_num)
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            get_proj_stats_helper(process_num, str(proj_id), proj_path, file_id_global_var, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+            process_one_project(process_num, str(proj_id), proj_path, file_id_global_var, 
+                                FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
     logging.info('Process %s finished. %s files in %ss.', 
@@ -270,11 +294,11 @@ if __name__ == '__main__':
         kill_child(processes, pid, n_files_processed)
 
         # Get a new batch of project paths ready
-        input_process = proj_paths[:PROJECTS_BATCH]
+        paths_batch = proj_paths[:PROJECTS_BATCH]
         del proj_paths[:PROJECTS_BATCH]
 
         print "Starting new process %s" % (pid)
-        p = Process(name='Process '+str(pid), target=get_project_stats, args=(str(pid),input_process, file_id_global_var, global_queue, ))
+        p = Process(name='Process '+str(pid), target=process_projects, args=(str(pid), paths_batch, file_id_global_var, global_queue, ))
         processes[pid] = p
         p.start()
 
