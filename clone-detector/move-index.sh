@@ -11,8 +11,10 @@ if [ -d "fwdindex" ]; then
     rm -rf fwdindex
 fi
 
-mv NODE_1/index .
-mv NODE_1/fwdindex .
+mkdir index
+mv NODE_1/index/shards/* index
+mkdir fwdindex
+mv NODE_1/fwdindex/shards/* fwdindex
 
 echo "Indexes installed"
 
