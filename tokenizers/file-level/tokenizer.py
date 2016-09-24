@@ -172,7 +172,7 @@ def get_proj_stats_helper(process_num, proj_id, proj_path, file_id_global_var, F
                 m.update(tokens)
                 hash_time += (dt.datetime.now() - h_time).microseconds
 
-                entry = ','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens])
+                entry = ','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens]) + '\n'
                 w_time = dt.datetime.now()
                 FILE_tokens_file.write(entry)
                 write_time += (dt.datetime.now() - w_time).microseconds
