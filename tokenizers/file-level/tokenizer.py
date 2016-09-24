@@ -201,6 +201,8 @@ def get_project_stats(process_num, list_projects, file_id_global_var, global_que
     FILE_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,'bookkeeping-proj-'+str(process_num)+'.projs')
     FILE_files_tokens_file = os.path.join(PATH_tokens_file_folder,'files-tokens-'+str(process_num)+'.tokens')
 
+    global file_count
+    file_count = 0
     with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, \
             open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj, \
             open(FILE_files_stats_file, 'a+') as FILE_stats_file:
@@ -213,9 +215,9 @@ def get_project_stats(process_num, list_projects, file_id_global_var, global_que
     logging.info('Process %s finished. %s files in %ss.', 
                  process_num, file_count, p_elapsed)
 
-    # Let parent know, so I can be killed
+    # Let parent know
     global_queue.put((int(process_num), file_count))
-
+    sys.exit(0)
 
 def kill_child(processes, pid, n_files_processed):
     global file_count
