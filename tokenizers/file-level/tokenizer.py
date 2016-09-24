@@ -221,7 +221,6 @@ def kill_child(processes, pid, n_files_processed):
     global file_count
     file_count += n_files_processed
     if processes[pid] != None:
-        processes[pid].terminate()
         processes[pid] = None
         print "Process %s finished, %s files processed (current total: %s)" % (pid, n_files_processed, file_count)
 
@@ -272,7 +271,7 @@ if __name__ == '__main__':
         input_process = proj_paths[:PROJECTS_BATCH]
         del proj_paths[:PROJECTS_BATCH]
 
-        print "Starting new process %s" % pid
+        print "Starting new process %s" % (pid)
         p = Process(name='Process '+str(pid), target=get_project_stats, args=(str(pid),input_process, file_id_global_var, global_queue, ))
         processes[pid] = p
         p.start()
