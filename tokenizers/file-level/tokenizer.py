@@ -116,6 +116,46 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
     return (s_time, t_time, w_time, hash_time, re_time)
 
+def process_regular_folder(args, folder_path, files):
+    process_num, proj_id, proj_path, proj_url, file_id_global_var, \
+        FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times = args
+
+    file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
+    all_files = files
+
+    # Filter them by the correct extension
+    aux = []
+    for extension in file_extensions:
+        aux.extend([x for x in all_files if x.endswith(extension)])
+    all_files = aux
+
+    # This is very strange, but I did find some paths with newlines,
+    # so I am simply eliminates them
+    all_files = [x for x in all_files if '\n' not in x]
+
+    with file_id_global_var.get_lock():
+        all_files = zip(range(file_id_global_var.value, len(all_files)+file_id_global_var.value),all_files)
+        file_id_global_var.value = len(all_files)+file_id_global_var.value
+
+    for file_id, file_path in all_files:
+        print "<%s, %s, %s>" %(file_id, folder_path, file_path)
+        file_path = os.path.join(folder_path, file_path)
+
+        with open(file_path) as f:
+            f_time = dt.datetime.now()
+            file_string = f.read()
+            f_time = (dt.datetime.now() - f_time).microseconds
+
+            times_c = process_file_contents(file_string, proj_id, file_id, "", file_path, str(os.path.getsize(file_path)),
+                                              proj_url, FILE_tokens_file, FILE_stats_file)
+            times[0] += f_time
+            times[1] += times_c[0]
+            times[2] += times_c[1]
+            times[3] += times_c[2]
+            times[4] += times_c[3]
+            times[5] += times_c[4]
+            
+
 def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, file_id_global_var, 
                         FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
@@ -196,13 +236,16 @@ def process_one_project(process_num, proj_id, proj_path, file_id_global_var,
     tar_files = [f for f in tar_files if '_code' in f]
     if(len(tar_files) != 1):
         logging.info('Tar not found on <'+proj_id+','+proj_path+'> (process '+process_num+')')
-        process_regular_folder(process_num, proj_id, proj_path, proj_url, file_id_global_var, 
-                        FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+        times = [0,0,0,0,0,0]
+        os.path.walk(proj_path, process_regular_folder, 
+                     (process_num, proj_id, proj_path, proj_url, file_id_global_var, 
+                      FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times))
+        file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
+        zip_time = 0
     else:
         tar_file = tar_files[0]
         times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, file_id_global_var, 
                                  FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
-
         zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
     FILE_bookkeeping_proj.write(proj_id+','+proj_path+','+proj_url+'\n')
