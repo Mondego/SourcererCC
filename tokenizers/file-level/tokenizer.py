@@ -33,6 +33,10 @@ except IOError:
 N_PROCESSES = config.getint('Main', 'N_PROCESSES')
 PROJECTS_BATCH = config.getint('Main', 'PROJECTS_BATCH')
 FILE_projects_list = config.get('Main', 'FILE_projects_list')
+if config.has_option('Main', 'FILE_priority_projects'):
+    FILE_priority_projects = config.get('Main', 'FILE_priority_projects')
+else:
+    FILE_priority_projects = None
 PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
 PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
 PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
@@ -179,6 +183,10 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, file_i
             # so I am simply eliminates them
             all_files = [x for x in all_files if '\n' not in x]
 
+            # Log huge projects
+            if len(all_files) > 100000:
+                logging.info("Detected huge project: %s, %s files", proj_path, len(all_files))
+
             with file_id_global_var.get_lock():
                 all_files = zip(range(file_id_global_var.value, len(all_files)+file_id_global_var.value),all_files)
                 file_id_global_var.value = len(all_files)+file_id_global_var.value
@@ -288,6 +296,21 @@ def process_projects(process_num, list_projects, file_id_global_var, global_queu
     global_queue.put((int(process_num), file_count))
     sys.exit(0)
 
+def start_child(processes, file_id_global_var, global_queue, proj_paths, batch):
+    # This is a blocking get. If the queue is empty, it waits
+    pid, n_files_processed = global_queue.get()
+    # OK, one of the processes finished. Let's get its data and kill it
+    kill_child(processes, pid, n_files_processed)
+
+    # Get a new batch of project paths ready
+    paths_batch = proj_paths[:batch]
+    del proj_paths[:batch]
+
+    print "Starting new process %s" % (pid)
+    p = Process(name='Process '+str(pid), target=process_projects, args=(str(pid), paths_batch, file_id_global_var, global_queue, ))
+    processes[pid] = p
+    p.start()
+
 def kill_child(processes, pid, n_files_processed):
     global file_count
     file_count += n_files_processed
@@ -309,13 +332,26 @@ if __name__ == '__main__':
         os.makedirs(PATH_tokens_file_folder)
         os.makedirs(PATH_logs)
 
+    prio_proj_paths = []
+    if FILE_priority_projects != None:
+        with open(FILE_priority_projects) as f:
+            for line in f:
+                line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
+                prio_proj_paths.append((line_split[0],line_split[4]))
+        prio_proj_paths = zip(range(1, len(prio_proj_paths)+1), prio_proj_paths)
+
     proj_paths = []
     with open(FILE_projects_list) as f:
         for line in f:
+            prio = False
             line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
-            proj_paths.append((line_split[0],line_split[4]))
-
-    proj_paths = zip(range(1, len(proj_paths)+1),proj_paths)
+            for p in prio_proj_paths:
+                if p[1][0] == line_split[0]:
+                    prio = True
+                    print "Project %s is in priority list" % line_split[0]
+            if not prio:
+                proj_paths.append((line_split[0],line_split[4]))
+    proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
 
     #Split list of projects into N_PROCESSES lists
     #proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
@@ -330,22 +366,15 @@ if __name__ == '__main__':
     for i in xrange(N_PROCESSES):
         global_queue.put((i, 0))
 
-    process_num = 0
+    # Start the priority projects
+    print "Starting priority projects..."
+    while len(prio_proj_paths) > 0:
+        start_child(processes, file_id_global_var, global_queue, prio_proj_paths, 1)
 
+    # Start all other projects
+    print "Starting regular projects..."
     while len(proj_paths) > 0:
-        # This is a blocking get. If the queue is empty, it waits
-        pid, n_files_processed = global_queue.get()
-        # OK, one of the processes finished. Let's get its data and kill it
-        kill_child(processes, pid, n_files_processed)
-
-        # Get a new batch of project paths ready
-        paths_batch = proj_paths[:PROJECTS_BATCH]
-        del proj_paths[:PROJECTS_BATCH]
-
-        print "Starting new process %s" % (pid)
-        p = Process(name='Process '+str(pid), target=process_projects, args=(str(pid), paths_batch, file_id_global_var, global_queue, ))
-        processes[pid] = p
-        p.start()
+        start_child(processes, file_id_global_var, global_queue, proj_paths, PROJECTS_BATCH)
 
     print "No more projects to process. Waiting for children to finish..."
     while processes.count(None) < N_PROCESSES:
