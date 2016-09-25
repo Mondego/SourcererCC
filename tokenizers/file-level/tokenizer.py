@@ -41,8 +41,10 @@ PATH_logs = config.get('Folders/Files', 'PATH_logs')
 separators = config.get('Language', 'separators').strip('"').split(' ')
 
 comment_inline = config.get('Language', 'comment_inline')
+comment_inline_pattern = comment_inline + '.*?\n'
 comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
 comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
+comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
 file_extensions = config.get('Language', 'File_extensions').split(' ')
 
 def process_file_contents(file_string, proj_id, file_id, container_path, 
@@ -69,9 +71,9 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
     re_time = dt.datetime.now()
     # Remove tagged comments
-    file_string = re.sub(re.escape(comment_open_tag) + '.*?' + re.escape(comment_close_tag), '', file_string, flags=re.DOTALL)
+    file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
     # Remove end of line comments
-    file_string = re.sub(comment_inline + '.*?\n', '', file_string, flags=re.DOTALL)
+    file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.DOTALL)
     re_time = (dt.datetime.now() - re_time).microseconds
 
     SLOC = str(file_string.count('\n'))
