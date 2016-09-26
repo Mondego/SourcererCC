@@ -29,6 +29,7 @@ except IOError:
     print 'ERROR - Config settings not found. Usage: $python this-script.py config-file.ini'
     sys.exit()
 
+MULTIPLIER = 50000000
 # Get info from config.ini into global variables
 N_PROCESSES = config.getint('Main', 'N_PROCESSES')
 PROJECTS_BATCH = config.getint('Main', 'PROJECTS_BATCH')
@@ -123,7 +124,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     return (s_time, t_time, w_time, hash_time, re_time)
 
 def process_regular_folder(args, folder_path, files):
-    process_num, proj_id, proj_path, proj_url, file_id_global_var, \
+    process_num, proj_id, proj_path, proj_url, base_file_id, \
         FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times = args
 
     file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
@@ -139,11 +140,8 @@ def process_regular_folder(args, folder_path, files):
     # so I am simply eliminates them
     all_files = [x for x in all_files if '\n' not in x]
 
-    with file_id_global_var.get_lock():
-        all_files = zip(range(file_id_global_var.value, len(all_files)+file_id_global_var.value),all_files)
-        file_id_global_var.value = len(all_files)+file_id_global_var.value
-
-    for file_id, file_path in all_files:
+    for file_path in all_files:
+        file_id = process_num*MULTIPLIER + base_file_id + file_count
         print "<%s, %s, %s>" %(file_id, folder_path, file_path)
         file_path = os.path.join(folder_path, file_path)
 
@@ -162,52 +160,43 @@ def process_regular_folder(args, folder_path, files):
             times[5] += times_c[4]
             
 
-def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, file_id_global_var, 
+def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, 
                         FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
     try:
-        with tarfile.open(tar_file,'r') as my_tar_file:
-            # Get all members on the tar file
-            all_files = []
-            for member in my_tar_file.getmembers():
-                all_files.append(member.name)
+        with tarfile.open(tar_file,'r|*') as my_tar_file:
 
-            # Filter them by the correct extension
-            aux = []
-            for extension in file_extensions:
-                aux.extend([x for x in all_files if x.endswith(extension)])
-            all_files = aux
+            for f in my_tar_file:
+                if not f.isfile():
+                    continue
+                
+                file_path = f.name
+                # Filter by the correct extension
+                if not os.path.splitext(f.name)[1] in file_extensions:
+                    continue
+                
+                # This is very strange, but I did find some paths with newlines,
+                # so I am simply ignoring them
+                if '\n' in file_path:
+                    continue
 
-            # This is very strange, but I did find some paths with newlines,
-            # so I am simply eliminates them
-            all_files = [x for x in all_files if '\n' not in x]
+                file_id = process_num*MULTIPLIER + base_file_id + file_count
 
-            # Log huge projects
-            if len(all_files) > 100000:
-                logging.info("Detected huge project: %s, %s files", proj_path, len(all_files))
-
-            with file_id_global_var.get_lock():
-                all_files = zip(range(file_id_global_var.value, len(all_files)+file_id_global_var.value),all_files)
-                file_id_global_var.value = len(all_files)+file_id_global_var.value
-
-            for file_id, file_path in all_files:
-
-                #logging.info('Starting file <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
-
-                file_bytes = 'ERROR'
-                file_bytes=str(my_tar_file.getmember(file_path).size)
+                file_bytes=str(f.size)
 
                 z_time = dt.datetime.now();
                 try:
-                    myfile = my_tar_file.extractfile(file_path)
+                    myfile = my_tar_file.extractfile(f)
                 except:
-                    logging.error('Unable to open file (1) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
+                    logging.error('Unable to open file (1) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+
+                                  '> (process '+str(process_num)+')')
                     break
                 zip_time += (dt.datetime.now() - z_time).microseconds
 
                 if myfile is None:
-                    logging.error('Unable to open file (2) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+'> (process '+process_num+')')
+                    logging.error('Unable to open file (2) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+
+                                  '> (process '+str(process_num)+')')
                     break
 
                 f_time = dt.datetime.now()
@@ -222,54 +211,58 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, file_i
                 hash_time += times[3]
                 regex_time += times[4]
 
+#                if (file_count % 50) == 0:
+#                    logging.info('Zip: %s Read: %s Separators: %s Tokens: %s Write: %s Hash: %s regex: %s', 
+#                                 zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+
     except Exception as e:
-        logging.error('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+process_num+')')
+        logging.error('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
         logging.error(e)
         return
 
     return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 
-def process_one_project(process_num, proj_id, proj_path, file_id_global_var, 
+def process_one_project(process_num, proj_id, proj_path, base_file_id, 
                         FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
     proj_path, proj_url = proj_path
 
-    logging.info('Starting project <'+proj_id+','+proj_path+'> (process '+process_num+')')
+    logging.info('Starting project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
     p_start = dt.datetime.now()
 
     if not os.path.isdir(proj_path):
-        logging.error('Unable to open project <'+proj_id+','+proj_path+'> (process '+process_num+')')
+        logging.error('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
         return
 
     # Search for tar files with _code in them
     tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
     tar_files = [f for f in tar_files if '_code' in f]
     if(len(tar_files) != 1):
-        logging.info('Tar not found on <'+proj_id+','+proj_path+'> (process '+process_num+')')
+        logging.info('Tar not found on <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
         times = [0,0,0,0,0,0]
         os.path.walk(proj_path, process_regular_folder, 
-                     (process_num, proj_id, proj_path, proj_url, file_id_global_var, 
+                     (process_num, proj_id, proj_path, proj_url, base_file_id, 
                       FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times))
         file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
         zip_time = 0
     else:
         tar_file = tar_files[0]
-        times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, file_id_global_var, 
+        times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, 
                                  FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
         zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
     FILE_bookkeeping_proj.write(proj_id+','+proj_path+','+proj_url+'\n')
 
-    p_elapsed = (dt.datetime.now() - p_start).microseconds
+    p_elapsed = dt.datetime.now() - p_start
     logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
     logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
                  process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-def process_projects(process_num, list_projects, file_id_global_var, global_queue):
+def process_projects(process_num, list_projects, base_file_id, global_queue):
     # Logging code
     FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-    file_handler = logging.FileHandler(os.path.join(PATH_logs,'LOG-'+process_num+'.log'))
+    file_handler = logging.FileHandler(os.path.join(PATH_logs,'LOG-'+str(process_num)+'.log'))
     file_handler.setFormatter(logging.Formatter(FORMAT))
     logging.getLogger().addHandler(file_handler)
 
@@ -285,7 +278,7 @@ def process_projects(process_num, list_projects, file_id_global_var, global_queu
         logging.info("Process %s starting", process_num)
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            process_one_project(process_num, str(proj_id), proj_path, file_id_global_var, 
+            process_one_project(process_num, str(proj_id), proj_path, base_file_id, 
                                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
@@ -293,10 +286,10 @@ def process_projects(process_num, list_projects, file_id_global_var, global_queu
                  process_num, file_count, p_elapsed)
 
     # Let parent know
-    global_queue.put((int(process_num), file_count))
+    global_queue.put((process_num, file_count))
     sys.exit(0)
 
-def start_child(processes, file_id_global_var, global_queue, proj_paths, batch):
+def start_child(processes, global_queue, proj_paths, batch):
     # This is a blocking get. If the queue is empty, it waits
     pid, n_files_processed = global_queue.get()
     # OK, one of the processes finished. Let's get its data and kill it
@@ -307,17 +300,25 @@ def start_child(processes, file_id_global_var, global_queue, proj_paths, batch):
     del proj_paths[:batch]
 
     print "Starting new process %s" % (pid)
-    p = Process(name='Process '+str(pid), target=process_projects, args=(str(pid), paths_batch, file_id_global_var, global_queue, ))
-    processes[pid] = p
+    p = Process(name='Process '+str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, ))
+    processes[pid][0] = p
     p.start()
 
 def kill_child(processes, pid, n_files_processed):
     global file_count
     file_count += n_files_processed
-    if processes[pid] != None:
-        processes[pid] = None
-        print "Process %s finished, %s files processed (current total: %s)" % (pid, n_files_processed, file_count)
+    if processes[pid][0] != None:
+        processes[pid][0] = None
+        processes[pid][1] += n_files_processed
+        
+        print "Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count)
 
+def active_process_count(processes):
+    count = 0
+    for p in processes:
+        if p[0] != None:
+            count +=1
+    return count
 
 if __name__ == '__main__':
 
@@ -357,9 +358,10 @@ if __name__ == '__main__':
     #proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
 
     # Multiprocessing with N_PROCESSES
-    processes = [None for i in xrange(N_PROCESSES)]
+    # [process, file_count]
+    processes = [[None, 0] for i in xrange(N_PROCESSES)]
     # Multiprocessing shared variable instance for recording file_id
-    file_id_global_var = Value('i', 1)
+    #file_id_global_var = Value('i', 1)
     # The queue for processes to communicate back to the parent (this process)
     # Initialize it with N_PROCESSES number of (process_id, n_files_processed)
     global_queue = Queue()
@@ -367,19 +369,19 @@ if __name__ == '__main__':
         global_queue.put((i, 0))
 
     # Start the priority projects
-    print "Starting priority projects..."
+    print "*** Starting priority projects..."
     while len(prio_proj_paths) > 0:
-        start_child(processes, file_id_global_var, global_queue, prio_proj_paths, 1)
+        start_child(processes, global_queue, prio_proj_paths, 1)
 
     # Start all other projects
-    print "Starting regular projects..."
+    print "*** Starting regular projects..."
     while len(proj_paths) > 0:
-        start_child(processes, file_id_global_var, global_queue, proj_paths, PROJECTS_BATCH)
+        start_child(processes, global_queue, proj_paths, PROJECTS_BATCH)
 
-    print "No more projects to process. Waiting for children to finish..."
-    while processes.count(None) < N_PROCESSES:
+    print "*** No more projects to process. Waiting for children to finish..."
+    while active_process_count(processes) > 0:
         pid, n_files_processed = global_queue.get()
         kill_child(processes, pid, n_files_processed)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
-    print "All done. %s files in %ssec" % (file_count, p_elapsed)
+    print "*** All done. %s files in %ssec" % (file_count, p_elapsed)
