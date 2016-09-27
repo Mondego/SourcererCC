@@ -4,6 +4,7 @@ import collections
 import sys
 import unittest
 import tokenizer
+import hashlib
 
 try:
     from configparser import ConfigParser
@@ -38,25 +39,66 @@ class TestParser(unittest.TestCase):
                 self.assertTrue(REGEX.match(pair))
 
     def test_comments(self):
-        input = "/* this is a // comment */ /* Lala */ // PORTUGAL"
+        input = "// Hello\n // World"
         (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
-        print tokens
 
-        self.assert_common_properties(tokens)
 
-        self.assertEqual(lines,0)
-        self.assertEqual(LOC,0)
+        self.assertEqual(lines,1)
+        self.assertEqual(LOC,1)
         self.assertEqual(SLOC,0)
 
         self.assertEqual(tokens_count_total,0)
         self.assertEqual(tokens_count_unique,0)
-        self.assertEqual(len(tokens),3)
+        self.assert_common_properties(tokens)
 
     def test_multiline_comment(self):
-        #input = "/* first line\n second line\n", '0')
-        self.assertTrue(True)
+        input = '/* this is a \n comment */ /* Last one */ '
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (file_hash,lines,LOC,SLOC) = final_stats
+        (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
+
+
+        self.assertEqual(lines,1)
+        self.assertEqual(LOC,1)
+        self.assertEqual(SLOC,0)
+
+        self.assertEqual(tokens_count_total,0)
+        self.assertEqual(tokens_count_unique,0)
+        self.assert_common_properties(tokens)
+
+    def test_simple_file(self):
+        input = """#include GLFW_INCLUDE_GLU
+                   #include <GLFW/glfw3.h>
+                   #include <cstdio>
+                   
+                   /* Random function */
+                   static void glfw_key_callback(int key, int scancode, int action, int mod){
+                     if(glfw_key_callback){
+                       // Comment here
+                       input_event_queue->push(inputaction);   
+                     }
+                   }"""
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (file_hash,lines,LOC,SLOC) = final_stats
+        (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
+
+        self.assertEqual(lines,10)
+        self.assertEqual(LOC,9)
+        self.assertEqual(SLOC,7)
+
+        self.assertEqual(tokens_count_total,24)
+        self.assertEqual(tokens_count_unique,18)
+        self.assert_common_properties(tokens)
+
+        hard_tokens = set(['int@@::@@4','void@@::@@1','cstdio@@::@@1','action@@::@@1','static@@::@@1','key@@::@@1','glfw_key_callback@@::@@1','mod@@::@@1','if@@::@@1','glfw3@@::@@1','scancode@@::@@1','h@@::@@1','GLFW_INCLUDE_GLU@@::@@1','input_event_queue@@::@@2','GLFW@@::@@1','push@@::@@1','inputaction@@::@@1','include@@::@@3'])
+        this_tokens = set(tokens[3:].split(','))
+        self.assertTrue(len(hard_tokens - this_tokens),0)
+
+        m = hashlib.md5()
+        m.update(tokens[3:])
+        self.assertEqual(m.hexdigest(),token_hash)
 
 if __name__ == '__main__':
     unittest.main()
