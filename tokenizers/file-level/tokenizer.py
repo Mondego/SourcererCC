@@ -9,6 +9,7 @@ import tarfile
 import sys
 import hashlib
 import datetime as dt
+from fileparser import file_parser
 
 file_count = 0
 
@@ -57,71 +58,20 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     global file_count
     file_count += 1
     
-    file_hash = 'ERROR'
-    lines = 'ERROR'
-    LOC = 'ERROR'
-    SLOC = 'ERROR'
+    (final_stats, final_tokens, file_parsing_times) = file_parser(file_string, file_bytes, comment_inline_pattern, comment_open_close_pattern, separators)
+
     file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
     file_path = os.path.join(container_path, file_path)
 
-    h_time = dt.datetime.now()
-    m = hashlib.md5()
-    m.update(file_string)
-    file_hash = m.hexdigest()
-    hash_time = (dt.datetime.now() - h_time).microseconds
+    ww_time = dt.datetime.now()
+    FILE_stats_file.write(','.join([proj_id,str(file_id),file_path,file_url,final_stats]) + '\n')
+    w_time = (dt.datetime.now() - ww_time).microseconds
 
-    lines = str(file_string.count('\n'))
-    file_string = os.linesep.join( [s for s in file_string.splitlines() if s] )
-    LOC = str(file_string.count('\n'))
+    ww_time = dt.datetime.now()
+    FILE_tokens_file.write(','.join([proj_id,str(file_id),final_tokens]) + '\n')
+    w_time += (dt.datetime.now() - ww_time).microseconds
 
-    re_time = dt.datetime.now()
-    # Remove tagged comments
-    file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
-    # Remove end of line comments
-    file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.DOTALL)
-    re_time = (dt.datetime.now() - re_time).microseconds
-
-    SLOC = str(file_string.count('\n'))
-
-    FILE_stats_file.write(','.join([proj_id,str(file_id),file_path,file_url,file_hash,file_bytes,lines,LOC,SLOC])+'\n')
-
-    # Rather a copy of the file string here for tokenization
-    file_string_for_tokenization = file_string
-
-    #Transform separators into spaces (remove them)
-    s_time = dt.datetime.now()
-    for x in separators:
-        file_string_for_tokenization = file_string_for_tokenization.replace(x,' ')
-    s_time = (dt.datetime.now() - s_time).microseconds
-
-    ##Create a list of tokens
-    file_string_for_tokenization = file_string_for_tokenization.split()
-    ## Total number of tokens
-    tokens_count_total = str(len(file_string_for_tokenization))
-    ##Count occurrences
-    file_string_for_tokenization = collections.Counter(file_string_for_tokenization)
-    ##Converting Counter to dict because according to StackOverflow is better
-    file_string_for_tokenization=dict(file_string_for_tokenization)
-    ## Unique number of tokens
-    tokens_count_unique = str(len(file_string_for_tokenization))
-
-    t_time = dt.datetime.now()
-    #SourcererCC formatting
-    tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in file_string_for_tokenization.iteritems()])
-    t_time = (dt.datetime.now() - t_time).microseconds
-
-    # MD5
-    h_time = dt.datetime.now()
-    m = hashlib.md5()
-    m.update(tokens)
-    hash_time += (dt.datetime.now() - h_time).microseconds
-
-    entry = ','.join([proj_id,str(file_id),tokens_count_total,tokens_count_unique,m.hexdigest()+'@#@'+tokens]) + '\n'
-    w_time = dt.datetime.now()
-    FILE_tokens_file.write(entry)
-    w_time = (dt.datetime.now() - w_time).microseconds
-
-    return (s_time, t_time, w_time, hash_time, re_time)
+    return file_parsing_times + [w_time] # [s_time, t_time, w_time, hash_time, re_time]
 
 def process_regular_folder(args, folder_path, files):
     process_num, proj_id, proj_path, proj_url, base_file_id, \
@@ -155,9 +105,9 @@ def process_regular_folder(args, folder_path, files):
             times[0] += f_time
             times[1] += times_c[0]
             times[2] += times_c[1]
-            times[3] += times_c[2]
-            times[4] += times_c[3]
-            times[5] += times_c[4]
+            times[3] += times_c[4]
+            times[4] += times_c[2]
+            times[5] += times_c[3]
             
 
 def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, 
@@ -207,9 +157,9 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
                                               proj_url, FILE_tokens_file, FILE_stats_file)
                 string_time += times[0]
                 tokens_time += times[1]
-                write_time += times[2]
-                hash_time += times[3]
-                regex_time += times[4]
+                write_time += times[4]
+                hash_time += times[2]
+                regex_time += times[3]
 
 #                if (file_count % 50) == 0:
 #                    logging.info('Zip: %s Read: %s Separators: %s Tokens: %s Write: %s Hash: %s regex: %s', 
