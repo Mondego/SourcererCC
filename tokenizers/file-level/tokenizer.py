@@ -90,9 +90,13 @@ def tokenize(file_string, comment_inline_pattern, comment_open_close_pattern, se
     hash_time = (dt.datetime.now() - h_time).microseconds
     
     lines = file_string.count('\n')
+    if not file_string.endswith('\n'):
+        lines += 1
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
 
     LOC = file_string.count('\n')
+    if not file_string.endswith('\n'):
+        LOC += 1
 
     re_time = dt.datetime.now()
     # Remove tagged comments
@@ -101,9 +105,11 @@ def tokenize(file_string, comment_inline_pattern, comment_open_close_pattern, se
     file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
     re_time = (dt.datetime.now() - re_time).microseconds
 
-    file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
+    file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
 
     SLOC = file_string.count('\n')
+    if file_string != '' and not file_string.endswith('\n'):
+        SLOC += 1
 
     final_stats = (file_hash,lines,LOC,SLOC)
 
