@@ -17,41 +17,61 @@ except ImportError:
 
 MULTIPLIER = 50000000
 
-config_file = 'config.ini'
-
-# instantiate
-config = ConfigParser()
-
-# parse existing file
-try:
-    config.read(config_file)
-except IOError:
-    print 'ERROR - Config settings not found. Usage: $python this-script.py config-file.ini'
-    sys.exit()
-
-# Get info from config.ini into global variables
-N_PROCESSES = config.getint('Main', 'N_PROCESSES')
-PROJECTS_BATCH = config.getint('Main', 'PROJECTS_BATCH')
-FILE_projects_list = config.get('Main', 'FILE_projects_list')
-if config.has_option('Main', 'FILE_priority_projects'):
-    FILE_priority_projects = config.get('Main', 'FILE_priority_projects')
-else:
-    FILE_priority_projects = None
-PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
-PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
-PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
-PATH_logs = config.get('Folders/Files', 'PATH_logs')
+N_PROCESSES = 2
+PROJECTS_BATCH = 20
+FILE_projects_list = 'projects-list.txt'
+FILE_priority_projects = None
+PATH_stats_file_folder = 'files_stats'
+PATH_bookkeeping_proj_folder = 'bookkeeping_projs'
+PATH_tokens_file_folder = 'files_tokens'
+PATH_logs = 'logs'
 
 # Reading Language settings
-separators = config.get('Language', 'separators').strip('"').split(' ')
-comment_inline = re.escape(config.get('Language', 'comment_inline'))
+separators = ''
+comment_inline = ''
 comment_inline_pattern = comment_inline + '.*?$'
-comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
-comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
+comment_open_tag = ''
+comment_close_tag = ''
 comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
-file_extensions = config.get('Language', 'File_extensions').split(' ')
+file_extensions = '.none'
 
 file_count = 0
+
+def read_config():
+    global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
+    global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
+    global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
+    global file_extensions
+
+    # instantiate
+    config = ConfigParser()
+
+    # parse existing file
+    try:
+        config.read('config.ini')
+    except IOError:
+        print 'ERROR - Config settings not found. Usage: $python this-script.py config-file.ini'
+        sys.exit()
+
+    # Get info from config.ini into global variables
+    N_PROCESSES = config.getint('Main', 'N_PROCESSES')
+    PROJECTS_BATCH = config.getint('Main', 'PROJECTS_BATCH')
+    FILE_projects_list = config.get('Main', 'FILE_projects_list')
+    if config.has_option('Main', 'FILE_priority_projects'):
+        FILE_priority_projects = config.get('Main', 'FILE_priority_projects')
+    PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
+    PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
+    PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
+    PATH_logs = config.get('Folders/Files', 'PATH_logs')
+
+    # Reading Language settings
+    separators = config.get('Language', 'separators').strip('"').split(' ')
+    comment_inline = re.escape(config.get('Language', 'comment_inline'))
+    comment_inline_pattern = comment_inline + '.*?$'
+    comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
+    comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
+    comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
+    file_extensions = config.get('Language', 'File_extensions').split(' ')
 
 def tokenize(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
 
@@ -342,6 +362,8 @@ def active_process_count(processes):
     return count
 
 if __name__ == '__main__':
+
+    read_config()
     p_start = dt.datetime.now()
 
     if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
@@ -403,5 +425,5 @@ if __name__ == '__main__':
         pid, n_files_processed = global_queue.get()
         kill_child(processes, pid, n_files_processed)
 
-    p_elapsed = (dt.datetime.now() - p_start).seconds
-    print "*** All done. %s files in %ssec" % (file_count, p_elapsed)
+    p_elapsed = dt.datetime.now() - p_start
+    print "*** All done. %s files in %s" % (file_count, p_elapsed)
