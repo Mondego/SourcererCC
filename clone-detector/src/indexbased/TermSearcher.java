@@ -4,6 +4,8 @@
 package indexbased;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -25,17 +27,21 @@ import utility.Util;
  * 
  */
 public class TermSearcher {
+    private long queryId;
     private String searchTerm;
     private int freqTerm;
     private IndexReader reader;
+    List<Long> earlierDocs;
     private Map<Long, CandidateSimInfo> simMap;
     private int querySize;
     private int computedThreshold;
     private int shard;
 
-    public TermSearcher(int shard) {
+    public TermSearcher(int shard, long qid) {
+	this.earlierDocs = new ArrayList<Long>();
         this.simMap = new HashMap<Long, CandidateSimInfo>();
 	this.shard = shard;
+	this.queryId = qid;
     }
 
     public synchronized void searchWithPosition(int queryTermsSeen) {
@@ -65,7 +71,22 @@ public class TermSearcher {
                                                         docEnum.freq());
 
                                     } else {
+					if (earlierDocs.contains(docId))
+					    continue;
+
+					Document d = SearchManager.searcher.get(shard).getDocument(docId);
+					long candidateId = Long.parseLong(d.get("id"));
+					// Get rid of these early -- we're only looking for candidates
+					// whose ids are higher than the query
+					if (candidateId <= this.queryId) {
+					    // System.out.println("Query " + this.queryId + ", getting rid of " + candidateId);
+					    earlierDocs.add(docId);
+					    continue; // we reject the candidate
+					}
+
                                         simInfo = new CandidateSimInfo();
+					simInfo.doc = d;
+                                        simInfo.candidateSize = Integer.parseInt(d.get("size"));
                                         simInfo.similarity = Math.min(freqTerm,
                                                 docEnum.freq());
                                         // System.out.println("before putting in simmap "+
@@ -76,13 +97,7 @@ public class TermSearcher {
                                     }
                                     simInfo.queryMatchPosition = queryTermsSeen;
                                     int candidatePos = docEnum.nextPosition();
-                                    simInfo.candidateMatchPosition = candidatePos
-                                            + docEnum.freq();
-                                    if (simInfo.candidateSize == 0) {
-					Document d = SearchManager.searcher.get(shard).getDocument(docId);
-					//$$$$$$$$$$$$$$
-                                        simInfo.candidateSize = Integer.parseInt(d.get("size"));
-                                    }
+                                    simInfo.candidateMatchPosition = candidatePos + docEnum.freq();
                                     if (!Util.isSatisfyPosFilter(
                                             this.simMap.get(docId).similarity,
                                             this.querySize, queryTermsSeen,

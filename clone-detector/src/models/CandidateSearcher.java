@@ -55,7 +55,7 @@ public class CandidateSearcher implements IListener, Runnable {
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         long startTime = System.nanoTime();
 	int shard = queryBlock.getShardId();
-        TermSearcher termSearcher = new TermSearcher(shard);
+        TermSearcher termSearcher = new TermSearcher(shard, queryBlock.getId());
 
         SearchManager.searcher.get(shard).search(queryBlock, termSearcher);
 
