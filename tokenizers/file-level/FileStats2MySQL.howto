@@ -18,8 +18,10 @@ CREATE TABLE NAME-OF-CSV-FILE(
 
 3 - On mysql, run 'SHOW VARIABLES LIKE "secure_file_priv";'
 
-4 - Run the query (for 5M lines it takes ~6 min):
-LOAD DATA INFILE 'RESULT-OF-STEP-3/FILE-FROM-STEP-2'
+4 - Move FILE-FROM-STEP-2 into PATH-OF-STEP-3
+
+5 - Run the query (for 5M lines it takes ~6 min):
+LOAD DATA INFILE 'PATH-OF-STEP-3/FILE-FROM-STEP-2'
 INTO TABLE NAME-OF-CSV-FILE
 FIELDS TERMINATED BY ',' ENCLOSED BY '"';
 
