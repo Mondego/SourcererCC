@@ -161,7 +161,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     file_path = os.path.join(container_path, file_path)
 
     ww_time = dt.datetime.now()
-    FILE_stats_file.write(','.join([proj_id,str(file_id),file_path,file_url,file_hash,file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
+    FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
     w_time = (dt.datetime.now() - ww_time).microseconds
 
     ww_time = dt.datetime.now()
@@ -298,7 +298,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
                                  FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
         zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
-    FILE_bookkeeping_proj.write(proj_id+','+proj_path+','+proj_url+'\n')
+    FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
 
     p_elapsed = dt.datetime.now() - p_start
     logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
