@@ -54,11 +54,9 @@ public class TermSearcher {
                         int base = ctx.docBase;
                         // SpanTermQuery spanQ = new SpanTermQuery(term);
                         try {
-                            DocsAndPositionsEnum docEnum = MultiFields
-                                    .getTermPositionsEnum(ctx.reader(),
-                                            MultiFields.getLiveDocs(ctx
-                                                    .reader()), "tokens", term
-                                                    .bytes());
+                            DocsAndPositionsEnum docEnum = MultiFields.getTermPositionsEnum(ctx.reader(),
+											    MultiFields.getLiveDocs(ctx.reader()), 
+											    "tokens", term.bytes());
                             if (null != docEnum) {
                                 int doc = DocsEnum.NO_MORE_DOCS;
                                 while ((doc = docEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
@@ -87,8 +85,7 @@ public class TermSearcher {
                                         simInfo = new CandidateSimInfo();
 					simInfo.doc = d;
                                         simInfo.candidateSize = Integer.parseInt(d.get("size"));
-                                        simInfo.similarity = Math.min(freqTerm,
-                                                docEnum.freq());
+                                        simInfo.similarity = Math.min(freqTerm, docEnum.freq());
                                         // System.out.println("before putting in simmap "+
                                         // Util.debug_thread());
                                         this.simMap.put(docId, simInfo);

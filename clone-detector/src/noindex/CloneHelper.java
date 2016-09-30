@@ -267,13 +267,12 @@ public class CloneHelper {
                 QueryBlock queryBlock = null;
                 try {
                     int bagSize = Integer.parseInt(bagMetadata[2]);
-                    queryBlock = new QueryBlock(Long.parseLong((bagId)), bagSize);
-                    queryBlock.setFunctionId(Long.parseLong(functionId));
-                    if (queryBlock.getSize() < SearchManager.min_tokens
-                            || queryBlock.getSize() > SearchManager.max_tokens) {
+                    if (bagSize < SearchManager.min_tokens || bagSize > SearchManager.max_tokens) {
                         return null; // do not process it further. we need
                                            // to discard this query
                     }
+                    queryBlock = new QueryBlock(Long.parseLong((bagId)), bagSize);
+                    queryBlock.setFunctionId(Long.parseLong(functionId));
 		    Shard shard = SearchManager.getShard(queryBlock);
 		    if (shard == null) {
 			System.out.println(SearchManager.NODE_PREFIX + " unable to find shard for query block " + queryBlock);
