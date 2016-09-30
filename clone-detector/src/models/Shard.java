@@ -30,7 +30,7 @@ public class Shard {
         this.id = id;
 	this.minSize = minBagSizeToSearch;
 	this.maxSize = maxBagSizeToSearch;
-        this.minBagSizeToIndex = minBagSizeToSearch;
+        this.minBagSizeToIndex = BlockInfo.getMinimumSimilarityThreshold(minBagSizeToSearch, SearchManager.th);; //minBagSizeToSearch;
         this.maxBagSizeToIndex = BlockInfo.getMaximumSimilarityThreshold(maxBagSizeToSearch, SearchManager.th);
 	if (forWriting) {
 	    System.out.println("setinverted index");
