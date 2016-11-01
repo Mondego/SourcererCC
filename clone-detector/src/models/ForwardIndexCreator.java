@@ -37,7 +37,6 @@ public class ForwardIndexCreator implements IListener, Runnable {
 
     private void index(Bag bag) throws InterruptedException {
 	long startTime = System.nanoTime(); 
-
         List<Shard> shards = SearchManager.getShards(bag);
         this.document = this.documentMaker.prepareDocumentForFwdIndex(bag);
         for (Shard shard : shards) {

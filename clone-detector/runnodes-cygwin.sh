@@ -3,6 +3,7 @@
 ant clean cdi
 mode="${1:-search}"
 num_nodes="${2:-50}"
+echo $num_nodes > search_metadata.txt
 threshold="${3:-8}"
 echo "*****************************************************"
 echo "running this script in $mode mode"

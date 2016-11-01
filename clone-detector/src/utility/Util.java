@@ -356,6 +356,18 @@ public class Util {
         return pWriter;
     }
 
+    public static List<File> getAllFilesRecur(File root){
+        List<File> listToReturn = new ArrayList<File>();
+        for (File file : root.listFiles()){
+            if(file.isFile()){
+                listToReturn.add(file);
+            }else if (file.isDirectory()){
+                listToReturn.addAll(getAllFilesRecur(file));
+            }
+        }
+        return listToReturn;
+        
+    }
     /*
      * public static int getPrefixSize(QueryBlock queryBlock, float threshold) {
      * int prefixSize = (queryBlock.getSize() + 1) - computedThreshold;//

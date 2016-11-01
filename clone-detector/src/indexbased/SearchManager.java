@@ -9,8 +9,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -124,6 +128,8 @@ public class SearchManager {
     public static List<Shard> shards;
     public Set<Long> completedQueries;
     private boolean isSharding;
+    public static String completedNodes;
+    public static int totalNodes =-1;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -335,6 +341,18 @@ public class SearchManager {
             System.out.println("shutting down RCQ, " + System.currentTimeMillis());
             SearchManager.reportCloneQueue.shutdown();
             theInstance.timeSearch = System.currentTimeMillis() - timeStartSearch;
+            signOffNode();
+            if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
+                System.out.println("NODES COMPLETED SO FAR: "+ getCompletedNodes());
+                if (allNodesCompleted()) {
+                    String previousDataFolder = SearchManager.DATASET_DIR+"/oldData";
+                    Util.createDirs(previousDataFolder);
+                    File sourceDataFile = new File(SearchManager.DATASET_DIR+"/blocks.file");
+                    String targetFileName = previousDataFolder+"_"+System.currentTimeMillis()+"_blocks.file";
+                    sourceDataFile.renameTo(new File(targetFileName));
+                    // delete the completedNodes file
+                }
+            }
         } else if (theInstance.action.equalsIgnoreCase(ACTION_INIT)) {
             WordFrequencyStore wfs = new WordFrequencyStore();
             wfs.populateLocalWordFreqMap();
@@ -359,6 +377,95 @@ public class SearchManager {
         } catch (Exception e) {
             System.out.println("exception caught in main " + e.getMessage());
         }
+    }
+
+    private static boolean allNodesCompleted() {
+        return 0 == (getNodes()-getCompletedNodes());
+    }
+    
+    private static int getCompletedNodes(){
+        File completedNodeFile = new File(SearchManager.completedNodes);
+        FileLock lock = null;
+        int count=0;
+        RandomAccessFile raf;
+        try {
+            raf = new RandomAccessFile(completedNodeFile, "rw");
+            FileChannel channel = raf.getChannel();
+            try {
+                lock = channel.lock();
+                while(raf.readLine()!=null){
+                    count++;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    lock.release();
+                    raf.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (FileNotFoundException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+        return count;
+    }
+    
+    private static int getNodes(){
+        if(-1 == SearchManager.totalNodes){
+            File searchMertadaFile = new File("search_metadata.txt");
+            try {
+                BufferedReader br = Util.getReader(searchMertadaFile);
+                String line = br.readLine();
+                if(null!=line){
+                    SearchManager.totalNodes = Integer.parseInt(line.trim());
+                    return SearchManager.totalNodes;
+                }
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return SearchManager.totalNodes;
+    }
+
+    private static void signOffNode() {
+        File file = new File(SearchManager.completedNodes);
+        FileLock lock = null;
+        RandomAccessFile raf;
+        try {
+            raf = new RandomAccessFile(file, "rw");
+            FileChannel channel = raf.getChannel();
+            try {
+                lock = channel.lock();
+                ByteBuffer outBuffer = ByteBuffer.allocate(100);
+                outBuffer.clear();
+                String endidStr = SearchManager.NODE_PREFIX+"\n";
+                outBuffer.put(endidStr.getBytes());
+                outBuffer.flip();
+                // System.out.println(new String(outBuffer.array()));
+                channel.write(outBuffer, raf.length());
+                channel.force(false);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    lock.release();
+                    raf.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (FileNotFoundException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+        
     }
 
     private void populateCompletedQueries() {
@@ -427,10 +534,10 @@ public class SearchManager {
     }
 
     private void doIndex() throws InterruptedException, FileNotFoundException {
-        File datasetDir = this.getQueryDirectory();
+        File datasetDir = new File(SearchManager.DATASET_DIR);
         if (datasetDir.isDirectory()) {
-            System.out.println("Directory: " + this.getQueryDirectory().getAbsolutePath());
-            for (File inputFile : datasetDir.listFiles()) {
+            System.out.println("Directory: " + datasetDir.getAbsolutePath());
+            for (File inputFile : Util.getAllFilesRecur(datasetDir)) {
                 try {
                     TokensFileReader tfr = new TokensFileReader(SearchManager.NODE_PREFIX, inputFile,
                             SearchManager.max_tokens, new ITokensFileProcessor() {
