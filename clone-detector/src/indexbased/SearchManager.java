@@ -347,8 +347,8 @@ public class SearchManager {
                 if (allNodesCompleted()) {
                     String previousDataFolder = SearchManager.DATASET_DIR+"/oldData";
                     Util.createDirs(previousDataFolder);
-                    File sourceDataFile = new File(SearchManager.DATASET_DIR+"/blocks.file");
-                    String targetFileName = previousDataFolder+"_"+System.currentTimeMillis()+"_blocks.file";
+                    File sourceDataFile = new File(SearchManager.DATASET_DIR+"/"+Util.QUERY_FILE_NAME);
+                    String targetFileName = previousDataFolder+"_"+System.currentTimeMillis()+"_"+Util.QUERY_FILE_NAME;
                     sourceDataFile.renameTo(new File(targetFileName));
                     // delete the completedNodes file
                 }
