@@ -3,6 +3,7 @@
 
 import sys
 import os
+import csv
 
 PATH_distinct_file_hashes = 'distinct-file-hashes'
 
@@ -19,13 +20,14 @@ for file in os.listdir(sys.argv[1]):
   if file.endswith('.stats'):
     file = os.path.join(sys.argv[1],file)
     print 'Searching on ',file
-    with open(file,'r') as file_book, open(os.path.join(PATH_distinct_file_hashes,'distinct-files.stats'),'a+') as result_stats:
-      for line in file_book:
-        file_hash = line.split(',')[4]
+    with open(file, 'r') as csv_file_book, open(os.path.join(PATH_distinct_file_hashes,'distinct-files.stats'),'a+') as result_stats:
+      csv_reader = csv.reader(csv_file_book, delimiter=',')
+      for entry in csv_reader:
+        file_hash = entry[4]
         if file_hash not in set_hashes:
-          result_stats.write(line)
+          result_stats.write(','.join(entry)+'\n')
           set_hashes.add(file_hash)
-          set_ids.add(line.split(',')[1])
+          set_ids.add(entry[1])
 
 for file in os.listdir(sys.argv[2]):
   if file.endswith('.tokens'):
@@ -36,4 +38,5 @@ for file in os.listdir(sys.argv[2]):
         file_id = line.split(',')[1]
         if file_id in set_ids:
           result_tokens.write(line)
+
 
