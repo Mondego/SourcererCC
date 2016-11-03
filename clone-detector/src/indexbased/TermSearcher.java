@@ -75,8 +75,8 @@ public class TermSearcher {
 					Document d = SearchManager.searcher.get(shard).getDocument(docId);
 					long candidateId = Long.parseLong(d.get("id"));
 					// Get rid of these early -- we're only looking for candidates
-					// whose ids are higher than the query
-					if (candidateId <= this.queryId) {
+					// whose ids are smaller than the query
+					if (candidateId >= this.queryId) {
 					    // System.out.println("Query " + this.queryId + ", getting rid of " + candidateId);
 					    earlierDocs.add(docId);
 					    continue; // we reject the candidate

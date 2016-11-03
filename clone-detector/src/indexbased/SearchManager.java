@@ -616,6 +616,7 @@ public class SearchManager {
         if (datasetDir.isDirectory()) {
             System.out.println("Directory: " + datasetDir.getAbsolutePath());
             for (File inputFile : Util.getAllFilesRecur(datasetDir)) {
+                System.out.println("indexing file: "+ inputFile.getAbsolutePath());
                 try {
                     TokensFileReader tfr = new TokensFileReader(
                             SearchManager.NODE_PREFIX, inputFile,
