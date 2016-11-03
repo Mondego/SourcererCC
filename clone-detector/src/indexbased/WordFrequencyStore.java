@@ -146,7 +146,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
         }
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
         IndexWriterConfig wfmIndexWriterConfig = new IndexWriterConfig(Version.LUCENE_46, keywordAnalyzer);
-        wfmIndexWriterConfig.setOpenMode(OpenMode.CREATE);
+        wfmIndexWriterConfig.setOpenMode(OpenMode.CREATE_OR_APPEND);
         wfmIndexWriterConfig.setRAMBufferSizeMB(1024);
 
         System.out.println("PREPARE INDEX");
