@@ -27,9 +27,7 @@ First, the source code is tokenized in a special way, producing one or more toke
 
 ### Download 
 
-Click [here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC. Alternatively, you may also clone the SourcererCC project to your workstation and then run the following ant command to build the executable jar.
-
-``` ant clean cdi ```
+Click [here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jar of SourcererCC.
    
 We recommend creating the following directory structure:
 ```
@@ -93,8 +91,13 @@ Usage:  txl [txloptions] [-o outputfile] inputfile [txlfile] [- progoptions]
  If you don't get the above output, you need to reinstall TXL OR try reopening the terminal. 
  3. Click [Here](http://mondego.ics.uci.edu/projects/clonedetection/files/dist/tool.zip "SourcererCC tool") to download the zip containing executable jars of SourcererCC and InputBuilderClassic.jar.
  4. Unzip the tool.zip.
- 5. Using Terminal, change directory to SourcererCC/clone-detector/parser/java. 
- 6. Execute the following command:
+ 5. Using Terminal, change directory to SourcererCC/clone-detector/parser/java/txl and run the following two commands
+```
+make clean
+make
+``` 
+ 6. Using Terminal, change directory to SourcererCC/clone-detector/parser/java. 
+ 7. Execute the following command:
 
 ```
 java -jar InputBuilderClassic.jar /input/path/src/ /path/to/tokens.file /path/to/headers.file functions java 0 0 10 0 false false false 8
