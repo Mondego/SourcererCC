@@ -48,7 +48,7 @@ def read_config():
 
     # parse existing file
     try:
-        config.read('config.ini')
+        config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)) , 'config.ini'))
     except IOError:
         print 'ERROR - Config settings not found. Usage: $python this-script.py config-file.ini'
         sys.exit()
