@@ -42,6 +42,9 @@ def read_config():
     global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
     global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
     global file_extensions
+    
+    global init_file_id
+    global init_proj_id
 
     # instantiate
     config = ConfigParser()
@@ -72,6 +75,10 @@ def read_config():
     comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
     comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
     file_extensions = config.get('Language', 'File_extensions').split(' ')
+
+    # Reading config settings
+    init_file_id = config.getint('Config', 'init_file_id')
+    init_proj_id = config.getint('Config', 'init_proj_id')
 
 def tokenize(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
 
@@ -378,7 +385,7 @@ if __name__ == '__main__':
             for line in f:
                 line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
                 prio_proj_paths.append((line_split[0],line_split[4]))
-        prio_proj_paths = zip(range(1, len(prio_proj_paths)+1), prio_proj_paths)
+        prio_proj_paths = zip(range(init_proj_id, len(prio_proj_paths)+init_proj_id), prio_proj_paths)
 
     proj_paths = []
     with open(FILE_projects_list) as f:
@@ -407,7 +414,7 @@ if __name__ == '__main__':
 
     # Multiprocessing with N_PROCESSES
     # [process, file_count]
-    processes = [[None, 0] for i in xrange(N_PROCESSES)]
+    processes = [[None, init_file_id] for i in xrange(N_PROCESSES)]
     # Multiprocessing shared variable instance for recording file_id
     #file_id_global_var = Value('i', 1)
     # The queue for processes to communicate back to the parent (this process)
