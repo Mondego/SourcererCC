@@ -372,15 +372,6 @@ if __name__ == '__main__':
     read_config()
     p_start = dt.datetime.now()
 
-    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-        print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'
-        sys.exit()
-    else:
-        os.makedirs(PATH_stats_file_folder)
-        os.makedirs(PATH_bookkeeping_proj_folder)
-        os.makedirs(PATH_tokens_file_folder)
-        os.makedirs(PATH_logs)
-
     prio_proj_paths = []
     if FILE_priority_projects != None:
         with open(FILE_priority_projects) as f:
@@ -401,6 +392,15 @@ if __name__ == '__main__':
             if not prio:
                 proj_paths.append((line_split[0],line_split[4]))
     proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
+
+    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
+        print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'
+        sys.exit()
+    else:
+        os.makedirs(PATH_stats_file_folder)
+        os.makedirs(PATH_bookkeeping_proj_folder)
+        os.makedirs(PATH_tokens_file_folder)
+        os.makedirs(PATH_logs)
 
     #Split list of projects into N_PROCESSES lists
     #proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
