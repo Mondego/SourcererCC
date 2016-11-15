@@ -1,9 +1,0 @@
-[INFO] (2016-11-11 12:29:45,535) Config file successfully read
-[INFO] (2016-11-11 12:29:45,562) Connection to database 'TEMPLeidos' successful
-[INFO] (2016-11-11 12:29:45,562) Database 'TEMPLeidos' successfully initialized
-[INFO] (2016-11-11 12:29:45,562) Starting tokenizer
-[INFO] (2016-11-11 12:29:45,562) Editing tokenizer config file in 'bin/tokenizer/config.ini'
-[INFO] (2016-11-11 12:29:45,562) Starting tokenizer, output in 'bin/tokenizer/output-1478896185.56'
-[ERROR] (2016-11-11 12:29:45,585) An error occured on the tokenizer
-[ERROR] (2016-11-11 12:29:45,585) Command 'python bin/tokenizer/tokenizer.py' returned non-zero exit status 1
-[INFO] (2016-11-11 12:29:45,585) Tokenizer finished

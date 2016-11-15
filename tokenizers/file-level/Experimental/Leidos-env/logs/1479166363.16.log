@@ -1,3 +1,0 @@
-[INFO] (2016-11-14 15:32:43,161) Config file successfully read
-[ERROR] (2016-11-14 15:32:43,184) Error connecting to MySQL with credentials 'pribeiro:pass'@'localhost'
-[ERROR] (2016-11-14 15:32:43,184) (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'AUTOINCREMENT,\n                                   projectId INT(10) UNSIGNED NOT' at line 2")

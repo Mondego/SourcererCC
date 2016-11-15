@@ -1,7 +1,0 @@
-[INFO] (2016-11-14 17:54:44,799) Config file successfully read
-[INFO] (2016-11-14 17:54:44,844) Connection to database 'TEMPLeidos' successful
-[INFO] (2016-11-14 17:54:44,845) Database 'TEMPLeidos' successfully initialized
-[INFO] (2016-11-14 17:54:44,845) Starting tokenizer
-[INFO] (2016-11-14 17:54:44,845) Editing tokenizer config file in 'bin/tokenizer/config.ini'
-[INFO] (2016-11-14 17:54:44,845) Starting tokenizer, output in 'bin/tokenizer/output-1479174884.85'
-[INFO] (2016-11-14 17:54:44,847) Tokenizer finished
