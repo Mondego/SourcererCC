@@ -1,0 +1,19 @@
+[INFO] (2016-11-08 16:40:06,725) Config file successfully read
+[INFO] (2016-11-08 16:40:06,750) Connection to database 'TEMPLeidos' successful
+[INFO] (2016-11-08 16:40:06,750) Database 'TEMPLeidos' successfully initialized
+[INFO] (2016-11-08 16:40:06,750) Starting tokenizer
+[INFO] (2016-11-08 16:40:06,750) Project ids start at 4200000043 and file ids start at 508
+[INFO] (2016-11-08 16:40:06,750) Editing tokenizer config file in 'bin/tokenizer/config.ini'
+[INFO] (2016-11-08 16:40:06,751) Starting tokenizer, output in 'bin/tokenizer/output-1478652006.75'
+[INFO] (2016-11-08 16:40:06,879) Tokenizer finished
+[INFO] (2016-11-08 16:40:06,880) Starting importing to database 'TEMPLeidos' from folder 'bin/tokenizer/output-1478652006.75'
+[INFO] (2016-11-08 16:40:06,880) Importing from bin/tokenizer/output-1478652006.75/bookkeeping_projs/bookkeeping-proj-1.projs
+[INFO] (2016-11-08 16:40:06,881) Importing from bin/tokenizer/output-1478652006.75/bookkeeping_projs/bookkeeping-proj-2.projs
+[INFO] (2016-11-08 16:40:06,881) Importing from bin/tokenizer/output-1478652006.75/bookkeeping_projs/bookkeeping-proj-0.projs
+[INFO] (2016-11-08 16:40:06,881) Importing from bin/tokenizer/output-1478652006.75/bookkeeping_projs/bookkeeping-proj-3.projs
+[INFO] (2016-11-08 16:40:06,881) Importing from bin/tokenizer/output-1478652006.75/bookkeeping_projs/bookkeeping-proj-4.projs
+[INFO] (2016-11-08 16:40:06,882) Importing from bin/tokenizer/output-1478652006.75/bookkeeping_projs/bookkeeping-proj-5.projs
+[INFO] (2016-11-08 16:40:06,882) Importing from bin/tokenizer/output-1478652006.75/bookkeeping_projs/bookkeeping-proj-6.projs
+[INFO] (2016-11-08 16:40:06,882) Importing from bin/tokenizer/output-1478652006.75/files_stats/files-stats-5.stats
+[ERROR] (2016-11-08 16:40:06,882) Error connecting to MySQL with credentials 'pribeiro:pass'@'localhost'
+[ERROR] (2016-11-08 16:40:06,882) (1264, "Out of range value for column 'fileId' at row 1")

@@ -1,0 +1,31 @@
+[INFO] (2016-11-08 16:42:06,534) Config file successfully read
+[INFO] (2016-11-08 16:42:06,558) Connection to database 'TEMPLeidos' successful
+[INFO] (2016-11-08 16:42:06,558) Database 'TEMPLeidos' successfully initialized
+[INFO] (2016-11-08 16:42:06,558) Starting tokenizer
+[INFO] (2016-11-08 16:42:06,558) Project ids start at 2700000028 and file ids start at 118
+[INFO] (2016-11-08 16:42:06,558) Editing tokenizer config file in 'bin/tokenizer/config.ini'
+[INFO] (2016-11-08 16:42:06,559) Starting tokenizer, output in 'bin/tokenizer/output-1478652126.56'
+[INFO] (2016-11-08 16:42:06,669) Tokenizer finished
+[INFO] (2016-11-08 16:42:06,669) Starting importing to database 'TEMPLeidos' from folder 'bin/tokenizer/output-1478652126.56'
+[INFO] (2016-11-08 16:42:06,669) Importing from bin/tokenizer/output-1478652126.56/bookkeeping_projs/bookkeeping-proj-1.projs
+[INFO] (2016-11-08 16:42:06,670) Importing from bin/tokenizer/output-1478652126.56/bookkeeping_projs/bookkeeping-proj-2.projs
+[INFO] (2016-11-08 16:42:06,670) Importing from bin/tokenizer/output-1478652126.56/bookkeeping_projs/bookkeeping-proj-0.projs
+[INFO] (2016-11-08 16:42:06,670) Importing from bin/tokenizer/output-1478652126.56/bookkeeping_projs/bookkeeping-proj-3.projs
+[INFO] (2016-11-08 16:42:06,670) Importing from bin/tokenizer/output-1478652126.56/bookkeeping_projs/bookkeeping-proj-4.projs
+[INFO] (2016-11-08 16:42:06,671) Importing from bin/tokenizer/output-1478652126.56/bookkeeping_projs/bookkeeping-proj-5.projs
+[INFO] (2016-11-08 16:42:06,671) Importing from bin/tokenizer/output-1478652126.56/bookkeeping_projs/bookkeeping-proj-6.projs
+[INFO] (2016-11-08 16:42:06,671) Importing from bin/tokenizer/output-1478652126.56/files_stats/files-stats-5.stats
+[INFO] (2016-11-08 16:42:06,672) Importing from bin/tokenizer/output-1478652126.56/files_stats/files-stats-4.stats
+[INFO] (2016-11-08 16:42:06,675) Importing from bin/tokenizer/output-1478652126.56/files_stats/files-stats-3.stats
+[INFO] (2016-11-08 16:42:06,676) Importing from bin/tokenizer/output-1478652126.56/files_stats/files-stats-2.stats
+[INFO] (2016-11-08 16:42:06,678) Importing from bin/tokenizer/output-1478652126.56/files_stats/files-stats-0.stats
+[INFO] (2016-11-08 16:42:06,679) Importing from bin/tokenizer/output-1478652126.56/files_stats/files-stats-6.stats
+[INFO] (2016-11-08 16:42:06,679) Importing from bin/tokenizer/output-1478652126.56/files_stats/files-stats-1.stats
+[INFO] (2016-11-08 16:42:06,689) Importing from bin/tokenizer/output-1478652126.56/files_tokens/files-tokens-1.tokens
+[INFO] (2016-11-08 16:42:06,697) Importing from bin/tokenizer/output-1478652126.56/files_tokens/files-tokens-2.tokens
+[INFO] (2016-11-08 16:42:06,699) Importing from bin/tokenizer/output-1478652126.56/files_tokens/files-tokens-5.tokens
+[INFO] (2016-11-08 16:42:06,700) Importing from bin/tokenizer/output-1478652126.56/files_tokens/files-tokens-6.tokens
+[INFO] (2016-11-08 16:42:06,700) Importing from bin/tokenizer/output-1478652126.56/files_tokens/files-tokens-0.tokens
+[INFO] (2016-11-08 16:42:06,701) Importing from bin/tokenizer/output-1478652126.56/files_tokens/files-tokens-4.tokens
+[INFO] (2016-11-08 16:42:06,703) Importing from bin/tokenizer/output-1478652126.56/files_tokens/files-tokens-3.tokens
+[INFO] (2016-11-08 16:42:06,704) All information successfully imported to database

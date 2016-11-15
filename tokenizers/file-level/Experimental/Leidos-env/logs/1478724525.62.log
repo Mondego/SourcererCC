@@ -1,0 +1,13 @@
+[INFO] (2016-11-09 12:48:45,620) Config file successfully read
+[INFO] (2016-11-09 12:48:45,643) Connection to database 'TEMPLeidos' successful
+[INFO] (2016-11-09 12:48:45,643) Database 'TEMPLeidos' successfully initialized
+[INFO] (2016-11-09 12:48:45,643) Starting tokenizer
+[INFO] (2016-11-09 12:48:45,643) Project ids start at 1 and file ids start at 1
+[INFO] (2016-11-09 12:48:45,643) Editing tokenizer config file in 'bin/tokenizer/config.ini'
+[INFO] (2016-11-09 12:48:45,643) Starting tokenizer, output in 'bin/tokenizer/output-1478724525.64'
+[ERROR] (2016-11-09 12:48:45,652) An error occured on the tokenizer
+[ERROR] (2016-11-09 12:48:45,652) Command 'python bin/tokenizer/tokenizer.py' returned non-zero exit status 1
+[INFO] (2016-11-09 12:48:45,652) Tokenizer finished
+[INFO] (2016-11-09 12:48:45,653) Starting importing to database 'TEMPLeidos' from folder 'bin/tokenizer/output-1478724525.64'
+[ERROR] (2016-11-09 12:48:45,653) Error connecting to MySQL with credentials 'pribeiro:pass'@'localhost'
+[ERROR] (2016-11-09 12:48:45,653) [Errno 2] No such file or directory: 'bin/tokenizer/output-1478724525.64/bookkeeping_projs'

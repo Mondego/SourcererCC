@@ -1,0 +1,9 @@
+[INFO] (2016-11-11 12:43:35,785) Config file successfully read
+[INFO] (2016-11-11 12:43:35,807) Connection to database 'TEMPLeidos' successful
+[INFO] (2016-11-11 12:43:35,807) Database 'TEMPLeidos' successfully initialized
+[INFO] (2016-11-11 12:43:35,807) Starting tokenizer
+[INFO] (2016-11-11 12:43:35,807) Editing tokenizer config file in 'bin/tokenizer/config.ini'
+[INFO] (2016-11-11 12:43:35,808) Starting tokenizer, output in 'bin/tokenizer/output-1478897015.81'
+[ERROR] (2016-11-11 12:43:35,808) An error occured on the tokenizer
+[ERROR] (2016-11-11 12:43:35,809) global name 'proc' is not defined
+[INFO] (2016-11-11 12:43:35,809) Tokenizer finished

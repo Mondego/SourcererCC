@@ -1,0 +1,3 @@
+[INFO] (2016-11-11 12:19:37,393) Config file successfully read
+[ERROR] (2016-11-11 12:19:37,418) Error connecting to MySQL with credentials 'pribeiro:pass'@'localhost'
+[ERROR] (2016-11-11 12:19:37,419) (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ') ENGINE = MYISAM' at line 5")

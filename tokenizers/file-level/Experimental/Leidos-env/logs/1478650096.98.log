@@ -1,0 +1,14 @@
+[INFO] (2016-11-08 16:08:16,985) Config file successfully read
+[INFO] (2016-11-08 16:08:17,008) Connection to database 'TEMPLeidos' successful
+[INFO] (2016-11-08 16:08:17,008) Database 'TEMPLeidos' successfully initialized
+[INFO] (2016-11-08 16:08:17,008) Starting tokenizer
+[INFO] (2016-11-08 16:08:17,008) Project ids start at 300000003 and file ids start at 13
+[INFO] (2016-11-08 16:08:17,008) Editing tokenizer config file in 'bin/tokenizer/config.ini'
+[INFO] (2016-11-08 16:08:17,011) Starting tokenizer, output in 'bin/tokenizer/output-1478650097.01'
+[INFO] (2016-11-08 16:08:17,128) Tokenizer finished
+[INFO] (2016-11-08 16:08:17,128) Starting importing to database 'TEMPLeidos' from folder 'bin/tokenizer/output-1478650097.01'
+[INFO] (2016-11-08 16:08:17,129) Importing from bin/tokenizer/output-1478650097.01/bookkeeping_projs/bookkeeping-proj-1.projs
+[INFO] (2016-11-08 16:08:17,129) Importing from bin/tokenizer/output-1478650097.01/bookkeeping_projs/bookkeeping-proj-2.projs
+[INFO] (2016-11-08 16:08:17,129) Importing from bin/tokenizer/output-1478650097.01/bookkeeping_projs/bookkeeping-proj-0.projs
+[ERROR] (2016-11-08 16:08:17,129) Error connecting to MySQL with credentials 'pribeiro:pass'@'localhost'
+[ERROR] (2016-11-08 16:08:17,130) (1062, "Duplicate entry '13' for key 'PRIMARY'")
