@@ -130,7 +130,8 @@ def tokenize(logging):
 
     try:
         #subprocess.check_output('python '+os.path.join(PATH_tokenizer,'tokenizer.py'), shell=True)
-        subprocess.Popen('python '+os.path.join(PATH_tokenizer,'tokenizer.py'), shell=True)
+        subprocess.call('python '+os.path.join(PATH_tokenizer,'tokenizer.py'), shell=True)
+        print 'python '+os.path.join(PATH_tokenizer,'tokenizer.py')
     except Exception as e:
         logging.error('An error occured on the tokenizer')
         logging.error(e)
@@ -183,10 +184,12 @@ if __name__ == '__main__':
 
     # Logging code
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
-    logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+    logging.basicConfig(level=logging.INFO,format=FORMAT)
     file_handler = logging.FileHandler( os.path.join( PATH_logs,str(time.time() ) )+'.log')
     file_handler.setFormatter(logging.Formatter(FORMAT))
     logging.getLogger().addHandler(file_handler)
+
+    logging.info('Starting')
 
     read_config(logging)
     db_connect(logging)

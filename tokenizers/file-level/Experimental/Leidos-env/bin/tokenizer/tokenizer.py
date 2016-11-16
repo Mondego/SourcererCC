@@ -284,6 +284,18 @@ def process_one_project(process_num, proj_path, proj_id, FILE_tokens_file, loggi
                  process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 def process_projects(process_num, list_projects, global_queue):
+    # Logging code
+
+    print 'begin of logging code'
+    FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
+    logging.basicConfig(level=logging.INFO,format=FORMAT)
+    file_handler = logging.FileHandler(os.path.join(PATH_logs,'LOG-'+str(process_num)+'.log'))
+    file_handler.setFormatter(logging.Formatter(FORMAT))
+    logging.getLogger().addHandler(file_handler)
+    
+    print os.path.join(PATH_logs,'LOG-'+str(process_num)+'.log')
+    logging.info('LALALALALALA')
+
     # Database access to check project_id
     try:
         db = MySQLdb.connect(host="localhost", # your host, usually localhost
@@ -291,13 +303,6 @@ def process_projects(process_num, list_projects, global_queue):
                              user=DB_user,     # your username
                              passwd=DB_pass)   # your password
 
-        # Logging code
-        FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
-        logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-        file_handler = logging.FileHandler(os.path.join(PATH_logs,'LOG-'+str(process_num)+'.log'))
-        file_handler.setFormatter(logging.Formatter(FORMAT))
-        logging.getLogger().addHandler(file_handler)
-    
         FILE_files_tokens_file = os.path.join(PATH_tokens_file_folder,'files-tokens-'+str(process_num)+'.tokens')
 
         global file_count
@@ -425,4 +430,6 @@ if __name__ == '__main__':
         kill_child(processes, pid, n_files_processed)
 
     p_elapsed = dt.datetime.now() - p_start
-    print "*** All done. %s files in %s" % (file_count, p_elapsed)#
+    print "*** All done. %s files in %s" % (file_count, p_elapsed)
+
+
