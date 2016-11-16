@@ -42,13 +42,16 @@ def read_config():
     global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
     global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
     global file_extensions
+    
+    global init_file_id
+    global init_proj_id
 
     # instantiate
     config = ConfigParser()
 
     # parse existing file
     try:
-        config.read('config.ini')
+        config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)) , 'config.ini'))
     except IOError:
         print 'ERROR - Config settings not found. Usage: $python this-script.py config-file.ini'
         sys.exit()
@@ -72,6 +75,10 @@ def read_config():
     comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
     comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
     file_extensions = config.get('Language', 'File_extensions').split(' ')
+
+    # Reading config settings
+    init_file_id = config.getint('Config', 'init_file_id')
+    init_proj_id = config.getint('Config', 'init_proj_id')
 
 def tokenize(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
 
@@ -372,22 +379,13 @@ if __name__ == '__main__':
     read_config()
     p_start = dt.datetime.now()
 
-    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-        print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'
-        sys.exit()
-    else:
-        os.makedirs(PATH_stats_file_folder)
-        os.makedirs(PATH_bookkeeping_proj_folder)
-        os.makedirs(PATH_tokens_file_folder)
-        os.makedirs(PATH_logs)
-
     prio_proj_paths = []
     if FILE_priority_projects != None:
         with open(FILE_priority_projects) as f:
             for line in f:
                 line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
                 prio_proj_paths.append((line_split[0],line_split[4]))
-        prio_proj_paths = zip(range(1, len(prio_proj_paths)+1), prio_proj_paths)
+        prio_proj_paths = zip(range(init_proj_id, len(prio_proj_paths)+init_proj_id), prio_proj_paths)
 
     proj_paths = []
     with open(FILE_projects_list) as f:
@@ -402,12 +400,21 @@ if __name__ == '__main__':
                 proj_paths.append((line_split[0],line_split[4]))
     proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
 
+    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
+        print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'
+        sys.exit()
+    else:
+        os.makedirs(PATH_stats_file_folder)
+        os.makedirs(PATH_bookkeeping_proj_folder)
+        os.makedirs(PATH_tokens_file_folder)
+        os.makedirs(PATH_logs)
+
     #Split list of projects into N_PROCESSES lists
     #proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
 
     # Multiprocessing with N_PROCESSES
     # [process, file_count]
-    processes = [[None, 0] for i in xrange(N_PROCESSES)]
+    processes = [[None, init_file_id] for i in xrange(N_PROCESSES)]
     # Multiprocessing shared variable instance for recording file_id
     #file_id_global_var = Value('i', 1)
     # The queue for processes to communicate back to the parent (this process)
