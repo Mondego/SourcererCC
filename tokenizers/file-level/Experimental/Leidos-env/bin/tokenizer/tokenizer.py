@@ -157,7 +157,7 @@ def get_file_hash(file_string):
     m.update(file_string)
     return m.hexdigest()
 
-def process_file_contents(proj_id, file_string, container_path, file_path, file_bytes, proj_url, FILE_tokens_file, cursor):
+def process_file_contents(proj_id, file_string, container_path, file_path, file_bytes, proj_url, FILE_tokens_file, db):
     global file_count
     file_count += 1
     
@@ -167,8 +167,10 @@ def process_file_contents(proj_id, file_string, container_path, file_path, file_
     file_path = os.path.join(container_path, file_path)
 
     exists = 0
+    cursor = db.cursor()
     cursor.execute("SELECT COUNT(*) FROM filesStats WHERE fileHash = '"+file_hash+"';")
     (exists, ) = cursor.fetchone()
+    cursor.close()
     if exists == 0:
         (final_stats, final_tokens, file_parsing_times) = tokenize(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
@@ -176,22 +178,25 @@ def process_file_contents(proj_id, file_string, container_path, file_path, file_
 
         ww_time = dt.datetime.now()
         q = """INSERT INTO filesStats (fileId, projectId, fileLeidosPath, fileUrl, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash) VALUES (NULL, %s, '%s', '%s', '%s', %s, %s, %s, %s, %s, %s, '%s'); SELECT LAST_INSERT_ID();""" % (proj_id, file_path, file_url, file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash) 
+        cursor = db.cursor()
         cursor.execute(q)
+        cursor.close()
         file_id = cursor.lastrowid
         #print '# MySQL stats'+(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
         w_time = (dt.datetime.now() - ww_time).microseconds
 
         ww_time = dt.datetime.now()
-        print 'FOR TOKEN FILE'
         FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
         w_time += (dt.datetime.now() - ww_time).microseconds
         return file_parsing_times + [w_time] # [s_time, t_time, w_time, hash_time, re_time]
     else:
         q = """INSERT INTO filesStats (fileId, projectId, fileLeidosPath, fileUrl, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash) VALUES (NULL, %s, '%s', '%s', '%s', NULL, NULL, NULL, NULL, NULL, NULL, NULL);""" % (proj_id, file_path, file_url, file_hash) 
+        cursor = db.cursor()
         cursor.execute(q)
+        cursor.close()
         return [1,2,3,4,5]
 
-def process_tgz_ball(process_num, tar_file, proj_path, proj_id, proj_url, FILE_tokens_file, logging, cursor):
+def process_tgz_ball(process_num, tar_file, proj_path, proj_id, proj_url, FILE_tokens_file, logging, db):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
     try:
@@ -229,7 +234,7 @@ def process_tgz_ball(process_num, tar_file, proj_path, proj_id, proj_url, FILE_t
                 file_string = myfile.read()
                 file_time += (dt.datetime.now() - f_time).microseconds
 
-                times = process_file_contents(proj_id, file_string, tar_file, file_path, file_bytes, proj_url, FILE_tokens_file, cursor)
+                times = process_file_contents(proj_id, file_string, tar_file, file_path, file_bytes, proj_url, FILE_tokens_file, db)
                 string_time += times[0]
                 tokens_time += times[1]
                 write_time += times[4]
@@ -248,7 +253,7 @@ def process_tgz_ball(process_num, tar_file, proj_path, proj_id, proj_url, FILE_t
     return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 
-def process_one_project(process_num, proj_path, proj_id, FILE_tokens_file, logging, cursor):
+def process_one_project(process_num, proj_path, proj_id, FILE_tokens_file, logging, db):
     proj_path, proj_url = proj_path
 
     logging.info('Starting project <'+proj_path+'> (process '+str(process_num)+')')
@@ -265,10 +270,12 @@ def process_one_project(process_num, proj_path, proj_id, FILE_tokens_file, loggi
         logging.error('Tar not found on <'+proj_path+'> (process '+str(process_num)+')')
     else:
         tar_file = tar_files[0]
-        times = process_tgz_ball(process_num, tar_file, proj_path, proj_id, proj_url, FILE_tokens_file, logging, cursor)
+        times = process_tgz_ball(process_num, tar_file, proj_path, proj_id, proj_url, FILE_tokens_file, logging, db)
         zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
+    cursor = db.cursor()
     cursor.execute("""INSERT INTO projects VALUES (%s, %s, %s);""", (proj_id,proj_path,proj_url))
+    cursor.close()
     #print '## MySQL query - project'+(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
 
     p_elapsed = dt.datetime.now() - p_start
@@ -299,7 +306,7 @@ def process_projects(process_num, list_projects, global_queue):
             logging.info("Process %s starting", process_num)
             p_start = dt.datetime.now()
             for proj_id, proj_path in list_projects:
-                process_one_project(process_num, proj_path, str(proj_id), FILE_tokens_file, logging, db.cursor())
+                process_one_project(process_num, proj_path, str(proj_id), FILE_tokens_file, logging, db)
 
         p_elapsed = (dt.datetime.now() - p_start).seconds
         logging.info('Process %s finished. %s files in %ss.', 
