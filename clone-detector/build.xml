@@ -41,7 +41,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${cdWithFilter}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${cdWithFilter}"/>
+                <attribute name="Main-Class" value="com.mondego.${cdWithFilter}"/>
             </manifest>
         </jar>
     </target>
@@ -49,7 +49,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${cdWithoutFilter}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${cdWithoutFilter}"/>
+                <attribute name="Main-Class" value="com.mondego.${cdWithoutFilter}"/>
             </manifest>
         </jar>
     </target>
@@ -57,7 +57,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${cdIndex}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${cdIndex}"/>
+                <attribute name="Main-Class" value="com.mondego.${cdIndex}"/>
             </manifest>
             <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
         </jar>
@@ -67,7 +67,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonesBugsAssembler}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${clonesBugsAssembler}"/>
+                <attribute name="Main-Class" value="com.mondego.${clonesBugsAssembler}"/>
             </manifest>
         </jar>
     </target>
@@ -75,7 +75,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonesNamesAssembler}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${clonesNamesAssembler}"/>
+                <attribute name="Main-Class" value="com.mondego.${clonesNamesAssembler}"/>
             </manifest>
         </jar>
     </target>
@@ -83,7 +83,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonesBugPattern}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${clonesBugPattern}"/>
+                <attribute name="Main-Class" value="com.mondego.${clonesBugPattern}"/>
             </manifest>
         </jar>
     </target>
@@ -98,7 +98,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${aggregatorClones}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${aggregatorClones}"/>
+                <attribute name="Main-Class" value="$com.mondego.{aggregatorClones}"/>
             </manifest>
         </jar>
     </target>
@@ -107,7 +107,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonedMethod}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${clonedMethod}"/>
+                <attribute name="Main-Class" value="com.mondego.${clonedMethod}"/>
             </manifest>
         	<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
         </jar>
@@ -117,7 +117,7 @@
 	        <mkdir dir="${jar.dir}"/>
 	        <jar destfile="${jar.dir}/${fixIdMethodMap}.jar" basedir="${classes.dir}">
 	            <manifest>
-	                <attribute name="Main-Class" value="${fixIdMethodMap}"/>
+	                <attribute name="Main-Class" value="com.mondego.${fixIdMethodMap}"/>
 	            </manifest>
 	        	<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
 	        </jar>
@@ -127,7 +127,7 @@
 	            <mkdir dir="${jar.dir}"/>
 	            <jar destfile="${jar.dir}/${indexMerge}.jar" basedir="${classes.dir}">
 	                <manifest>
-	                    <attribute name="Main-Class" value="${indexMerge}"/>
+	                    <attribute name="Main-Class" value="com.mondego.${indexMerge}"/>
 	                </manifest>
 	                <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
 	            </jar>

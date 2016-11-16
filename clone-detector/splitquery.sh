@@ -4,7 +4,7 @@
 #lines_per_part = int(total_lines + $N - 1) / $N
 
 # Configuration stuff
-
+echo "inside splitquery "
 queryfile="input/dataset/blocks.file"
 num_files="${1:-2}"
 
