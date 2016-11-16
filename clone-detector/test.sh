@@ -1,5 +1,5 @@
 #!/bin/bash
-for entry in `cat projects.txt`
-do
-  echo "$entry"
-done
+status=0
+#status=1
+exit $status
+
