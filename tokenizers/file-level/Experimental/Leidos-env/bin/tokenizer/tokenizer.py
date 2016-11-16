@@ -286,16 +286,12 @@ def process_one_project(process_num, proj_path, proj_id, FILE_tokens_file, loggi
 def process_projects(process_num, list_projects, global_queue):
     # Logging code
 
-    print 'begin of logging code'
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
     logging.basicConfig(level=logging.INFO,format=FORMAT)
     file_handler = logging.FileHandler(os.path.join(PATH_logs,'LOG-'+str(process_num)+'.log'))
     file_handler.setFormatter(logging.Formatter(FORMAT))
     logging.getLogger().addHandler(file_handler)
     
-    print os.path.join(PATH_logs,'LOG-'+str(process_num)+'.log')
-    logging.info('LALALALALALA')
-
     # Database access to check project_id
     try:
         db = MySQLdb.connect(host="localhost", # your host, usually localhost
