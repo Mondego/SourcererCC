@@ -11,7 +11,7 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser # ver. < 3.0
 
-PATH_logs = 'logs'
+PATH_logs = os.path.join('logs','tokenizer')
 PATH_tokenizer = os.path.join('bin','tokenizer')
 PATH_CC_input = ''
 DB_user = ''
@@ -54,33 +54,79 @@ def db_connect(logging):
                              passwd=DB_pass)   # your password
         cursor = db.cursor()
 
-        projectsTable = """ CREATE TABLE IF NOT EXISTS `projects` (
-                           projectId INT(15) UNSIGNED PRIMARY KEY,
-                           projectLeidosPath VARCHAR(3000) NOT NULL,
-                           projectUrl VARCHAR(3000) NOT NULL
-                           ) ENGINE = MYISAM; """
-        cursor.execute(projectsTable)
+        cursor.execute("DROP TABLE IF EXISTS `projects`;")
+        table = """ CREATE TABLE IF NOT EXISTS `projects` (
+                       projectId   INT(6)        UNSIGNED PRIMARY KEY,
+                       projectPath VARCHAR(4000)          NULL,
+                       projectUrl  VARCHAR(4000)          NOT NULL
+                       ) ENGINE = MYISAM; """
+        cursor.execute(table)
         db.commit()
-        
-        filesStatsTable = """ CREATE TABLE IF NOT EXISTS `filesStats` (
-                                   fileId BIGINT(10) UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                                   projectId INT(10) UNSIGNED NOT NULL,
-                                   fileLeidosPath VARCHAR(3000) NOT NULL,
-                                   fileUrl VARCHAR(3000) NULL,
-                                   fileHash VARCHAR(32) NULL,
-                                   fileBytes INT(7) UNSIGNED NULL,
-                                   fileLines INT(7) UNSIGNED NULL,
-                                   fileLOC INT(7) UNSIGNED NULL,
-                                   fileSLOC INT(7) UNSIGNED NULL,
-                                   totalTokens INT(7) UNSIGNED NULL,
-                                   uniqueTokens INT(7) UNSIGNED NULL,
-                                   tokenHash VARCHAR(32) NULL,
-                                   INDEX (projectId),
-                                   INDEX (fileHash),
-                                   INDEX (tokenHash)
-                                   ) ENGINE = MYISAM; """
-        cursor.execute(filesStatsTable)
+    
+        cursor.execute("DROP TABLE IF EXISTS `files`;")
+        table = """CREATE TABLE IF NOT EXISTS `files` (
+                       fileId       BIGINT(6)     UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                       projectId    INT(6)        UNSIGNED NOT NULL,
+                       relativePath VARCHAR(4000)          NULL,
+                       relativeUrl  VARCHAR(4000)          NOT NULL,
+                       fileHash     CHAR(32)               NOT NULL,
+                       INDEX (projectId),
+                       INDEX (fileHash)
+                       ) ENGINE = MYISAM;"""
+        cursor.execute(table)
         db.commit()
+    
+        cursor.execute("DROP TABLE IF EXISTS `stats`;")
+        table = """CREATE TABLE IF NOT EXISTS `stats` (
+                       fileHash     CHAR(32)        PRIMARY KEY,
+                       fileBytes    INT(6) UNSIGNED NOT NULL,
+                       fileLines    INT(6) UNSIGNED NOT NULL,
+                       fileLOC      INT(6) UNSIGNED NOT NULL,
+                       fileSLOC     INT(6) UNSIGNED NOT NULL,
+                       totalTokens  INT(6) UNSIGNED NOT NULL,
+                       uniqueTokens INT(6) UNSIGNED NOT NULL,
+                       tokenHash    CHAR(32)        NOT NULL,
+                       INDEX (tokenHash)
+                       ) ENGINE = MYISAM;"""
+        cursor.execute(table)
+        db.commit()
+    
+        cursor.execute("DROP TABLE IF EXISTS `CCPairs`;")
+        table = """CREATE TABLE `CCPairs` (
+                       projectId1 INT(6) NOT NULL,
+                       fileId1    INT(6) NOT NULL,
+                       projectId2 INT(6) NOT NULL,
+                       fileId2    INT(6) NOT NULL,
+                       PRIMARY KEY(fileId1, fileId2),
+                       INDEX (projectId1),
+                       INDEX (fileId1),
+                       INDEX (projectId2),
+                       INDEX (fileId2)
+                       ) ENGINE = MYISAM;"""
+        cursor.execute(table)
+    
+        cursor.execute("DROP TABLE IF EXISTS `projectClones`;")
+        table = """CREATE TABLE `projectClones` (
+                       id                  INT(6)       UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                       cloneId             INT(6)       UNSIGNED NOT NULL,
+                       cloneClonedFiles    INT(6)       UNSIGNED NOT NULL,
+                       cloneTotalFiles     INT(6)       UNSIGNED NOT NULL,
+                       cloneCloningPercent DECIMAL(6,3) UNSIGNED NOT NULL,
+                       hostId              INT(6)       UNSIGNED NOT NULL,
+                       hostAffectedFiles   INT(6)       UNSIGNED NOT NULL,
+                       hostTotalFiles      INT(6)       UNSIGNED NOT NULL,
+                       hostAffectedPercent DECIMAL(6,3) UNSIGNED NOT NULL,
+                       INDEX(cloneId),
+                       INDEX(cloneClonedFiles),
+                       INDEX(cloneTotalFiles),
+                       INDEX(cloneCloningPercent),
+                       INDEX(hostId),
+                       INDEX(hostAffectedFiles),
+                       INDEX(hostTotalFiles),
+                       INDEX(hostAffectedPercent)
+                       ) ENGINE = MYISAM;"""
+        cursor.execute(table)
+
 
     except Exception as e:
         logging.error('Error connecting to MySQL with credentials \''+DB_user+':'+DB_pass+'\'@\'localhost\'')
@@ -191,7 +237,7 @@ if __name__ == '__main__':
 
     logging.info('Starting')
 
-    read_config(logging)
-    db_connect(logging)
-    tokenized_output = tokenize(logging)
-    run_SourcererCC(tokenized_output)
+#    read_config(logging)
+#    db_connect(logging)
+    #tokenized_output = tokenize(logging)
+    #run_SourcererCC(tokenized_output)
