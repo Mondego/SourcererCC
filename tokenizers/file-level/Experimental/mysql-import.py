@@ -102,10 +102,10 @@ def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
     files_tokens_path     = os.path.join(output_path,'files_tokens')
 
     try:
-        db = MySQLdb.connect(host="localhost",  # your host, usually localhost
+        db = MySQLdb.connect(host="localhost", # your host, usually localhost
                              user=  DB_user,   # your username
-                             passwd=DB_pass,     # your password
-                             db=    DB_name) # name of the data base
+                             passwd=DB_pass,   # your password
+                             db=    DB_name)   # name of the data base
 
         cursor = db.cursor()
 
@@ -154,7 +154,7 @@ def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
 
                         if exists == 0:
                             cursor.execute("""INSERT INTO stats VALUES (%s, %s, %s, %s, %s, %s, %s, %s);""",
-                                           (file_hash,entry[5],entry[6],entry[7],entry[8],'1','1','1')) #token_info[file_hash][0],token_info[file_hash][1],token_info[file_hash][2]))
+                                           (file_hash,entry[5],entry[6],entry[7],entry[8],token_info[file_hash][0],token_info[file_hash][1],token_info[file_hash][2]))
 
                         db.commit()
 
