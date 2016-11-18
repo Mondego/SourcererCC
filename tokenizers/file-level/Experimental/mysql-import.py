@@ -96,6 +96,9 @@ def create_tables(DB_name,DB_user,DB_pass):
         db.commit()
         db.close()
 
+def sanitize_strings(string):
+    return (string.replace('\"','\'\''))[:4000]
+
 def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
     bookkeeping_file_path = os.path.join(output_path,'bookkeeping_projs')
     files_stats_path      = os.path.join(output_path,'files_stats')
@@ -131,8 +134,8 @@ def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
                 with open(file, 'r') as csvfile:
                     csv_reader = csv.reader(csvfile, delimiter=',')
                     for entry in csv_reader:
-                        cursor.execute("""INSERT INTO projects VALUES (%s, %s, %s);""",
-                                      (entry[0],entry[1][:4000],entry[2][:4000]))
+                        cursor.execute("""INSERT INTO projects VALUES (%s, \"%s\", \"%s\");""",
+                                      (entry[0],sanitize_strings(entry[1]),sanitize_strings(entry[2])))
                     db.commit()
 
         print '## Importing files and stats'
@@ -145,16 +148,20 @@ def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
                     csv_reader = csv.reader(csvfile, delimiter=',')
                     for entry in csv_reader:
 
-                        cursor.execute("""INSERT INTO files VALUES (%s, %s, %s, %s, %s);""",
-                                       (entry[1],entry[0],entry[2],entry[3],entry[4]))
+                        q = "INSERT INTO files VALUES (%s, %s, \"%s\", \"%s\", \"%s\");" % (entry[1],entry[0],sanitize_strings(entry[2]),sanitize_strings(entry[3]),entry[4])
+                        #print q
+                        cursor.execute(q)
 
                         file_hash = entry[4]
-                        cursor.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '"+file_hash+"';")
+                        q = "SELECT COUNT(*) FROM stats WHERE fileHash = '"+file_hash+"';"
+                        #print q
+                        cursor.execute(q)
                         (exists, ) = cursor.fetchone()
 
                         if exists == 0:
-                            cursor.execute("""INSERT INTO stats VALUES (%s, %s, %s, %s, %s, %s, %s, %s);""",
-                                           (file_hash,entry[5],entry[6],entry[7],entry[8],token_info[file_hash][0],token_info[file_hash][1],token_info[file_hash][2]))
+                            q = "INSERT INTO stats VALUES (\"%s\", %s, %s, %s, %s, %s, %s, \"%s\");" % (file_hash,entry[5],entry[6],entry[7],entry[8],token_info[entry[1]][0],token_info[entry[1]][1],token_info[entry[1]][2])
+                            #print q
+                            cursor.execute(q)
 
                         db.commit()
 
@@ -168,18 +175,68 @@ def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
         db.commit()
         db.close()
 
+def import_pairs(pairs_path):
+    try:
+        db = MySQLdb.connect(host="localhost", # your host, usually localhost
+                             user=  DB_user,   # your username
+                             passwd=DB_pass,   # your password
+                             db=    DB_name)   # name of the data base
+
+        cursor = db.cursor()
+
+        cursor.execute("DROP TABLE IF EXISTS `CCPairs`;")
+        table = """CREATE TABLE `CCPairs` (
+                       projectId1 INT(6) NOT NULL,
+                       fileId1    INT(6) NOT NULL,
+                       projectId2 INT(6) NOT NULL,
+                       fileId2    INT(6) NOT NULL,
+                       PRIMARY KEY(fileId1, fileId2),
+                       INDEX (projectId1),
+                       INDEX (fileId1),
+                       INDEX (projectId2),
+                       INDEX (fileId2)
+                       ) ENGINE = MYISAM;"""
+        cursor.execute(table)
+
+        commit_interval = 1000
+        pair_number = 0
+
+        print '## Importing pairs from',pairs_path
+        with open(pairs_path, 'r') as file:
+            for line in file:
+                pair_number += 1
+                line_split = line[:-1].split(',')
+                q = "INSERT INTO CCPairs VALUES (%s, %s, %s, %s);" % (line_split[0],line_split[1],line_split[2],line_split[3])
+                cursor.execute(q)
+                if pair_number%commit_interval == 0:
+                    db.commit()
+                    print '    ',pair_number,'pairs committed'
+
+    except Exception as e:
+        print 'Error accessing Database'
+        print e
+        sys.exit(1)
+
+    finally:
+        cursor.close()
+        db.commit()
+        db.close()
 
 if __name__ == "__main__":
     
-    DB_name = sys.argv[1]
+    DB_name     = sys.argv[1]
     output_path = sys.argv[2]
+    pairs_path  = sys.argv[3]
     
     DB_user = 'pribeiro'
     DB_pass = 'pass'
     #pairs_path = sys.argv[2]
 
     print '### Creating Tables'
-    create_tables(DB_name,DB_user,DB_pass)
+    #create_tables(DB_name,DB_user,DB_pass)
     print '### Importing output from tokenizer'
-    import_tokenizer_output(DB_name,DB_user,DB_pass,output_path)
+    #import_tokenizer_output(DB_name,DB_user,DB_pass,output_path)
+    print '### Importing output from tokenizer'
+    import_pairs(pairs_path)
+
 
