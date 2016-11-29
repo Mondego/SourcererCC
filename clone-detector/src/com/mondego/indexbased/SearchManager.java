@@ -558,7 +558,7 @@ public class SearchManager {
     }
 
     private static void signOffNode() {
-        logger.debug("signing off "+ theInstance.NODE_PREFIX);
+        logger.debug("signing off "+ SearchManager.NODE_PREFIX);
         File file = new File(SearchManager.completedNodes);
         FileLock lock = null;
         RandomAccessFile raf;
