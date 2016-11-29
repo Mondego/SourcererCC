@@ -35,6 +35,7 @@ class ScriptController(object):
 
     def execute(self):
         # execute command
+        print("previous run state {s}".format(s=self.previous_run_state))
         if self.previous_run_state > ScriptController.STATE_EXECUTE_1:
             returncode = ScriptController.EXIT_SUCCESS
         else:
@@ -49,6 +50,19 @@ class ScriptController(object):
             if self.previous_run_state > ScriptController.STATE_INIT:
                 returncode = ScriptController.EXIT_SUCCESS
             else:
+                if self.previous_run_state == ScriptController.STATE_INIT:
+                    # last time the execution failed at init step. We need to replace the existing gtpm index  from the backup
+                    command = "./restore-gtpm.sh"
+                    command_params = command.split()
+                    returncode = self.run_command(
+                    command_params, "Log_restore_gtpm.out", "Log_restore_gtpm.err")
+                else:
+                    # take backup of existing gtpmindex before starting init
+                    command = "./backup-gtpm.sh"
+                    command_params = command.split()
+                    returncode = self.run_command(
+                    command_params, "Log_backup_gtpm.out", "Log_backup_gtpm.err")
+                # run the init step
                 command = "./runnodes.sh init 1"
                 command_params = command.split()
                 returncode = self.run_command(
