@@ -1,0 +1,92 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{comment}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{cite}
+\usepackage{url}
+\usepackage[textsize=tiny]{todonotes}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{caption}
+%\usepackage{subcaption}
+\usepackage{dblfloatfix}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{subfig}
+\usepackage{array}
+%\usepackage{hyperref}
+\usepackage[textsize=tiny]{todonotes}
+\usepackage{multicol}
+\usepackage{listings}
+
+%Format the itemizes and enumerates
+\setlist[itemize]{nolistsep}
+\setlist[enumerate]{nolistsep}
+
+% Formatting listings
+\lstset{numbers=left,
+                basicstyle=\footnotesize\ttfamily,
+                numberstyle=\footnotesize, 
+                breaklines=true,
+                numbersep=5pt,
+                xleftmargin=.5cm,
+                xrightmargin=.5cm,
+                showstringspaces=false
+}
+
+\newcommand{\specialcell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+
+%Format the itemizes and enumerates
+\setlist[itemize]{nolistsep}
+\setlist[enumerate]{nolistsep}
+
+%Command for comments
+\newcommand{\com}[1]{{\color{red}{#1}}}
+
+\title{\com{Some title}}
+
+\author{
+\IEEEauthorblockN{Author1}
+\IEEEauthorblockA{University of California, Irvine\\
+                  a1@uci.edu}
+\and
+\IEEEauthorblockN{Author2}
+\IEEEauthorblockA{University of California, Irvine\\
+                  a2@uci.edu}
+\and
+\IEEEauthorblockN{Author3}
+\IEEEauthorblockA{University of California, Irvine\\
+                  a3@uci.edu}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This is an abstract.
+\end{abstract}
+
+\section{Introduction} \label{sect:introduction}
+\input{intro}
+
+\section{Datasets and Methods} \label{sect:datasets_and_methods}
+\input{datasets-methods}
+
+\section{Discussion} \label{sect:discussion}
+On file-level, C has much more hash-equal clones, Java more partial clones. THis suggests different ways of handling these two, for example, space-management on github would be much easier for C, as hash-equality would do a good job, but much harder for Java.
+
+
+
+\section{Conclusion and Future Work} \label{sect:conclusion}
+
+\bibliographystyle{IEEEtran} \bibliography{biblio}
+
+
+\end{document}
+\grid
