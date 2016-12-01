@@ -53,8 +53,8 @@ def db_connect(logging):
 
         table = """ CREATE TABLE IF NOT EXISTS `projects` (
                        projectId   INT(6)        UNSIGNED PRIMARY KEY,
-                       projectPath VARCHAR(4000)          NULL,
-                       projectUrl  VARCHAR(4000)          NOT NULL
+                       projectPath VARCHAR(4000)          NOT NULL,
+                       projectUrl  VARCHAR(4000)          NULL
                        ) ENGINE = MYISAM; """
         cursor.execute(table)
         db.commit()
@@ -62,8 +62,8 @@ def db_connect(logging):
         table = """CREATE TABLE IF NOT EXISTS `files` (
                        fileId       BIGINT(6)     UNSIGNED PRIMARY KEY AUTO_INCREMENT,
                        projectId    INT(6)        UNSIGNED NOT NULL,
-                       relativePath VARCHAR(4000)          NULL,
-                       relativeUrl  VARCHAR(4000)          NOT NULL,
+                       relativePath VARCHAR(4000)          NOT NULL,
+                       relativeUrl  VARCHAR(4000)          NULL,
                        fileHash     CHAR(32)               NOT NULL,
                        INDEX (projectId),
                        INDEX (fileHash)
@@ -153,6 +153,7 @@ if __name__ == '__main__':
     read_config(logging)
     db_connect(logging)
 
-    tokenizer = Tokenizer(DB_user, DB_pass, DB_name, logging)
+    tokenizer = Tokenizer(sys.argv[1], DB_user, DB_pass, DB_name, logging, target_folders)
+    tokenizer.execute()
     #tokenized_output = tokenize(logging)
     #run_SourcererCC(tokenized_output)
