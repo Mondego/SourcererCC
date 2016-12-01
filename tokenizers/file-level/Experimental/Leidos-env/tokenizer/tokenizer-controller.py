@@ -4,7 +4,7 @@ import logging
 import datetime
 import MySQLdb
 import time
-import configparser
+import ConfigParser
 from tokenizer import Tokenizer
 
 PATH_logs = 'logs'
@@ -18,7 +18,7 @@ def read_config(logging):
     global DB_user, DB_pass, DB_name
 
     # instantiate
-    config = configparser.ConfigParser()
+    config = ConfigParser.ConfigParser()
 
     # parse existing file
     try:
@@ -130,6 +130,9 @@ def db_connect(logging):
 
     logging.info('Database \''+DB_name+'\' successfully initialized')
 
+def validate_input(list_of_projects):
+    print 'validation'
+
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
@@ -150,6 +153,6 @@ if __name__ == '__main__':
     read_config(logging)
     db_connect(logging)
 
-    tokenizer = Tokenizer()
+    tokenizer = Tokenizer(DB_user, DB_pass, DB_name, logging)
     #tokenized_output = tokenize(logging)
     #run_SourcererCC(tokenized_output)
