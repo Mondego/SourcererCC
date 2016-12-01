@@ -141,10 +141,18 @@ if __name__ == '__main__':
 
     target_folders = str(time.time())
 
+    # Creating folder for the processes logs
+    logs_folder   = os.path.join(PATH_logs,target_folders)
+    if os.path.exists( logs_folder ):
+        logging.error('ERROR - Folder [%s] already exists!' % logs_folder )
+        sys.exit(1)
+    else:
+        os.makedirs(logs_folder)
+
     # Logging code
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-    file_handler = logging.FileHandler( os.path.join(PATH_logs,target_folders+'.log') )
+    file_handler = logging.FileHandler( os.path.join(logs_folder,'tokenizer.log') )
     file_handler.setFormatter(logging.Formatter(FORMAT))
     logging.getLogger().addHandler(file_handler)
 
