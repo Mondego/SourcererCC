@@ -8,6 +8,7 @@ import ConfigParser
 from tokenizer import Tokenizer
 
 PATH_logs = 'logs'
+PATH_output = 'output'
 PATH_config_file = 'config.ini'
 PATH_CC_input = ''
 DB_user = ''
@@ -130,8 +131,45 @@ def db_connect(logging):
 
     logging.info('Database \''+DB_name+'\' successfully initialized')
 
-def validate_input(list_of_projects):
-    print 'validation'
+def sanitize_strings(string):
+    return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
+
+def read_file_paths(list_of_projects, logging):
+    if not os.path.isfile(sys.argv[1]):
+        logging.error('File [%s] does not exist!' % list_of_projects )
+        sys.exit(1)
+    else:
+        try:
+            proj_paths = set()
+            db = MySQLdb.connect(host="localhost", # your host, usually localhost
+                                 db=DB_name,
+                                 user=DB_user,     # your username
+                                 passwd=DB_pass)   # your password
+            cursor = db.cursor()
+
+            with open(list_of_projects) as f:
+                for line in f:
+                    proj_path = line.replace('\n','')
+
+                    q = "SELECT COUNT(*) FROM projects WHERE projectPath=%s" % (sanitize_strings(proj_path))
+                    cursor.execute(q)
+
+                    (exists,) = cursor.fetchone()
+                    if exists == 0:
+                        proj_paths.add( proj_path )
+
+            logging.info('List of project paths successfully read. Ready to process %s new projects.' % len(proj_paths))
+            return proj_paths
+
+        except Exception as e:
+            logging.error('Error on read_file_paths')
+            logging.error(e)
+            sys.exit(1)
+
+        finally:
+            cursor.close()
+            db.commit()
+            db.close()
 
 if __name__ == '__main__':
 
@@ -144,10 +182,18 @@ if __name__ == '__main__':
     # Creating folder for the processes logs
     logs_folder   = os.path.join(PATH_logs,target_folders)
     if os.path.exists( logs_folder ):
-        logging.error('ERROR - Folder [%s] already exists!' % logs_folder )
+        logging.error('Folder [%s] already exists!' % logs_folder )
         sys.exit(1)
     else:
         os.makedirs(logs_folder)
+
+    # Create folder for processes output
+    output_folder = os.path.join(PATH_output,target_folders)
+    if os.path.exists( output_folder ):
+        logging.error('Folder [%s] already exists!' % output_folder )
+        sys.exit(1)
+    else:
+        os.makedirs(output_folder)
 
     # Logging code
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
@@ -156,12 +202,12 @@ if __name__ == '__main__':
     file_handler.setFormatter(logging.Formatter(FORMAT))
     logging.getLogger().addHandler(file_handler)
 
-    logging.info('Starting tokenizer. Producibles (logs, output, etc) can be found under the name '+target_folders)
-
     read_config(logging)
     db_connect(logging)
-
-    tokenizer = Tokenizer(sys.argv[1], DB_user, DB_pass, DB_name, logging, target_folders)
-    tokenizer.execute()
-    #tokenized_output = tokenize(logging)
-    #run_SourcererCC(tokenized_output)
+    proj_paths = read_file_paths(sys.argv[1], logging)
+    if len(proj_paths) > 0:
+        logging.info('Starting tokenizer. Producibles (logs, output, etc) can be found under the name '+target_folders)
+        tokenizer = Tokenizer(proj_paths, DB_user, DB_pass, DB_name, logging, logs_folder, output_folder, 2, 2)
+        tokenizer.execute()
+    else:
+        logging.info('The list of new projects is empty (or these are already on the DB).')

@@ -11,21 +11,19 @@ import MySQLdb
 import ConfigParser
 
 class Tokenizer(object):
-    project_id = 1
-    proj_paths = []
-    filecount = 0
-    logs_folder = '' # This is different from the 'overall' log of the tokenizer. This is for each individual log for each process
-    output_folder = '' # This output will be the input of CC
-    PATH_logs = 'logs'
-    PATH_output = 'output'
-    PATH_config_file = 'config.ini'
 
-    def __init__(self, path_list_projects, DB_user, DB_pass, DB_name, logging, target_folders):
+    def __init__(self, proj_paths, DB_user, DB_pass, DB_name, logging, logs_folder, output_folder, N_PROCESSES, PROJECTS_BATCH):
+        self.project_id = 1
+        self.proj_paths = []
+        self.filecount = 0
+        self.logs_folder = '' # This is different from the 'overall' log of the tokenizer. This is for each individual log for each process
+        self.output_folder = '' # This output will be the input of CC
+        self.PATH_config_file = 'config.ini'
 
-        self.N_PROCESSES = 2
-        self.PROJECTS_BATCH = 2
 
-        self.target_folders = target_folders
+        self.N_PROCESSES = PROJECTS_BATCH
+        self.PROJECTS_BATCH = PROJECTS_BATCH
+
         self.DB_user = DB_user
         self.DB_pass = DB_pass
         self.DB_name = DB_name
@@ -53,25 +51,19 @@ class Tokenizer(object):
             cursor.close()
             db.close()
 
-        self.proj_paths = []
-        with open(path_list_projects) as f:
-            for line in f:
-                self.proj_paths.append( line[:-1] )
-        self.proj_paths = zip(range(self.project_id, self.project_id+len(self.proj_paths)+1), self.proj_paths)
+        self.proj_paths = proj_paths = zip(range(self.project_id, self.project_id+len(proj_paths)+1), proj_paths)
 
         # Creating folder for the processes logs
-        self.logs_folder   = os.path.join(self.PATH_logs,self.target_folders)
+        self.logs_folder = logs_folder
         if not os.path.exists( self.logs_folder ):
             logging.error('ERROR - Folder [%s] does not exist!' % self.logs_folder )
             sys.exit(1)
 
         # Create folder for processes output
-        self.output_folder = os.path.join(self.PATH_output,self.target_folders)
-        if os.path.exists( self.output_folder ):
-            logging.error('ERROR - Folder [%s] already exists!' % self.output_folder )
+        self.output_folder = output_folder
+        if not os.path.exists( self.output_folder ):
+            logging.error('ERROR - Folder [%s] does not exist!' % self.output_folder )
             sys.exit(1)
-        else:
-            os.makedirs(self.output_folder)
 
         # Reading config file
         config = ConfigParser.ConfigParser()
@@ -170,7 +162,7 @@ class Tokenizer(object):
     # ALL strings that are sent to the DB must be sanitized first
     # Not really all of them, but the wild ones (paths, urls, names, etc)
     def sanitize_strings(self, string):
-        return (string.replace('\"','\'\''))[:4000]
+        return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
 
     def process_file_contents(self, proj_id, file_string, file_path, file_bytes, FILE_tokens_file, db):
         self.filecount += 1
@@ -178,17 +170,20 @@ class Tokenizer(object):
         file_hash = self.get_file_hash(file_string)
 
         cursor = db.cursor()
-        q = "INSERT INTO files VALUES (NULL, %s, \'%s\', NULL, \"%s\");" % (proj_id, self.sanitize_strings(file_path), file_hash)
+        q = "INSERT INTO files VALUES (NULL, %s, %s, NULL, '%s');" % (proj_id, self.sanitize_strings(file_path), file_hash)
         cursor.execute(q)
         cursor.close()
 
         exists = 0
         cursor = db.cursor()
-        cursor.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '"+file_hash+"';")
+        cursor.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '%s'" % (file_hash))
         (exists, ) = cursor.fetchone()
         cursor.close()
 
-        if True: #exists == 0:
+        file_parsing_times = [0,0,0,0]
+        w_time = 0
+
+        if exists == 0:
             # We checked before if the hash already exist to avoid the burden of tokenizing the file
             # Now we know it does not, we tokenize and send the info to the DB.
             # It might happen through cuncurrency that after our tokenization some other process
@@ -201,7 +196,7 @@ class Tokenizer(object):
 
             try:
                 ww_time = dt.datetime.now()
-                q = """INSERT INTO stats VALUES (\'%s\', %s, %s, %s, %s, %s, %s, \'%s'); SELECT LAST_INSERT_ID();""" % (file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
+                q = "INSERT INTO stats VALUES ('%s', %s, %s, %s, %s, %s, %s, '%s'); SELECT LAST_INSERT_ID();" % (file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
                 cursor = db.cursor()
                 cursor.execute(q)
 
@@ -211,7 +206,7 @@ class Tokenizer(object):
                     FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
                 w_time = (dt.datetime.now() - ww_time).microseconds
 
-            except Exception as e:
+            except:
                 w_time = 0
 
             finally:
@@ -291,7 +286,7 @@ class Tokenizer(object):
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
             cursor = db.cursor()
-            cursor.execute("INSERT INTO projects VALUES (%s, \'%s\', NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
+            cursor.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
             cursor.close()
 
             p_elapsed = dt.datetime.now() - p_start
@@ -309,16 +304,15 @@ class Tokenizer(object):
         logging.getLogger().addHandler(file_handler)
 
         try:
-            db = MySQLdb.connect(host   = "localhost", # your host, usually localhost
+            db = MySQLdb.connect(host   = "localhost",  # your host, usually localhost
                                  db     = self.DB_name,
-                                 user   = self.DB_user,     # your username
-                                 passwd = self.DB_pass)   # your password
+                                 user   = self.DB_user, # your username
+                                 passwd = self.DB_pass) # your password
 
             FILE_files_tokens_file = os.path.join(self.output_folder,'files-tokens-'+str(process_num)+'.tokens')
 
             self.filecount = 0
             with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
-                logging.info("Process %s starting", process_num)
                 p_start = dt.datetime.now()
                 for proj_id, proj_path in proj_paths:
                     self.process_one_project(process_num, proj_path, str(proj_id), FILE_tokens_file, logging, db)
@@ -391,4 +385,3 @@ class Tokenizer(object):
 
         p_elapsed = dt.datetime.now() - p_start
         logging.info('Tokenizer finished. %s files in %s' % (self.filecount, p_elapsed))
-
