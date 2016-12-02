@@ -3,10 +3,10 @@ Created on Nov 8, 2016
 
 @author: saini
 '''
-from pathlib import Path
+from __future__ import absolute_import, division, print_function, unicode_literals
 import subprocess
 import sys
-
+import os
 
 class ScriptControllerException(Exception):
     pass
@@ -31,12 +31,12 @@ class ScriptController(object):
         self.params = {}
         self.params.update(params)
         self.script_meta_file_name = "scriptinator_metadata.scc"
-        self.scriptinator_meta_file = Path(self.script_meta_file_name)
         self.current_state = ScriptController.STATE_EXECUTE_1  # default state
         self.previous_run_state = self.load_previous_state()
 
     def execute(self):
         # execute command
+        print("previous run state {s}".format(s=self.previous_run_state))
         if self.previous_run_state > ScriptController.STATE_EXECUTE_1:
             returncode = ScriptController.EXIT_SUCCESS
         else:
@@ -51,6 +51,19 @@ class ScriptController(object):
             if self.previous_run_state > ScriptController.STATE_INIT:
                 returncode = ScriptController.EXIT_SUCCESS
             else:
+                if self.previous_run_state == ScriptController.STATE_INIT:
+                    # last time the execution failed at init step. We need to replace the existing gtpm index  from the backup
+                    command = "./restore-gtpm.sh"
+                    command_params = command.split()
+                    returncode = self.run_command(
+                    command_params, "Log_restore_gtpm.out", "Log_restore_gtpm.err")
+                else:
+                    # take backup of existing gtpmindex before starting init
+                    command = "./backup-gtpm.sh"
+                    command_params = command.split()
+                    returncode = self.run_command(
+                    command_params, "Log_backup_gtpm.out", "Log_backup_gtpm.err")
+                # run the init step
                 command = "./runnodes.sh init 1"
                 command_params = command.split()
                 returncode = self.run_command(
@@ -83,6 +96,7 @@ class ScriptController(object):
                         if self.previous_run_state > ScriptController.STATE_EXECUTE_2:
                             returncode = ScriptController.EXIT_SUCCESS
                             # execute command to create the dir structure
+                        else:
                             command = "./execute.sh {nodes}".format(
                                 nodes=self.params["num_nodes_search"])
                             command_params = command.split()
@@ -124,16 +138,19 @@ class ScriptController(object):
                 "error in execute.sh script while preparing for init step.")
 
     def flush_state(self):
-        if self.scriptinator_meta_file.is_file():
-            with open(self.script_meta_file_name, "w") as f:
-                f.writeline(self.current_state)
+        print("current state: ", str(self.current_state))
+        with open(self.script_meta_file_name, "w") as f:
+            print ("flushing current state", str(self.current_state))
+            f.write("{line}\n".format(line=self.current_state))
 
     def load_previous_state(self):
-        if self.scriptinator_meta_file.is_file():
+        print("loading previous run state")
+        if os.path.isfile(self.script_meta_file_name):
             with open(self.script_meta_file_name, "r") as f:
-                self.current_state = int(f.readline())
+                return int(f.readline())
         else:
-            self.current_state = STATE_EXECUTE_1
+            print("{f} doesn't exist, creating one with state EXECUTE_1".format(f=self.script_meta_file_name))
+            return ScriptController.STATE_EXECUTE_1
 
     def run_command(self, cmd, outFile, errFile):
         print("running new command {}".format(" ".join(cmd)))

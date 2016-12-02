@@ -5,7 +5,7 @@ import MySQLdb
 import collections
 import datetime
 
-TOKEN_THRESHOLD = 65
+TOKEN_THRESHOLD = 1
 
 def getTokenHashClones(fileId,tokenHash,db):
     result = set()
@@ -146,7 +146,7 @@ def find_clones_for_project(project_id, db, debug):
 
             if debug:
                 if True:#(percent_cloning > 99) and (str(project_id) != k):
-                    print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files)+'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host)+'files ]'
+                    print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
                     
             #        query = "SELECT projectUrl FROM projects WHERE projectId IN ("+str(project_id)+","+k+");"
             #        cursor.execute(query)
@@ -156,7 +156,6 @@ def find_clones_for_project(project_id, db, debug):
             #        print '--------------------------------------------------------------------------------'
 
             if not debug:
-                #print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files)+'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host)+'files ]'
                 cursor.execute("""INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);""",
                             (project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host))) )
 
