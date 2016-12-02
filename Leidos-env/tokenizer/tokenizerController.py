@@ -18,7 +18,7 @@ class TokenizerController(object):
     DB_name = ''
     N_PROCESSES = 2
     BATCH_SIZE = 10
-    PROJECTS_COMPRESSION = 'TGZ' # alternative is 'ZIP'
+    PROJECTS_CONFIGURATION = 'GithubZIP' # alternatives: 'GithubZIP', 'Leidos'
 
     def read_config(self, logging):
         # instantiate
@@ -71,7 +71,7 @@ class TokenizerController(object):
 
         if len(self.proj_paths) > 0:
             logging.info('Starting tokenizer. Producibles (logs, output, etc) can be found under the name '+self.target_folders)
-            tokenizer = Tokenizer(self.proj_paths, self.DB_user, self.DB_pass, self.DB_name, logging, self.logs_folder, self.output_folder, self.N_PROCESSES, self.BATCH_SIZE, self.PROJECTS_COMPRESSION)
+            tokenizer = Tokenizer(self.proj_paths, self.DB_user, self.DB_pass, self.DB_name, logging, self.logs_folder, self.output_folder, self.N_PROCESSES, self.BATCH_SIZE, self.PROJECTS_CONFIGURATION)
             tokenizer.execute()
         else:
             logging.warning('The list of new projects is empty (or these are already on the DB).')
@@ -220,5 +220,5 @@ class TokenizerController(object):
       print self.output_folder
 
 if __name__ == '__main__':
-    print '__main__'
+    print 'tokenizerController.__main__'
     tokenizerController = TokenizerController(sys.argv[1])
