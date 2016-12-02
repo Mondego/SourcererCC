@@ -9,11 +9,11 @@ import ConfigParser
 sys.path.append(os.path.abspath("tokenizer"))
 from tokenizerController import TokenizerController
 
-sys.path.append(os.path.abspath("../../../../clone-detector"))
+sys.path.append(os.path.abspath("../clone-detector"))
 from controller import ScriptController
 
 if __name__ == '__main__':
-    print 'input',sys.argv[1]
+    print '__main__ input',sys.argv[1]
     tokenizerController = TokenizerController(sys.argv[1])
     tokenizerController.move_input_to_CC()
 

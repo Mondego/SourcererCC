@@ -18,6 +18,7 @@ class TokenizerController(object):
     DB_name = ''
     N_PROCESSES = 2
     BATCH_SIZE = 10
+    PROJECTS_COMPRESSION = 'TGZ' # alternative is 'ZIP'
 
     def read_config(self, logging):
         # instantiate
@@ -25,7 +26,6 @@ class TokenizerController(object):
 
         # parse existing file
         try:
-            print '###########',self.PATH_config_file
             config.read(self.PATH_config_file)
         except Exception as e:
             logging.error('ERROR on read_config')
@@ -71,10 +71,10 @@ class TokenizerController(object):
 
         if len(self.proj_paths) > 0:
             logging.info('Starting tokenizer. Producibles (logs, output, etc) can be found under the name '+self.target_folders)
-            tokenizer = Tokenizer(self.proj_paths, self.DB_user, self.DB_pass, self.DB_name, logging, self.logs_folder, self.output_folder, self.N_PROCESSES, self.BATCH_SIZE)
+            tokenizer = Tokenizer(self.proj_paths, self.DB_user, self.DB_pass, self.DB_name, logging, self.logs_folder, self.output_folder, self.N_PROCESSES, self.BATCH_SIZE, self.PROJECTS_COMPRESSION)
             tokenizer.execute()
         else:
-            logging.info('The list of new projects is empty (or these are already on the DB).')
+            logging.warning('The list of new projects is empty (or these are already on the DB).')
 
 
     def read_file_paths(self, list_of_projects, logging):
@@ -101,7 +101,11 @@ class TokenizerController(object):
                         if exists == 0:
                             proj_paths.add( proj_path )
 
-                logging.info('List of project paths successfully read. Ready to process %s new projects.' % len(proj_paths))
+                if len(proj_paths) > 0:
+                    logging.info('List of project paths successfully read. Ready to process %s new projects.' % len(proj_paths))
+                else:
+                    logging.warning('The list of new projects is empty (or these are already on the DB).')
+                    sys.exit(1)
                 return proj_paths
 
             except Exception as e:

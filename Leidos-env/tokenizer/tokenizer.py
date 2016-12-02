@@ -9,10 +9,11 @@ import hashlib
 import datetime as dt
 import MySQLdb
 import ConfigParser
+import zipfile
 
 class Tokenizer(object):
 
-    def __init__(self, proj_paths, DB_user, DB_pass, DB_name, logging, logs_folder, output_folder, N_PROCESSES, PROJECTS_BATCH):
+    def __init__(self, proj_paths, DB_user, DB_pass, DB_name, logging, logs_folder, output_folder, N_PROCESSES, PROJECTS_BATCH, PROJECTS_COMPRESSION):
         self.project_id = 1
         self.proj_paths = []
         self.filecount = 0
@@ -27,6 +28,8 @@ class Tokenizer(object):
         self.DB_user = DB_user
         self.DB_pass = DB_pass
         self.DB_name = DB_name
+
+        self.PROJECTS_COMPRESSION = PROJECTS_COMPRESSION
 
         try:
             db = MySQLdb.connect(host="localhost", # your host, usually localhost
@@ -43,8 +46,8 @@ class Tokenizer(object):
             self.project_id += 1
 
         except Exception as e:
-            print 'Error on Tokenizer.__init__'
-            print e
+            logging.error('Error on Tokenizer.__init__')
+            logging.error(e)
             sys.exit(1)
 
         finally:
@@ -240,12 +243,12 @@ class Tokenizer(object):
                     try:
                         myfile = my_tar_file.extractfile(f)
                     except:
-                        logging.error('Unable to open file (1) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
+                        logging.warning('Unable to open file (1) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
                         break
                     zip_time += (dt.datetime.now() - z_time).microseconds
 
                     if myfile is None:
-                        logging.error('Unable to open file (2) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
+                        logging.warning('Unable to open file (2) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
                         break
 
                     f_time      = dt.datetime.now()
@@ -260,39 +263,97 @@ class Tokenizer(object):
                     regex_time  += times[3]
 
         except Exception as e:
-            logging.error('Unable to open tar on <'+proj_path+'> (process '+str(process_num)+')')
-            logging.error(e)
+            logging.warning('Unable to open tar on <'+proj_path+'> (process '+str(process_num)+')')
+            logging.warning(e)
             return
 
         return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
+    def process_zip_ball(self, process_num, tar_file, proj_path, proj_id, FILE_tokens_file, logging, db):
+        zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
+
+        try:
+            with tarfile.open(tar_file,'r|*') as my_tar_file:
+
+                for f in my_tar_file:
+                    if not f.isfile():
+                        continue
+
+                    file_path = f.name
+                    # Filter by the correct extension
+                    if not os.path.splitext(f.name)[1] in self.file_extensions:
+                        continue
+
+                    # This is very strange, but I did find some paths with newlines,
+                    # so I am simply ignoring them
+                    if '\n' in file_path:
+                        continue
+
+                    file_bytes=str(f.size)
+
+                    z_time = dt.datetime.now();
+                    try:
+                        myfile = my_tar_file.extractfile(f)
+                    except:
+                        logging.warning('Unable to open file (1) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
+                        break
+                    zip_time += (dt.datetime.now() - z_time).microseconds
+
+                    if myfile is None:
+                        logging.warning('Unable to open file (2) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
+                        break
+
+                    f_time      = dt.datetime.now()
+                    file_string = myfile.read()
+                    file_time   += (dt.datetime.now() - f_time).microseconds
+
+                    times = self.process_file_contents(proj_id, file_string, file_path, file_bytes, FILE_tokens_file, db)
+                    string_time += times[0]
+                    tokens_time += times[1]
+                    write_time  += times[4]
+                    hash_time   += times[2]
+                    regex_time  += times[3]
+
+        except Exception as e:
+            logging.warning('Unable to open tar on <'+proj_path+'> (process '+str(process_num)+')')
+            logging.warning(e)
+            return
+
+        return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
     def process_one_project(self, process_num, proj_path, proj_id, FILE_tokens_file, logging, db):
         logging.info('Starting project <'+proj_path+'> (process '+str(process_num)+')')
         p_start = dt.datetime.now()
 
         if not os.path.isdir(proj_path):
-            logging.error('Unable to open project <'+proj_path+'> (process '+str(process_num)+')')
+            logging.warning('Unable to open project <'+proj_path+'> (process '+str(process_num)+')')
             return
 
-        # Search for tar files with _code in them
-        tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
-        tar_files = [f for f in tar_files if '_code' in f]
-        if(len(tar_files) != 1):
-            logging.error('Tar not found on <'+proj_path+'> (process '+str(process_num)+')')
+        if self.PROJECTS_COMPRESSION == 'TGZ':
+            # Search for tar files with _code in them
+            tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
+            tar_files = [f for f in tar_files if '_code' in f]
+            if(len(tar_files) != 1):
+                logging.warning('Tar not found on <'+proj_path+'> (process '+str(process_num)+')')
+            else:
+                tar_file = tar_files[0]
+                times = self.process_tgz_ball(process_num, tar_file, proj_path, proj_id, FILE_tokens_file, logging, db)
+                zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
+
+                cursor = db.cursor()
+                cursor.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
+                cursor.close()
+
+                p_elapsed = dt.datetime.now() - p_start
+                logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
+                logging.info('Process (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
+                    process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
         else:
-            tar_file = tar_files[0]
-            times = self.process_tgz_ball(process_num, tar_file, proj_path, proj_id, FILE_tokens_file, logging, db)
-            zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-
-            cursor = db.cursor()
-            cursor.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
-            cursor.close()
-
-            p_elapsed = dt.datetime.now() - p_start
-            logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-            logging.info('Process (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
-                process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+            if self.PROJECTS_COMPRESSION == 'ZIP':
+                print 'ZIP LALALALA'
+            else:
+                logging.error('Unknown project compression format:%s' % (self.PROJECTS_COMPRESSION))
+                sys.exist(1)
 
     def process_projects(self, process_num, proj_paths, global_queue):
         # Logging code
