@@ -230,12 +230,12 @@ if __name__ == "__main__":
     
     DB_user = 'pribeiro'
     DB_pass = 'pass'
-    #pairs_path = sys.argv[2]
+    pairs_path = sys.argv[2]
 
     print '### Creating Tables'
-    #create_tables(DB_name,DB_user,DB_pass)
+    create_tables(DB_name,DB_user,DB_pass)
     print '### Importing output from tokenizer'
-    #import_tokenizer_output(DB_name,DB_user,DB_pass,output_path)
+    import_tokenizer_output(DB_name,DB_user,DB_pass,output_path)
     print '### Importing output from tokenizer'
     import_pairs(pairs_path)
 

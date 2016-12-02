@@ -212,6 +212,9 @@ class TokenizerController(object):
     def sanitize_strings(self, string):
         return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
 
+    def move_input_to_CC(self):
+      print self.output_folder
+
 if __name__ == '__main__':
     print '__main__'
     tokenizerController = TokenizerController(sys.argv[1])
