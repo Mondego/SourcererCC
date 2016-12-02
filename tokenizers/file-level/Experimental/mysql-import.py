@@ -17,7 +17,7 @@ def create_tables(DB_name,DB_user,DB_pass):
         table = """ CREATE TABLE IF NOT EXISTS `projects` (
                        projectId   INT(6)        UNSIGNED PRIMARY KEY,
                        projectPath VARCHAR(4000)          NULL,
-                       projectUrl  VARCHAR(4000)          NULL
+                       projectUrl  VARCHAR(4000)          NOT NULL
                        ) ENGINE = MYISAM; """
         cursor.execute(table)
         db.commit()
@@ -27,7 +27,7 @@ def create_tables(DB_name,DB_user,DB_pass):
                        fileId       BIGINT(6)     UNSIGNED PRIMARY KEY,
                        projectId    INT(6)        UNSIGNED NOT NULL,
                        relativePath VARCHAR(4000)          NULL,
-                       relativeUrl  VARCHAR(4000)          NULL,
+                       relativeUrl  VARCHAR(4000)          NOT NULL,
                        fileHash     CHAR(32)               NOT NULL,
                        INDEX (projectId),
                        INDEX (fileHash)

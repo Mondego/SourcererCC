@@ -18,7 +18,7 @@ class Tokenizer(object):
         self.filecount = 0
         self.logs_folder = '' # This is different from the 'overall' log of the tokenizer. This is for each individual log for each process
         self.output_folder = '' # This output will be the input of CC
-        self.PATH_config_file = 'config.ini'
+        self.PATH_config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),'config.ini')
 
 
         self.N_PROCESSES = PROJECTS_BATCH

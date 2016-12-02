@@ -9,9 +9,9 @@ from tokenizer import Tokenizer
 
 class TokenizerController(object):
 
-    PATH_logs = 'logs'
-    PATH_output = 'output'
-    PATH_config_file = 'config.ini'
+    PATH_logs        = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
+    PATH_output      = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'output')
+    PATH_config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini')
     PATH_CC_input = ''
     DB_user = ''
     DB_pass = ''
@@ -25,6 +25,7 @@ class TokenizerController(object):
 
         # parse existing file
         try:
+            print '###########',self.PATH_config_file
             config.read(self.PATH_config_file)
         except Exception as e:
             logging.error('ERROR on read_config')
