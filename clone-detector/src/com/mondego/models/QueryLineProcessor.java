@@ -18,7 +18,9 @@ import com.mondego.indexbased.SearchManager;
 public class QueryLineProcessor implements Runnable {
     private String line;
     private SearchManager searchManager;
-    private static final Logger logger = LogManager.getLogger(QueryLineProcessor.class);
+    private static final Logger logger = LogManager
+            .getLogger(QueryLineProcessor.class);
+
     public QueryLineProcessor(String line) {
         this.line = line;
         this.searchManager = SearchManager.theInstance;
@@ -41,14 +43,11 @@ public class QueryLineProcessor implements Runnable {
             if (queryBlock == null)
                 return;
             if (searchManager.appendToExistingFile
-                    && searchManager.completedQueries.contains(queryBlock
-                            .getId())) {
-                logger.debug("ignoring query, REASON: completed in previous run, "
-                                + queryBlock.getFunctionId()
-                                + ", "
-                                + queryBlock.getId()
-                                + ", "
-                                + queryBlock.getSize());
+                    && searchManager.completedQueries
+                            .contains(queryBlock.getId())) {
+                logger.debug(
+                        "ignoring query, REASON: completed in previous run, "
+                                + queryBlock);
                 return;
             }
 
@@ -65,9 +64,9 @@ public class QueryLineProcessor implements Runnable {
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            logger.error(e.getMessage()
-                    + " skiping this query block, illegal args: "
-                    + line.substring(0, 40));
+            logger.error(
+                    e.getMessage() + " skiping this query block, illegal args: "
+                            + line.substring(0, 40));
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
@@ -90,14 +89,14 @@ public class QueryLineProcessor implements Runnable {
         }
     }
 
-    public QueryBlock getNextQueryBlock(String line) throws ParseException,
-            IllegalArgumentException {
+    public QueryBlock getNextQueryBlock(String line)
+            throws ParseException, IllegalArgumentException {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
-        QueryBlock queryBlock = searchManager.cloneHelper.getSortedQueryBlock(
-                line, listOfTokens);
+        QueryBlock queryBlock = searchManager.cloneHelper
+                .getSortedQueryBlock(line, listOfTokens);
         if (queryBlock == null) {
-            logger.debug(SearchManager.NODE_PREFIX
-                    + " QLP, Invalid QueryBlock " + queryBlock);
+            logger.debug(SearchManager.NODE_PREFIX + " QLP, Invalid QueryBlock "
+                    + queryBlock);
             return null;
         }
 

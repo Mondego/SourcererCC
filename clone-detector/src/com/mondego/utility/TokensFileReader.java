@@ -10,6 +10,7 @@ import java.text.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.indexbased.SearchManager;
 import com.mondego.models.ITokensFileProcessor;
 
 public class TokensFileReader {
@@ -17,42 +18,64 @@ public class TokensFileReader {
     private File file;
     private ITokensFileProcessor processor;
     private int maxTokens;
-    private static final Logger logger = LogManager.getLogger(TokensFileReader.class);
-    public TokensFileReader(String node_id, File f, int max_tokens, ITokensFileProcessor p) throws IOException {
+    private static final Logger logger = LogManager
+            .getLogger(TokensFileReader.class);
+
+    public TokensFileReader(String node_id, File f, int max_tokens,
+            ITokensFileProcessor p) throws IOException {
         this.nodeId = node_id;
         this.file = f;
         this.processor = p;
         this.maxTokens = max_tokens;
     }
 
-    public void read() throws FileNotFoundException, IOException, ParseException {
+    public void read()
+            throws FileNotFoundException, IOException, ParseException {
         BufferedReader br = new BufferedReader(new FileReader(file));
         String line;
         long lineNumber = 0;
         char[] buf = new char[40];
         while (br.read(buf, 0, 40) != -1) {
+            if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)
+                    && lineNumber <= SearchManager.QUERY_LINES_TO_IGNORE) {
+                logger.debug(
+                        "RECOVERY: ignoring this line, as it was covered in previous run");
+                while (((char) br.read()) != '\n'){
+                    ; // ignore the line
+                }
+                lineNumber++;
+                continue;
+            }
             String prefix = new String(buf);
             String[] parts = prefix.split(",");
             int ntokens = Integer.parseInt(parts[2]);
 
             if (ntokens > this.maxTokens) {
-                logger.debug(
-                        this.nodeId + " RL, file " + parts[1] + ", " + ntokens + " tokens is too big. Ignoring...");
+                logger.debug(this.nodeId + " RL, file " + parts[1] + ", "
+                        + ntokens + " tokens is too big. Ignoring...");
                 while (((char) br.read()) != '\n')
                     ;
             } else {
                 long startTime = System.nanoTime();
 
-                if ((line = br.readLine()) != null && line.trim().length() > 0) {
+                if ((line = br.readLine()) != null
+                        && line.trim().length() > 0) {
                     this.processor.processLine(prefix + line);
                 }
 
                 long estimatedTime = System.nanoTime() - startTime;
-                logger.debug(this.nodeId + " RL " + lineNumber + ", file " + parts[1] + ", " + ntokens
-                        + " tokens in " + estimatedTime / 1000 + " micros");
+                logger.debug(this.nodeId + " RL " + lineNumber + ", file "
+                        + parts[1] + ", " + ntokens + " tokens in "
+                        + estimatedTime / 1000 + " micros");
             }
             lineNumber++;
+            if (lineNumber
+                    % SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES == 0) {
+                Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "",
+                        true);
+            }
         }
+        Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "", true);
         br.close();
     }
 }
