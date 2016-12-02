@@ -19,6 +19,7 @@ class TokenizerController(object):
     N_PROCESSES = 2
     BATCH_SIZE = 10
     PROJECTS_CONFIGURATION = 'GithubZIP' # alternatives: 'GithubZIP', 'Leidos'
+    PATH_CC = os.path.abspath("../clone-detector")
 
     def read_config(self, logging):
         # instantiate
@@ -217,7 +218,24 @@ class TokenizerController(object):
         return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
 
     def move_input_to_CC(self):
-      print self.output_folder
+        #print self.output_folder
+        #print self.PATH_CC
+
+        if not os.path.exists( self.output_folder ):
+            logging.error('ERROR - Folder [%s] does not exist!' % self.output_folder )
+            sys.exit(1)
+
+        if not os.path.exists( self.PATH_CC ):
+            logging.error('ERROR - Folder [%s] does not exist!' % self.PATH_CC )
+            sys.exit(1)
+
+        file_counter
+        with 
+        for file in os.listdir(self.output_folder):
+            if file.endswith('.tokens'):
+                file = os.path.join(self.output_folder,file)
+                print '  Getting info from ',file
+                with 
 
 if __name__ == '__main__':
     print 'tokenizerController.__main__'

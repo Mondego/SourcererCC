@@ -278,48 +278,41 @@ class Tokenizer(object):
         zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
         try:
-            with zipfile.open(proj_path,'r|*') as my_zip_file:
+            with zipfile.ZipFile(proj_path,'r') as my_zip_file:
 
-                for f in my_zip_file:
-                    if not f.isfile():
+                for file in my_zip_file.infolist():
+                    if not os.path.splitext(file.filename)[1] in self.file_extensions:
                         continue
 
-                    file_path = f.name
-                    # Filter by the correct extension
-                    if not os.path.splitext(f.name)[1] in self.file_extensions:
+                    # This is very strange, but I did find some paths with newlines,
+                    # so I am simply ignoring them
+                    if '\n' in file.filename:
                         continue
 
-                    print file_path
+                    file_bytes=str(file.file_size)
 
-            #        # This is very strange, but I did find some paths with newlines,
-            #        # so I am simply ignoring them
-            #        if '\n' in file_path:
-            #            continue
+                    z_time = dt.datetime.now();
+                    try:
+                        myfile = my_zip_file.open(file.filename,'r')
+                    except:
+                        logging.warning('Unable to open file (1) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
+                        break
+                    zip_time += (dt.datetime.now() - z_time).microseconds
 
-            #        file_bytes=str(f.size)
+                    if myfile is None:
+                        logging.warning('Unable to open file (2) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
+                        break
 
-            #        z_time = dt.datetime.now();
-            #        try:
-            #            myfile = my_zip_file.extractfile(f)
-            #        except:
-            #            logging.warning('Unable to open file (1) <'+os.path.join(proj_path,file_path)+'> (process '+str(process_num)+')')
-            #            break
-            #        zip_time += (dt.datetime.now() - z_time).microseconds
+                    f_time      = dt.datetime.now()
+                    file_string = myfile.read()
+                    file_time   += (dt.datetime.now() - f_time).microseconds
 
-            #        if myfile is None:
-            #            logging.warning('Unable to open file (2) <'+os.path.join(proj_path,file_path)+'> (process '+str(process_num)+')')
-            #            break
-
-            #        f_time      = dt.datetime.now()
-            #        file_string = myfile.read()
-            #        file_time   += (dt.datetime.now() - f_time).microseconds
-
-            #        times = self.process_file_contents(proj_id, file_string, file_path, file_bytes, FILE_tokens_file, db)
-            #        string_time += times[0]
-            #        tokens_time += times[1]
-            #        write_time  += times[4]
-            #        hash_time   += times[2]
-            #        regex_time  += times[3]
+                    times = self.process_file_contents(proj_id, file_string, file.filename, file_bytes, FILE_tokens_file, db)
+                    string_time += times[0]
+                    tokens_time += times[1]
+                    write_time  += times[4]
+                    hash_time   += times[2]
+                    regex_time  += times[3]
 
         except Exception as e:
             logging.warning('Unable to open zip on <'+proj_path+'> (process '+str(process_num)+')')
@@ -360,9 +353,8 @@ class Tokenizer(object):
                 if not zipfile.is_zipfile(proj_path):
                     logging.warning('Unable to open %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)))
                 else:
-                    print '### else',proj_path
-                    #times = self.process_zip_ball(process_num, proj_path, proj_id, FILE_tokens_file, logging, db)
-                    #zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
+                    times = self.process_zip_ball(process_num, proj_path, proj_id, FILE_tokens_file, logging, db)
+                    zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
                     #cursor = db.cursor()
                     #cursor.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
