@@ -40,7 +40,7 @@ public class TokensFileReader {
                     && lineNumber <= SearchManager.QUERY_LINES_TO_IGNORE) {
                 logger.debug(
                         "RECOVERY: ignoring this line, as it was covered in previous run");
-                while (((char) br.read()) != '\n'){
+                while (((char) br.read()) != '\n') {
                     ; // ignore the line
                 }
                 lineNumber++;
@@ -69,8 +69,10 @@ public class TokensFileReader {
                         + estimatedTime / 1000 + " micros");
             }
             lineNumber++;
-            if (SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES>0 && lineNumber
-                    % SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES == 0) {
+            if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)
+                    && SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES > 0
+                    && lineNumber
+                            % SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES == 0) {
                 Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "",
                         true);
             }
