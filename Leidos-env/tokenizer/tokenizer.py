@@ -356,14 +356,14 @@ class Tokenizer(object):
                     times = self.process_zip_ball(process_num, proj_path, proj_id, FILE_tokens_file, logging, db)
                     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
-                    #cursor = db.cursor()
-                    #cursor.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
-                    #cursor.close()
+                    cursor = db.cursor()
+                    cursor.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
+                    cursor.close()
 
-                    #p_elapsed = dt.datetime.now() - p_start
-                    #logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-                    #logging.info('Process (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
-                    #    process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+                    p_elapsed = dt.datetime.now() - p_start
+                    logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
+                    logging.info('Process (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
+                        process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
             else:
                 logging.error('Unknown project configuration format:%s' % (self.PROJECTS_CONFIGURATION))
@@ -429,7 +429,20 @@ class Tokenizer(object):
             processes[pid][1] += n_files_processed
             
         logging.info("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], self.filecount))
-    
+
+        distinct_hash_tokens = 0
+        output_tokens_file = os.path.join(self.output_folder,'files-tokens-'+str(pid)+'.tokens')
+        if os.path.isfile(output_tokens_file):
+            with open (output_tokens_file,'r') as process_result:
+                for line in process_result:
+                    distinct_hash_tokens += 1
+        if distinct_hash_tokens > 0:
+            logging.info("Process %s finished, %s new distinct token-hashes processed" % (pid,distinct_hash_tokens))
+        else:
+            logging.warning("Process %s finished but introduced zero new distinct token-hashes" % (pid))
+            if os.path.isfile(output_tokens_file):
+                os.remove(output_tokens_file)
+
     def active_process_count(self, processes):
         count = 0
         for p in processes:

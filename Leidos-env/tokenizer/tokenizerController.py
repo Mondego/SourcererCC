@@ -229,13 +229,13 @@ class TokenizerController(object):
             logging.error('ERROR - Folder [%s] does not exist!' % self.PATH_CC )
             sys.exit(1)
 
-        file_counter
-        with 
-        for file in os.listdir(self.output_folder):
-            if file.endswith('.tokens'):
-                file = os.path.join(self.output_folder,file)
-                print '  Getting info from ',file
-                with 
+        #file_counter
+        #with 
+        #for file in os.listdir(self.output_folder):
+        #    if file.endswith('.tokens'):
+        #        file = os.path.join(self.output_folder,file)
+        #        print '  Getting info from ',file
+        #        with 
 
 if __name__ == '__main__':
     print 'tokenizerController.__main__'
