@@ -184,9 +184,6 @@ public class SearchManager {
             System.exit(1);
         }
         if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
-            SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES = Integer
-                    .parseInt(properties.getProperty(
-                            "LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", "1000"));
             SearchManager.completedNodes = "nodes_completed.txt";
             this.completedQueries = new HashSet<Long>();
 
@@ -317,6 +314,9 @@ public class SearchManager {
             logger.debug("Query path:" + SearchManager.QUERY_DIR_PATH);
 
             SearchManager.WFM_DIR_PATH = properties.getProperty("WFM_DIR_PATH");
+            SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES = Integer
+                    .parseInt(properties.getProperty(
+                            "LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", "1000"));
             theInstance = new SearchManager(params);
         } catch (IOException e) {
             logger.error("ERROR READING PROPERTIES FILE, " + e.getMessage());
