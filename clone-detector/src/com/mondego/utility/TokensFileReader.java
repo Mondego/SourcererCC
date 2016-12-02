@@ -77,7 +77,9 @@ public class TokensFileReader {
                         true);
             }
         }
-        Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "", true);
+        if(SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)){
+            Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "", true);
+        }
         br.close();
     }
 }
