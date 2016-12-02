@@ -69,7 +69,7 @@ public class TokensFileReader {
                         + estimatedTime / 1000 + " micros");
             }
             lineNumber++;
-            if (lineNumber
+            if (SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES>0 && lineNumber
                     % SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES == 0) {
                 Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "",
                         true);
