@@ -225,17 +225,27 @@ class TokenizerController(object):
             logging.error('ERROR - Folder [%s] does not exist!' % self.output_folder )
             sys.exit(1)
 
-        if not os.path.exists( self.PATH_CC ):
+        if not os.path.exists( os.path.join(self.PATH_CC,'input','dataset') ):
             logging.error('ERROR - Folder [%s] does not exist!' % self.PATH_CC )
             sys.exit(1)
 
-        #file_counter
-        #with 
-        #for file in os.listdir(self.output_folder):
-        #    if file.endswith('.tokens'):
-        #        file = os.path.join(self.output_folder,file)
-        #        print '  Getting info from ',file
-        #        with 
+        new_files_counter = 0
+        cc_input_file = os.path.join(self.PATH_CC,'input','dataset','blocks.file')
+        with open(cc_input_file,'w') as CCinput:
+            for file in os.listdir(self.output_folder):
+                if file.endswith('.tokens'):
+                    file = os.path.join(self.output_folder,file)
+                    with open(file,'r') as token_file:
+                        for line in token_file:
+                            CCinput.write(line)
+                            new_files_counter += 1
+
+        if new_files_counter == 0:
+            logging.warning('No new input for SourcererCC. Stopping.')
+            os.remove(cc_input_file)
+            sys.exit(0)
+        else:
+            logging.info('%s token-hash distinct files to be processed by CC, in %s' % (new_files_counter,cc_input_file))
 
 if __name__ == '__main__':
     print 'tokenizerController.__main__'
