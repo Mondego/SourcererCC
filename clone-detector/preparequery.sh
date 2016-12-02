@@ -1,12 +1,14 @@
 #!/bin/bash
+scriptPATH=`realpath $0`
+rootPATH=`dirname $scriptPATH`
 counter=1
-for queryfile in  `ls query*`
+for queryfile in  `ls $rootPATH/query*`
 do
-  foldername="NODE_"$counter"/query/"
+  foldername="$rootPATH/NODE_"$counter"/query/"
   rm -rf $foldername
   mkdir -p $foldername
   mv $queryfile $foldername/
-  cp sourcerer-cc.properties "NODE_"$counter/
-  cp res/log4j2.xml "NODE"_$counter/
+  cp $rootPATH/sourcerer-cc.properties "$rootPATH/NODE_"$counter/
+  cp $rootPATH/res/log4j2.xml "$rootPATH/NODE"_$counter/
   counter=$((counter+1))
 done

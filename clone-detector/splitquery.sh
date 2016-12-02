@@ -4,8 +4,10 @@
 #lines_per_part = int(total_lines + $N - 1) / $N
 
 # Configuration stuff
+scriptPATH=`realpath $0`
+rootPATH=`dirname $scriptPATH`
 echo "inside splitquery "
-queryfile="input/dataset/blocks.file"
+queryfile="$rootPATH/input/dataset/blocks.file"
 num_files="${1:-2}"
 
 # Work out lines per file.
@@ -15,10 +17,10 @@ total_lines=$(wc -l <${queryfile})
 
 # Split the actual file, maintaining lines.
 
-split -l $lines_per_file $queryfile query.
+split -l $lines_per_file $queryfile $rootPATH/query.
 
 # Debug information
 
 echo "Total lines     = ${total_lines}"
 echo "Lines  per file = ${lines_per_file}"    
-wc -l query.*
+wc -l $rootPATH/query.*

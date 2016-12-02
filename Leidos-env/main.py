@@ -17,5 +17,6 @@ if __name__ == '__main__':
     tokenizerController = TokenizerController(sys.argv[1])
     tokenizerController.move_input_to_CC()
 
-    #params = {"num_nodes_search": 2}
-    #controller = ScriptController(params)
+    params = {"num_nodes_search": 4}
+    controller = ScriptController(params)
+    controller.execute()
