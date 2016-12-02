@@ -154,8 +154,8 @@ class ScriptController(object):
 
     def run_command(self, cmd, outFile, errFile):
         print("running new command {}".format(" ".join(cmd)))
-        fo = open(outFile, "a")
-        fe = open(errFile, "a")
+        fo = open(outFile, "w")
+        fe = open(errFile, "w")
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
