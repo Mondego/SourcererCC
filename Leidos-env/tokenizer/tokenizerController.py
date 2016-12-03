@@ -21,7 +21,7 @@ class TokenizerController(object):
     PROJECTS_CONFIGURATION = 'GithubZIP' # alternatives: 'GithubZIP', 'Leidos'
     PATH_CC = os.path.abspath("../clone-detector")
 
-    def read_config(self, logging):
+    def read_config(self):
         # instantiate
         config = ConfigParser.ConfigParser()
 
@@ -29,8 +29,8 @@ class TokenizerController(object):
         try:
             config.read(self.PATH_config_file)
         except Exception as e:
-            logging.error('ERROR on read_config')
-            logging.error(e)
+            self.logging.error('ERROR on read_config')
+            self.logging.error(e)
             sys.exit(1)
 
         # Get info from config.ini into global variables
@@ -38,7 +38,7 @@ class TokenizerController(object):
         self.DB_pass = config.get('MySQL', 'Pass')
         self.DB_name = config.get('MySQL', 'Name')
 
-        logging.info('Config file successfully read: %s:%s@%s' % (self.DB_user,self.DB_pass,self.DB_name))
+        self.logging.info('Config file successfully read: %s:%s@%s' % (self.DB_user,self.DB_pass,self.DB_name))
 
     def __init__(self, file_list_projects):
         self.target_folders = str(time.time())
@@ -66,21 +66,25 @@ class TokenizerController(object):
         file_handler.setFormatter(logging.Formatter(FORMAT))
         logging.getLogger().addHandler(file_handler)
 
-        self.read_config(logging)
-        self.db_connect(logging)
-        self.proj_paths = self.read_file_paths(file_list_projects, logging)
+        self.logging = logging
 
+        self.read_config()
+        self.db_connect()
+        self.proj_paths = self.read_file_paths(file_list_projects)
+
+
+    def execute(self):
         if len(self.proj_paths) > 0:
-            logging.info('Starting tokenizer. Producibles (logs, output, etc) can be found under the name '+self.target_folders)
-            tokenizer = Tokenizer(self.proj_paths, self.DB_user, self.DB_pass, self.DB_name, logging, self.logs_folder, self.output_folder, self.N_PROCESSES, self.BATCH_SIZE, self.PROJECTS_CONFIGURATION)
+            self.logging.info('Starting tokenizer. Producibles (logs, output, etc) can be found under the name '+self.target_folders)
+            tokenizer = Tokenizer(self.proj_paths, self.DB_user, self.DB_pass, self.DB_name, self.logging, self.logs_folder, self.output_folder, self.N_PROCESSES, self.BATCH_SIZE, self.PROJECTS_CONFIGURATION)
             tokenizer.execute()
         else:
-            logging.warning('The list of new projects is empty (or these are already on the DB).')
+            self.logging.warning('The list of new projects is empty (or these are already on the DB).')
 
 
-    def read_file_paths(self, list_of_projects, logging):
+    def read_file_paths(self, list_of_projects):
         if not os.path.isfile(list_of_projects):
-            logging.error('File [%s] does not exist!' % list_of_projects )
+            self.logging.error('File [%s] does not exist!' % list_of_projects )
             sys.exit(1)
         else:
             try:
@@ -103,15 +107,15 @@ class TokenizerController(object):
                             proj_paths.add( proj_path )
 
                 if len(proj_paths) > 0:
-                    logging.info('List of project paths successfully read. Ready to process %s new projects.' % len(proj_paths))
+                    self.logging.info('List of project paths successfully read. Ready to process %s new projects.' % len(proj_paths))
                 else:
-                    logging.warning('The list of new projects is empty (or these are already on the DB).')
+                    self.logging.warning('The list of new projects is empty (or these are already on the DB).')
                     sys.exit(1)
                 return proj_paths
 
             except Exception as e:
-                logging.error('Error on read_file_paths')
-                logging.error(e)
+                self.logging.error('Error on read_file_paths')
+                self.logging.error(e)
                 sys.exit(1)
 
             finally:
@@ -119,7 +123,7 @@ class TokenizerController(object):
                 db.commit()
                 db.close()
 
-    def db_connect(self, logging):
+    def db_connect(self):
         try:
             db = MySQLdb.connect(host="localhost", # your host, usually localhost
                                  user=self.DB_user,     # your username
@@ -204,15 +208,15 @@ class TokenizerController(object):
             cursor.execute(table)
 
         except Exception as e:
-            logging.error('Error on db_connect')
-            logging.error(e)
+            self.logging.error('Error on db_connect')
+            self.logging.error(e)
             sys.exit(1)
 
         finally:
             cursor.close()
             db.close()
 
-        logging.info('Database \''+self.DB_name+'\' successfully initialized')
+        self.logging.info('Database \''+self.DB_name+'\' successfully initialized')
 
     def sanitize_strings(self, string):
         return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
@@ -222,11 +226,11 @@ class TokenizerController(object):
         #print self.PATH_CC
 
         if not os.path.exists( self.output_folder ):
-            logging.error('ERROR - Folder [%s] does not exist!' % self.output_folder )
+            self.logging.error('ERROR - Folder [%s] does not exist!' % self.output_folder )
             sys.exit(1)
 
         if not os.path.exists( os.path.join(self.PATH_CC,'input','dataset') ):
-            logging.error('ERROR - Folder [%s] does not exist!' % self.PATH_CC )
+            self.logging.error('ERROR - Folder [%s] does not exist!' % self.PATH_CC )
             sys.exit(1)
 
         new_files_counter = 0
@@ -241,11 +245,18 @@ class TokenizerController(object):
                             new_files_counter += 1
 
         if new_files_counter == 0:
-            logging.warning('No new input for SourcererCC. Stopping.')
+            self.logging.warning('No new input for SourcererCC. Stopping.')
             os.remove(cc_input_file)
             sys.exit(0)
         else:
-            logging.info('%s token-hash distinct files to be processed by CC, in %s' % (new_files_counter,cc_input_file))
+            self.logging.info('%s token-hash distinct files to be processed by CC, in %s' % (new_files_counter,cc_input_file))
+
+    def import_pairs_to_DB(self):
+        cc_backup_folder = os.path.join(self.PATH_CC,'backup_output')
+
+        print 'tokenizerController.import_pairs_to_DB()',cc_backup_folder
+        for file in os.listdir(cc_backup_folder):
+            print file
 
 if __name__ == '__main__':
     print 'tokenizerController.__main__'
