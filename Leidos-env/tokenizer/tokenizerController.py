@@ -254,9 +254,16 @@ class TokenizerController(object):
     def import_pairs_to_DB(self):
         cc_backup_folder = os.path.join(self.PATH_CC,'backup_output')
 
-        print 'tokenizerController.import_pairs_to_DB()',cc_backup_folder
-        for file in os.listdir(cc_backup_folder):
-            print file
+        latest_folder = 0
+        for folder in os.listdir(cc_backup_folder):
+            if folder.isdigit():
+                if int(folder) > latest_folder:
+                    latest_folder = int(folder)
+        
+        cc_backup_folder = os.path.join(cc_backup_folder,str(latest_folder))
+        print 'cc_backup_folder',cc_backup_folder
+
+        self.logging
 
 if __name__ == '__main__':
     print 'tokenizerController.__main__'

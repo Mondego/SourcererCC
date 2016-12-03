@@ -17,7 +17,7 @@ if __name__ == '__main__':
     tokenizerController = TokenizerController(sys.argv[1])
     tokenizerController.execute()
     tokenizerController.move_input_to_CC()
-    #tokenizerController.import_pairs_to_DB()
+    tokenizerController.import_pairs_to_DB()
 
     #params = {"num_nodes_search": 4}
     #controller = ScriptController(params)
