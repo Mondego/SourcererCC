@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="error" strict="true">
   <Properties>
-    <Property name="root">logs/NODE_</Property>
+    <Property name="root">SCC_LOGS/NODE_</Property>
     <Property name="scc">${root}/scc.log</Property>
   </Properties>
  
