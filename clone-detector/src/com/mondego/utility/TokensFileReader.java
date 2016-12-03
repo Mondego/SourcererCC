@@ -37,7 +37,7 @@ public class TokensFileReader {
         char[] buf = new char[40];
         while (br.read(buf, 0, 40) != -1) {
             if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)
-                    && lineNumber <= SearchManager.QUERY_LINES_TO_IGNORE) {
+                    && lineNumber < SearchManager.QUERY_LINES_TO_IGNORE) {
                 logger.debug(
                         "RECOVERY: ignoring this line, as it was covered in previous run");
                 while (((char) br.read()) != '\n') {

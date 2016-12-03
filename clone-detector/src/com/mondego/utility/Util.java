@@ -45,18 +45,18 @@ import com.mondego.models.TokenFrequency;
 public class Util {
     static Random rand = new Random(5);
     public static final String CSV_DELIMITER = "~";
-    public static final String INDEX_DIR = "index";
-    public static final String INDEX_DIR_TEMP = "index_temp";
-    public static final String GTPM_DIR = "gtpm";
-    public static final String GLOBAL_WFM_DIR = "wfm";
-    public static final String FWD_INDEX_DIR = "fwdindex";
-    public static final String FWD_INDEX_DIR_TEMP = "fwdindex_temp";
-    public static final String GTPM_INDEX_DIR = "gtpmindex";
-    public static final String INDEX_DIR_NO_FILTER = "index_nofilter";
+    public static final String INDEX_DIR = SearchManager.ROOT_DIR+"index";
+    public static final String INDEX_DIR_TEMP = SearchManager.ROOT_DIR+"index_temp";
+    public static final String GTPM_DIR = SearchManager.ROOT_DIR+"gtpm";
+    public static final String GLOBAL_WFM_DIR = SearchManager.ROOT_DIR+"wfm";
+    public static final String FWD_INDEX_DIR = SearchManager.ROOT_DIR+"fwdindex";
+    public static final String FWD_INDEX_DIR_TEMP = SearchManager.ROOT_DIR+"fwdindex_temp";
+    public static final String GTPM_INDEX_DIR = SearchManager.ROOT_DIR+"gtpmindex";
+    public static final String INDEX_DIR_NO_FILTER = SearchManager.ROOT_DIR+"index_nofilter";
     public static final String QUERY_FILE_NAME = "blocks.file";
-    public static final String OUTPUT_BACKUP_DIR = "backup_output";
-    public static final String SEARCH_METADATA = "search_metadata.txt";
-    public static final String RUN_METADATA = "run_metadata.scc";
+    public static final String OUTPUT_BACKUP_DIR = SearchManager.ROOT_DIR+"backup_output";
+    public static final String SEARCH_METADATA = SearchManager.ROOT_DIR+"search_metadata.txt";
+    public static final String RUN_METADATA = SearchManager.ROOT_DIR+"run_metadata.scc";
     private static final Logger logger = LogManager.getLogger(Util.class);
     /**
      * generates a random integer

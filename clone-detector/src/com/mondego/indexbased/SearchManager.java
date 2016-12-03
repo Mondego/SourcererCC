@@ -131,7 +131,7 @@ public class SearchManager {
     public static int totalNodes = -1;
     private static long RUN_COUNT;
     public static long QUERY_LINES_TO_IGNORE=0;
-
+    public static String ROOT_DIR;
     private static final Logger logger = LogManager
             .getLogger(SearchManager.class);
 
@@ -184,7 +184,7 @@ public class SearchManager {
             System.exit(1);
         }
         if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
-            SearchManager.completedNodes = "nodes_completed.txt";
+            SearchManager.completedNodes = SearchManager.ROOT_DIR+"nodes_completed.txt";
             this.completedQueries = new HashSet<Long>();
 
             this.createShards(false);
@@ -289,6 +289,9 @@ public class SearchManager {
     public static void main(String[] args)
             throws IOException, ParseException, InterruptedException {
         long start_time = System.nanoTime();
+        logger.info("user.dir is: "+ System.getProperty("user.dir"));
+        logger.info("root dir is:" + System.getProperty("properties.rootDir"));
+        SearchManager.ROOT_DIR = System.getProperty("properties.rootDir");
         FileInputStream fis = null;
         logger.info("reading Q values from properties file");
         String propertiesPath = System.getProperty("properties.location");
@@ -299,8 +302,7 @@ public class SearchManager {
             String[] params = new String[2];
             params[0] = args[0];
             params[1] = args[1];
-
-            SearchManager.DATASET_DIR = properties
+            SearchManager.DATASET_DIR = SearchManager.ROOT_DIR+properties
                     .getProperty("DATASET_DIR_PATH");
             SearchManager.isGenCandidateStats = Boolean.parseBoolean(
                     properties.getProperty("IS_GEN_CANDIDATE_STATISTICS"));
@@ -308,12 +310,10 @@ public class SearchManager {
                     properties.getProperty("IS_STATUS_REPORTER_ON"));
             SearchManager.NODE_PREFIX = properties.getProperty("NODE_PREFIX")
                     .toUpperCase();
-            SearchManager.OUTPUT_DIR = properties.getProperty("OUTPUT_DIR");
-            SearchManager.QUERY_DIR_PATH = properties
+            SearchManager.OUTPUT_DIR = SearchManager.ROOT_DIR+properties.getProperty("OUTPUT_DIR");
+            SearchManager.QUERY_DIR_PATH = SearchManager.ROOT_DIR+properties
                     .getProperty("QUERY_DIR_PATH");
             logger.debug("Query path:" + SearchManager.QUERY_DIR_PATH);
-
-            SearchManager.WFM_DIR_PATH = properties.getProperty("WFM_DIR_PATH");
             SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES = Integer
                     .parseInt(properties.getProperty(
                             "LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", "1000"));
