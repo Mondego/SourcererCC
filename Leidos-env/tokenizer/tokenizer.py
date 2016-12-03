@@ -181,13 +181,14 @@ class Tokenizer(object):
         file_hash = self.get_file_hash(file_string)
 
         cursor = db.cursor()
-        q = "INSERT INTO files VALUES (NULL, %s, %s, NULL, '%s');" % (proj_id, self.sanitize_strings(file_path), file_hash)
+        q = "INSERT INTO files VALUES (NULL, %s, %s, NULL, '%s'); SELECT LAST_INSERT_ID();" % (proj_id, self.sanitize_strings(file_path), file_hash)
         cursor.execute(q)
+        file_id = cursor.lastrowid
         cursor.close()
 
         exists = 0
         cursor = db.cursor()
-        cursor.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '%s'" % (file_hash))
+        cursor.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '%s';" % (file_hash))
         (exists, ) = cursor.fetchone()
         cursor.close()
 
@@ -211,8 +212,8 @@ class Tokenizer(object):
                 cursor = db.cursor()
                 cursor.execute(q)
 
-                file_id = cursor.lastrowid
-                if file_id is not None:
+                was_inserted = cursor.lastrowid
+                if was_inserted is not None:
                     # Meaning, the last insert into the DB was successfully
                     FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
                 w_time = (dt.datetime.now() - ww_time).microseconds

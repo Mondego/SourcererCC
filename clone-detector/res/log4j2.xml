@@ -7,7 +7,7 @@
  
   <Appenders>
     <RollingFile name="sccRollingFile" fileName="${scc}"
-                 filePattern="logs/$${date:yyyy-MM}/scc-%d{MM-dd-yyyy}-%i.log.gz">
+                 filePattern="SCC_LOGS/$${date:yyyy-MM}/scc-%d{MM-dd-yyyy}-%i.log.gz">
       <PatternLayout>
         <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
