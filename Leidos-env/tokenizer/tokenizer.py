@@ -15,7 +15,9 @@ import zipfile
 
 class Tokenizer(object):
 
-    def __init__(self, proj_paths, DB_user, DB_pass, DB_name, logging, logs_folder, output_folder, N_PROCESSES, PROJECTS_BATCH, PROJECTS_CONFIGURATION):
+    def __init__(self, proj_paths, DB_user, DB_pass, DB_name, controller_logging, logs_folder, output_folder, N_PROCESSES, PROJECTS_BATCH, PROJECTS_CONFIGURATION):
+        self.controller_logging = controller_logging
+
         self.project_id = 1
         self.proj_paths = []
         self.filecount = 0
@@ -31,7 +33,7 @@ class Tokenizer(object):
         self.DB_name = DB_name
 
         if PROJECTS_CONFIGURATION not in ['Leidos','GithubZIP']:
-            logging.error('Unknown project configuration format:%s' % (PROJECTS_CONFIGURATION))
+            controller_logging.error('Unknown project configuration format:%s' % (PROJECTS_CONFIGURATION))
             sys.exist(1)
         else:
             self.PROJECTS_CONFIGURATION = PROJECTS_CONFIGURATION
@@ -51,8 +53,8 @@ class Tokenizer(object):
             self.project_id += 1
 
         except Exception as e:
-            logging.error('Error on Tokenizer.__init__')
-            logging.error(e)
+            controller_logging.error('Error on Tokenizer.__init__')
+            self.controller_logging.error(e)
             sys.exit(1)
 
         finally:
@@ -64,13 +66,13 @@ class Tokenizer(object):
         # Creating folder for the processes logs
         self.logs_folder = logs_folder
         if not os.path.exists( self.logs_folder ):
-            logging.error('ERROR - Folder [%s] does not exist!' % self.logs_folder )
+            controller_logging.error('ERROR - Folder [%s] does not exist!' % self.logs_folder )
             sys.exit(1)
 
         # Create folder for processes output
         self.output_folder = output_folder
         if not os.path.exists( self.output_folder ):
-            logging.error('ERROR - Folder [%s] does not exist!' % self.output_folder )
+            controller_logging.error('ERROR - Folder [%s] does not exist!' % self.output_folder )
             sys.exit(1)
 
         # Reading config file
@@ -79,8 +81,8 @@ class Tokenizer(object):
         try:
             config.read(self.PATH_config_file)
         except Exception as e:
-            logging.error('ERROR on Tokenizer.__init__')
-            logging.error(e)
+            controller_logging.error('ERROR on Tokenizer.__init__')
+            controller_logging.error(e)
             sys.exit(1)
 
         comment_inline         = re.escape(config.get('Language', 'comment_inline'))
@@ -91,8 +93,7 @@ class Tokenizer(object):
         self.comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
         self.file_extensions        = config.get('Language', 'File_extensions').split(' ')
 
-        logging.info('Tokenizer successfully initialized. Project index starting at %s. Processing %s projects. Looking for file extensions: %s' % (self.project_id, len(self.proj_paths), self.file_extensions) )
-
+        controller_logging.info('Tokenizer successfully initialized. Project index starting at %s. Processing %s projects. Looking for file extensions: %s' % (self.project_id, len(self.proj_paths), self.file_extensions) )
 
     def tokenize(self, file_string, comment_inline_pattern, comment_open_close_pattern, separators):
         final_stats = 'ERROR'
@@ -173,6 +174,8 @@ class Tokenizer(object):
         return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
 
     def process_file_contents(self, proj_id, file_string, file_path, file_bytes, FILE_tokens_file, db):
+        self.process_logging.info('Starting file %s from project %s' % (file_path,proj_id, ))
+
         self.filecount += 1
 
         file_hash = self.get_file_hash(file_string)
@@ -222,7 +225,7 @@ class Tokenizer(object):
 
         return file_parsing_times + [w_time]
 
-    def process_tgz_ball(self, process_num, tar_file, proj_path, proj_id, FILE_tokens_file, logging, db):
+    def process_tgz_ball(self, process_num, tar_file, proj_path, proj_id, FILE_tokens_file, db):
         zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
         try:
@@ -248,12 +251,12 @@ class Tokenizer(object):
                     try:
                         myfile = my_tar_file.extractfile(f)
                     except:
-                        logging.warning('Unable to open file (1) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
+                        self.process_logging.warning('Unable to open file (1) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
                         break
                     zip_time += (dt.datetime.now() - z_time).microseconds
 
                     if myfile is None:
-                        logging.warning('Unable to open file (2) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
+                        self.process_logging.warning('Unable to open file (2) <'+os.path.join(tar_file,file_path)+'> (process '+str(process_num)+')')
                         break
 
                     f_time      = dt.datetime.now()
@@ -268,13 +271,13 @@ class Tokenizer(object):
                     regex_time  += times[3]
 
         except Exception as e:
-            logging.warning('Unable to open tar on <'+proj_path+'> (process '+str(process_num)+')')
-            logging.warning(e)
+            self.process_logging.warning('Unable to open tar on <'+proj_path+'> (process '+str(process_num)+')')
+            self.process_logging.warning(e)
             return
 
         return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-    def process_zip_ball(self, process_num, proj_path, proj_id, FILE_tokens_file, logging, db):
+    def process_zip_ball(self, process_num, proj_path, proj_id, FILE_tokens_file, db):
         zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
         try:
@@ -295,12 +298,12 @@ class Tokenizer(object):
                     try:
                         myfile = my_zip_file.open(file.filename,'r')
                     except:
-                        logging.warning('Unable to open file (1) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
+                        self.process_logging.warning('Unable to open file (1) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
                         break
                     zip_time += (dt.datetime.now() - z_time).microseconds
 
                     if myfile is None:
-                        logging.warning('Unable to open file (2) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
+                        self.process_logging.warning('Unable to open file (2) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
                         break
 
                     f_time      = dt.datetime.now()
@@ -315,28 +318,28 @@ class Tokenizer(object):
                     regex_time  += times[3]
 
         except Exception as e:
-            logging.warning('Unable to open zip on <'+proj_path+'> (process '+str(process_num)+')')
-            logging.warning(e)
+            self.process_logging.warning('Unable to open zip on <'+proj_path+'> (process '+str(process_num)+')')
+            self.process_logging.warning(e)
             return
 
         return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-    def process_one_project(self, process_num, proj_path, proj_id, FILE_tokens_file, logging, db):
-        logging.info('Starting %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)) )
+    def process_one_project(self, process_num, proj_path, proj_id, FILE_tokens_file, db):
+        self.process_logging.info('Starting %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)) )
         p_start = dt.datetime.now()
 
         if self.PROJECTS_CONFIGURATION == 'Leidos':
             if not os.path.isdir(proj_path):
-                logging.warning('Unable to open %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)))
+                self.process_logging.warning('Unable to open %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)))
             else:
                 # Search for tar files with _code in them
                 tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
                 tar_files = [f for f in tar_files if '_code' in f]
                 if(len(tar_files) != 1):
-                    logging.warning('Tar not found on <'+proj_path+'> (process '+str(process_num)+')')
+                    self.process_logging.warning('Tar not found on <'+proj_path+'> (process '+str(process_num)+')')
                 else:
                     tar_file = tar_files[0]
-                    times = self.process_tgz_ball(process_num, tar_file, proj_path, proj_id, FILE_tokens_file, logging, db)
+                    times = self.process_tgz_ball(process_num, tar_file, proj_path, proj_id, FILE_tokens_file, db)
                     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
                     cursor = db.cursor()
@@ -344,16 +347,16 @@ class Tokenizer(object):
                     cursor.close()
 
                     p_elapsed = dt.datetime.now() - p_start
-                    logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-                    logging.info('Process (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
+                    self.process_logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
+                    self.process_logging.info('Process (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
                         process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
         else:
 
             if self.PROJECTS_CONFIGURATION == 'GithubZIP':
                 if not zipfile.is_zipfile(proj_path):
-                    logging.warning('Unable to open %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)))
+                    self.process_logging.warning('Unable to open %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)))
                 else:
-                    times = self.process_zip_ball(process_num, proj_path, proj_id, FILE_tokens_file, logging, db)
+                    times = self.process_zip_ball(process_num, proj_path, proj_id, FILE_tokens_file, db)
                     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
                     cursor = db.cursor()
@@ -361,23 +364,15 @@ class Tokenizer(object):
                     cursor.close()
 
                     p_elapsed = dt.datetime.now() - p_start
-                    logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-                    logging.info('Process (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
+                    self.process_logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
+                    self.process_logging.info('Process (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
                         process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
             else:
-                logging.error('Unknown project configuration format:%s' % (self.PROJECTS_CONFIGURATION))
+                self.process_logging.error('Unknown project configuration format:%s' % (self.PROJECTS_CONFIGURATION))
                 sys.exist(1)
 
     def process_projects(self, process_num, proj_paths, global_queue):
-        # Logging code
-
-        FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
-        logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-        file_handler = logging.FileHandler( os.path.join(self.logs_folder,'tokenizer_process_'+str(process_num)+'.log') )
-        file_handler.setFormatter(logging.Formatter(FORMAT))
-        logging.getLogger().addHandler(file_handler)
-
         try:
             db = MySQLdb.connect(host   = "localhost",  # your host, usually localhost
                                  db     = self.DB_name,
@@ -390,18 +385,18 @@ class Tokenizer(object):
             with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
                 p_start = dt.datetime.now()
                 for proj_id, proj_path in proj_paths:
-                    self.process_one_project(process_num, proj_path, str(proj_id), FILE_tokens_file, logging, db)
+                    self.process_one_project(process_num, proj_path, str(proj_id), FILE_tokens_file, db)
 
                 p_elapsed = (dt.datetime.now() - p_start).seconds
-                logging.info('Process %s finished. %s files in %ss.', process_num, self.filecount, p_elapsed)
+                self.process_logging.info('Process %s finished. %s files in %ss.', process_num, self.filecount, p_elapsed)
 
             # Let parent know
             global_queue.put((process_num, self.filecount))
             sys.exit(0)
 
         except Exception as e:
-            logging.error('Error in process '+str(process_num))
-            logging.error(e)
+            self.process_logging.error('Error in process '+str(process_num))
+            self.process_logging.error(e)
             sys.exit(1)
 
         finally:
@@ -418,6 +413,24 @@ class Tokenizer(object):
         paths_batch = self.proj_paths[:self.PROJECTS_BATCH]
         del self.proj_paths[:self.PROJECTS_BATCH]
 
+        # Logging code
+        self.process_logging = logging.getLogger('process_logging')
+        FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
+        formatter = logging.Formatter(fmt=FORMAT)
+        handler = logging.FileHandler( os.path.join(self.logs_folder,'tokenizer_process_'+str(pid)+'.log') )
+        handler.setFormatter(formatter)
+
+        self.process_logging.addHandler(handler)
+        self.process_logging.setLevel(logging.DEBUG)
+
+        #logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+        #file_handler = logging.FileHandler( os.path.join(self.logs_folder,'tokenizer_process_'+str(pid)+'.log') )
+        #file_handler.setFormatter(logging.Formatter(FORMAT))
+        #logging.getLogger().addHandler(file_handler)
+
+        #self.process_logging = logging
+        self.process_logging.propagate = False
+
         p = mp.Process(name='Process '+str(pid), target=self.process_projects, args=(pid, paths_batch, global_queue, ))
         processes[pid][0] = p
         p.start()
@@ -428,7 +441,7 @@ class Tokenizer(object):
             processes[pid][0] = None
             processes[pid][1] += n_files_processed
             
-        logging.info("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], self.filecount))
+        self.controller_logging.info("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], self.filecount))
 
         distinct_hash_tokens = 0
         output_tokens_file = os.path.join(self.output_folder,'files-tokens-'+str(pid)+'.tokens')
@@ -437,9 +450,9 @@ class Tokenizer(object):
                 for line in process_result:
                     distinct_hash_tokens += 1
         if distinct_hash_tokens > 0:
-            logging.info("Process %s finished, %s new distinct token-hashes processed" % (pid,distinct_hash_tokens))
+            self.controller_logging.info("Process %s finished, %s new distinct token-hashes processed" % (pid,distinct_hash_tokens))
         else:
-            logging.warning("Process %s finished but introduced zero new distinct token-hashes" % (pid))
+            self.controller_logging.warning("Process %s finished but introduced zero new distinct token-hashes" % (pid))
             if os.path.isfile(output_tokens_file):
                 os.remove(output_tokens_file)
 
@@ -472,4 +485,4 @@ class Tokenizer(object):
             self.kill_child(processes, pid, n_files_processed)
 
         p_elapsed = dt.datetime.now() - p_start
-        logging.info('Tokenizer finished. %s files in %s' % (self.filecount, p_elapsed))
+        self.controller_logging.info('Tokenizer finished. %s files in %s' % (self.filecount, p_elapsed))
