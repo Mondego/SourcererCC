@@ -16,19 +16,7 @@ class DB:
         self.DB_user = DB_user
         self.DB_pass = DB_pass
 
-        try:
-            db = MySQLdb.connect(host    = "localhost", # your host, usually localhost
-                                 user    = DB_user,   # your username
-                                 passwd  = DB_pass,   # your password
-                                 db      = DB_name)   # name of the data base
-
-            self.db = db
-            self.cursor = db.cursor()
-        except Exception as e:
-            print 'Error on DB.connect'
-            print e
-            sys.exit(1)
-
+        self.connect()
 
     def connect(self):
         try:
@@ -48,7 +36,7 @@ class DB:
         try:
             self.db.commit()
         except MySQLdb.OperationalError, e:
-            self.db.connect()
+            self.connect()
             self.commit()
 
     def execute(self, sql_query):
