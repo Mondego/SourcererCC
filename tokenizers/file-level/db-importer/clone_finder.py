@@ -21,9 +21,9 @@ class DB:
     def connect(self):
         try:
             db = MySQLdb.connect(host    = "localhost", # your host, usually localhost
-                                 user    = DB_user,   # your username
-                                 passwd  = DB_pass,   # your password
-                                 db      = DB_name)   # name of the data base
+                                 user    = self.DB_user,   # your username
+                                 passwd  = self.DB_pass,   # your password
+                                 db      = self.DB_name)   # name of the data base
 
             self.db = db
             self.cursor = db.cursor()
@@ -48,11 +48,7 @@ class DB:
             self.execute(sql_query)
 
     def fetchone(self):
-        try:
-            return self.cursor.fetchone()
-        except MySQLdb.OperationalError, e:
-            self.connect()
-            self.fetchone()
+        return self.cursor.fetchone()
 
     def close(self):
         self.cursor.close()

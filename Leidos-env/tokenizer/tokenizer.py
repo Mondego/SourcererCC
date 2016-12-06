@@ -11,7 +11,56 @@ import MySQLdb
 import ConfigParser
 import zipfile
 
+class DB:
+    db = None
+    cursor = None
 
+    def __init__(self, DB_name, DB_user, DB_pass):
+        self.DB_name = DB_name
+        self.DB_user = DB_user
+        self.DB_pass = DB_pass
+
+        self.connect()
+
+    def connect(self):
+        try:
+            db = MySQLdb.connect(host    = "localhost", # your host, usually localhost
+                                 user    = self.DB_user,   # your username
+                                 passwd  = self.DB_pass,   # your password
+                                 db      = self.DB_name)   # name of the data base
+
+            self.db = db
+            self.cursor = db.cursor()
+        except Exception as e:
+            print 'Error on DB.connect'
+            print e
+            sys.exit(1)
+
+    def commit(self):
+        try:
+            self.db.commit()
+        except MySQLdb.OperationalError, e:
+            self.connect()
+            self.commit()
+
+    def execute(self, sql_query):
+        try:
+            self.cursor.execute(sql_query)
+            return self.cursor
+        except MySQLdb.OperationalError, e:
+            self.connect()
+            self.execute(sql_query)
+
+    def lastrowid(self):
+        return self.cursor.lastrowid
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    def close(self):
+        self.cursor.close()
+        self.db.commit()
+        self.db.close()
 
 class Tokenizer(object):
 
@@ -39,27 +88,20 @@ class Tokenizer(object):
             self.PROJECTS_CONFIGURATION = PROJECTS_CONFIGURATION
 
         try:
-            db = MySQLdb.connect(host="localhost", # your host, usually localhost
-                                 db=DB_name,
-                                 user=DB_user,     # your username
-                                 passwd=DB_pass)   # your password
-            cursor = db.cursor()
-
-            cursor.execute("SELECT Max(projectId) FROM projects;")
-            (self.project_id, ) = cursor.fetchone()
+            db = DB(DB_name,DB_user,DB_pass)
+            db.execute("SELECT Max(projectId) FROM projects;")
+            (self.project_id, ) = db.fetchone()
             if self.project_id is None:
                 self.project_id = 0
     
             self.project_id += 1
 
+            db.close()
+
         except Exception as e:
             controller_logging.error('Error on Tokenizer.__init__')
             self.controller_logging.error(e)
             sys.exit(1)
-
-        finally:
-            cursor.close()
-            db.close()
 
         self.proj_paths = proj_paths = zip(range(self.project_id, self.project_id+len(proj_paths)+1), proj_paths)
 
@@ -180,17 +222,12 @@ class Tokenizer(object):
 
         file_hash = self.get_file_hash(file_string)
 
-        cursor = db.cursor()
         q = "INSERT INTO files VALUES (NULL, %s, %s, NULL, '%s'); SELECT LAST_INSERT_ID();" % (proj_id, self.sanitize_strings(file_path), file_hash)
-        cursor.execute(q)
-        file_id = cursor.lastrowid
-        cursor.close()
+        db.execute(q)
+        file_id = db.lastrowid
 
-        exists = 0
-        cursor = db.cursor()
-        cursor.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '%s';" % (file_hash))
-        (exists, ) = cursor.fetchone()
-        cursor.close()
+        db.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '%s';" % (file_hash))
+        (exists, ) = db.fetchone()
 
         file_parsing_times = [0,0,0,0]
         w_time = 0
@@ -209,10 +246,9 @@ class Tokenizer(object):
             try:
                 ww_time = dt.datetime.now()
                 q = "INSERT INTO stats VALUES ('%s', %s, %s, %s, %s, %s, %s, '%s'); SELECT LAST_INSERT_ID();" % (file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
-                cursor = db.cursor()
-                cursor.execute(q)
+                db.execute(q)
 
-                was_inserted = cursor.lastrowid
+                was_inserted = db.lastrowid
                 if was_inserted is not None:
                     # Meaning, the last insert into the DB was successfully
                     FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
@@ -220,9 +256,6 @@ class Tokenizer(object):
 
             except:
                 w_time = 0
-
-            finally:
-                cursor.close()
 
         return file_parsing_times + [w_time]
 
@@ -343,9 +376,7 @@ class Tokenizer(object):
                     times = self.process_tgz_ball(process_num, tar_file, proj_path, proj_id, FILE_tokens_file, db)
                     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
-                    cursor = db.cursor()
-                    cursor.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
-                    cursor.close()
+                    db.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
 
                     p_elapsed = dt.datetime.now() - p_start
                     self.process_logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
@@ -360,9 +391,7 @@ class Tokenizer(object):
                     times = self.process_zip_ball(process_num, proj_path, proj_id, FILE_tokens_file, db)
                     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
-                    cursor = db.cursor()
-                    cursor.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
-                    cursor.close()
+                    db.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
 
                     p_elapsed = dt.datetime.now() - p_start
                     self.process_logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
@@ -375,10 +404,7 @@ class Tokenizer(object):
 
     def process_projects(self, process_num, proj_paths, global_queue):
         try:
-            db = MySQLdb.connect(host   = "localhost",  # your host, usually localhost
-                                 db     = self.DB_name,
-                                 user   = self.DB_user, # your username
-                                 passwd = self.DB_pass) # your password
+            db = DB(self.DB_name, self.DB_user, self.DB_pass)
 
             FILE_files_tokens_file = os.path.join(self.output_folder,'files-tokens-'+str(process_num)+'.tokens')
 
@@ -401,7 +427,6 @@ class Tokenizer(object):
             sys.exit(1)
 
         finally:
-            db.commit()
             db.close()
 
     def start_child(self, processes, global_queue, proj_paths):
