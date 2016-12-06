@@ -59,9 +59,13 @@ class DB:
         return self.cursor.fetchone()
 
     def close(self):
-        self.cursor.close()
-        self.db.commit()
-        self.db.close()
+        try:
+            self.cursor.close()
+            self.db.commit()
+            self.db.close()
+        except:
+            self.connect()
+            self.close()
 
 class Tokenizer(object):
 
