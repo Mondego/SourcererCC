@@ -26,53 +26,35 @@ class DB:
 
             self.db = db
         except Exception as e:
-            print 'Error on DB.connect'
+            print 'Error on DB.connect',e
             print e
             sys.exit(1)
+
+    def commit(self):
+        try:
+            self.db.commit()
+        except Exception as e:
+            print 'Error on DB.commit',e
+            self.connect()
+            self.commit()
 
     def execute(self, sql_query):
         try:
             cursor = self.db.cursor()
             cursor.execute(sql_query)
-            self.db.commit()
             cursor.close()
+            return cursor
         except Exception as e:
-            print 'DB.execute:',e
-            self.connect()
-            self.execute(sql_query)
-
-    def execute_and_fetchone(self, sql_query):
-        try:
-            cursor = self.db.cursor()
-            cursor.execute(sql_query)
-            self.db.commit()
-            res = cursor.fetchone()
-            cursor.close()
-            return res
-        except Exception as e:
-            print 'DB.execute_and_fetchone:',e
-            self.connect()
-            self.execute(sql_query)
-
-    def execute_and_lastrowid(self, sql_query):
-        try:
-            cursor = self.db.cursor()
-            cursor.execute(sql_query)
-            self.db.commit()
-            res = cursor.lastrowid()
-            cursor.close()
-            return res
-        except Exception as e:
-            print 'DB.execute_and_lastrowid:',e
+            print 'Error on DB.execute',e
             self.connect()
             self.execute(sql_query)
 
     def close(self):
         try:
-            self.db.commit()
+            self.commit()
             self.db.close()
         except Exception as e:
-            print 'DB.close:',e
+            print 'Error on DB.close',e
             self.connect()
             self.close()
 
@@ -302,3 +284,4 @@ if __name__ == "__main__":
 
     finally:
         db_object.close()
+
