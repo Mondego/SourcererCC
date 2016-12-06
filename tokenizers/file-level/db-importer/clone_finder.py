@@ -49,6 +49,18 @@ class DB:
             self.connect()
             self.execute(sql_query)
 
+    def execute_and_fetchone(self, sql_query):
+        try:
+            cursor = self.db.cursor()
+            cursor.execute(sql_query)
+            res = cursor.fetchone()
+            cursor.close()
+            return res
+        except Exception as e:
+            print 'Error on DB.execute',e
+            self.connect()
+            self.execute(sql_query)
+
     def close(self):
         try:
             self.commit()
@@ -185,9 +197,8 @@ def find_clones_for_project(project_id, db_object, debug):
 
         for k, v in percentage_cloning_counter.iteritems():
             q = "SELECT COUNT(*) FROM files WHERE projectId = %s;" % (k)
-            res = db_object.execute(q)
+            (total_files_host, ) = db_object.execute_and_fetchone(q)
 
-            (total_files_host, ) = db_object.fetchone()
             percent_cloning = float(v*100)/total_files
             percent_host = float(percentage_host_projects_counter[k]*100)/total_files_host
 
