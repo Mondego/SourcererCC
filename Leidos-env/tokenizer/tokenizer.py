@@ -15,7 +15,8 @@ class DB:
     db = None
     cursor = None
 
-    def __init__(self, DB_name, DB_user, DB_pass):
+    def __init__(self, DB_name, DB_user, DB_pass, logging):
+        self.logging = logging
         self.DB_name = DB_name
         self.DB_user = DB_user
         self.DB_pass = DB_pass
@@ -32,14 +33,14 @@ class DB:
             self.db = db
             self.cursor = db.cursor()
         except Exception as e:
-            print 'Error on DB.connect'
-            print e
+            self.logging.error('Error on DB.connect')
+            self.logging.error(e)
             sys.exit(1)
 
     def commit(self):
         try:
             self.db.commit()
-        except MySQLdb.OperationalError, e:
+        except:
             self.connect()
             self.commit()
 
@@ -47,7 +48,7 @@ class DB:
         try:
             self.cursor.execute(sql_query)
             return self.cursor
-        except MySQLdb.OperationalError, e:
+        except:
             self.connect()
             self.execute(sql_query)
 
@@ -88,7 +89,7 @@ class Tokenizer(object):
             self.PROJECTS_CONFIGURATION = PROJECTS_CONFIGURATION
 
         try:
-            db = DB(DB_name,DB_user,DB_pass)
+            db = DB(DB_name,DB_user,DB_pass,logging)
             db.execute("SELECT Max(projectId) FROM projects;")
             (self.project_id, ) = db.fetchone()
             if self.project_id is None:
@@ -216,6 +217,7 @@ class Tokenizer(object):
         return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
 
     def process_file_contents(self, proj_id, file_string, file_path, file_bytes, FILE_tokens_file, db):
+
         self.process_logging.info('Starting file %s from project %s' % (file_path,proj_id, ))
 
         self.filecount += 1
@@ -223,8 +225,8 @@ class Tokenizer(object):
         file_hash = self.get_file_hash(file_string)
 
         q = "INSERT INTO files VALUES (NULL, %s, %s, NULL, '%s'); SELECT LAST_INSERT_ID();" % (proj_id, self.sanitize_strings(file_path), file_hash)
-        db.execute(q)
-        file_id = db.lastrowid
+        cursor = db.execute(q)
+        file_id = db.lastrowid()
 
         db.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '%s';" % (file_hash))
         (exists, ) = db.fetchone()
@@ -318,6 +320,7 @@ class Tokenizer(object):
             with zipfile.ZipFile(proj_path,'r') as my_zip_file:
 
                 for file in my_zip_file.infolist():
+
                     if not os.path.splitext(file.filename)[1] in self.file_extensions:
                         continue
 
@@ -404,7 +407,7 @@ class Tokenizer(object):
 
     def process_projects(self, process_num, proj_paths, global_queue):
         try:
-            db = DB(self.DB_name, self.DB_user, self.DB_pass)
+            db = DB(self.DB_name, self.DB_user, self.DB_pass, self.process_logging)
 
             FILE_files_tokens_file = os.path.join(self.output_folder,'files-tokens-'+str(process_num)+'.tokens')
 
@@ -449,12 +452,6 @@ class Tokenizer(object):
         self.process_logging.addHandler(handler)
         self.process_logging.setLevel(logging.DEBUG)
 
-        #logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-        #file_handler = logging.FileHandler( os.path.join(self.logs_folder,'tokenizer_process_'+str(pid)+'.log') )
-        #file_handler.setFormatter(logging.Formatter(FORMAT))
-        #logging.getLogger().addHandler(file_handler)
-
-        #self.process_logging = logging
         self.process_logging.propagate = False
 
         p = mp.Process(name='Process '+str(pid), target=self.process_projects, args=(pid, paths_batch, global_queue, ))

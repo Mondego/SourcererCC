@@ -35,7 +35,7 @@ class DB:
     def commit(self):
         try:
             self.db.commit()
-        except MySQLdb.OperationalError, e:
+        except:
             self.connect()
             self.commit()
 
@@ -43,7 +43,7 @@ class DB:
         try:
             self.cursor.execute(sql_query)
             return self.cursor
-        except MySQLdb.OperationalError, e:
+        except:
             self.connect()
             self.execute(sql_query)
 
