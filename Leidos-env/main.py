@@ -21,9 +21,9 @@ if __name__ == '__main__':
     tokenizerController.move_input_to_CC()
     
     print 'Running CC...'
-    #params = {"num_nodes_search": 8}
-    #controller = ScriptController(params)
-    #controller.execute()
+    params = {"num_nodes_search": 8}
+    controller = ScriptController(params)
+    controller.execute()
 
     print 'Importing CC output to the DB...'
     tokenizerController.import_pairs_to_DB()
