@@ -13,14 +13,23 @@ sys.path.append(os.path.abspath("../clone-detector"))
 from controller import ScriptController
 
 if __name__ == '__main__':
-    print '__main__ input',sys.argv[1]
+    print 'Starting to process list ',sys.argv[1],'...'
     tokenizerController = TokenizerController(sys.argv[1])
+    print 'Tokenizing...'
     tokenizerController.execute()
+    print 'Creating input for CC...'
     tokenizerController.move_input_to_CC()
     
-    params = {"num_nodes_search": 8}
-    controller = ScriptController(params)
-    controller.execute()
+    print 'Running CC...'
+    #params = {"num_nodes_search": 8}
+    #controller = ScriptController(params)
+    #controller.execute()
 
+    print 'Importing CC output to the DB...'
     tokenizerController.import_pairs_to_DB()
+
+    print 'Calulating project-level info...'
+    #here
+
+    print 'Finished'
 

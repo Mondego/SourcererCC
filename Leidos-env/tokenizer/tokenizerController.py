@@ -6,6 +6,7 @@ import MySQLdb
 import time
 import ConfigParser
 from tokenizer import Tokenizer
+from db import DB
 
 class TokenizerController(object):
 
@@ -79,7 +80,6 @@ class TokenizerController(object):
         else:
             logging.warning('The list of new projects is empty (or these are already on the DB).')
 
-
     def read_file_paths(self, list_of_projects):
         if not os.path.isfile(list_of_projects):
             logging.error('File [%s] does not exist!' % list_of_projects )
@@ -87,20 +87,17 @@ class TokenizerController(object):
         else:
             try:
                 proj_paths = set()
-                db = MySQLdb.connect(host="localhost", # your host, usually localhost
-                                     db=self.DB_name,
-                                     user=self.DB_user,     # your username
-                                     passwd=self.DB_pass)   # your password
-                cursor = db.cursor()
+
+                db = DB(self.DB_name, self.DB_user, self.DB_pass, logging)
 
                 with open(list_of_projects) as f:
                     for line in f:
                         proj_path = line.replace('\n','')
 
                         q = "SELECT COUNT(*) FROM projects WHERE projectPath=%s" % (self.sanitize_strings(proj_path))
-                        cursor.execute(q)
+                        db.execute(q)
 
-                        (exists,) = cursor.fetchone()
+                        (exists,) = db.fetchone()
                         if exists == 0:
                             proj_paths.add( proj_path )
 
@@ -114,11 +111,10 @@ class TokenizerController(object):
             except Exception as e:
                 logging.error('Error on read_file_paths')
                 logging.error(e)
+                db.close()
                 sys.exit(1)
 
             finally:
-                cursor.close()
-                db.commit()
                 db.close()
 
     def db_connect(self):
@@ -131,19 +127,14 @@ class TokenizerController(object):
             db.commit()
             db.close()
 
-            db = MySQLdb.connect(host="localhost", # your host, usually localhost
-                                 db=self.DB_name,
-                                 user=self.DB_user,     # your username
-                                 passwd=self.DB_pass)   # your password
-            cursor = db.cursor()
+            db = DB(self.DB_name, self.DB_user, self.DB_pass, logging)
 
             table = """ CREATE TABLE IF NOT EXISTS `projects` (
                            projectId   INT(6)        UNSIGNED PRIMARY KEY,
                            projectPath VARCHAR(4000)          NOT NULL,
                            projectUrl  VARCHAR(4000)          NULL
                            ) ENGINE = MYISAM; """
-            cursor.execute(table)
-            db.commit()
+            db.execute(table)
         
             table = """CREATE TABLE IF NOT EXISTS `files` (
                            fileId       BIGINT(6)     UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -154,8 +145,7 @@ class TokenizerController(object):
                            INDEX (projectId),
                            INDEX (fileHash)
                            ) ENGINE = MYISAM;"""
-            cursor.execute(table)
-            db.commit()
+            db.execute(table)
         
             table = """CREATE TABLE IF NOT EXISTS `stats` (
                            fileHash     CHAR(32)        PRIMARY KEY,
@@ -168,8 +158,7 @@ class TokenizerController(object):
                            tokenHash    CHAR(32)        NOT NULL,
                            INDEX (tokenHash)
                            ) ENGINE = MYISAM;"""
-            cursor.execute(table)
-            db.commit()
+            db.execute(table)
         
             table = """CREATE TABLE IF NOT EXISTS `CCPairs` (
                            projectId1 INT(6) NOT NULL,
@@ -182,7 +171,7 @@ class TokenizerController(object):
                            INDEX (projectId2),
                            INDEX (fileId2)
                            ) ENGINE = MYISAM;"""
-            cursor.execute(table)
+            db.execute(table)
         
             table = """CREATE TABLE IF NOT EXISTS `projectClones` (
                            id                  INT(6)       UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -203,7 +192,7 @@ class TokenizerController(object):
                            INDEX(hostTotalFiles),
                            INDEX(hostAffectedPercent)
                            ) ENGINE = MYISAM;"""
-            cursor.execute(table)
+            db.execute(table)
 
         except Exception as e:
             logging.error('Error on db_connect')
@@ -211,7 +200,6 @@ class TokenizerController(object):
             sys.exit(1)
 
         finally:
-            cursor.close()
             db.close()
 
         logging.info('Database \''+self.DB_name+'\' successfully initialized')
@@ -250,29 +238,45 @@ class TokenizerController(object):
             logging.info('%s token-hash distinct files to be processed by CC, in %s' % (new_files_counter,cc_input_file))
 
     def import_pairs_to_DB(self):
-        cc_backup_folder = os.path.join(self.PATH_CC,'backup_output')
+        try:
+            db = DB(self.DB_name, self.DB_user, self.DB_pass, logging)
 
-        latest_folder = 0
-        for folder in os.listdir(cc_backup_folder):
-            if folder.isdigit():
-                if int(folder) > latest_folder:
-                    latest_folder = int(folder)
-        
-        cc_backup_folder = os.path.join(cc_backup_folder,str(latest_folder))
-        logging.info('Copying CC pairs from %s' % (cc_backup_folder))
+            log_interval = 1000
+            pair_number = 0
 
-        for folder in os.listdir(cc_backup_folder):
-            if folder.startswith('NODE_'):
-                pairs_file = os.path.join(cc_backup_folder,folder,'queryclones_index_WITH_FILTER.txt')
-                if os.path.isfile(pairs_file):
-                    print pairs_file
-                    with open(pairs_file,'r') as result:
-                        print '------------------'
-                        for pair in result:
-                            print pair[:-1]
-                else:
-                    logging.error('File %s not found' % (pairs_file))
+            cc_backup_folder = os.path.join(self.PATH_CC,'backup_output')
 
+            latest_folder = 0
+            for folder in os.listdir(cc_backup_folder):
+                if folder.isdigit():
+                    if int(folder) > latest_folder:
+                        latest_folder = int(folder)
+            
+            cc_backup_folder = os.path.join(cc_backup_folder,str(latest_folder))
+            logging.info('Copying CC pairs from %s' % (cc_backup_folder))
+
+
+            for folder in os.listdir(cc_backup_folder):
+                if folder.startswith('NODE_'):
+                    pairs_file = os.path.join(cc_backup_folder,folder,'queryclones_index_WITH_FILTER.txt')
+                    if os.path.isfile(pairs_file):
+                        logging.info('Reading %s' % pairs_file)
+                        with open(pairs_file,'r') as result:
+                            for pair in result:
+                                pair_number += 1
+                                line_split = pair[:-1].split(',')
+                                q = "INSERT INTO CCPairs VALUES (%s, %s, %s, %s);" % (line_split[0],line_split[1],line_split[2],line_split[3])
+                                db.execute(q)
+                                if pair_number%log_interval == 0:
+                                    logging.info('%s pairs imported to the DB' % (pair_number))
+                    else:
+                        logging.error('File %s not found' % (pairs_file))
+
+            db.close()
+
+        except Exception as e:
+            logging.error('Error on TokenizerController.import_pairs_to_DB')
+            logging.error(e)
 
 if __name__ == '__main__':
     print 'tokenizerController.__main__'
