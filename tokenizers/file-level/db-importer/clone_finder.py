@@ -9,7 +9,6 @@ TOKEN_THRESHOLD = 1
 
 class DB:
     db = None
-    cursor = None
 
     def __init__(self, DB_name, DB_user, DB_pass):
         self.DB_name = DB_name
@@ -26,36 +25,54 @@ class DB:
                                  db      = self.DB_name)   # name of the data base
 
             self.db = db
-            self.cursor = db.cursor()
         except Exception as e:
             print 'Error on DB.connect'
             print e
             sys.exit(1)
 
-    def commit(self):
-        try:
-            self.db.commit()
-        except:
-            self.connect()
-            self.commit()
-
     def execute(self, sql_query):
         try:
-            self.cursor.execute(sql_query)
-            return self.cursor
-        except:
+            cursor = self.db.cursor()
+            cursor.execute(sql_query)
+            self.db.commit()
+            cursor.close()
+        except Exception as e:
+            print 'DB.execute:',e
             self.connect()
             self.execute(sql_query)
 
-    def fetchone(self):
-        return self.cursor.fetchone()
+    def execute_and_fetchone(self, sql_query):
+        try:
+            cursor = self.db.cursor()
+            cursor.execute(sql_query)
+            self.db.commit()
+            res = cursor.fetchone()
+            cursor.close()
+            return res
+        except Exception as e:
+            print 'DB.execute_and_fetchone:',e
+            self.connect()
+            self.execute(sql_query)
+
+    def execute_and_lastrowid(self, sql_query):
+        try:
+            cursor = self.db.cursor()
+            cursor.execute(sql_query)
+            self.db.commit()
+            res = cursor.lastrowid()
+            cursor.close()
+            return res
+        except Exception as e:
+            print 'DB.execute_and_lastrowid:',e
+            self.connect()
+            self.execute(sql_query)
 
     def close(self):
         try:
-            self.cursor.close()
             self.db.commit()
             self.db.close()
-        except:
+        except Exception as e:
+            print 'DB.close:',e
             self.connect()
             self.close()
 
