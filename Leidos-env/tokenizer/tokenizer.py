@@ -20,7 +20,7 @@ class Tokenizer(object):
         self.project_id = 1
         self.proj_paths = []
         self.filecount = 0
-        self.logs_folder = '' # This is different from the 'overall' log of the tokenizer. This is for each individual log for each process
+        self.logs_folder = ''
         self.output_folder = '' # This output will be the input of CC
         self.PATH_config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),'config.ini')
 
@@ -39,8 +39,7 @@ class Tokenizer(object):
 
         try:
             db = DB(DB_name,DB_user,DB_pass,logging)
-            db.execute("SELECT Max(projectId) FROM projects;")
-            (self.project_id, ) = db.fetchone()
+            (self.project_id, ) = db.execute_and_fetchone("SELECT Max(projectId) FROM projects;")
             if self.project_id is None:
                 self.project_id = 0
     
@@ -53,7 +52,7 @@ class Tokenizer(object):
             self.controller_logging.error(e)
             sys.exit(1)
 
-        self.proj_paths = proj_paths = zip(range(self.project_id, self.project_id+len(proj_paths)+1), proj_paths)
+        self.proj_paths = list(proj_paths)
 
         # Creating folder for the processes logs
         self.logs_folder = logs_folder
@@ -174,11 +173,9 @@ class Tokenizer(object):
         file_hash = self.get_file_hash(file_string)
 
         q = "INSERT INTO files VALUES (NULL, %s, %s, NULL, '%s'); SELECT LAST_INSERT_ID();" % (proj_id, self.sanitize_strings(file_path), file_hash)
-        cursor = db.execute(q)
-        file_id = db.lastrowid()
+        file_id = db.execute_and_lastrowid(q)
 
-        db.execute("SELECT COUNT(*) FROM stats WHERE fileHash = '%s';" % (file_hash))
-        (exists, ) = db.fetchone()
+        (exists, ) = db.execute_and_fetchone("SELECT COUNT(*) FROM stats WHERE fileHash = '%s';" % (file_hash))
 
         file_parsing_times = [0,0,0,0]
         w_time = 0
@@ -194,16 +191,25 @@ class Tokenizer(object):
             (lines,LOC,SLOC) = final_stats
             (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
+
             try:
                 ww_time = dt.datetime.now()
-                q = "INSERT INTO stats VALUES ('%s', %s, %s, %s, %s, %s, %s, '%s'); SELECT LAST_INSERT_ID();" % (file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
-                db.execute(q)
 
-                was_inserted = db.lastrowid
+                q = "INSERT INTO stats VALUES ('%s', %s, %s, %s, %s, %s, %s, '%s'); ROW_COUNT();" % (file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
+                was_inserted = db.execute_and_lastrowid(q)
+                print 'was_inserted',q
+                print 'was_inserted',was_inserted
+
                 if was_inserted is not None:
                     # Meaning, the last insert into the DB was successfully
                     FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+                    self.process_logging.info('File %s (%s) added to new input (its tokenHash is unique)' % (file_id,file_path))
                 w_time = (dt.datetime.now() - ww_time).microseconds
+
+                q = "INSERT INTO stats VALUES ('%s', %s, %s, %s, %s, %s, %s, '%s'); ROW_COUNT();" % (file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
+                was_inserted = db.execute_and_lastrowid(q)
+                print 'was_inserted',q
+                print 'was_inserted',was_inserted
 
             except:
                 w_time = 0
@@ -310,7 +316,7 @@ class Tokenizer(object):
 
         return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-    def process_one_project(self, process_num, proj_path, proj_id, FILE_tokens_file, db):
+    def process_one_project(self, process_num, proj_path, FILE_tokens_file, db):
         self.process_logging.info('Starting %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)) )
         p_start = dt.datetime.now()
 
@@ -324,11 +330,11 @@ class Tokenizer(object):
                 if(len(tar_files) != 1):
                     self.process_logging.warning('Tar not found on <'+proj_path+'> (process '+str(process_num)+')')
                 else:
+                    proj_id = db.execute_and_lastrowid("INSERT INTO projects VALUES (NULL, %s, NULL); SELECT LAST_INSERT_ID();" % (self.sanitize_strings(proj_path)) )
+
                     tar_file = tar_files[0]
                     times = self.process_tgz_ball(process_num, tar_file, proj_path, proj_id, FILE_tokens_file, db)
                     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-
-                    db.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
 
                     p_elapsed = dt.datetime.now() - p_start
                     self.process_logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
@@ -340,10 +346,10 @@ class Tokenizer(object):
                 if not zipfile.is_zipfile(proj_path):
                     self.process_logging.warning('Unable to open %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)))
                 else:
+                    proj_id = db.execute_and_lastrowid("INSERT INTO projects VALUES (NULL, %s, NULL); SELECT LAST_INSERT_ID();" % (self.sanitize_strings(proj_path)) )
+
                     times = self.process_zip_ball(process_num, proj_path, proj_id, FILE_tokens_file, db)
                     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-
-                    db.execute("INSERT INTO projects VALUES (%s, %s, NULL);" % (proj_id,self.sanitize_strings(proj_path)) )
 
                     p_elapsed = dt.datetime.now() - p_start
                     self.process_logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
@@ -363,8 +369,8 @@ class Tokenizer(object):
             self.filecount = 0
             with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file:
                 p_start = dt.datetime.now()
-                for proj_id, proj_path in proj_paths:
-                    self.process_one_project(process_num, proj_path, str(proj_id), FILE_tokens_file, db)
+                for proj_path in proj_paths:
+                    self.process_one_project(process_num, proj_path, FILE_tokens_file, db)
 
                 p_elapsed = (dt.datetime.now() - p_start).seconds
                 self.process_logging.info('Process %s finished. %s files in %ss.', process_num, self.filecount, p_elapsed)
@@ -381,7 +387,7 @@ class Tokenizer(object):
         finally:
             db.close()
 
-    def start_child(self, processes, global_queue, proj_paths):
+    def start_child(self, processes, global_queue):
         # This is a blocking get. If the queue is empty, it waits
         pid, n_files_processed = global_queue.get()
         # OK, one of the processes finished. Let's get its data and kill it
@@ -449,7 +455,7 @@ class Tokenizer(object):
 
         # Start all projects
         while len(self.proj_paths) > 0:
-            self.start_child(processes, global_queue, self.proj_paths)
+            self.start_child(processes, global_queue)
 
         #print "*** No more projects to process. Waiting for children to finish..."
         while self.active_process_count(processes) > 0:

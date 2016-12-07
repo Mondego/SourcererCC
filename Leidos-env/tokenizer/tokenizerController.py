@@ -95,9 +95,8 @@ class TokenizerController(object):
                         proj_path = line.replace('\n','')
 
                         q = "SELECT COUNT(*) FROM projects WHERE projectPath=%s" % (self.sanitize_strings(proj_path))
-                        db.execute(q)
+                        (exists,) = db.execute_and_fetchone(q)
 
-                        (exists,) = db.fetchone()
                         if exists == 0:
                             proj_paths.add( proj_path )
 
@@ -130,7 +129,7 @@ class TokenizerController(object):
             db = DB(self.DB_name, self.DB_user, self.DB_pass, logging)
 
             table = """ CREATE TABLE IF NOT EXISTS `projects` (
-                           projectId   INT(6)        UNSIGNED PRIMARY KEY,
+                           projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
                            projectPath VARCHAR(4000)          NOT NULL,
                            projectUrl  VARCHAR(4000)          NULL
                            ) ENGINE = MYISAM; """
@@ -223,6 +222,7 @@ class TokenizerController(object):
         cc_input_file = os.path.join(self.PATH_CC,'input','dataset','blocks.file')
         with open(cc_input_file,'w') as CCinput:
             for file in os.listdir(self.output_folder):
+                print file
                 if file.endswith('.tokens'):
                     file = os.path.join(self.output_folder,file)
                     with open(file,'r') as token_file:
