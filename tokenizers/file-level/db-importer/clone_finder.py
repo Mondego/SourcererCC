@@ -4,71 +4,10 @@ import sys, os
 import MySQLdb
 import collections
 import datetime
+from db import DB
+import logging
 
 TOKEN_THRESHOLD = 1
-
-class DB:
-    db = None
-
-    def __init__(self, DB_name, DB_user, DB_pass):
-        self.DB_name = DB_name
-        self.DB_user = DB_user
-        self.DB_pass = DB_pass
-
-        self.connect()
-
-    def connect(self):
-        try:
-            db = MySQLdb.connect(host    = "localhost", # your host, usually localhost
-                                 user    = self.DB_user,   # your username
-                                 passwd  = self.DB_pass,   # your password
-                                 db      = self.DB_name)   # name of the data base
-
-            self.db = db
-        except Exception as e:
-            print 'Error on DB.connect',e
-            print e
-            sys.exit(1)
-
-    def commit(self):
-        try:
-            self.db.commit()
-        except Exception as e:
-            print 'Error on DB.commit',e
-            self.connect()
-            self.commit()
-
-    def execute(self, sql_query):
-        try:
-            cursor = self.db.cursor()
-            cursor.execute(sql_query)
-            cursor.close()
-            return cursor
-        except Exception as e:
-            print 'Error on DB.execute',e
-            self.connect()
-            self.execute(sql_query)
-
-    def execute_and_fetchone(self, sql_query):
-        try:
-            cursor = self.db.cursor()
-            cursor.execute(sql_query)
-            res = cursor.fetchone()
-            cursor.close()
-            return res
-        except Exception as e:
-            print 'Error on DB.execute',e
-            self.connect()
-            self.execute(sql_query)
-
-    def close(self):
-        try:
-            self.commit()
-            self.db.close()
-        except Exception as e:
-            print 'Error on DB.close',e
-            self.connect()
-            self.close()
 
 def getTokenHashClones(fileId,tokenHash,db_object):
     result = set()
@@ -99,7 +38,7 @@ def find_clones_for_project(project_id, db_object, debug):
             files_hashes.setdefault(str(file_id), fileHash)
 
         total_files = len(files_clones.items())
-        if debug:
+        if debug == 'all':
             print '## Number of files in project',project_id,':',len(files_clones)
 
         # Find CC clones
@@ -116,7 +55,7 @@ def find_clones_for_project(project_id, db_object, debug):
                 files_clones[k].add(str(fileId2))
                 files_hashes.setdefault(str(fileId2), fileHash)
 
-        if debug:
+        if debug == 'all':
             print '## After round 1'
             for k, v in files_clones.iteritems():
                 if len(v) > 0:
@@ -197,18 +136,18 @@ def find_clones_for_project(project_id, db_object, debug):
 
         for k, v in percentage_cloning_counter.iteritems():
             q = "SELECT COUNT(*) FROM files WHERE projectId = %s;" % (k)
-            (total_files_host, ) = db_object.execute_and_fetchone(q)
+            [(total_files_host, )] = db_object.execute(q)
 
             percent_cloning = float(v*100)/total_files
             percent_host = float(percentage_host_projects_counter[k]*100)/total_files_host
 
-            if debug:
+            if debug == 'all' or debug == 'final':
                 if True:#(percent_cloning > 99) and (str(project_id) != k):
                     print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
-
-            if not debug:
-                query = "INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);" % (project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host)))
-                db_object.execute(query)
+            else:
+                #query = "INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);" % (project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host)))
+                #db_object.execute(query)
+                db_object.insert_projectClones(project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host)))
                 #cursor.execute("""INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);""",
                 #           (project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host))) )
 
@@ -230,12 +169,14 @@ def find_clones_for_project(project_id, db_object, debug):
         sys.exit(1)
 
 if __name__ == "__main__":
+    FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
+    logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
     DB_name = sys.argv[1]
     DB_user = 'pribeiro'
     DB_pass = 'pass'
 
-    db_object = DB(DB_name, DB_user, DB_pass)
+    db_object = DB(DB_user, DB_name, DB_pass, logging)
 
     try:
         db_object.execute("DROP TABLE IF EXISTS `projectClones`;")
@@ -274,19 +215,18 @@ if __name__ == "__main__":
 
         print '### Calculating and Importing project clones'
 
-        res = db_object.execute("SELECT projectId FROM projects");
+        res = db_object.execute("SELECT projectId FROM projects;");
         for (projectId, ) in res:
-            find_clones_for_project(projectId,db_object,False)
+            find_clones_for_project(projectId,db_object,'') # last field is for debug, and can be 'all','final' or '' (empty)
             pair_number += 1
 
             if pair_number%commit_interval == 0:
-                db_object.commit()
                 print '    ',pair_number,'projects calculated and info commited in',datetime.datetime.now() - partial_time
                 partial_time = datetime.datetime.now()
 
         print '    all ',pair_number,'projects calculated and info commited in',datetime.datetime.now() - init_time
 
-        #find_clones_for_project(597,db,True)
+        #find_clones_for_project(42,db_object,True)
 
     except Exception as e:
         print 'Error in clone_finder.__main__'
