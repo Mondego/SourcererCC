@@ -130,7 +130,6 @@ class TokenizerController(object):
         cc_input_file = os.path.join(self.PATH_CC,'input','dataset','blocks.file')
         with open(cc_input_file,'w') as CCinput:
             for file in os.listdir(self.output_folder):
-                print file
                 if file.endswith('.tokens'):
                     file = os.path.join(self.output_folder,file)
                     with open(file,'r') as token_file:
@@ -147,7 +146,7 @@ class TokenizerController(object):
 
     def import_pairs_to_DB(self):
         try:
-            db = DB(self.DB_name, self.DB_user, self.DB_pass, logging)
+            db = DB(self.DB_user, self.DB_name, self.DB_pass, logging)
 
             log_interval = 1000
             pair_number = 0
@@ -173,8 +172,9 @@ class TokenizerController(object):
                             for pair in result:
                                 pair_number += 1
                                 line_split = pair[:-1].split(',')
-                                q = "INSERT INTO CCPairs VALUES (%s, %s, %s, %s);" % (line_split[0],line_split[1],line_split[2],line_split[3])
-                                db.execute(q)
+
+                                db.insert_CCPairs(line_split[0],line_split[1],line_split[2],line_split[3])
+
                                 if pair_number%log_interval == 0:
                                     logging.info('%s pairs imported to the DB' % (pair_number))
                     else:
