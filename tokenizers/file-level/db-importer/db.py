@@ -8,14 +8,14 @@ DB_MAX_STRING_SIZE = 4000
 table1 = """ CREATE TABLE IF NOT EXISTS `projects` (
                projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
                projectPath VARCHAR(%s)            NOT NULL,
-               projectUrl  VARCHAR(%s)            NULL
+               projectUrl  VARCHAR(%s)            NOT NULL
                ) ENGINE = MYISAM; """ % (DB_MAX_STRING_SIZE,DB_MAX_STRING_SIZE)
 
 table2 = """CREATE TABLE IF NOT EXISTS `files` (
                fileId       BIGINT(6)     UNSIGNED PRIMARY KEY AUTO_INCREMENT,
                projectId    INT(6)        UNSIGNED NOT NULL,
                relativePath VARCHAR(%s)            NOT NULL,
-               relativeUrl  VARCHAR(%s)            NULL,
+               relativeUrl  VARCHAR(%s)            NOT NULL,
                fileHash     CHAR(32)               NOT NULL,
                INDEX (projectId),
                INDEX (fileHash)
@@ -67,6 +67,8 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
 
 add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
 add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (NULL, %s, %s);"""
+add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES (NULL, %s, %s, %s, %s);"""
+add_stats_and_check_tokenHash_uniqueness = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 
 class DB:
     # connection is a MySQLConnection object
@@ -97,7 +99,7 @@ class DB:
                 exit(1)
 
     def create_database(self):
-        cursor = self.connection.cursor(buffered=True)
+        cursor = self.connection.cursor()
         try:
             cursor.execute('CREATE DATABASE %s' % format(self.DB_name))
             self.connection.database = self.DB_name
@@ -131,7 +133,7 @@ class DB:
 
     def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent):
         self.check_connection()
-        cursor = self.connection.cursor(buffered=True)
+        cursor = self.connection.cursor()
         try:
             cursor.execute(add_projectClones, (cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent))
             return cursor.lastrowid
@@ -144,7 +146,7 @@ class DB:
 
     def insert_project(self, projectPath, projectUrl):
         self.check_connection()
-        cursor = self.connection.cursor(buffered=True)
+        cursor = self.connection.cursor()
         try:
             if projectUrl is None:
                 cursor.execute(add_projects, (self.sanitize_string(projectPath), 'NULL'))
@@ -158,12 +160,71 @@ class DB:
         finally:
             cursor.close()
 
+    def insert_file(self, proj_id, file_path, file_url, file_hash):
+        self.check_connection()
+        cursor = self.connection.cursor()
+        try:
+            if file_url is None:
+                cursor.execute(add_files, (proj_id, self.sanitize(file_path), 'NULL', file_hash))
+            else:
+                cursor.execute(add_files, (proj_id, self.sanitize(file_path), self.sanitize(file_url), file_hash))
+            return cursor.lastrowid
+        except Exception as err:
+            self.logging.error('Failed to insert file %s' % (file_path))
+            self.logging.error(err)
+            sys.exit(1)
+        finally:
+            cursor.close()
+
+    def fileHash_exists(self, file_hash):
+        self.check_connection()
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute("""SELECT fileHash FROM stats WHERE fileHash = '%s';""" % (file_hash),params=False)
+            if cursor.rowcount > 0:
+                return True
+            else:
+                return False
+        except Exception as err:
+            self.logging.error('Cannot search for the file hash %s' % (file_hash))
+            self.logging.error(err)
+            sys.exit(1)
+        finally:
+            cursor.close()
+
+    # Add a note here
+    def insert_stats_and_is_tokenHash_unique(self, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash):
+        self.check_connection()
+        cursor = self.connection.cursor()
+        try:
+            try:
+                results = cursor.execute(add_stats_and_check_tokenHash_uniqueness, (fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, tokenHash), multi=True)
+                #Execute with multi=True returns a generator, therefore:
+                for cur in results:
+                    if cur.with_rows:
+                        if cur.rowcount > 0:
+                            return True
+                        else:
+                            return False
+            except mysql.connector.Error as err:
+                if err.errno == errorcode.ER_DUP_ENTRY:
+                    # If the error is because the entry is a duplicate we wont't care about it
+                    return False
+                else:
+                    raise err
+        except Exception as err:
+            self.logging.error('Failed to insert stats for fileHash %s' % (fileHash))
+            self.logging.error(err)
+            sys.exit(1)
+        finally:
+            cursor.close()
+
     def sanitize_string(self, string):
         return (string[:DB_MAX_STRING_SIZE])
 
     def execute(self, query):
         self.check_connection()
-        cursor = self.connection.cursor(buffered=True)
+        cursor = self.connection.cursor()
         try:
             cursor.execute(query)
             if cursor.rowcount > 0:
@@ -183,6 +244,18 @@ if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
     logging.info('__main__')
-    db = DB('pribeiro','LA','pass',logging)
-    print db.insert_project('la\"\"\"lathis\'/is/a/path',None)
+    db = DB('pribeiro','CPP','pass',logging)
+    #print db.insert_project('la\"\"\"la\"\"\"t,his\'/is/a/pa,th)',None)
+    print db.fileHash_exists('0ee32c85c7df3fe7aa3c858478b0555c')
+    print db.insert_stats_and_is_tokenHash_unique('ssssddsdsddssdd',306,8,4,1,5,5,'37011874e03e4fs77ad44625095103d9')
     db.close()
+
+
+
+# 0ee32c85c7df3fe7aa3c858478b0555c | 306 | 8 | 4 | 1 | 5 | 5 | 317011874e03e4f77ad44625095103d9
+
+
+
+
+
+

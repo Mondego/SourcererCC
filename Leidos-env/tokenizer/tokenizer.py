@@ -38,8 +38,8 @@ class Tokenizer(object):
             self.PROJECTS_CONFIGURATION = PROJECTS_CONFIGURATION
 
         try:
-            db = DB(DB_name,DB_user,DB_pass,logging)
-            (self.project_id, ) = db.execute_and_fetchone("SELECT Max(projectId) FROM projects;")
+            db = DB(DB_user,DB_name,DB_pass,logging)
+            self.project_id = db.get_max_project_id()
             if self.project_id is None:
                 self.project_id = 0
     
@@ -79,21 +79,21 @@ class Tokenizer(object):
         comment_inline         = re.escape(config.get('Language', 'comment_inline'))
         comment_open_tag       = re.escape(config.get('Language', 'comment_open_tag'))
         comment_close_tag      = re.escape(config.get('Language', 'comment_close_tag'))
-        self.separators             = config.get('Language', 'separators').strip('"').split(' ')
-        self.comment_inline_pattern = comment_inline + '.*?$'
+        self.separators                 = config.get('Language', 'separators').strip('"').split(' ')
+        self.comment_inline_pattern     = comment_inline + '.*?$'
         self.comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
-        self.file_extensions        = config.get('Language', 'File_extensions').split(' ')
+        self.file_extensions            = config.get('Language', 'File_extensions').split(' ')
 
         controller_logging.info('Tokenizer successfully initialized. Project index starting at %s. Processing %s projects. Looking for file extensions: %s' % (self.project_id, len(self.proj_paths), self.file_extensions) )
 
     def tokenize(self, file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-        final_stats = 'ERROR'
+        final_stats  = 'ERROR'
         final_tokens = 'ERROR'
 
         file_hash = 'ERROR'
-        lines = 'ERROR'
-        LOC = 'ERROR'
-        SLOC = 'ERROR'
+        lines     = 'ERROR'
+        LOC       = 'ERROR'
+        SLOC      = 'ERROR'
 
         lines = file_string.count('\n')
         if not file_string.endswith('\n'):
@@ -159,28 +159,19 @@ class Tokenizer(object):
         m.update(file_string)
         return m.hexdigest()
 
-    # ALL strings that are sent to the DB must be sanitized first
-    # Not really all of them, but the wild ones (paths, urls, names, etc)
-    def sanitize_strings(self, string):
-        return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
-
     def process_file_contents(self, proj_id, file_string, file_path, file_bytes, FILE_tokens_file, db):
-
         self.process_logging.info('Starting file %s from project %s' % (file_path,proj_id, ))
 
         self.filecount += 1
 
         file_hash = self.get_file_hash(file_string)
 
-        q = "INSERT INTO files VALUES (NULL, %s, %s, NULL, '%s'); SELECT LAST_INSERT_ID();" % (proj_id, self.sanitize_strings(file_path), file_hash)
-        file_id = db.execute_and_lastrowid(q)
-
-        (exists, ) = db.execute_and_fetchone("SELECT COUNT(*) FROM stats WHERE fileHash = '%s';" % (file_hash))
+        file_id = db.insert_file(proj_id,file_path,None,file_hash)
 
         file_parsing_times = [0,0,0,0]
         w_time = 0
 
-        if exists == 0:
+        if not db.fileHash_exists(file_hash):
             # We checked before if the hash already exist to avoid the burden of tokenizing the file
             # Now we know it does not, we tokenize and send the info to the DB.
             # It might happen through cuncurrency that after our tokenization some other process
@@ -191,28 +182,18 @@ class Tokenizer(object):
             (lines,LOC,SLOC) = final_stats
             (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
-
             try:
                 ww_time = dt.datetime.now()
 
-                q = "INSERT INTO stats VALUES ('%s', %s, %s, %s, %s, %s, %s, '%s'); ROW_COUNT();" % (file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
-                was_inserted = db.execute_and_lastrowid(q)
-                print 'was_inserted',q
-                print 'was_inserted',was_inserted
+                is_unique = db.insert_stats_and_is_tokenHash_unique(file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
 
-                if was_inserted is not None:
-                    # Meaning, the last insert into the DB was successfully
-                    FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+                if is_unique:
+                    FILE_tokens_file.write(','.join([str(proj_id),str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
                     self.process_logging.info('File %s (%s) added to new input (its tokenHash is unique)' % (file_id,file_path))
                 w_time = (dt.datetime.now() - ww_time).microseconds
 
-                q = "INSERT INTO stats VALUES ('%s', %s, %s, %s, %s, %s, %s, '%s'); ROW_COUNT();" % (file_hash, file_bytes, str(lines), str(LOC), str(SLOC), str(tokens_count_total), str(tokens_count_unique), token_hash)
-                was_inserted = db.execute_and_lastrowid(q)
-                print 'was_inserted',q
-                print 'was_inserted',was_inserted
-
-            except:
-                w_time = 0
+            except Exception as e:
+                self.process_logging.error('Error code 8374')
 
         return file_parsing_times + [w_time]
 
@@ -330,7 +311,7 @@ class Tokenizer(object):
                 if(len(tar_files) != 1):
                     self.process_logging.warning('Tar not found on <'+proj_path+'> (process '+str(process_num)+')')
                 else:
-                    proj_id = db.execute_and_lastrowid("INSERT INTO projects VALUES (NULL, %s, NULL); SELECT LAST_INSERT_ID();" % (self.sanitize_strings(proj_path)) )
+                    proj_id = db.insert_project(proj_path,None)
 
                     tar_file = tar_files[0]
                     times = self.process_tgz_ball(process_num, tar_file, proj_path, proj_id, FILE_tokens_file, db)
@@ -346,7 +327,7 @@ class Tokenizer(object):
                 if not zipfile.is_zipfile(proj_path):
                     self.process_logging.warning('Unable to open %s project <%s> (process %s)' % (self.PROJECTS_CONFIGURATION,proj_path,str(process_num)))
                 else:
-                    proj_id = db.execute_and_lastrowid("INSERT INTO projects VALUES (NULL, %s, NULL); SELECT LAST_INSERT_ID();" % (self.sanitize_strings(proj_path)) )
+                    proj_id = db.insert_project(proj_path,None)
 
                     times = self.process_zip_ball(process_num, proj_path, proj_id, FILE_tokens_file, db)
                     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
@@ -361,9 +342,8 @@ class Tokenizer(object):
                 sys.exist(1)
 
     def process_projects(self, process_num, proj_paths, global_queue):
+        db = DB(self.DB_user, self.DB_name, self.DB_pass, self.process_logging)
         try:
-            db = DB(self.DB_name, self.DB_user, self.DB_pass, self.process_logging)
-
             FILE_files_tokens_file = os.path.join(self.output_folder,'files-tokens-'+str(process_num)+'.tokens')
 
             self.filecount = 0

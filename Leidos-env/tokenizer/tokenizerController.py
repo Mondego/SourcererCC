@@ -68,9 +68,12 @@ class TokenizerController(object):
         logging.getLogger().addHandler(file_handler)
 
         self.read_config()
-        self.db_connect()
-        self.proj_paths = self.read_file_paths(file_list_projects)
 
+        db = DB('pribeiro','CPP','pass',logging)
+        logging.info('Database \''+self.DB_name+'\' successfully initialized')
+        db.close()
+
+        self.proj_paths = self.read_file_paths(file_list_projects)
 
     def execute(self):
         if len(self.proj_paths) > 0:
@@ -85,19 +88,15 @@ class TokenizerController(object):
             logging.error('File [%s] does not exist!' % list_of_projects )
             sys.exit(1)
         else:
+            db = DB(self.DB_user, self.DB_name, self.DB_pass, logging)
             try:
                 proj_paths = set()
-
-                db = DB(self.DB_name, self.DB_user, self.DB_pass, logging)
 
                 with open(list_of_projects) as f:
                     for line in f:
                         proj_path = line.replace('\n','')
 
-                        q = "SELECT COUNT(*) FROM projects WHERE projectPath=%s" % (self.sanitize_strings(proj_path))
-                        (exists,) = db.execute_and_fetchone(q)
-
-                        if exists == 0:
+                        if not db.project_exists(proj_path):
                             proj_paths.add( proj_path )
 
                 if len(proj_paths) > 0:
@@ -105,6 +104,8 @@ class TokenizerController(object):
                 else:
                     logging.warning('The list of new projects is empty (or these are already on the DB).')
                     sys.exit(1)
+
+                db.close()
                 return proj_paths
 
             except Exception as e:
@@ -112,99 +113,6 @@ class TokenizerController(object):
                 logging.error(e)
                 db.close()
                 sys.exit(1)
-
-            finally:
-                db.close()
-
-    def db_connect(self):
-        try:
-            db = MySQLdb.connect(host="localhost", # your host, usually localhost
-                                 user=self.DB_user,     # your username
-                                 passwd=self.DB_pass)   # your password
-            cursor = db.cursor()
-            cursor.execute('CREATE DATABASE IF NOT EXISTS %s;' % self.DB_name)
-            db.commit()
-            db.close()
-
-            db = DB(self.DB_name, self.DB_user, self.DB_pass, logging)
-
-            table = """ CREATE TABLE IF NOT EXISTS `projects` (
-                           projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                           projectPath VARCHAR(4000)          NOT NULL,
-                           projectUrl  VARCHAR(4000)          NULL
-                           ) ENGINE = MYISAM; """
-            db.execute(table)
-        
-            table = """CREATE TABLE IF NOT EXISTS `files` (
-                           fileId       BIGINT(6)     UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                           projectId    INT(6)        UNSIGNED NOT NULL,
-                           relativePath VARCHAR(4000)          NOT NULL,
-                           relativeUrl  VARCHAR(4000)          NULL,
-                           fileHash     CHAR(32)               NOT NULL,
-                           INDEX (projectId),
-                           INDEX (fileHash)
-                           ) ENGINE = MYISAM;"""
-            db.execute(table)
-        
-            table = """CREATE TABLE IF NOT EXISTS `stats` (
-                           fileHash     CHAR(32)        PRIMARY KEY,
-                           fileBytes    INT(6) UNSIGNED NOT NULL,
-                           fileLines    INT(6) UNSIGNED NOT NULL,
-                           fileLOC      INT(6) UNSIGNED NOT NULL,
-                           fileSLOC     INT(6) UNSIGNED NOT NULL,
-                           totalTokens  INT(6) UNSIGNED NOT NULL,
-                           uniqueTokens INT(6) UNSIGNED NOT NULL,
-                           tokenHash    CHAR(32)        NOT NULL,
-                           INDEX (tokenHash)
-                           ) ENGINE = MYISAM;"""
-            db.execute(table)
-        
-            table = """CREATE TABLE IF NOT EXISTS `CCPairs` (
-                           projectId1 INT(6) NOT NULL,
-                           fileId1    INT(6) NOT NULL,
-                           projectId2 INT(6) NOT NULL,
-                           fileId2    INT(6) NOT NULL,
-                           PRIMARY KEY(fileId1, fileId2),
-                           INDEX (projectId1),
-                           INDEX (fileId1),
-                           INDEX (projectId2),
-                           INDEX (fileId2)
-                           ) ENGINE = MYISAM;"""
-            db.execute(table)
-        
-            table = """CREATE TABLE IF NOT EXISTS `projectClones` (
-                           id                  INT(6)       UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
-                           cloneId             INT(6)       UNSIGNED NOT NULL,
-                           cloneClonedFiles    INT(6)       UNSIGNED NOT NULL,
-                           cloneTotalFiles     INT(6)       UNSIGNED NOT NULL,
-                           cloneCloningPercent DECIMAL(6,3) UNSIGNED NOT NULL,
-                           hostId              INT(6)       UNSIGNED NOT NULL,
-                           hostAffectedFiles   INT(6)       UNSIGNED NOT NULL,
-                           hostTotalFiles      INT(6)       UNSIGNED NOT NULL,
-                           hostAffectedPercent DECIMAL(6,3) UNSIGNED NOT NULL,
-                           INDEX(cloneId),
-                           INDEX(cloneClonedFiles),
-                           INDEX(cloneTotalFiles),
-                           INDEX(cloneCloningPercent),
-                           INDEX(hostId),
-                           INDEX(hostAffectedFiles),
-                           INDEX(hostTotalFiles),
-                           INDEX(hostAffectedPercent)
-                           ) ENGINE = MYISAM;"""
-            db.execute(table)
-
-        except Exception as e:
-            logging.error('Error on db_connect')
-            logging.error(e)
-            sys.exit(1)
-
-        finally:
-            db.close()
-
-        logging.info('Database \''+self.DB_name+'\' successfully initialized')
-
-    def sanitize_strings(self, string):
-        return ('\"'+ (string.replace('\"','\'')[:4000]) +'\"')
 
     def move_input_to_CC(self):
         #print self.output_folder
