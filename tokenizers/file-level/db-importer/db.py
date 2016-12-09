@@ -69,6 +69,10 @@ add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,clone
 add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (NULL, %s, %s);"""
 add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES (NULL, %s, %s, %s, %s);"""
 add_stats_and_check_tokenHash_uniqueness = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
+add_CCPairs       = """INSERT INTO CCPairs (projectId1,fileId1,projectId2,fileId2) VALUES (%s, %s, %s, %s);"""
+
+check_fileHash    = """SELECT fileHash FROM stats WHERE fileHash = '%s';"""
+project_exists    = """SELECT projectPath FROM projects WHERE projectPath = '%s';"""
 
 class DB:
     # connection is a MySQLConnection object
@@ -80,18 +84,18 @@ class DB:
         self.DB_pass = DB_pass
         self.logging = logging
 
-        ## All cursors will be buffered by default
-        self.connection = mysql.connector.connect(user=self.DB_user,password=self.DB_pass,host='localhost',buffered=True)
-        
-        #Causes a commit operation after each SQL statement.
-        #Carefull setting autocommit to True, but it's appropriate for MyISAM, where transactions are not applicable.
-        self.autocommit = True
-
         try:
+            ## All cursors will be buffered by default
+            self.connection = mysql.connector.connect(user=self.DB_user,password=self.DB_pass,host='localhost',buffered=True)
+            
+            #Causes a commit operation after each SQL statement.
+            #Carefull setting autocommit to True, but it's appropriate for MyISAM, where transactions are not applicable.
+            self.autocommit = True
+
             self.connection.database = DB_name
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_BAD_DB_ERROR:
-                logging.info.warning('Database %s does not exist. Creating it now' % DB_name)
+                logging.warning('Database %s does not exist. Creating it now' % DB_name)
                 self.create_database()
             else:
                 logging.error('Cannot access DB %s with %s:%s' % (DB_name,DB_user,DB_pass))
@@ -165,12 +169,39 @@ class DB:
         cursor = self.connection.cursor()
         try:
             if file_url is None:
-                cursor.execute(add_files, (proj_id, self.sanitize(file_path), 'NULL', file_hash))
+                cursor.execute(add_files, (proj_id, self.sanitize_string(file_path), 'NULL', file_hash))
             else:
-                cursor.execute(add_files, (proj_id, self.sanitize(file_path), self.sanitize(file_url), file_hash))
+                cursor.execute(add_files, (proj_id, self.sanitize_string(file_path), self.sanitize_string(file_url), file_hash))
             return cursor.lastrowid
         except Exception as err:
             self.logging.error('Failed to insert file %s' % (file_path))
+            self.logging.error(err)
+            sys.exit(1)
+        finally:
+            cursor.close()
+
+    def get_max_project_id(self):
+        self.check_connection()
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute("""SELECT Max(projectId) FROM projects;""")
+            (id,) = cursor.fetchone()
+            return id
+        except Exception as err:
+            self.logging.error('Failed to get max project id')
+            self.logging.error(err)
+            sys.exit(1)
+        finally:
+            cursor.close()
+
+    def insert_CCPairs(self, projectId1, fileId1, projectId2, fileId2):
+        self.check_connection()
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(add_CCPairs, (projectId1,fileId1,projectId2,fileId2))
+            return cursor.lastrowid
+        except Exception as err:
+            self.logging.error('Failed to insert CCPairs %s,%s,%s,%s' % (projectId1,fileId1,projectId2,fileId2))
             self.logging.error(err)
             sys.exit(1)
         finally:
@@ -180,7 +211,7 @@ class DB:
         self.check_connection()
         cursor = self.connection.cursor()
         try:
-            cursor.execute("""SELECT fileHash FROM stats WHERE fileHash = '%s';""" % (file_hash),params=False)
+            cursor.execute(check_fileHash % file_hash,params=False)
             if cursor.rowcount > 0:
                 return True
             else:
@@ -219,6 +250,22 @@ class DB:
         finally:
             cursor.close()
 
+    def project_exists(self, proj_path):
+        self.check_connection()
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(project_exists % proj_path,params=False)
+            if cursor.rowcount > 0:
+                return True
+            else:
+                return False
+        except Exception as err:
+            self.logging.error('Cannot search for the project %s' % (self.sanitize_string(proj_path)) )
+            self.logging.error(err)
+            sys.exit(1)
+        finally:
+            cursor.close()
+
     def sanitize_string(self, string):
         return (string[:DB_MAX_STRING_SIZE])
 
@@ -246,16 +293,14 @@ if __name__=='__main__':
     logging.info('__main__')
     db = DB('pribeiro','CPP','pass',logging)
     #print db.insert_project('la\"\"\"la\"\"\"t,his\'/is/a/pa,th)',None)
-    print db.fileHash_exists('0ee32c85c7df3fe7aa3c858478b0555c')
-    print db.insert_stats_and_is_tokenHash_unique('ssssddsdsddssdd',306,8,4,1,5,5,'37011874e03e4fs77ad44625095103d9')
+    #print db.fileHash_exists('0ee32c85c7df3fe7aa3c858478b0555c')
+    #print db.insert_stats_and_is_tokenHash_unique('ssssddsdsddssdd',306,8,4,1,5,5,'37011874e03e4fs77ad44625095103d9')
+    #print db.project_exists('\'/data/corpus_8tof/e/b/a/8/7/c/d/c/eba87cdc-d4f8-45f0-bdae-4e7d6253bd5f\'')
+    #print db.insert_CCPairs(434,433,34,43)
+    #print db.get_max_project_id()
     db.close()
 
 
 
 # 0ee32c85c7df3fe7aa3c858478b0555c | 306 | 8 | 4 | 1 | 5 | 5 | 317011874e03e4f77ad44625095103d9
-
-
-
-
-
 
