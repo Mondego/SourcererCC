@@ -6,8 +6,11 @@ import collections
 import datetime
 from db import DB
 import logging
+import multiprocessing as mp
+from multiprocessing import Process, Value
 
 TOKEN_THRESHOLD = 1
+N_PROCESSES = 6
 
 def getTokenHashClones(fileId,tokenHash,db_object):
     result = set()
@@ -168,6 +171,21 @@ def find_clones_for_project(project_id, db_object, debug):
         print e
         sys.exit(1)
 
+def start_process(input_process, DB_user, DB_name, DB_pass):
+    db_object = DB(DB_user, DB_name, DB_pass, logging)
+
+    try:
+        for proj_id in input_process:
+            find_clones_for_project(projectId,db_object,'') # last field is for debug, and can be 'all','final' or '' (empty)
+
+    except Exception as e:
+        print 'Error in clone_finder.start_process'
+        print e
+        sys.exit(1)
+
+    finally:
+        db_object.close()
+
 if __name__ == "__main__":
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
@@ -215,18 +233,36 @@ if __name__ == "__main__":
 
         print '### Calculating and Importing project clones'
 
+        project_ids = []
+
         res = db_object.execute("SELECT projectId FROM projects;");
         for (projectId, ) in res:
-            find_clones_for_project(projectId,db_object,'') # last field is for debug, and can be 'all','final' or '' (empty)
+            project_ids.append(projectId)
+            #find_clones_for_project(projectId,db_object,'') # last field is for debug, and can be 'all','final' or '' (empty)
             pair_number += 1
 
-            if pair_number%commit_interval == 0:
-                print '    ',pair_number,'projects calculated and info commited in',datetime.datetime.now() - partial_time
-                partial_time = datetime.datetime.now()
+            #if pair_number%commit_interval == 0:
+            #    print '    ',pair_number,'projects calculated and info commited in',datetime.datetime.now() - partial_time
+            #    partial_time = datetime.datetime.now()
 
-        print '    all ',pair_number,'projects calculated and info commited in',datetime.datetime.now() - init_time
+        #print '    all ',pair_number,'projects calculated and info commited in',datetime.datetime.now() - init_time
 
         #find_clones_for_project(42,db_object,True)
+
+        project_ids = [ project_ids[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
+
+        process_num = 0
+        for input_process in proj_paths_list:
+
+            # Skip empty sublists
+            if len(input_process) == 0:
+                continue
+
+            process_num += 1
+
+        p = Process(name='Process '+str(process_num), target=star_process, args=(input_process, ))
+        processes.append(p)
+        p.start()
 
     except Exception as e:
         print 'Error in clone_finder.__main__'
