@@ -2,6 +2,7 @@ import sys, os
 import mysql.connector
 from mysql.connector import errorcode
 import logging
+import string
 
 DB_MAX_STRING_SIZE = 4000
 
@@ -66,8 +67,8 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
                ) ENGINE = MYISAM;"""
 
 add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
-add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (NULL, %s, %s);"""
-add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES (NULL, %s, %s, %s, %s);"""
+add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (%s, %s, %s);"""
+add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES (%s, %s, %s, %s, %s);"""
 add_stats_and_check_tokenHash_uniqueness = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 add_CCPairs       = """INSERT INTO CCPairs (projectId1,fileId1,projectId2,fileId2) VALUES (%s, %s, %s, %s);"""
 
@@ -148,14 +149,14 @@ class DB:
         finally:
             cursor.close()
 
-    def insert_project(self, projectPath, projectUrl):
+    def insert_project(self, proj_id, projectPath, projectUrl):
         self.check_connection()
         cursor = self.connection.cursor()
         try:
             if projectUrl is None:
-                cursor.execute(add_projects, (self.sanitize_string(projectPath), 'NULL'))
+                cursor.execute(add_projects, (proj_id, self.sanitize_string(projectPath), 'NULL'))
             else:
-                cursor.execute(add_projects, (self.sanitize_string(projectPath), self.sanitize_string(projectUrl)) )
+                cursor.execute(add_projects, (proj_id, self.sanitize_string(projectPath), self.sanitize_string(projectUrl)) )
             return cursor.lastrowid
         except Exception as err:
             self.logging.error('Failed to insert project %s' % (projectPath))
@@ -164,14 +165,14 @@ class DB:
         finally:
             cursor.close()
 
-    def insert_file(self, proj_id, file_path, file_url, file_hash):
+    def insert_file(self, proj_id, file_id, file_path, file_url, file_hash):
         self.check_connection()
         cursor = self.connection.cursor()
         try:
             if file_url is None:
-                cursor.execute(add_files, (proj_id, self.sanitize_string(file_path), 'NULL', file_hash))
+                cursor.execute(add_files, (proj_id, file_id, self.sanitize_string(file_path), 'NULL', file_hash))
             else:
-                cursor.execute(add_files, (proj_id, self.sanitize_string(file_path), self.sanitize_string(file_url), file_hash))
+                cursor.execute(add_files, (proj_id, file_id, self.sanitize_string(file_path), self.sanitize_string(file_url), file_hash))
             return cursor.lastrowid
         except Exception as err:
             self.logging.error('Failed to insert file %s' % (file_path))
@@ -266,8 +267,11 @@ class DB:
         finally:
             cursor.close()
 
-    def sanitize_string(self, string):
-        return (string[:DB_MAX_STRING_SIZE])
+    def sanitize_string(self, string_input):
+        # To clean non-ascii characters
+        printable = set(string.printable)
+        string_res = filter(lambda x: x in printable, string_input)
+        return (string_res[:DB_MAX_STRING_SIZE])
 
     def execute(self, query):
         self.check_connection()

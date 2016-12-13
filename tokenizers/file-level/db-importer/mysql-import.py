@@ -2,27 +2,22 @@
 
 import sys, os, csv
 import MySQLdb
+from db import DB
+import logging
 
-def create_tables(DB_name,DB_user,DB_pass):
+def create_tables(db):
 
     try:
-        db = MySQLdb.connect(host="localhost",  # your host, usually localhost
-                             user=  DB_user,   # your username
-                             passwd=DB_pass,     # your password
-                             db=    DB_name) # name of the data base
-
-        cursor = db.cursor()
     
-        cursor.execute("DROP TABLE IF EXISTS `projects`;")
+        db.execute("DROP TABLE IF EXISTS `projects`;")
         table = """ CREATE TABLE IF NOT EXISTS `projects` (
                        projectId   INT(6)        UNSIGNED PRIMARY KEY,
-                       projectPath VARCHAR(4000)          NULL,
-                       projectUrl  VARCHAR(4000)          NOT NULL
+                       projectPath VARCHAR(4000)          NOT NULL,
+                       projectUrl  VARCHAR(4000)          NULL
                        ) ENGINE = MYISAM; """
-        cursor.execute(table)
-        db.commit()
+        db.execute(table)
     
-        cursor.execute("DROP TABLE IF EXISTS `files`;")
+        db.execute("DROP TABLE IF EXISTS `files`;")
         table = """CREATE TABLE IF NOT EXISTS `files` (
                        fileId       BIGINT(6)     UNSIGNED PRIMARY KEY,
                        projectId    INT(6)        UNSIGNED NOT NULL,
@@ -32,10 +27,9 @@ def create_tables(DB_name,DB_user,DB_pass):
                        INDEX (projectId),
                        INDEX (fileHash)
                        ) ENGINE = MYISAM;"""
-        cursor.execute(table)
-        db.commit()
+        db.execute(table)
     
-        cursor.execute("DROP TABLE IF EXISTS `stats`;")
+        db.execute("DROP TABLE IF EXISTS `stats`;")
         table = """CREATE TABLE IF NOT EXISTS `stats` (
                        fileHash     CHAR(32)        PRIMARY KEY,
                        fileBytes    INT(6) UNSIGNED NOT NULL,
@@ -47,10 +41,9 @@ def create_tables(DB_name,DB_user,DB_pass):
                        tokenHash    CHAR(32)        NOT NULL,
                        INDEX (tokenHash)
                        ) ENGINE = MYISAM;"""
-        cursor.execute(table)
-        db.commit()
+        db.execute(table)
     
-        cursor.execute("DROP TABLE IF EXISTS `CCPairs`;")
+        db.execute("DROP TABLE IF EXISTS `CCPairs`;")
         table = """CREATE TABLE `CCPairs` (
                        projectId1 INT(6) NOT NULL,
                        fileId1    INT(6) NOT NULL,
@@ -62,9 +55,9 @@ def create_tables(DB_name,DB_user,DB_pass):
                        INDEX (projectId2),
                        INDEX (fileId2)
                        ) ENGINE = MYISAM;"""
-        cursor.execute(table)
+        db.execute(table)
     
-        cursor.execute("DROP TABLE IF EXISTS `projectClones`;")
+        db.execute("DROP TABLE IF EXISTS `projectClones`;")
         table = """CREATE TABLE `projectClones` (
                        id                  INT(6)       UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
                        cloneId             INT(6)       UNSIGNED NOT NULL,
@@ -84,34 +77,19 @@ def create_tables(DB_name,DB_user,DB_pass):
                        INDEX(hostTotalFiles),
                        INDEX(hostAffectedPercent)
                        ) ENGINE = MYISAM;"""
-        cursor.execute(table)
+        db.execute(table)
 
     except Exception as e:
         print 'Error accessing Database'
         print e
         sys.exit(1)
 
-    finally:
-        cursor.close()
-        db.commit()
-        db.close()
-
-def sanitize_strings(string):
-    return (string.replace('\"','\'\''))[:4000]
-
-def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
+def import_tokenizer_output(db, output_path):
     bookkeeping_file_path = os.path.join(output_path,'bookkeeping_projs')
     files_stats_path      = os.path.join(output_path,'files_stats')
     files_tokens_path     = os.path.join(output_path,'files_tokens')
 
     try:
-        db = MySQLdb.connect(host="localhost", # your host, usually localhost
-                             user=  DB_user,   # your username
-                             passwd=DB_pass,   # your password
-                             db=    DB_name)   # name of the data base
-
-        cursor = db.cursor()
-
         print '## Warming up token values'
         token_info = {}
         for file in os.listdir(files_tokens_path):
@@ -134,9 +112,7 @@ def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
                 with open(file, 'r') as csvfile:
                     csv_reader = csv.reader(csvfile, delimiter=',')
                     for entry in csv_reader:
-                        cursor.execute("""INSERT INTO projects VALUES (%s, \"%s\", \"%s\");""",
-                                      (entry[0],sanitize_strings(entry[1]),sanitize_strings(entry[2])))
-                    db.commit()
+                        db.insert_project(entry[0],entry[1],entry[2])
 
         print '## Importing files and stats'
         # Insert values into projects Database
@@ -148,55 +124,19 @@ def import_tokenizer_output(DB_name,DB_user,DB_pass,output_path):
                     csv_reader = csv.reader(csvfile, delimiter=',')
                     for entry in csv_reader:
 
-                        q = "INSERT INTO files VALUES (%s, %s, \"%s\", \"%s\", \"%s\");" % (entry[1],entry[0],sanitize_strings(entry[2]),sanitize_strings(entry[3]),entry[4])
-                        #print q
-                        cursor.execute(q)
+                        db.insert_file(entry[1],entry[0],entry[2],entry[3],entry[4])
 
                         file_hash = entry[4]
-                        q = "SELECT COUNT(*) FROM stats WHERE fileHash = '"+file_hash+"';"
-                        #print q
-                        cursor.execute(q)
-                        (exists, ) = cursor.fetchone()
-
-                        if exists == 0:
-                            q = "INSERT INTO stats VALUES (\"%s\", %s, %s, %s, %s, %s, %s, \"%s\");" % (file_hash,entry[5],entry[6],entry[7],entry[8],token_info[entry[1]][0],token_info[entry[1]][1],token_info[entry[1]][2])
-                            #print q
-                            cursor.execute(q)
-
-                        db.commit()
+                        if not db.fileHash_exists(file_hash):
+                            db.insert_stats_and_is_tokenHash_unique( file_hash, entry[5], entry[6], entry[7], entry[8], token_info[entry[1]][0], token_info[entry[1]][1], token_info[entry[1]][2] )
 
     except Exception as e:
         print 'Error accessing Database'
         print e
         sys.exit(1)
 
-    finally:
-        cursor.close()
-        db.commit()
-        db.close()
-
-def import_pairs(pairs_path):
+def import_pairs(db, pairs_path):
     try:
-        db = MySQLdb.connect(host="localhost", # your host, usually localhost
-                             user=  DB_user,   # your username
-                             passwd=DB_pass,   # your password
-                             db=    DB_name)   # name of the data base
-
-        cursor = db.cursor()
-
-        cursor.execute("DROP TABLE IF EXISTS `CCPairs`;")
-        table = """CREATE TABLE `CCPairs` (
-                       projectId1 INT(6) NOT NULL,
-                       fileId1    INT(6) NOT NULL,
-                       projectId2 INT(6) NOT NULL,
-                       fileId2    INT(6) NOT NULL,
-                       PRIMARY KEY(fileId1, fileId2),
-                       INDEX (projectId1),
-                       INDEX (fileId1),
-                       INDEX (projectId2),
-                       INDEX (fileId2)
-                       ) ENGINE = MYISAM;"""
-        cursor.execute(table)
 
         commit_interval = 1000
         pair_number = 0
@@ -206,10 +146,10 @@ def import_pairs(pairs_path):
             for line in file:
                 pair_number += 1
                 line_split = line[:-1].split(',')
-                q = "INSERT INTO CCPairs VALUES (%s, %s, %s, %s);" % (line_split[0],line_split[1],line_split[2],line_split[3])
-                cursor.execute(q)
+
+                db.insert_CCPairs(line_split[0], line_split[1], line_split[2], line_split[3])
+
                 if pair_number%commit_interval == 0:
-                    db.commit()
                     print '    ',pair_number,'pairs committed'
 
     except Exception as e:
@@ -217,25 +157,42 @@ def import_pairs(pairs_path):
         print e
         sys.exit(1)
 
-    finally:
-        cursor.close()
-        db.commit()
-        db.close()
-
 if __name__ == "__main__":
-    
-    DB_name     = sys.argv[1]
-    output_path = sys.argv[2]
-    pairs_path  = sys.argv[3]
-    
-    DB_user = 'pribeiro'
-    DB_pass = 'pass'
+    user  = 'pribeiro'
+    passw = 'pass'
 
-    print '### Creating Tables'
-    create_tables(DB_name,DB_user,DB_pass)
-    print '### Importing output from tokenizer'
-    import_tokenizer_output(DB_name,DB_user,DB_pass,output_path)
-    print '### Importing output from tokenizer'
-    import_pairs(pairs_path)
+    FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
+    logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+
+    if len(sys.argv) == 1:
+        print 'ERROR. At least 1 argument is required'
+    if len(sys.argv) >= 2:
+        DB_name     = sys.argv[1]
+    if len(sys.argv) >= 3:
+        output_path = sys.argv[2]
+    if len(sys.argv) >= 4:
+        pairs_path  = sys.argv[3]
+    
+    try:
+        db_object = DB(user, DB_name, passw, logging)
+
+        if len(sys.argv) >= 2:
+            print '### Creating Tables'
+            create_tables(db_object)
+        if len(sys.argv) >= 3:
+            print '### Importing output from tokenizer'
+            import_tokenizer_output(db_object,output_path)
+        if len(sys.argv) >= 4:
+            print '### Importing output from tokenizer'
+            import_pairs(pairs_path)
+        
+        db_object.close()
+
+    except Exception as e:
+        print 'Error on __main__'
+        print e
+    
+
+
 
 

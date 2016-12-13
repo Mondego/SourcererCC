@@ -266,8 +266,11 @@ class DB:
         finally:
             cursor.close()
 
-    def sanitize_string(self, string):
-        return (string[:DB_MAX_STRING_SIZE])
+    def sanitize_string(self, string_input):
+        # To clean non-ascii characters
+        printable = set(string.printable)
+        string_res = filter(lambda x: x in printable, string_input)
+        return (string_res[:DB_MAX_STRING_SIZE])
 
     def execute(self, query):
         self.check_connection()
