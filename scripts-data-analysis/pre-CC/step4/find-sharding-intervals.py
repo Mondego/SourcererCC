@@ -16,11 +16,11 @@ print '1 - Building dict'
 with open(file,'r') as tokens:
 	for line in tokens:
 		left_side = line.split('@#@')[0]
-		n_unique_tokens = left_side.split(',')[2]
-		if n_unique_tokens in res:
-			res[n_unique_tokens] = res[n_unique_tokens] + 1
+		n_tokens = left_side.split(',')[2]
+		if n_tokens in res:
+			res[n_tokens] = res[n_tokens] + 1
 		else:
-			res[n_unique_tokens] = 1
+			res[n_tokens] = 1
 
 print '2 - Creating Sorted list of unique tokens'
 list_uniques = map(int,res.keys())
