@@ -67,7 +67,8 @@ public class SearchManager {
     public static String DATASET_DIR;
     public static String WFM_DIR_PATH;
     public static Writer clonesWriter; // writer to write the output
-    public static Writer recoveryWriter; // writes the lines processed during search. for recovery purpose.
+    public static Writer recoveryWriter; // writes the lines processed during
+                                         // search. for recovery purpose.
     public static float th; // args[2]
                             // search
     public final static String ACTION_INDEX = "index";
@@ -130,10 +131,11 @@ public class SearchManager {
     public static String completedNodes;
     public static int totalNodes = -1;
     private static long RUN_COUNT;
-    public static long QUERY_LINES_TO_IGNORE=0;
+    public static long QUERY_LINES_TO_IGNORE = 0;
     public static String ROOT_DIR;
     private static final Logger logger = LogManager
             .getLogger(SearchManager.class);
+    public static boolean FATAL_ERROR;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -184,19 +186,20 @@ public class SearchManager {
             System.exit(1);
         }
         if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
-            SearchManager.completedNodes = SearchManager.ROOT_DIR+"nodes_completed.txt";
+            SearchManager.completedNodes = SearchManager.ROOT_DIR
+                    + "nodes_completed.txt";
             this.completedQueries = new HashSet<Long>();
 
             this.createShards(false);
 
-            logger.info("action: " + SearchManager.ACTION + System.lineSeparator()
-                    + "threshold: " + args[1] + System.lineSeparator()
-                    + " QLQ_THREADS: " + this.qlq_thread_count
-                    + " QBQ_THREADS: " + this.qbq_thread_count
-                    + " QCQ_THREADS: " + this.qcq_thread_count
-                    + " VCQ_THREADS: " + this.vcq_thread_count
-                    + " RCQ_THREADS: " + this.rcq_thread_count
-                    + System.lineSeparator());
+            logger.info("action: " + SearchManager.ACTION
+                    + System.lineSeparator() + "threshold: " + args[1]
+                    + System.lineSeparator() + " QLQ_THREADS: "
+                    + this.qlq_thread_count + " QBQ_THREADS: "
+                    + this.qbq_thread_count + " QCQ_THREADS: "
+                    + this.qcq_thread_count + " VCQ_THREADS: "
+                    + this.vcq_thread_count + " RCQ_THREADS: "
+                    + this.rcq_thread_count + System.lineSeparator());
             SearchManager.queryLineQueue = new ThreadedChannel<String>(
                     this.qlq_thread_count, QueryLineProcessor.class);
             SearchManager.queryBlockQueue = new ThreadedChannel<QueryBlock>(
@@ -211,9 +214,10 @@ public class SearchManager {
             indexerWriters = new ArrayList<IndexWriter>();
             this.createShards(true);
 
-            logger.error("action: " + SearchManager.ACTION + System.lineSeparator()
-                    + "threshold: " + args[1] + System.lineSeparator()
-                    + " BQ_THREADS: " + this.threadsToProcessBagsToSortQueue
+            logger.error("action: " + SearchManager.ACTION
+                    + System.lineSeparator() + "threshold: " + args[1]
+                    + System.lineSeparator() + " BQ_THREADS: "
+                    + this.threadsToProcessBagsToSortQueue
                     + System.lineSeparator() + " SBQ_THREADS: "
                     + this.threadToProcessIIQueue + System.lineSeparator()
                     + " IIQ_THREADS: " + this.threadsToProcessFIQueue
@@ -289,7 +293,7 @@ public class SearchManager {
     public static void main(String[] args)
             throws IOException, ParseException, InterruptedException {
         long start_time = System.nanoTime();
-        logger.info("user.dir is: "+ System.getProperty("user.dir"));
+        logger.info("user.dir is: " + System.getProperty("user.dir"));
         logger.info("root dir is:" + System.getProperty("properties.rootDir"));
         SearchManager.ROOT_DIR = System.getProperty("properties.rootDir");
         FileInputStream fis = null;
@@ -302,17 +306,18 @@ public class SearchManager {
             String[] params = new String[2];
             params[0] = args[0];
             params[1] = args[1];
-            SearchManager.DATASET_DIR = SearchManager.ROOT_DIR+properties
-                    .getProperty("DATASET_DIR_PATH");
+            SearchManager.DATASET_DIR = SearchManager.ROOT_DIR
+                    + properties.getProperty("DATASET_DIR_PATH");
             SearchManager.isGenCandidateStats = Boolean.parseBoolean(
                     properties.getProperty("IS_GEN_CANDIDATE_STATISTICS"));
             SearchManager.isStatusCounterOn = Boolean.parseBoolean(
                     properties.getProperty("IS_STATUS_REPORTER_ON"));
             SearchManager.NODE_PREFIX = properties.getProperty("NODE_PREFIX")
                     .toUpperCase();
-            SearchManager.OUTPUT_DIR = SearchManager.ROOT_DIR+properties.getProperty("OUTPUT_DIR");
-            SearchManager.QUERY_DIR_PATH = SearchManager.ROOT_DIR+properties
-                    .getProperty("QUERY_DIR_PATH");
+            SearchManager.OUTPUT_DIR = SearchManager.ROOT_DIR
+                    + properties.getProperty("OUTPUT_DIR");
+            SearchManager.QUERY_DIR_PATH = SearchManager.ROOT_DIR
+                    + properties.getProperty("QUERY_DIR_PATH");
             logger.debug("Query path:" + SearchManager.QUERY_DIR_PATH);
             SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES = Integer
                     .parseInt(properties.getProperty(
@@ -491,8 +496,14 @@ public class SearchManager {
         String sourceDir = SearchManager.OUTPUT_DIR
                 + SearchManager.th / SearchManager.MUL_FACTOR;
         logger.debug("moving " + sourceDir + " to " + destDir);
-        FileUtils.copyDirectory(new File(sourceDir),
-                new File(destDir), true); // copy the output folder instead of moving it. 
+        FileUtils.copyDirectory(new File(sourceDir), new File(destDir), true); // copy
+                                                                               // the
+                                                                               // output
+                                                                               // folder
+                                                                               // instead
+                                                                               // of
+                                                                               // moving
+                                                                               // it.
     }
 
     private void backupInput() {
@@ -605,9 +616,7 @@ public class SearchManager {
         // TODO Auto-generated method stub
         BufferedReader br = null;
         String filename = SearchManager.OUTPUT_DIR
-                + SearchManager.th
-                        / SearchManager.MUL_FACTOR
-                + "/recovery.txt";
+                + SearchManager.th / SearchManager.MUL_FACTOR + "/recovery.txt";
         try {
             br = new BufferedReader(new InputStreamReader(
                     new FileInputStream(filename), "UTF-8"));
@@ -615,7 +624,8 @@ public class SearchManager {
             while ((line = br.readLine()) != null) {
                 try {
                     if (line.trim().length() > 0) {
-                        SearchManager.QUERY_LINES_TO_IGNORE = Long.parseLong(line.trim());
+                        SearchManager.QUERY_LINES_TO_IGNORE = Long
+                                .parseLong(line.trim());
                     }
                 } catch (NumberFormatException e) {
                     logger.error(
@@ -636,7 +646,8 @@ public class SearchManager {
                     + ", error in populateCompleteQueries IO" + e.getMessage());
             logger.error("stacktrace: ", e);
         }
-        logger.info("lines to ignore in query file: "+ SearchManager.QUERY_LINES_TO_IGNORE);
+        logger.info("lines to ignore in query file: "
+                + SearchManager.QUERY_LINES_TO_IGNORE);
     }
 
     private void initIndexEnv() throws IOException, ParseException {
@@ -688,31 +699,38 @@ public class SearchManager {
                             new ITokensFileProcessor() {
                                 public void processLine(String line)
                                         throws ParseException {
-                                    Bag bag = cloneHelper.deserialise(line);
-                                    if (null == bag || bag
-                                            .getSize() < SearchManager.min_tokens) {
-                                        if (null == bag) {
-                                            logger.debug(
-                                                    SearchManager.NODE_PREFIX
-                                                            + " empty bag, ignoring. statusCounter= "
-                                                            + SearchManager.statusCounter);
-                                        } else {
-                                            logger.debug(
-                                                    SearchManager.NODE_PREFIX
-                                                            + " ignoring bag "
-                                                            + ", " + bag
-                                                            + ", statusCounter="
-                                                            + SearchManager.statusCounter);
+                                    if (!SearchManager.FATAL_ERROR) {
+                                        Bag bag = cloneHelper.deserialise(line);
+                                        if (null == bag || bag
+                                                .getSize() < SearchManager.min_tokens) {
+                                            if (null == bag) {
+                                                logger.debug(
+                                                        SearchManager.NODE_PREFIX
+                                                                + " empty bag, ignoring. statusCounter= "
+                                                                + SearchManager.statusCounter);
+                                            } else {
+                                                logger.debug(
+                                                        SearchManager.NODE_PREFIX
+                                                                + " ignoring bag "
+                                                                + ", " + bag
+                                                                + ", statusCounter="
+                                                                + SearchManager.statusCounter);
+                                            }
+                                            return; // ignore this bag.
                                         }
-                                        return; // ignore this bag.
-                                    }
-                                    try {
-                                        SearchManager.bagsToSortQueue.send(bag);
-                                    } catch (Exception e) {
-                                        logger.error(SearchManager.NODE_PREFIX
-                                                + "Unable to send bag "
-                                                + bag.getId() + " to queue");
-                                        e.printStackTrace();
+                                        try {
+                                            SearchManager.bagsToSortQueue
+                                                    .send(bag);
+                                        } catch (Exception e) {
+                                            logger.error(
+                                                    SearchManager.NODE_PREFIX
+                                                            + "Unable to send bag "
+                                                            + bag.getId()
+                                                            + " to queue" + e);
+                                        }
+                                    }else{
+                                        logger.fatal("FATAL error detected. exiting now");
+                                        System.exit(1);
                                     }
                                 }
                             });
@@ -765,12 +783,11 @@ public class SearchManager {
                                     + "clones_index_WITH_FILTER.txt",
                             this.appendToExistingFile);
                     // recoveryWriter
-                    SearchManager.recoveryWriter = Util.openFile(
-                            SearchManager.OUTPUT_DIR
+                    SearchManager.recoveryWriter = Util
+                            .openFile(SearchManager.OUTPUT_DIR
                                     + SearchManager.th
                                             / SearchManager.MUL_FACTOR
-                                    + "/recovery.txt",
-                            false);
+                                    + "/recovery.txt", false);
                 } catch (IOException e) {
                     logger.error(e.getMessage() + " exiting");
                     System.exit(1);

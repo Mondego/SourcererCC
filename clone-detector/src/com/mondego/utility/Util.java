@@ -45,19 +45,28 @@ import com.mondego.models.TokenFrequency;
 public class Util {
     static Random rand = new Random(5);
     public static final String CSV_DELIMITER = "~";
-    public static final String INDEX_DIR = SearchManager.ROOT_DIR+"index";
-    public static final String INDEX_DIR_TEMP = SearchManager.ROOT_DIR+"index_temp";
-    public static final String GTPM_DIR = SearchManager.ROOT_DIR+"gtpm";
-    public static final String GLOBAL_WFM_DIR = SearchManager.ROOT_DIR+"wfm";
-    public static final String FWD_INDEX_DIR = SearchManager.ROOT_DIR+"fwdindex";
-    public static final String FWD_INDEX_DIR_TEMP = SearchManager.ROOT_DIR+"fwdindex_temp";
-    public static final String GTPM_INDEX_DIR = SearchManager.ROOT_DIR+"gtpmindex";
-    public static final String INDEX_DIR_NO_FILTER = SearchManager.ROOT_DIR+"index_nofilter";
+    public static final String INDEX_DIR = SearchManager.ROOT_DIR + "index";
+    public static final String INDEX_DIR_TEMP = SearchManager.ROOT_DIR
+            + "index_temp";
+    public static final String GTPM_DIR = SearchManager.ROOT_DIR + "gtpm";
+    public static final String GLOBAL_WFM_DIR = SearchManager.ROOT_DIR + "wfm";
+    public static final String FWD_INDEX_DIR = SearchManager.ROOT_DIR
+            + "fwdindex";
+    public static final String FWD_INDEX_DIR_TEMP = SearchManager.ROOT_DIR
+            + "fwdindex_temp";
+    public static final String GTPM_INDEX_DIR = SearchManager.ROOT_DIR
+            + "gtpmindex";
+    public static final String INDEX_DIR_NO_FILTER = SearchManager.ROOT_DIR
+            + "index_nofilter";
     public static final String QUERY_FILE_NAME = "blocks.file";
-    public static final String OUTPUT_BACKUP_DIR = SearchManager.ROOT_DIR+"backup_output";
-    public static final String SEARCH_METADATA = SearchManager.ROOT_DIR+"search_metadata.txt";
-    public static final String RUN_METADATA = SearchManager.ROOT_DIR+"run_metadata.scc";
+    public static final String OUTPUT_BACKUP_DIR = SearchManager.ROOT_DIR
+            + "backup_output";
+    public static final String SEARCH_METADATA = SearchManager.ROOT_DIR
+            + "search_metadata.txt";
+    public static final String RUN_METADATA = SearchManager.ROOT_DIR
+            + "run_metadata.scc";
     private static final Logger logger = LogManager.getLogger(Util.class);
+
     /**
      * generates a random integer
      * 
@@ -77,7 +86,8 @@ public class Util {
      * @param isNewline
      *            whether to start from a newline or not
      */
-    public static synchronized void writeToFile(Writer pWriter, final String text, final boolean isNewline) {
+    public static synchronized void writeToFile(Writer pWriter,
+            final String text, final boolean isNewline) {
         if (isNewline) {
             try {
                 pWriter.write(text + System.lineSeparator());
@@ -105,10 +115,11 @@ public class Util {
      * @throws IOException
      * @return PrintWriter
      */
-    public static Writer openFile(String filename, boolean append) throws IOException {
+    public static Writer openFile(String filename, boolean append)
+            throws IOException {
         try {
-            Writer pWriter = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(filename, append), "UTF-8"));
+            Writer pWriter = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(filename, append), "UTF-8"));
             return pWriter;
 
         } catch (IOException e) {
@@ -147,13 +158,16 @@ public class Util {
         }
     }
 
-    public static boolean isSatisfyPosFilter(int similarity, int querySize, int termsSeenInQueryBlock,
-            int candidateSize, int termsSeenInCandidate, int computedThreshold) {
+    public static boolean isSatisfyPosFilter(int similarity, int querySize,
+            int termsSeenInQueryBlock, int candidateSize,
+            int termsSeenInCandidate, int computedThreshold) {
         return computedThreshold <= similarity
-                + Math.min(querySize - termsSeenInQueryBlock, candidateSize - termsSeenInCandidate);
+                + Math.min(querySize - termsSeenInQueryBlock,
+                        candidateSize - termsSeenInCandidate);
     }
 
-    public static void writeJsonStream(String filename, Map<String, Integer> gtpm) {
+    public static void writeJsonStream(String filename,
+            Map<String, Integer> gtpm) {
         Writer writer = null;
         try {
             writer = Util.openFile(filename, false);
@@ -176,7 +190,8 @@ public class Util {
     }
 
     public static String debug_thread() {
-        return "  Thread_id: " + Thread.currentThread().getId() + " Thread_name: " + Thread.currentThread().getName();
+        return "  Thread_id: " + Thread.currentThread().getId()
+                + " Thread_name: " + Thread.currentThread().getName();
     }
 
     public static Map<String, Integer> readJsonStream(String filename) {
@@ -184,7 +199,8 @@ public class Util {
         BufferedReader br = null;
         Map<String, Integer> gtpm = new HashMap<String, Integer>();
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"), 1024 * 1024 * 512);
+            br = new BufferedReader(new InputStreamReader(
+                    new FileInputStream(filename), "UTF-8"), 1024 * 1024 * 512);
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 Gson gson = new GsonBuilder().create();
@@ -212,12 +228,14 @@ public class Util {
     }
 
     public static <K, V> Map<K, V> lruCache(final int maxSize) {
-        return Collections.synchronizedMap(new LinkedHashMap<K, V>(maxSize * 4 / 3, 0.75f, true) {
-            @Override
-            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-                return size() > maxSize;
-            }
-        });
+        return Collections.synchronizedMap(
+                new LinkedHashMap<K, V>(maxSize * 4 / 3, 0.75f, true) {
+                    @Override
+                    protected boolean removeEldestEntry(
+                            Map.Entry<K, V> eldest) {
+                        return size() > maxSize;
+                    }
+                });
     }
 
     // This cache is shared by all threads that call sortBag
@@ -225,37 +243,48 @@ public class Util {
 
     public static void sortBag(Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
+        try {
+            Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
+                public int compare(TokenFrequency tfFirst,
+                        TokenFrequency tfSecond) {
+                    Long frequency1 = 0l;
+                    Long frequency2 = 0l;
 
-        Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
-            public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
-                Long frequency1 = 0l;
-                Long frequency2 = 0l;
-                String k1 = tfFirst.getToken().getValue();
-                String k2 = tfSecond.getToken().getValue();
-                if (cache.containsKey(k1)) {
-                    frequency1 = cache.get(k1);
-                } else {
-                    frequency1 = SearchManager.gtpmSearcher.getFrequency(k1);
-                    cache.put(k1, frequency1);
+                    logger.debug("sorting TokenFrequency, tffirst: " + tfFirst
+                            + ", tfSecong: " + tfSecond);
+                    String k1 = tfFirst.getToken().getValue();
+                    String k2 = tfSecond.getToken().getValue();
+                    if (cache.containsKey(k1)) {
+                        frequency1 = cache.get(k1);
+                    } else {
+                        frequency1 = SearchManager.gtpmSearcher
+                                .getFrequency(k1);
+                        cache.put(k1, frequency1);
+                    }
+                    if (cache.containsKey(k2)) {
+                        frequency2 = cache.get(k2);
+                    } else {
+                        frequency2 = SearchManager.gtpmSearcher
+                                .getFrequency(k2);
+                        cache.put(k2, frequency2);
+                    }
+                    int result = frequency1.compareTo(frequency2);
+                    if (result == 0) {
+                        return k1.compareTo(k2);
+                    } else {
+                        return result;
+                    }
                 }
-                if (cache.containsKey(k2)) {
-                    frequency2 = cache.get(k2);
-                } else {
-                    frequency2 = SearchManager.gtpmSearcher.getFrequency(k2);
-                    cache.put(k2, frequency2);
-                }
-                int result = frequency1.compareTo(frequency2);
-                if(result==0){
-                    return k1.compareTo(k2);
-                }else{
-                    return result;
-                }
+            });
+            bag.clear();
+            for (TokenFrequency tf : bagAsList) {
+                bag.add(tf);
             }
-        });
-        bag.clear();
-        for (TokenFrequency tf : bagAsList) {
-            bag.add(tf);
+        } catch (NullPointerException e) {
+            logger.error("NPE caught while sorting, " + e);
+            SearchManager.FATAL_ERROR=true;
         }
+
     }
 
     /*
@@ -325,7 +354,8 @@ public class Util {
 
     }
 
-    public static void populateProcessedWFMSet(String filename, Set<String> processedWFMset) {
+    public static void populateProcessedWFMSet(String filename,
+            Set<String> processedWFMset) {
         BufferedReader br = null;
         File f = new File(filename);
         logger.debug("file is " + f);
@@ -349,29 +379,32 @@ public class Util {
         }
     }
 
-    public static BufferedReader getReader(File queryFile) throws FileNotFoundException {
+    public static BufferedReader getReader(File queryFile)
+            throws FileNotFoundException {
         BufferedReader br = null;
         br = new BufferedReader(new FileReader(queryFile));
         return br;
     }
 
-    public static Writer openFile(File output, boolean append) throws IOException {
+    public static Writer openFile(File output, boolean append)
+            throws IOException {
         // TODO Auto-generated method stub
-        Writer pWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output, append), "UTF-8"));
+        Writer pWriter = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(output, append), "UTF-8"));
         return pWriter;
     }
 
-    public static List<File> getAllFilesRecur(File root){
+    public static List<File> getAllFilesRecur(File root) {
         List<File> listToReturn = new ArrayList<File>();
-        for (File file : root.listFiles()){
-            if(file.isFile()){
+        for (File file : root.listFiles()) {
+            if (file.isFile()) {
                 listToReturn.add(file);
-            }else if (file.isDirectory()){
+            } else if (file.isDirectory()) {
                 listToReturn.addAll(getAllFilesRecur(file));
             }
         }
         return listToReturn;
-        
+
     }
     /*
      * public static int getPrefixSize(QueryBlock queryBlock, float threshold) {
