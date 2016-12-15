@@ -156,7 +156,10 @@ def tokenize(file_string, comment_inline_pattern, comment_open_close_pattern, se
     return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
 def process_file_contents(file_string, proj_id, file_id, container_path, 
-                          file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file):
+                          file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
+    
+    logging.info('Attempting to process_file_contents '+os.path.join(container_path, file_path))
+
     global file_count
     file_count += 1
     
@@ -174,6 +177,8 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     ww_time = dt.datetime.now()
     FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
     w_time += (dt.datetime.now() - ww_time).microseconds
+
+    logging.info('Successfully ran process_file_contents '+os.path.join(container_path, file_path))
 
     return file_parsing_times + [w_time] # [s_time, t_time, w_time, hash_time, re_time]
 
@@ -205,7 +210,7 @@ def process_regular_folder(args, folder_path, files):
             f_time = (dt.datetime.now() - f_time).microseconds
 
             times_c = process_file_contents(file_string, proj_id, file_id, "", file_path, str(os.path.getsize(file_path)),
-                                              proj_url, FILE_tokens_file, FILE_stats_file)
+                                              proj_url, FILE_tokens_file, FILE_stats_file, logging)
             times[0] += f_time
             times[1] += times_c[0]
             times[2] += times_c[1]
@@ -258,7 +263,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
                 file_time += (dt.datetime.now() - f_time).microseconds
 
                 times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes,
-                                              proj_url, FILE_tokens_file, FILE_stats_file)
+                                              proj_url, FILE_tokens_file, FILE_stats_file, logging)
                 string_time += times[0]
                 tokens_time += times[1]
                 write_time  += times[4]
@@ -276,9 +281,11 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
 
     return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-def process_zip_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, 
+def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
                         FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
+
+    logging.info('Attempting to process_zip_ball '+zip_file)
 
     try:
         with zipfile.ZipFile(proj_path,'r') as my_file:
@@ -315,10 +322,9 @@ def process_zip_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
                 file_string = my_zip_file.read()
                 file_time   += (dt.datetime.now() - f_time).microseconds
 
-                times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes,
-                                              proj_url, FILE_tokens_file, FILE_stats_file)
+                times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
+                                              proj_url, FILE_tokens_file, FILE_stats_file, logging)
 
-                times = [1,2,3,4,5]
                 string_time += times[0]
                 tokens_time += times[1]
                 write_time  += times[4]
@@ -334,6 +340,7 @@ def process_zip_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
         logging.warning(e)
         return
 
+    logging.info('Successfully ran process_zip_ball '+zip_file)
     return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 def process_one_project(process_num, proj_id, proj_path, base_file_id, 
@@ -537,3 +544,4 @@ if __name__ == '__main__':
 
     p_elapsed = dt.datetime.now() - p_start
     print "*** All done. %s files in %s" % (file_count, p_elapsed)
+
