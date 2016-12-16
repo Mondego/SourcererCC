@@ -282,7 +282,7 @@ public class Util {
                 bag.add(tf);
             }
         } catch (NullPointerException e) {
-            logger.error("NPE caught while sorting, " + e);
+            logger.error("NPE caught while sorting, ", e);
             SearchManager.FATAL_ERROR=true;
         }
 

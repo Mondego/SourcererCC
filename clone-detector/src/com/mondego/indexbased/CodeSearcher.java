@@ -145,6 +145,8 @@ public class CodeSearcher {
             if (blocks.size() == 1) {
                 Document document = this.getDocument(blocks.get(0));
                 frequency = Long.parseLong(document.get("frequency"));
+            }else{
+                logger.warn("number of blocks returend by gtpm: "+blocks.size()  + ", key is: "+ key);
             }
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
             logger.warn("cannot parse (freq): " + key + ". Ignoring this.");
@@ -152,7 +154,7 @@ public class CodeSearcher {
             logger.warn("getPosition method in CodeSearcher "
                     + e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("error while getting frequency",e);
         }
         return frequency;
     }
