@@ -241,7 +241,7 @@ public class Util {
     // This cache is shared by all threads that call sortBag
     final static Map<String, Long> cache = lruCache(500000);
 
-    public static void sortBag(Bag bag) {
+    public static void sortBag(final Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
         logger.debug("bag to sort: "+bag);
         try {
@@ -267,7 +267,7 @@ public class Util {
                         cache.put(k2, frequency2);
                     }
                     if(null==frequency1 || null==frequency2){
-                        logger.warn("k1:"+k1+ " frequency1: "+ frequency1 + ", k2: "+k2 + " frequency2: "+ frequency2) ;
+                        logger.warn("k1:"+k1+ " frequency1: "+ frequency1 + ", k2: "+k2 + " frequency2: "+ frequency2 + "bag: "+ bag) ;
                     }
                     int result = frequency1.compareTo(frequency2);
                     if (result == 0) {
