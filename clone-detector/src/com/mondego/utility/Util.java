@@ -256,6 +256,9 @@ public class Util {
                         frequency1 = cache.get(k1);
                         if(null==frequency1){
                             logger.warn("freq1 null from cache");
+                            frequency1 = SearchManager.gtpmSearcher
+                                    .getFrequency(k1);
+                            cache.put(k1, frequency1);
                         }
                     } else {
                         frequency1 = SearchManager.gtpmSearcher
@@ -266,6 +269,9 @@ public class Util {
                         frequency2 = cache.get(k2);
                         if(null==frequency2){
                             logger.warn("freq2 null from cache");
+                            frequency2 = SearchManager.gtpmSearcher
+                                    .getFrequency(k2);
+                            cache.put(k2, frequency2);
                         }
                     } else {
                         frequency2 = SearchManager.gtpmSearcher
