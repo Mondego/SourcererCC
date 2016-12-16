@@ -243,6 +243,7 @@ public class Util {
 
     public static void sortBag(Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
+        logger.debug("bag to sort: "+bag);
         try {
             Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
                 public int compare(TokenFrequency tfFirst,
@@ -268,6 +269,7 @@ public class Util {
                                 .getFrequency(k2);
                         cache.put(k2, frequency2);
                     }
+                    logger.debug("k1:"+k1+ " frequency1: "+ frequency1 + ", k2: "+k2 + " frequency2: "+ frequency2+ "bag: ") ;
                     int result = frequency1.compareTo(frequency2);
                     if (result == 0) {
                         return k1.compareTo(k2);

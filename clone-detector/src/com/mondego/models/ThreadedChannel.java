@@ -19,31 +19,39 @@ public class ThreadedChannel<E> {
     private ExecutorService executor;
     private Class<Runnable> workerType;
     private Semaphore semaphore;
-    private static final Logger logger = LogManager.getLogger(ThreadedChannel.class);
+    private static final Logger logger = LogManager
+            .getLogger(ThreadedChannel.class);
+
     public ThreadedChannel(int nThreads, Class clazz) {
         this.executor = Executors.newFixedThreadPool(nThreads);
         this.workerType = clazz;
-	this.semaphore = new Semaphore(nThreads+2);
+        this.semaphore = new Semaphore(nThreads + 2);
     }
 
-    public void send(E e) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-        final Runnable o = this.workerType.getDeclaredConstructor(e.getClass()).newInstance(e);
-	try {
-	    semaphore.acquire();
-	} catch (InterruptedException ex) {
-	    logger.error("Caught interrupted exception " + ex);
-	}
-	    	
-	try {
-	    executor.execute(new Runnable() {
-		    public void run() {
-			try { o.run(); } 
-			finally { semaphore.release(); }
-		    }
-		});
-	} catch (RejectedExecutionException ex){
-	    semaphore.release();
-	}
+    public void send(E e) throws InstantiationException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException,
+            NoSuchMethodException, SecurityException {
+        final Runnable o = this.workerType.getDeclaredConstructor(e.getClass())
+                .newInstance(e);
+        try {
+            semaphore.acquire();
+        } catch (InterruptedException ex) {
+            logger.error("Caught interrupted exception " + ex);
+        }
+
+        try {
+            executor.execute(new Runnable() {
+                public void run() {
+                    try {
+                        o.run();
+                    } finally {
+                        semaphore.release();
+                    }
+                }
+            });
+        } catch (RejectedExecutionException ex) {
+            semaphore.release();
+        }
     }
 
     public void shutdown() {
