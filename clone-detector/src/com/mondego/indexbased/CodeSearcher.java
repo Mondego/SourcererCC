@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -52,7 +53,8 @@ public class CodeSearcher {
             System.exit(1);
         }
         this.searcher = new IndexSearcher(this.reader);
-        this.analyzer = new WhitespaceAnalyzer(Version.LUCENE_46); // TODO: pass
+        this.analyzer = new KeywordAnalyzer();//
+                //new WhitespaceAnalyzer(Version.LUCENE_46); // TODO: pass
                                                                    // the
                                                                    // analyzer
                                                                    // as
@@ -146,7 +148,7 @@ public class CodeSearcher {
                 Document document = this.getDocument(blocks.get(0));
                 frequency = Long.parseLong(document.get("frequency"));
             }else{
-                logger.warn("number of blocks returend by gtpm: "+blocks.size()  + ", key is: "+ key);
+                logger.warn("number of blocks returend by gtpm: "+blocks.size()  + ", key is: "+ key + " query: "+ query);
             }
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
             logger.warn("cannot parse (freq): " + key + ". Ignoring this.");
