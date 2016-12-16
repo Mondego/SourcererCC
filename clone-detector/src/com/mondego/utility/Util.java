@@ -254,6 +254,9 @@ public class Util {
                     String k2 = tfSecond.getToken().getValue();
                     if (cache.containsKey(k1)) {
                         frequency1 = cache.get(k1);
+                        if(null==frequency1){
+                            logger.warn("freq1 null from cache");
+                        }
                     } else {
                         frequency1 = SearchManager.gtpmSearcher
                                 .getFrequency(k1);
@@ -261,6 +264,9 @@ public class Util {
                     }
                     if (cache.containsKey(k2)) {
                         frequency2 = cache.get(k2);
+                        if(null==frequency2){
+                            logger.warn("freq2 null from cache");
+                        }
                     } else {
                         frequency2 = SearchManager.gtpmSearcher
                                 .getFrequency(k2);

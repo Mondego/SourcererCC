@@ -179,7 +179,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
             this.wfmIndexWriter.forceMerge(1);
             this.wfmIndexWriter.commit();
         } catch (Exception e) {
-            logger.error(SearchManager.NODE_PREFIX + ", exception on commit");
+            logger.error(SearchManager.NODE_PREFIX + ", exception on commit",e);
             e.printStackTrace();
         }
         long elapsed = System.currentTimeMillis() - start;
