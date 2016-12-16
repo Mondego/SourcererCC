@@ -250,9 +250,6 @@ public class Util {
                         TokenFrequency tfSecond) {
                     Long frequency1 = 0l;
                     Long frequency2 = 0l;
-
-                    logger.debug("sorting TokenFrequency, tffirst: " + tfFirst
-                            + ", tfSecong: " + tfSecond);
                     String k1 = tfFirst.getToken().getValue();
                     String k2 = tfSecond.getToken().getValue();
                     if (cache.containsKey(k1)) {
@@ -269,7 +266,9 @@ public class Util {
                                 .getFrequency(k2);
                         cache.put(k2, frequency2);
                     }
-                    logger.debug("k1:"+k1+ " frequency1: "+ frequency1 + ", k2: "+k2 + " frequency2: "+ frequency2+ "bag: ") ;
+                    if(null==frequency1 || null==frequency2){
+                        logger.warn("k1:"+k1+ " frequency1: "+ frequency1 + ", k2: "+k2 + " frequency2: "+ frequency2) ;
+                    }
                     int result = frequency1.compareTo(frequency2);
                     if (result == 0) {
                         return k1.compareTo(k2);
