@@ -118,17 +118,22 @@ def import_tokenizer_output(db, output_path, logging):
                         proj_id = entry_split[0]
                         del entry_split[0]
 
-                        if (len(entry_split) % 2 != 0):
-                            logging.warning('Problems parsing project: '+str(entry_split))
-                            path = ','.join(entry_split[:len(entry_split)/2])
-                            path = path[1:-1]
-                            url  = ','.join(entry_split[len(entry_split)/2:])
-                            url = url[1:-1]
-                            logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
-                            logging.warning('Previous warning was solved')
-                            db.insert_project(proj_id,path,url)
-                        else:
+                        if(len(entry_split) == 2):
                             db.insert_project(proj_id,entry_split[0],entry_split[1])
+                        else:
+                            if (len(entry_split) % 2 != 0):
+                                logging.warning('Problems parsing project: '+str(entry_split))
+                                path = ','.join(entry_split[:len(entry_split)/2])
+                                path = path[1:-1]
+                                url  = ','.join(entry_split[len(entry_split)/2:])
+                                url = url[1:-1]
+                                logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
+                                logging.warning('Previous warning was solved')
+                                db.insert_project(proj_id,path,url)
+                            else:
+                                logging.error('Problems parsing project: '+str(entry_split))
+                                continue
+
 
         logging.info('## Importing files and stats')
         # Insert values into projects Database
