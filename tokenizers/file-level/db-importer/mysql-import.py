@@ -5,7 +5,9 @@ import MySQLdb
 from db import DB
 import logging
 
-def create_tables(db):
+def create_tables(db, logging):
+
+    logging.info('Creating Tables on DB')
 
     try:
     
@@ -14,7 +16,7 @@ def create_tables(db):
                        projectId   INT(6)        UNSIGNED PRIMARY KEY,
                        projectPath VARCHAR(4000)          NOT NULL,
                        projectUrl  VARCHAR(4000)          NULL
-                       ) ENGINE = MYISAM; """
+                       ) ENGINE = InnoDB; """
         db.execute(table)
     
         db.execute("DROP TABLE IF EXISTS `files`;")
@@ -26,7 +28,7 @@ def create_tables(db):
                        fileHash     CHAR(32)               NOT NULL,
                        INDEX (projectId),
                        INDEX (fileHash)
-                       ) ENGINE = MYISAM;"""
+                       ) ENGINE = InnoDB;"""
         db.execute(table)
     
         db.execute("DROP TABLE IF EXISTS `stats`;")
@@ -40,7 +42,7 @@ def create_tables(db):
                        uniqueTokens INT(6) UNSIGNED NOT NULL,
                        tokenHash    CHAR(32)        NOT NULL,
                        INDEX (tokenHash)
-                       ) ENGINE = MYISAM;"""
+                       ) ENGINE = InnoDB;"""
         db.execute(table)
     
         db.execute("DROP TABLE IF EXISTS `CCPairs`;")
@@ -54,7 +56,7 @@ def create_tables(db):
                        INDEX (fileId1),
                        INDEX (projectId2),
                        INDEX (fileId2)
-                       ) ENGINE = MYISAM;"""
+                       ) ENGINE = InnoDB;"""
         db.execute(table)
     
         db.execute("DROP TABLE IF EXISTS `projectClones`;")
@@ -76,63 +78,111 @@ def create_tables(db):
                        INDEX(hostAffectedFiles),
                        INDEX(hostTotalFiles),
                        INDEX(hostAffectedPercent)
-                       ) ENGINE = MYISAM;"""
+                       ) ENGINE = InnoDB;"""
         db.execute(table)
 
     except Exception as e:
-        print 'Error accessing Database'
-        print e
+        logging.error('Error accessing Database')
+        logging.error(e)
         sys.exit(1)
 
-def import_tokenizer_output(db, output_path):
+def import_tokenizer_output(db, output_path, logging):
     bookkeeping_file_path = os.path.join(output_path,'bookkeeping_projs')
     files_stats_path      = os.path.join(output_path,'files_stats')
     files_tokens_path     = os.path.join(output_path,'files_tokens')
 
     try:
-        print '## Warming up token values'
-        token_info = {}
-        for file in os.listdir(files_tokens_path):
-            if file.endswith('.tokens'):
-                file = os.path.join(files_tokens_path,file)
-                print '  Getting info from ',file
-                with open(file, 'r') as csvfile:
-                    for line in csvfile:
-                        left = line.split('@#@')[0].split(',')
-                        token_info[left[1]] = [left[2],left[3],left[4]]
-    
-        print '## Import into database'
+        logging.info('## Warming up token values')
+        #token_info = {}
+        #for file in os.listdir(files_tokens_path):
+        #    if file.endswith('.tokens'):
+        #        file = os.path.join(files_tokens_path,file)
+        #        logging.info('Getting info from '+file)
+        #        with open(file, 'r') as csvfile:
+        #            for line in csvfile:
+        #                left = line.split('@#@')[0].split(',')
+        #                token_info[left[1]] = [left[2],left[3],left[4]]
 
-        print '## Importing projects'
+        #logging.info('## Import into database')
+
+        logging.info('## Importing projects')
         # Insert values into projects Database
         for file in os.listdir(bookkeeping_file_path):
             if file.endswith('.projs'):
                 file = os.path.join(bookkeeping_file_path,file)
-                print '  Importing from ',file
+                logging.info('Importing from '+file)
                 with open(file, 'r') as csvfile:
-                    csv_reader = csv.reader(csvfile, delimiter=',')
-                    for entry in csv_reader:
-                        db.insert_project(entry[0],entry[1],entry[2])
+                    for line in csvfile:
+                        entry_split = (line[:-1]).split(',')
 
-        print '## Importing files and stats'
+                        print entry_split
+
+                        proj_id = entry_split[0]
+                        del entry_split[0]
+
+                        if (len(entry_split) % 2 != 0):
+                            logging.warning('Problems parsing project: '+str(entry_split))
+                            path = ','.join(entry_split[:len(entry_split)/2])
+                            path = path[1:-1]
+                            url  = ','.join(entry_split[len(entry_split)/2:])
+                            url = url[1:-1]
+                            logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
+                            logging.warning('Previous warning was solved')
+                            db.insert_project(proj_id,path,url)
+                        else:
+                            db.insert_project(proj_id,entry_split[0],entry_split[1])
+
+        logging.info('## Importing files and stats')
         # Insert values into projects Database
         for file in os.listdir(files_stats_path):
             if file.endswith('.stats'):
                 file = os.path.join(files_stats_path,file)
-                print '  Importing from ',file
+                logging.info('Importing from '+file)
                 with open(file, 'r') as csvfile:
-                    csv_reader = csv.reader(csvfile, delimiter=',')
-                    for entry in csv_reader:
+                    for entry in csvfile:
+                        entry_split = (entry[:-1]).split(',')
+                        if len(entry_split) != 9: # Something went wrong with parsing
+                            logging.warning('Problematic file string: '+str(entry_split))
 
-                        db.insert_file(entry[1],entry[0],entry[2],entry[3],entry[4])
+                            proj_id = entry_split[0]
+                            del entry_split[0]
+                            file_id = entry_split[0]
+                            del entry_split[0]
 
-                        file_hash = entry[4]
-                        if not db.fileHash_exists(file_hash):
-                            db.insert_stats_and_is_tokenHash_unique( file_hash, entry[5], entry[6], entry[7], entry[8], token_info[entry[1]][0], token_info[entry[1]][1], token_info[entry[1]][2] )
+                            sloc    = entry_split[-1:][0]
+                            del entry_split[-1:]
+                            loc   = entry_split[-1:][0]
+                            del entry_split[-1:]
+                            lines  = entry_split[-1:][0]
+                            del entry_split[-1:]
+                            bytess = entry_split[-1:][0]
+                            del entry_split[-1:]
+                            file_hash = entry_split[-1:][0]
+                            file_hash = file_hash[1:-1]
+                            del entry_split[-1:]
+
+                            if (len(entry_split) % 2 != 0):
+                                logging.error('Problems parsing file: '+str(entry_split))
+                                continue
+                            else:
+                                path = ','.join(entry_split[:len(entry_split)/2])
+                                path = path[1:-1]
+                                url  = ','.join(entry_split[len(entry_split)/2:])
+                                url = url[1:-1]
+
+                            logging.warning('String partitioned into:'+file_id+'|'+proj_id+path+'|'+url+'|'+file_hash+'|'+bytess+'|'+lines+'|'+loc+'|'+sloc)
+
+                            logging.warning('Previous warning was solved')
+                            db.insert_file(fileId,proj_id,path,url,file_hash)
+                            db.insert_stats_ignore_repetition( file_hash, bytess, lines, loc, sloc, token_info[fileId][0], token_info[fileId][1], token_info[fileId][2] )
+                        else:
+                            continue
+                            db.insert_file(entry_split[1],entry_split[0],entry_split[2],entry_split[3],entry_split[4])
+                            db.insert_stats_ignore_repetition( entry_split[4], entry_split[5], entry_split[6], entry_split[7], entry_split[8], token_info[entry_split[1]][0], token_info[entry_split[1]][1], token_info[entry_split[1]][2] )
 
     except Exception as e:
-        print 'Error accessing Database'
-        print e
+        logging.error('Error accessing Database')
+        logging.error(e)
         sys.exit(1)
 
 def import_pairs(db, pairs_path):
@@ -158,14 +208,25 @@ def import_pairs(db, pairs_path):
         sys.exit(1)
 
 if __name__ == "__main__":
-    user  = 'pribeiro'
-    passw = 'pass'
+    user  = 'sourcerer'
+    passw = 'sourcerer4us'
 
-    FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
+    log_path = 'LOG-db-importer.log'
+
+    if os.path.isfile(log_path):
+        print 'ERROR: Log file:',log_path,'already exists'
+        sys.exit(1)
+
+    FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setFormatter(logging.Formatter(FORMAT))
+    logging.getLogger().addHandler(file_handler)
+
 
     if len(sys.argv) == 1:
-        print 'ERROR. At least 1 argument is required'
+        logging.error('ERROR. At least 1 argument is required')
+        sys.exit(1)
     if len(sys.argv) >= 2:
         DB_name     = sys.argv[1]
     if len(sys.argv) >= 3:
@@ -177,14 +238,14 @@ if __name__ == "__main__":
         db_object = DB(user, DB_name, passw, logging)
 
         if len(sys.argv) >= 2:
-            print '### Creating Tables'
-            create_tables(db_object)
+            logging.info('### Creating Tables')
+            create_tables(db_object,logging)
         if len(sys.argv) >= 3:
-            print '### Importing output from tokenizer'
-            import_tokenizer_output(db_object,output_path)
+            logging.info('### Importing output from tokenizer')
+            import_tokenizer_output(db_object,output_path,logging)
         if len(sys.argv) >= 4:
-            print '### Importing output from tokenizer'
-            import_pairs(pairs_path)
+            logging.info('### Importing output from tokenizer')
+            #import_pairs(pairs_path)
         
         db_object.close()
 

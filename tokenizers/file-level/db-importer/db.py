@@ -69,6 +69,7 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
 add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
 add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (%s, %s, %s);"""
 add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES (%s, %s, %s, %s, %s);"""
+add_stats_ignore_repetition = """INSERT IGNORE INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 add_stats_and_check_tokenHash_uniqueness = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 add_CCPairs       = """INSERT INTO CCPairs (projectId1,fileId1,projectId2,fileId2) VALUES (%s, %s, %s, %s);"""
 
@@ -160,6 +161,18 @@ class DB:
             return cursor.lastrowid
         except Exception as err:
             self.logging.error('Failed to insert project %s' % (projectPath))
+            self.logging.error(err)
+            sys.exit(1)
+        finally:
+            cursor.close()
+
+    def insert_stats_ignore_repetition(self, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash):
+        self.check_connection()
+        cursor = self.connection.cursor()
+        try:
+            results = cursor.execute(add_stats_ignore_repetition, (fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, tokenHash))
+        except Exception as err:
+            self.logging.error('Failed to insert stats with info: %s' % (','.join([fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, tokenHash])) )
             self.logging.error(err)
             sys.exit(1)
         finally:
