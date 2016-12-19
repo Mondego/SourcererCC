@@ -316,6 +316,3 @@ if __name__=='__main__':
     #print db.get_max_project_id()
     db.close()
 
-
-
-# 0ee32c85c7df3fe7aa3c858478b0555c | 306 | 8 | 4 | 1 | 5 | 5 | 317011874e03e4f77ad44625095103d9

@@ -13,14 +13,14 @@ def import_tokenizer_output(db, output_path, logging):
     try:
         logging.info('## Warming up token values')
         token_info = {}
-        #for file in os.listdir(files_tokens_path):
-        #    if file.endswith('.tokens'):
-        #        file = os.path.join(files_tokens_path,file)
-        #        logging.info('Getting info from '+file)
-        #        with open(file, 'r') as csvfile:
-        #            for line in csvfile:
-        #                left = line.split('@#@')[0].split(',')
-        #                token_info[left[1]] = [left[2],left[3],left[4]]
+        for file in os.listdir(files_tokens_path):
+            if file.endswith('.tokens'):
+                file = os.path.join(files_tokens_path,file)
+                logging.info('Getting info from '+file)
+                with open(file, 'r') as csvfile:
+                    for line in csvfile:
+                        left = line.split('@#@')[0].split(',')
+                        token_info[left[1]] = [left[2],left[3],left[4]]
 
         logging.info('## Import into database')
 
@@ -53,51 +53,51 @@ def import_tokenizer_output(db, output_path, logging):
                                 logging.error('Problems parsing project: '+str(entry_split))
 
 
-        #logging.info('## Importing files and stats')
-        ## Insert values into projects Database
-        #for file in os.listdir(files_stats_path):
-        #    if file.endswith('.stats'):
-        #        file = os.path.join(files_stats_path,file)
-        #        logging.info('Importing from '+file)
-        #        with open(file, 'r') as csvfile:
-        #            for entry in csvfile:
-        #                entry_split = (entry[:-1]).split(',')
-        #                if len(entry_split) != 9: # Something went wrong with parsing
-        #                    logging.warning('Problematic file string: '+str(entry_split))
-#
-        #                    proj_id = entry_split[0]
-        #                    del entry_split[0]
-        #                    file_id = entry_split[0]
-        #                    del entry_split[0]
-#
-        #                    sloc    = entry_split[-1:][0]
-        #                    del entry_split[-1:]
-        #                    loc   = entry_split[-1:][0]
-        #                    del entry_split[-1:]
-        #                    lines  = entry_split[-1:][0]
-        #                    del entry_split[-1:]
-        #                    bytess = entry_split[-1:][0]
-        #                    del entry_split[-1:]
-        #                    file_hash = entry_split[-1:][0]
-        #                    file_hash = file_hash[1:-1]
-        #                    del entry_split[-1:]
-#
-        #                    if (len(entry_split) % 2 != 0):
-        #                        logging.error('Problems parsing file: '+str(entry_split))
-        #                    else:
-        #                        path = ','.join(entry_split[:len(entry_split)/2])
-        #                        path = path[1:-1]
-        #                        url  = ','.join(entry_split[len(entry_split)/2:])
-        #                        url = url[1:-1]
-#
-        #                        logging.warning('String partitioned into:'+file_id+'|'+proj_id+path+'|'+url+'|'+file_hash+'|'+bytess+'|'+lines+'|'+loc+'|'+sloc)
-#
-        #                        logging.warning('Previous warning was solved')
-        #                        db.insert_file(file_id,proj_id,path,url,file_hash)
-        #                        db.insert_stats_ignore_repetition( file_hash, bytess, lines, loc, sloc, token_info[file_id][0], token_info[file_id][1], token_info[file_id][2] )
-        #                else:
-        #                    db.insert_file(entry_split[1],entry_split[0],entry_split[2][1:-1],entry_split[3][1:-1],entry_split[4])
-        #                    db.insert_stats_ignore_repetition( entry_split[4], entry_split[5], entry_split[6], entry_split[7], entry_split[8], token_info[entry_split[1]][0], token_info[entry_split[1]][1], token_info[entry_split[1]][2] )
+        logging.info('## Importing files and stats')
+        # Insert values into projects Database
+        for file in os.listdir(files_stats_path):
+            if file.endswith('.stats'):
+                file = os.path.join(files_stats_path,file)
+                logging.info('Importing from '+file)
+                with open(file, 'r') as csvfile:
+                    for entry in csvfile:
+                        entry_split = (entry[:-1]).split(',')
+                        if len(entry_split) != 9: # Something went wrong with parsing
+                            logging.warning('Problematic file string: '+str(entry_split))
+
+                            proj_id = entry_split[0]
+                            del entry_split[0]
+                            file_id = entry_split[0]
+                            del entry_split[0]
+
+                            sloc    = entry_split[-1:][0]
+                            del entry_split[-1:]
+                            loc   = entry_split[-1:][0]
+                            del entry_split[-1:]
+                            lines  = entry_split[-1:][0]
+                            del entry_split[-1:]
+                            bytess = entry_split[-1:][0]
+                            del entry_split[-1:]
+                            file_hash = entry_split[-1:][0]
+                            file_hash = file_hash[1:-1]
+                            del entry_split[-1:]
+
+                            if (len(entry_split) % 2 != 0):
+                                logging.error('Problems parsing file: '+str(entry_split))
+                            else:
+                                path = ','.join(entry_split[:len(entry_split)/2])
+                                path = path[1:-1]
+                                url  = ','.join(entry_split[len(entry_split)/2:])
+                                url = url[1:-1]
+
+                                logging.warning('String partitioned into:'+file_id+'|'+proj_id+path+'|'+url+'|'+file_hash+'|'+bytess+'|'+lines+'|'+loc+'|'+sloc)
+
+                                logging.warning('Previous warning was solved')
+                                db.insert_file(file_id,proj_id,path,url,file_hash)
+                                db.insert_stats_ignore_repetition( file_hash, bytess, lines, loc, sloc, token_info[file_id][0], token_info[file_id][1], token_info[file_id][2] )
+                        else:
+                            db.insert_file(entry_split[1],entry_split[0],entry_split[2][1:-1],entry_split[3][1:-1],entry_split[4])
+                            db.insert_stats_ignore_repetition( entry_split[4], entry_split[5], entry_split[6], entry_split[7], entry_split[8], token_info[entry_split[1]][0], token_info[entry_split[1]][1], token_info[entry_split[1]][2] )
 
     except Exception as e:
         logging.error('Error accessing Database')
