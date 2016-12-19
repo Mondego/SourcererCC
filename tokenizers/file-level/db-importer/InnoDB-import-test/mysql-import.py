@@ -11,6 +11,35 @@ def import_tokenizer_output(db, output_path, logging):
     files_tokens_path     = os.path.join(output_path,'files_tokens')
 
     try:
+
+        logging.info('## Importing projects')
+        # Insert values into projects Database
+        for file in os.listdir(bookkeeping_file_path):
+            if file.endswith('.projs'):
+                file = os.path.join(bookkeeping_file_path,file)
+                logging.info('Importing from '+file)
+                with open(file, 'r') as csvfile:
+                    for line in csvfile:
+                        entry_split = (line[:-1]).split(',')
+
+                        proj_id = entry_split[0]
+                        del entry_split[0]
+
+                        if(len(entry_split) == 2):
+                            db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
+                        else:
+                            if (len(entry_split) % 2 != 0):
+                                logging.warning('Problems parsing project: '+str(entry_split))
+                                path = ','.join(entry_split[:len(entry_split)/2])
+                                path = path[1:-1]
+                                url  = ','.join(entry_split[len(entry_split)/2:])
+                                url = url[1:-1]
+                                logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
+                                logging.warning('Previous warning was solved')
+                                db.insert_project(proj_id,path,url)
+                            else:
+                                logging.error('Problems parsing project: '+str(entry_split))
+
         logging.info('## Warming up token values')
         token_info = {}
         for file in os.listdir(files_tokens_path):
@@ -69,35 +98,6 @@ def import_tokenizer_output(db, output_path, logging):
                         else:
                             db.insert_file(entry_split[1],entry_split[0],entry_split[2][1:-1],entry_split[3][1:-1],entry_split[4][1:-1])
                             db.insert_stats_ignore_repetition( entry_split[4][1:-1], entry_split[5], entry_split[6], entry_split[7], entry_split[8], token_info[entry_split[1]][0], token_info[entry_split[1]][1], token_info[entry_split[1]][2] )
-
-        logging.info('## Importing projects')
-        # Insert values into projects Database
-        for file in os.listdir(bookkeeping_file_path):
-            if file.endswith('.projs'):
-                file = os.path.join(bookkeeping_file_path,file)
-                logging.info('Importing from '+file)
-                with open(file, 'r') as csvfile:
-                    for line in csvfile:
-                        entry_split = (line[:-1]).split(',')
-
-                        proj_id = entry_split[0]
-                        del entry_split[0]
-
-                        if(len(entry_split) == 2):
-                            db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
-                        else:
-                            if (len(entry_split) % 2 != 0):
-                                logging.warning('Problems parsing project: '+str(entry_split))
-                                path = ','.join(entry_split[:len(entry_split)/2])
-                                path = path[1:-1]
-                                url  = ','.join(entry_split[len(entry_split)/2:])
-                                url = url[1:-1]
-                                logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
-                                logging.warning('Previous warning was solved')
-                                db.insert_project(proj_id,path,url)
-                            else:
-                                logging.error('Problems parsing project: '+str(entry_split))
-
 
     except Exception as e:
         logging.error('Error accessing Database')
