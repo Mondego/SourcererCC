@@ -8,19 +8,19 @@ DB_MAX_STRING_SIZE = 4000
 
 table1 = """ CREATE TABLE IF NOT EXISTS `projects` (
                projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-               projectPath VARCHAR(%s)            NOT NULL,
-               projectUrl  VARCHAR(%s)            NOT NULL
-               ) ENGINE = MYISAM; """ % (DB_MAX_STRING_SIZE,DB_MAX_STRING_SIZE)
+               projectPath VARCHAR(%s)            NULL,
+               projectUrl  VARCHAR(%s)            NULL
+               ) Engine=MyISAM; """ % (DB_MAX_STRING_SIZE,DB_MAX_STRING_SIZE)
 
 table2 = """CREATE TABLE IF NOT EXISTS `files` (
                fileId       BIGINT(6)     UNSIGNED PRIMARY KEY AUTO_INCREMENT,
                projectId    INT(6)        UNSIGNED NOT NULL,
-               relativePath VARCHAR(%s)            NOT NULL,
-               relativeUrl  VARCHAR(%s)            NOT NULL,
+               relativePath VARCHAR(%s)            NULL,
+               relativeUrl  VARCHAR(%s)            NULL,
                fileHash     CHAR(32)               NOT NULL,
                INDEX (projectId),
                INDEX (fileHash)
-               ) ENGINE = MYISAM;""" % (DB_MAX_STRING_SIZE,DB_MAX_STRING_SIZE)
+               ) Engine=MyISAM;""" % (DB_MAX_STRING_SIZE,DB_MAX_STRING_SIZE)
 
 table3 = """CREATE TABLE IF NOT EXISTS `stats` (
                fileHash     CHAR(32)        PRIMARY KEY,
@@ -32,7 +32,7 @@ table3 = """CREATE TABLE IF NOT EXISTS `stats` (
                uniqueTokens INT(6) UNSIGNED NOT NULL,
                tokenHash    CHAR(32)        NOT NULL,
                INDEX (tokenHash)
-               ) ENGINE = MYISAM;"""
+               ) Engine=MyISAM;"""
 
 table4 = """CREATE TABLE IF NOT EXISTS `CCPairs` (
                projectId1 INT(6) NOT NULL,
@@ -44,7 +44,7 @@ table4 = """CREATE TABLE IF NOT EXISTS `CCPairs` (
                INDEX (fileId1),
                INDEX (projectId2),
                INDEX (fileId2)
-               ) ENGINE = MYISAM;"""
+               ) Engine=MyISAM;"""
 
 table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
                id                  INT(6)       UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -64,7 +64,7 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
                INDEX(hostAffectedFiles),
                INDEX(hostTotalFiles),
                INDEX(hostAffectedPercent)
-               ) ENGINE = MYISAM;"""
+               ) Engine=MyISAM;"""
 
 add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
 add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (%s, %s, %s);"""
@@ -72,7 +72,6 @@ add_files         = """INSERT INTO files (fileId,projectId,relativePath,relative
 add_stats_ignore_repetition = """INSERT IGNORE INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 add_stats_and_check_tokenHash_uniqueness = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 add_CCPairs       = """INSERT INTO CCPairs (projectId1,fileId1,projectId2,fileId2) VALUES (%s, %s, %s, %s);"""
-
 check_fileHash    = """SELECT fileHash FROM stats WHERE fileHash = '%s';"""
 project_exists    = """SELECT projectPath FROM projects WHERE projectPath = '%s';"""
 
@@ -88,11 +87,11 @@ class DB:
 
         try:
             ## All cursors will be buffered by default
-            self.connection = mysql.connector.connect(user=self.DB_user,password=self.DB_pass,host='localhost',buffered=True)
+            self.connection = mysql.connector.connect(user=self.DB_user,password=self.DB_pass,host='localhost')
             
             #Causes a commit operation after each SQL statement.
             #Carefull setting autocommit to True, but it's appropriate for MyISAM, where transactions are not applicable.
-            self.autocommit = True
+            #self.autocommit = True
 
             self.connection.database = DB_name
         except mysql.connector.Error as err:
@@ -320,4 +319,3 @@ if __name__=='__main__':
 
 
 # 0ee32c85c7df3fe7aa3c858478b0555c | 306 | 8 | 4 | 1 | 5 | 5 | 317011874e03e4f77ad44625095103d9
-
