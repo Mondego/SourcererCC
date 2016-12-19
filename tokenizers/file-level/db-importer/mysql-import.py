@@ -93,17 +93,17 @@ def import_tokenizer_output(db, output_path, logging):
 
     try:
         logging.info('## Warming up token values')
-        #token_info = {}
-        #for file in os.listdir(files_tokens_path):
-        #    if file.endswith('.tokens'):
-        #        file = os.path.join(files_tokens_path,file)
-        #        logging.info('Getting info from '+file)
-        #        with open(file, 'r') as csvfile:
-        #            for line in csvfile:
-        #                left = line.split('@#@')[0].split(',')
-        #                token_info[left[1]] = [left[2],left[3],left[4]]
+        token_info = {}
+        for file in os.listdir(files_tokens_path):
+            if file.endswith('.tokens'):
+                file = os.path.join(files_tokens_path,file)
+                logging.info('Getting info from '+file)
+                with open(file, 'r') as csvfile:
+                    for line in csvfile:
+                        left = line.split('@#@')[0].split(',')
+                        token_info[left[1]] = [left[2],left[3],left[4]]
 
-        #logging.info('## Import into database')
+        logging.info('## Import into database')
 
         logging.info('## Importing projects')
         # Insert values into projects Database
@@ -114,8 +114,6 @@ def import_tokenizer_output(db, output_path, logging):
                 with open(file, 'r') as csvfile:
                     for line in csvfile:
                         entry_split = (line[:-1]).split(',')
-
-                        print entry_split
 
                         proj_id = entry_split[0]
                         del entry_split[0]
@@ -208,8 +206,8 @@ def import_pairs(db, pairs_path):
         sys.exit(1)
 
 if __name__ == "__main__":
-    user  = 'sourcerer'
-    passw = 'sourcerer4us'
+    user  = 'user'
+    passw = 'pass'
 
     log_path = 'LOG-db-importer.log'
 
