@@ -224,8 +224,10 @@ class DB:
             self.files = []
 
     def flush_files_and_stats(self):
-        self.insert_file(None, None, None, None, None, flush = True)
-        self.insert_stats_ignore_repetition(None, None, None, None, None, None, None, None, flush = True)
+        if len(self.files) > 0:
+            self.insert_file(None, None, None, None, None, flush = True)
+        if len(self.stats) > 0:
+            self.insert_stats_ignore_repetition(None, None, None, None, None, None, None, None, flush = True)
 
     def get_max_project_id(self):
         self.check_connection()
