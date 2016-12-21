@@ -43,6 +43,7 @@ def import_tokenizer_output(db, output_path, logging):
 
                         db.insert_file(file_id, proj_id, path, url, file_hash)
                         db.insert_stats_ignore_repetition(file_hash, bytess, lines, loc, sloc, token_info[file_id][0], token_info[file_id][1], token_info[file_id][2])
+        db.flush_files_and_stats()
 
         logging.info('## Importing projects')
         # Insert projects 

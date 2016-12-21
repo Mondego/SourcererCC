@@ -5,6 +5,8 @@ import logging
 import string
 
 DB_MAX_STRING_SIZE = 4000
+FILES_BUFFER_SIZE = 1000
+STATS_BUFFER_SIZE = 1000
 
 table1 = """ CREATE TABLE IF NOT EXISTS `projects` (
                projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -68,8 +70,10 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
 
 add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
 add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (%s, %s, %s);"""
-add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES (%s, %s, %s, %s, %s);"""
-add_stats_ignore_repetition = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
+add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES %s ;"""
+files_list        = "('%s', '%s', '%s', '%s', '%s')"
+add_stats_ignore_repetition = """INSERT IGNORE INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES %s ;"""
+stats_list        = "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
 add_stats_and_check_tokenHash_uniqueness = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 add_CCPairs       = """INSERT INTO CCPairs (projectId1,fileId1,projectId2,fileId2) VALUES (%s, %s, %s, %s);"""
 check_fileHash    = """SELECT fileHash FROM stats WHERE fileHash = '%s';"""
@@ -84,6 +88,9 @@ class DB:
         self.DB_name = DB_name
         self.DB_pass = DB_pass
         self.logging = logging
+
+        self.files = []
+        self.stats = []
 
         try:
             ## All cursors will be buffered by default
@@ -165,12 +172,19 @@ class DB:
         finally:
             cursor.close()
 
-    def insert_stats_ignore_repetition(self, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash):
+    def insert_stats_ignore_repetition(self, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, flush = False):
+        if not flush:
+            self.stats.append( stats_list % (fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash) )
+            if len(self.stats) < STATS_BUFFER_SIZE:
+                return
+
+        slist = ','.join(self.stats)
+
         self.check_connection()
         cursor = self.connection.cursor()
         try:
             try:
-                results = cursor.execute(add_stats_ignore_repetition, (fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash))
+                results = cursor.execute(add_stats_ignore_repetition % (slist))
             except mysql.connector.Error as err:
                 if err.errno == errorcode.ER_DUP_ENTRY:
                     # If the error is because the entry is a duplicate we wont't care about it
@@ -183,15 +197,23 @@ class DB:
             sys.exit(1)
         finally:
             cursor.close()
+            self.stats = []
 
-    def insert_file(self, file_id, proj_id, file_path, file_url, file_hash):
+    def insert_file(self, file_id, proj_id, file_path, file_url, file_hash, flush = False):
+        if not flush:
+            if file_url is None:
+                file_url = 'NONE'
+            self.files.append( files_list % (file_id, proj_id, self.sanitize_string(file_path), self.sanitize_string(file_url), file_hash) )
+            if len(self.files) < FILES_BUFFER_SIZE:
+                return
+
+        # Prepare the complete list
+        flist = ','.join(self.files)
+
         self.check_connection()
         cursor = self.connection.cursor()
         try:
-            if file_url is None:
-                cursor.execute(add_files, (file_id, proj_id, self.sanitize_string(file_path), 'NULL', file_hash))
-            else:
-                cursor.execute(add_files, (file_id, proj_id, self.sanitize_string(file_path), self.sanitize_string(file_url), file_hash))
+            cursor.execute(add_files % (flist))
             return cursor.lastrowid
         except Exception as err:
             self.logging.error('Failed to insert file %s' % (file_path))
@@ -199,6 +221,11 @@ class DB:
             sys.exit(1)
         finally:
             cursor.close()
+            self.files = []
+
+    def flush_files_and_stats(self):
+        self.insert_file(None, None, None, None, None, flush = True)
+        self.insert_stats_ignore_repetition(None, None, None, None, None, None, None, None, flush = True)
 
     def get_max_project_id(self):
         self.check_connection()
