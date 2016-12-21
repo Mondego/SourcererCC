@@ -3,6 +3,7 @@
 import sys, os, csv
 from db import DB
 import logging
+import urllib
 
 pattern = r'\"(.+?)\"'
 
@@ -56,8 +57,8 @@ def import_tokenizer_output(db, output_path, logging):
 
                                 logging.warning('String partitioned into:'+file_id+'|'+proj_id+path+'|'+url+'|'+file_hash+'|'+bytess+'|'+lines+'|'+loc+'|'+sloc)
 
-                        path = path.strip('"')
-                        url = url.strip('"')
+                        path = urllib.quote(path.strip('"'))
+                        url = urllib.quote(url.strip('"'))
                         file_hash = file_hash.strip('"')
 
                         db.insert_file(file_id, proj_id, path, url, file_hash)
