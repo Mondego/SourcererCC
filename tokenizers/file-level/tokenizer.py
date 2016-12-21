@@ -2,7 +2,7 @@ import logging
 import multiprocessing as mp
 from multiprocessing import Process, Value, Queue
 import re
-import os
+import os, platform
 import collections
 import tarfile
 import sys
@@ -404,6 +404,9 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
                  process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 def process_projects(process_num, list_projects, base_file_id, global_queue, project_format):
+    if platform.system() =='Windows':
+        read_config()
+
     # Logging code
     FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
