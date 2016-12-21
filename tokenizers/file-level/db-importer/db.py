@@ -5,8 +5,10 @@ import logging
 import string
 
 DB_MAX_STRING_SIZE = 4000
-FILES_BUFFER_SIZE = 1000
-STATS_BUFFER_SIZE = 1000
+# The values below depend on max_allowed_packet in the mysql config
+# For buffer sizes of 100,000, make max_allowed_packet = 16G
+FILES_BUFFER_SIZE = 100000
+STATS_BUFFER_SIZE = 100000
 
 table1 = """ CREATE TABLE IF NOT EXISTS `projects` (
                projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -91,6 +93,7 @@ class DB:
 
         self.files = []
         self.stats = []
+        self.file_count = 0
 
         try:
             ## All cursors will be buffered by default
@@ -178,8 +181,6 @@ class DB:
             if len(self.stats) < STATS_BUFFER_SIZE:
                 return
 
-        self.logging.info("Inserting %s stats..." % (len(self.stats)))
-
         slist = ','.join(self.stats)
 
         self.check_connection()
@@ -209,8 +210,6 @@ class DB:
             if len(self.files) < FILES_BUFFER_SIZE:
                 return
 
-        self.logging.info("Inserting %s files..." % (len(self.files)))
-
         # Prepare the complete list
         flist = ','.join(self.files)
 
@@ -224,8 +223,11 @@ class DB:
             self.logging.error(err)
             sys.exit(1)
         finally:
+            self.file_count += len(self.files)
+            self.logging.info("Inserted %s files. Total: %s." % (len(self.files), self.file_count))
             cursor.close()
             self.files = []
+
 
     def flush_files_and_stats(self):
         if len(self.files) > 0:
