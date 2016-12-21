@@ -178,6 +178,8 @@ class DB:
             if len(self.stats) < STATS_BUFFER_SIZE:
                 return
 
+        self.logging.info("Inserting %s stats..." % (len(self.stats)))
+
         slist = ','.join(self.stats)
 
         self.check_connection()
@@ -206,6 +208,8 @@ class DB:
             self.files.append( files_list % (file_id, proj_id, self.sanitize_string(file_path), self.sanitize_string(file_url), file_hash) )
             if len(self.files) < FILES_BUFFER_SIZE:
                 return
+
+        self.logging.info("Inserting %s files..." % (len(self.files)))
 
         # Prepare the complete list
         flist = ','.join(self.files)

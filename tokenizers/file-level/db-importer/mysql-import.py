@@ -4,6 +4,8 @@ import sys, os, csv
 from db import DB
 import logging
 
+pattern = r'\"(.+?)\"'
+
 def import_tokenizer_output(db, output_path, logging):
     bookkeeping_file_path = os.path.join(output_path,'bookkeeping_projs')
     files_stats_path      = os.path.join(output_path,'files_stats')
@@ -32,17 +34,35 @@ def import_tokenizer_output(db, output_path, logging):
                 with open(file, 'r') as csvfile:
                     for entry in csvfile:
                         entry_split = (entry[:-1]).split(',')
-                        if len(entry_split) != 9: # Something went wrong with parsing
-                            logging.warning('Problematic file string: '+str(entry_split))
-                            continue
+                        if len(entry_split) == 9: 
+                            proj_id, file_id, path, url, file_hash, bytess, lines, loc, sloc = entry_split
 
-                        proj_id, file_id, path, url, file_hash, bytess, lines, loc, sloc = entry_split
+                        else: # Something went wrong with parsing
+                            proj_id = entry_split[0]; del entry_split[0]
+                            file_id = entry_split[0]; del entry_split[0]
+
+                            sloc      = entry_split[-1:][0]; del entry_split[-1:]
+                            loc       = entry_split[-1:][0]; del entry_split[-1:]
+                            lines     = entry_split[-1:][0]; del entry_split[-1:]
+                            bytess    = entry_split[-1:][0]; del entry_split[-1:]
+                            file_hash = entry_split[-1:][0]; del entry_split[-1:]
+
+                            if (len(entry_split) % 2 != 0):
+                                logging.error('Problems parsing file: '+str(entry_split))
+                                continue
+                            else:
+                                path = ','.join(entry_split[:len(entry_split)/2])
+                                url  = ','.join(entry_split[len(entry_split)/2:])
+
+                                logging.warning('String partitioned into:'+file_id+'|'+proj_id+path+'|'+url+'|'+file_hash+'|'+bytess+'|'+lines+'|'+loc+'|'+sloc)
+
                         path = path.strip('"')
                         url = url.strip('"')
                         file_hash = file_hash.strip('"')
 
                         db.insert_file(file_id, proj_id, path, url, file_hash)
                         db.insert_stats_ignore_repetition(file_hash, bytess, lines, loc, sloc, token_info[file_id][0], token_info[file_id][1], token_info[file_id][2])
+
         db.flush_files_and_stats()
 
         logging.info('## Importing projects')
