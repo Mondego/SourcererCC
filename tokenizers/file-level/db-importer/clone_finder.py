@@ -7,22 +7,30 @@ from db import DB
 import logging
 import multiprocessing as mp
 from multiprocessing import Process, Value
+import traceback
 
 TOKEN_THRESHOLD = 1
 N_PROCESSES = 2
 
-def getTokenHashClones(fileId,tokenHash,db_object):
-    result = set()
+def findAllTokenHashClones(files_hashes, files_clones, db_object):
+    hashes = files_hashes.values()
+    thashes = []
+    for th in hashes:
+        thashes.append(th['thash'])
+
     try:
-        query = "SELECT fileId FROM files as f join stats as s on f.fileHash=s.fileHash WHERE tokenHash='%s';" % (tokenHash)
+        query = """SELECT fileId, projectId, f.fileHash, tokenHash FROM files as f 
+                   JOIN stats as s ON f.fileHash=s.fileHash 
+                   WHERE tokenHash in (%s);""" % ("'" + "','".join(thashes) + "'")
         res = db_object.execute(query);
-        for (file_id,) in res:
-            result.add(str(file_id))
-        result.remove(fileId)
-        return result
+        for f in files_clones.keys():
+            thash = files_hashes[f]['thash']
+            for (file_id, projectId, fileHash, tokenHash, ) in res:
+                if str(file_id) != f and tokenHash == thash:
+                    files_clones[f].add((str(file_id), projectId))
 
     except Exception as e:
-        print 'Error on getTokenHashClones'
+        print 'Error on findAllTokenHashClones'
         print e
         sys.exit(1)
 
@@ -30,32 +38,35 @@ def find_clones_for_project(project_id, db_object, debug):
     result = []
 
     try:
-        files_clones = {}
-        files_hashes = {}
+        files_clones = {} # {'file_id' : set(('file_id', project_id),...))
+        files_hashes = {} # {'file_id' : {'thash': thash, 'fhash': fhash}}
 
-        query = "SELECT fileId,fileHash FROM files WHERE projectId=%s;" % (project_id)
+        query = """SELECT fileId, f.fileHash, tokenHash, totalTokens FROM files as f 
+                   JOIN stats as s ON f.fileHash=s.fileHash 
+                   WHERE projectId=%s;"""  % (project_id)
         res = db_object.execute(query);
-        for (file_id,fileHash,) in res:
-            files_clones.setdefault(str(file_id), set())
-            files_hashes.setdefault(str(file_id), fileHash)
+        for (file_id, fileHash, tokenHash, totalTokens, ) in res:
+            if (totalTokens > TOKEN_THRESHOLD):
+                files_clones.setdefault(str(file_id), set())
+                files_hashes.setdefault(str(file_id), {'fhash': fileHash, 'thash': tokenHash})
 
-        total_files = len(files_clones.items())
+        total_files = len(res)
         if debug == 'all':
             logging.debug('## Number of files in project %s: %s', project_id, len(files_clones))
 
-        # Find CC clones
-        for k, v in files_clones.iteritems():
-            query = "SELECT pairs.fileId1,fls.fileHash FROM CCPairs as pairs JOIN files as fls ON pairs.fileId1=%s AND pairs.fileId2=fls.fileId;" % (k)
-            res = db_object.execute(query);
-            for (fileId1,fileHash, ) in res:
-                files_clones[k].add(str(fileId1))
-                files_hashes.setdefault(str(fileId1), fileHash)
+        # # Find CC clones
+        # for k, v in files_clones.iteritems():
+        #     query = "SELECT pairs.fileId1,fls.fileHash FROM CCPairs as pairs JOIN files as fls ON pairs.fileId1=%s AND pairs.fileId2=fls.fileId;" % (k)
+        #     res = db_object.execute(query);
+        #     for (fileId1,fileHash, ) in res:
+        #         files_clones[k].add(str(fileId1))
+        #         files_hashes.setdefault(str(fileId1), fileHash)
 
-            query = "SELECT pairs.fileId2,fls.fileHash FROM CCPairs as pairs JOIN files as fls ON pairs.fileId2=%s AND pairs.fileId1=fls.fileId;" % (k)
-            res = db_object.execute(query);
-            for (fileId2,fileHash, ) in res:
-                files_clones[k].add(str(fileId2))
-                files_hashes.setdefault(str(fileId2), fileHash)
+        #     query = "SELECT pairs.fileId2,fls.fileHash FROM CCPairs as pairs JOIN files as fls ON pairs.fileId2=%s AND pairs.fileId1=fls.fileId;" % (k)
+        #     res = db_object.execute(query);
+        #     for (fileId2,fileHash, ) in res:
+        #         files_clones[k].add(str(fileId2))
+        #         files_hashes.setdefault(str(fileId2), fileHash)
 
         if debug == 'all':
             logging.debug('## After round 1')
@@ -65,16 +76,6 @@ def find_clones_for_project(project_id, db_object, debug):
             #for k, v in files_hashes.iteritems():
             #    print k,'-',v
 
-        # File hashes to token-hashes and filter small files
-        for k, v in files_hashes.iteritems():
-            query = "SELECT tokenHash,totalTokens FROM stats WHERE fileHash='%s';" % (files_hashes[k])
-            res = db_object.execute(query)
-            for (tokenHash,totalTokens ) in res:
-                if totalTokens >= TOKEN_THRESHOLD:
-                    files_hashes[k] = tokenHash
-                else:
-                    files_hashes[k] = None
-
         #if debug:
         #    print '## After round 2'
         #    for k, v in files_clones.iteritems():
@@ -83,92 +84,48 @@ def find_clones_for_project(project_id, db_object, debug):
         #        print k,'-',v
 
         # Find token-hash clones
-        for k, v in files_clones.iteritems():
-            set_files = v
-            for CCClone in v:
-               #print CCClone,'-',getTokenHashClones(CCClone,files_hashes[CCClone],db)
-                if files_hashes[CCClone] is not None:
-                    set_files = set_files | getTokenHashClones(CCClone,files_hashes[CCClone],db_object)
-            
-            if files_hashes[k] is not None:
-                set_files = set_files | getTokenHashClones(k,files_hashes[k],db_object)
-
-            files_clones[k] = set_files
+        findAllTokenHashClones(files_hashes, files_clones, db_object)
 
         #if debug:
         #    print '## After round 3'
         #    for k, v in files_clones.iteritems():
         #        print k,'-',v
 
-        # Transform fileId into projectId, so we will know for
-        #   each file k in which project it is cloned
-        percentage_cloning_counter = {} # This list might have repetition of projectId,
-                                   # but will have at most one projectId per file
-
         percentage_host_projects_counter = {}
 
-        all_files_temp_set = set()
-        # From file ids to project ids
-        for k, v in files_clones.iteritems():
-            all_files_temp_set |= set(v)
+        clone_set = set()
+        for fid, clones in files_clones.iteritems():
+            for clone in clones:
+                clone_set.add(clone)
 
-            if len(v) > 0:
-                query = "SELECT projectId FROM files WHERE fileId IN (%s);" % ( ','.join(v) )
-                res = db_object.execute(query)
-                aux = set()
-                for (projectId, ) in res:
-                    aux.add(str(projectId))
+        for clone in clone_set:
+            projectId = clone[1]
+            if percentage_host_projects_counter.has_key(projectId):
+                percentage_host_projects_counter[projectId] += 1
+            else:
+                percentage_host_projects_counter[projectId] = 1
 
-                # Counter on aux
-                for proj in aux:
-                    if percentage_cloning_counter.has_key(proj):
-                        percentage_cloning_counter[proj] = percentage_cloning_counter[proj] + 1
-                    else:
-                        percentage_cloning_counter[proj] = 1
-
-        if len(all_files_temp_set) > 0:
-            query = "SELECT projectId FROM files WHERE fileId IN (%s);" % ( ','.join(all_files_temp_set) )
-            res = db_object.execute(query)
-            for (projectId, ) in res:
-                projectId = str(projectId)
-                if percentage_host_projects_counter.has_key(projectId):
-                    percentage_host_projects_counter[projectId] = percentage_host_projects_counter[projectId] + 1
-                else:
-                    percentage_host_projects_counter[projectId] = 1
-
-        for k, v in percentage_cloning_counter.iteritems():
+        for k, v in percentage_host_projects_counter.iteritems():
             q = "SELECT COUNT(*) FROM files WHERE projectId = %s;" % (k)
             [(total_files_host, )] = db_object.execute(q)
 
             percent_cloning = float(v*100)/total_files
-            percent_host = float(percentage_host_projects_counter[k]*100)/total_files_host
-
+            percent_host = float(v*100)/total_files_host
+                
             if debug == 'all' or debug == 'final':
                 if True:#(percent_cloning > 99) and (str(project_id) != k):
                     print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
 
             else:
-                #query = "INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);" % (project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host)))
-                #db_object.execute(query)
-                db_object.insert_projectClones(project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host)))
-                #cursor.execute("""INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);""",
-                #           (project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host))) )
+                db_object.insert_projectClones(project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), 
+                                               k, v, total_files_host, 
+                                               float("{0:.2f}".format(percent_host)))
 
-        #    
-        #if debug:
-        #    query = "SELECT projectUrl FROM projects WHERE projectId IN ("+str(project_id)+","+str(k)+");"
-        #    cursor.execute(query)
-        #    for (projectUrl, ) in cursor:
-        #        print projectUrl
-
-        #if debug:
-        #    print '## After round 3'
-        #    for k, v in files_clones.iteritems():
-        #        print k,'-',v
 
     except Exception as e:
         print 'Error on find_clones_for_project'
         print e
+        traceback.print_exc()
         sys.exit(1)
 
 def start_process(pnum, input_process, DB_user, DB_name, DB_pass):
@@ -248,17 +205,7 @@ if __name__ == "__main__":
         res = db_object.execute("SELECT projectId FROM projects;");
         for (projectId, ) in res:
             project_ids.append(projectId)
-            #find_clones_for_project(projectId,db_object,'') # last field is for debug, and can be 'all','final' or '' (empty)
             pair_number += 1
-
-            #if pair_number%commit_interval == 0:
-            #    print '    ',pair_number,'projects calculated and info commited in',datetime.datetime.now() - partial_time
-            #    partial_time = datetime.datetime.now()
-
-        #print '    all ',pair_number,'projects calculated and info commited in',datetime.datetime.now() - init_time
-
-        #find_clones_for_project(42,db_object,True)
-
 
         project_ids = [ project_ids[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
 
