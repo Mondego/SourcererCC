@@ -1,7 +1,6 @@
 #Usage $python this-script.py
 
 import sys, os
-import MySQLdb
 import collections
 import datetime
 from db import DB
@@ -10,7 +9,7 @@ import multiprocessing as mp
 from multiprocessing import Process, Value
 
 TOKEN_THRESHOLD = 1
-N_PROCESSES = 6
+N_PROCESSES = 2
 
 def getTokenHashClones(fileId,tokenHash,db_object):
     result = set()
@@ -42,7 +41,7 @@ def find_clones_for_project(project_id, db_object, debug):
 
         total_files = len(files_clones.items())
         if debug == 'all':
-            print '## Number of files in project',project_id,':',len(files_clones)
+            logging.debug('## Number of files in project %s: %s', project_id, len(files_clones))
 
         # Find CC clones
         for k, v in files_clones.iteritems():
@@ -59,10 +58,10 @@ def find_clones_for_project(project_id, db_object, debug):
                 files_hashes.setdefault(str(fileId2), fileHash)
 
         if debug == 'all':
-            print '## After round 1'
+            logging.debug('## After round 1')
             for k, v in files_clones.iteritems():
                 if len(v) > 0:
-                    print k,'-',v
+                    logging.debug('%s-%s', k, v)
             #for k, v in files_hashes.iteritems():
             #    print k,'-',v
 
@@ -147,6 +146,7 @@ def find_clones_for_project(project_id, db_object, debug):
             if debug == 'all' or debug == 'final':
                 if True:#(percent_cloning > 99) and (str(project_id) != k):
                     print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
+
             else:
                 #query = "INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);" % (project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), k, percentage_cloning_counter[k], total_files_host, float("{0:.2f}".format(percent_host)))
                 #db_object.execute(query)
@@ -171,11 +171,16 @@ def find_clones_for_project(project_id, db_object, debug):
         print e
         sys.exit(1)
 
-def start_process(input_process, DB_user, DB_name, DB_pass):
+def start_process(pnum, input_process, DB_user, DB_name, DB_pass):
+    FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
+    logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+
+    logging.info('Starting process %s', pnum)
     db_object = DB(DB_user, DB_name, DB_pass, logging)
 
     try:
-        for proj_id in input_process:
+        for projectId in input_process:
+            logging.debug('Processing project %s', projectId)
             find_clones_for_project(projectId,db_object,'') # last field is for debug, and can be 'all','final' or '' (empty)
 
     except Exception as e:
@@ -190,9 +195,13 @@ if __name__ == "__main__":
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
-    DB_name = sys.argv[1]
-    DB_user = 'pribeiro'
-    DB_pass = 'pass'
+    if len(sys.argv) < 4:
+        logging.error('Usage: mysql-import.py user passwd database')
+        sys.exit(1)
+
+    DB_user  = sys.argv[1]
+    DB_pass = sys.argv[2]
+    DB_name = sys.argv[3]
 
     db_object = DB(DB_user, DB_name, DB_pass, logging)
 
@@ -231,7 +240,7 @@ if __name__ == "__main__":
         init_time = datetime.datetime.now()
         partial_time = init_time
 
-        print '### Calculating and Importing project clones'
+        logging.info('### Calculating and Importing project clones')
 
         project_ids = []
 
@@ -249,20 +258,16 @@ if __name__ == "__main__":
 
         #find_clones_for_project(42,db_object,True)
 
+
         project_ids = [ project_ids[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
 
-        process_num = 0
-        for input_process in proj_paths_list:
+        processes = []
+        for process_num in xrange(N_PROCESSES):
+            p = Process(name='Process '+str(process_num), target=start_process, args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass,))
+            processes.append(p)
+            p.start()
 
-            # Skip empty sublists
-            if len(input_process) == 0:
-                continue
-
-            process_num += 1
-
-        p = Process(name='Process '+str(process_num), target=star_process, args=(input_process, ))
-        processes.append(p)
-        p.start()
+        [p.join() for p in processes]
 
     except Exception as e:
         print 'Error in clone_finder.__main__'

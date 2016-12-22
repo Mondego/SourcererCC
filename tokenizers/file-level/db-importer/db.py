@@ -329,7 +329,7 @@ class DB:
 
     def execute(self, query):
         self.check_connection()
-        cursor = self.connection.cursor()
+        cursor = self.connection.cursor(buffered=True)
         try:
             cursor.execute(query)
             if cursor.rowcount > 0:
