@@ -180,7 +180,8 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass):
 
     try:
         for projectId in input_process:
-            logging.debug('[%s]: Processing project %s', pnum, projectId)
+            if projectId % 500 == 0:
+                logging.debug('[%s]: Processing project %s', pnum, projectId)
             find_clones_for_project(projectId,db_object,'') # last field is for debug, and can be 'all','final' or '' (empty)
 
     except Exception as e:
