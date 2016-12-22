@@ -55,8 +55,7 @@ def find_clones_for_project(project_id, db_object, debug):
                 token_hashes[tokenHash].append(str(file_id))
 
         total_files = len(res)
-        if debug == 'all':
-            logging.debug('## Number of files in project %s: %s', project_id, len(files_clones))
+        #logging.debug('## Number of files in project %s: %s', project_id, total_files)
 
         # # Find CC clones
         # for k, v in files_clones.iteritems():
@@ -152,7 +151,6 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass):
             pcounter += 1
 
         db_object.flush_projectClones()
-
 
     except Exception as e:
         print 'Error in clone_finder.start_process'
