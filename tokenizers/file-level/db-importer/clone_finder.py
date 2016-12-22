@@ -109,21 +109,26 @@ def find_clones_for_project(project_id, db_object, debug):
             else:
                 percentage_host_projects_counter[projectId] = 1
 
-        for k, v in percentage_host_projects_counter.iteritems():
-            q = "SELECT COUNT(*) FROM files WHERE projectId = %s;" % (k)
-            [(total_files_host, )] = db_object.execute(q)
+        if len(percentage_host_projects_counter) > 0:
+            pkeys_str = [str(k) for k in percentage_host_projects_counter.keys()]
+            q = "SELECT projectId, COUNT(*) FROM files WHERE projectId in (%s) GROUP BY projectId;" % (','.join(pkeys_str))
+            project_file_counts = {}
+            res = db_object.execute(q)
+            for (project_id, total_files_host, ) in res:
+                project_file_counts[project_id] = total_files_host
 
-            percent_cloning = float(v*100)/total_files
-            percent_host = float(v*100)/total_files_host
+            for k, v in percentage_host_projects_counter.iteritems():
+                percent_cloning = float(v*100)/total_files
+                percent_host = float(v*100)/project_file_counts[k]
                 
-            if debug == 'all' or debug == 'final':
-                if True:#(percent_cloning > 99) and (str(project_id) != k):
-                    print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
+                if debug == 'all' or debug == 'final':
+                    if True:#(percent_cloning > 99) and (str(project_id) != k):
+                        print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
 
-            else:
-                db_object.insert_projectClones(project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), 
-                                               k, v, total_files_host, 
-                                               float("{0:.2f}".format(percent_host)))
+                else:
+                    db_object.insert_projectClones(project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), 
+                                                   k, v, total_files_host, 
+                                                   float("{0:.2f}".format(percent_host)))
 
     except Exception as e:
         print 'Error on find_clones_for_project'
