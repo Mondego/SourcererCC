@@ -12,7 +12,7 @@ import traceback
 TOKEN_THRESHOLD = 1
 N_PROCESSES = 2
 
-def findAllTokenHashClones(files_hashes, files_clones, db_object):
+def findAllTokenHashClones(files_hashes, token_hashes, files_clones, db_object):
     hashes = files_hashes.values()
     thashes = []
     for th in hashes:
@@ -23,10 +23,10 @@ def findAllTokenHashClones(files_hashes, files_clones, db_object):
                    JOIN stats as s ON f.fileHash=s.fileHash 
                    WHERE tokenHash in (%s);""" % ("'" + "','".join(thashes) + "'")
         res = db_object.execute(query);
-        for f in files_clones.keys():
-            thash = files_hashes[f]['thash']
-            for (file_id, projectId, fileHash, tokenHash, ) in res:
-                if str(file_id) != f and tokenHash == thash:
+        for (file_id, projectId, fileHash, tokenHash, ) in res:
+            pfiles = token_hashes[tokenHash]
+            for f in pfiles:
+                if str(file_id) != f:
                     files_clones[f].add((str(file_id), projectId))
 
     except Exception as e:
@@ -40,6 +40,7 @@ def find_clones_for_project(project_id, db_object, debug):
     try:
         files_clones = {} # {'file_id' : set(('file_id', project_id),...))
         files_hashes = {} # {'file_id' : {'thash': thash, 'fhash': fhash}}
+        token_hashes = {} # {token_hash : [file_id, file_id, ...]}, all files within this project 
 
         query = """SELECT fileId, f.fileHash, tokenHash, totalTokens FROM files as f 
                    JOIN stats as s ON f.fileHash=s.fileHash 
@@ -49,6 +50,9 @@ def find_clones_for_project(project_id, db_object, debug):
             if (totalTokens > TOKEN_THRESHOLD):
                 files_clones.setdefault(str(file_id), set())
                 files_hashes.setdefault(str(file_id), {'fhash': fileHash, 'thash': tokenHash})
+                if tokenHash not in token_hashes:
+                    token_hashes[tokenHash] = []
+                token_hashes[tokenHash].append(str(file_id))
 
         total_files = len(res)
         if debug == 'all':
@@ -84,7 +88,7 @@ def find_clones_for_project(project_id, db_object, debug):
         #        print k,'-',v
 
         # Find token-hash clones
-        findAllTokenHashClones(files_hashes, files_clones, db_object)
+        findAllTokenHashClones(files_hashes, token_hashes, files_clones, db_object)
 
         #if debug:
         #    print '## After round 3'
