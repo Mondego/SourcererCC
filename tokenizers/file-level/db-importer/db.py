@@ -9,6 +9,7 @@ DB_MAX_STRING_SIZE = 4000
 # For buffer sizes of 100,000, make max_allowed_packet = 16G
 FILES_BUFFER_SIZE = 100000
 STATS_BUFFER_SIZE = 100000
+PROJECT_CLONES_BUFFER_SIZE = 100000
 
 table1 = """ CREATE TABLE IF NOT EXISTS `projects` (
                projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -70,7 +71,8 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
                INDEX(hostAffectedPercent)
                ) Engine=MyISAM;"""
 
-add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
+add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES %s;"""
+clone_list        = "(%s, %s, %s, %s, %s, %s, %s, %s)"
 add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (%s, %s, %s);"""
 add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES %s ;"""
 files_list        = "('%s', '%s', '%s', '%s', '%s')"
@@ -94,6 +96,7 @@ class DB:
         self.files = []
         self.stats = []
         self.file_count = 0
+        self.clones = []
 
         try:
             ## All cursors will be buffered by default
@@ -146,11 +149,20 @@ class DB:
             self.logging.error(err)
             sys.exit(1)
 
-    def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent):
+    def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, 
+                             hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent, flush = False):
+        if not flush:
+            self.clones.append( clone_list % (cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, 
+                                               hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent) )
+            if len(self.clones) < PROJECT_CLONES_BUFFER_SIZE:
+                return
+
+        clist = ','.join(self.clones)
+
         self.check_connection()
         cursor = self.connection.cursor()
         try:
-            cursor.execute(add_projectClones, (cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent))
+            cursor.execute(add_projectClones % (clist))
             return cursor.lastrowid
         except Exception as err:
             self.logging.error('Failed to insert projectClone (clone %s, host %s)' % (cloneId, hostId))
@@ -158,6 +170,11 @@ class DB:
             sys.exit(1)
         finally:
             cursor.close()
+            self.clones = []
+
+    def flush_projectClones(self):
+        if len(self.clones) > 0:
+            self.insert_projectClones(None, None, None, None, None, None, None, None, flush = True)
 
     def insert_project(self, proj_id, projectPath, projectUrl):
         self.check_connection()

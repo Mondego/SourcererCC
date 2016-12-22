@@ -121,6 +121,7 @@ def find_clones_for_project(project_id, db_object, debug):
                                                k, v, total_files_host, 
                                                float("{0:.2f}".format(percent_host)))
 
+        db_object.flush_projectClones()
 
     except Exception as e:
         print 'Error on find_clones_for_project'
@@ -136,10 +137,12 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass):
     db_object = DB(DB_user, DB_name, DB_pass, logging)
 
     try:
+        pcounter =  0
         for projectId in input_process:
-            if projectId % 500 == 0:
+            if pcounter % 500 == 0:
                 logging.debug('[%s]: Processing project %s', pnum, projectId)
             find_clones_for_project(projectId,db_object,'') # last field is for debug, and can be 'all','final' or '' (empty)
+            pcounter += 1
 
     except Exception as e:
         print 'Error in clone_finder.start_process'
