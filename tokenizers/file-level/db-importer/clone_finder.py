@@ -14,7 +14,7 @@ N_PROCESSES = 2
 def getTokenHashClones(fileId,tokenHash,db_object):
     result = set()
     try:
-        query = "SELECT fileId FROM files WHERE fileHash IN (SELECT fileHash from stats WHERE tokenHash='%s');" % (tokenHash)
+        query = "SELECT fileId FROM files as f join stats as s on f.fileHash=s.fileHash WHERE tokenHash='%s';" % (tokenHash)
         res = db_object.execute(query);
         for (file_id,) in res:
             result.add(str(file_id))
