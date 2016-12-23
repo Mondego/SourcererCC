@@ -61,7 +61,7 @@ class Spliter(object):
     
     def find_base_x(self):
         # formula for S = x + x+.5x + x+2*.5x...x + (N-1)*.5x
-        self.base_x= 2*self.total_lines/((self.split_count+1)(self.split_count+2)/2 - 1)
+        self.base_x= 2*self.total_lines/((self.split_count+1)*(self.split_count+2)/2 - 1)
         print "base_x is ", self.base_x
         
 if __name__ == '__main__':
