@@ -182,7 +182,7 @@ public class SearchManager {
                     .parseBoolean(properties.getProperty("IS_SHARDING"));
 
         } catch (NumberFormatException e) {
-            logger.error(e.getMessage() + ", exiting now");
+            logger.error(e.getMessage() + ", exiting now",e);
             System.exit(1);
         }
         if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
