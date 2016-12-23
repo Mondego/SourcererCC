@@ -4,6 +4,7 @@ Created on Dec 22, 2016
 @author: vaibhavsaini
 '''
 import sys
+import math
 
 class Spliter(object):
     '''
@@ -23,7 +24,6 @@ class Spliter(object):
     def split(self):
         """
         splits the input file into split_count number of files. 
-        1st file will have x lines, next will have 2x, next will have 3x... 
         """
         count=0
         line_limit = self.base_x
@@ -40,7 +40,8 @@ class Spliter(object):
                         self.outfile.flush()
                         self.outfile.close()
                         file_count+=1
-                        line_limit =line_limit + line_limit
+                        count =0
+                        line_limit =line_limit + math.ceil(0.5*self.base_x)
                         print "line_limit is ", line_limit 
                         print "creating split ",file_count 
                         self.outfile = open("query_{part}.file".format(part=file_count),'w')
@@ -61,7 +62,8 @@ class Spliter(object):
         return i + 1
     
     def find_base_x(self):
-        self.base_x= 2*self.total_lines/(self.split_count*(1+self.split_count))
+        # formula for S = x + x+.5x + x+2*.5x...x + (N-1)*.5x
+        self.base_x= math.ceil(float(2*self.total_lines)/(float((self.split_count+1)*(self.split_count+2)/2) - 1))
         print "base_x is ", self.base_x
         
 if __name__ == '__main__':
