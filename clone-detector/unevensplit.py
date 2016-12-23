@@ -40,7 +40,7 @@ class Spliter(object):
                         self.outfile.close()
                         file_count+=1
                         count =0
-                        line_limit =line_limit + 0.5*self.base_x
+                        line_limit =line_limit + math.ceil(0.5*self.base_x)
                         print "line_limit is ", line_limit 
                         print "creating split ",file_count 
                         self.outfile = open("query_{part}.file".format(part=file_count),'w')
@@ -62,7 +62,7 @@ class Spliter(object):
     
     def find_base_x(self):
         # formula for S = x + x+.5x + x+2*.5x...x + (N-1)*.5x
-        self.base_x= 2*self.total_lines/((self.split_count+1)*(self.split_count+2)/2 - 1)
+        self.base_x= math.ceil(2*self.total_lines/((self.split_count+1)*(self.split_count+2)/2 - 1))
         print "base_x is ", self.base_x
         
 if __name__ == '__main__':
