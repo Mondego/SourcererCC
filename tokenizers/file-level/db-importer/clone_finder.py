@@ -109,8 +109,8 @@ def find_clones_for_project(project_id, db_object, debug):
             q = "SELECT projectId, COUNT(*) FROM files WHERE projectId in (%s) GROUP BY projectId;" % (','.join(pkeys_str))
             project_file_counts = {}
             res = db_object.execute(q)
-            for (project_id, total_files_host, ) in res:
-                project_file_counts[project_id] = total_files_host
+            for (pid, total_files_host, ) in res:
+                project_file_counts[pid] = total_files_host
 
             for k, v in percentage_host_projects_counter.iteritems():
                 percent_cloning = float(v*100)/total_files
