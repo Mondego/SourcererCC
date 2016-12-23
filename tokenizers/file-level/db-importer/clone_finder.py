@@ -93,30 +93,20 @@ def find_clones_for_project(project_id, db_object, debug):
         percentage_clone_projects_counter = {}
         percentage_host_projects_counter = {}
 
-        project_set = set()
+        project_file_set = {}
         clone_set = set()
         for fid, clones in files_clones.iteritems():
             project_counted = False
             for clone in clones:
                 projectId = clone[1]
                 clone_set.add(clone)
-                project_set.add(projectId)
+                if projectId not in project_file_set:
+                    project_file_set[projectId] = set()
+                project_file_set[projectId].add(fid)
                 
         # How many of this project's files are present in each of the other project?
-        for fid, clones in files_clones.iteritems():
-            for projectId in project_set:
-                project_seen = False
-                for clone in clones:
-                    pid = clone[1]
-                    if pid == projectId: 
-                        if percentage_clone_projects_counter.has_key(projectId):
-                            percentage_clone_projects_counter[projectId] += 1
-                        else:
-                            percentage_clone_projects_counter[projectId] = 1
-                        project_seen = True
-                        break
-                    if project_seen:
-                        break
+        for pid, file_list in project_file_set.iteritems():
+            percentage_clone_projects_counter[pid] = len(file_list)
 
 
         # How many of the other projects files are present in this project?
@@ -143,7 +133,7 @@ def find_clones_for_project(project_id, db_object, debug):
                 percent_host = float(v*100)/project_file_counts[k]
                 
                 # Don't store insignificant clones
-                if percent_cloning < 50:
+                if percent_cloning < 0:
                     continue
 
                 if debug == 'all' or debug == 'final':
