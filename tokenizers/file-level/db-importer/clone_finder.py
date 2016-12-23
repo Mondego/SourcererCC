@@ -90,13 +90,36 @@ def find_clones_for_project(project_id, db_object, debug):
         #    for k, v in files_clones.iteritems():
         #        print k,'-',v
 
+        percentage_clone_projects_counter = {}
         percentage_host_projects_counter = {}
 
+        project_set = set()
         clone_set = set()
         for fid, clones in files_clones.iteritems():
+            project_counted = False
             for clone in clones:
+                projectId = clone[1]
                 clone_set.add(clone)
+                project_set.add(projectId)
+                
+        # How many of this project's files are present in each of the other project?
+        for fid, clones in files_clones.iteritems():
+            for projectId in project_set:
+                project_seen = False
+                for clone in clones:
+                    pid = clone[1]
+                    if pid == projectId: 
+                        if percentage_clone_projects_counter.has_key(projectId):
+                            percentage_clone_projects_counter[projectId] += 1
+                        else:
+                            percentage_clone_projects_counter[projectId] = 1
+                        project_seen = True
+                        break
+                    if project_seen:
+                        break
 
+
+        # How many of the other projects files are present in this project?
         for clone in clone_set:
             projectId = clone[1]
             if percentage_host_projects_counter.has_key(projectId):
@@ -112,20 +135,24 @@ def find_clones_for_project(project_id, db_object, debug):
             for (pid, total_files_host, ) in res:
                 project_file_counts[pid] = total_files_host
 
+            # The key k (projects) should be the same between 
+            # percentage_clone_projects_counter and percentage_host_projects_counter
             for k, v in percentage_host_projects_counter.iteritems():
-                percent_cloning = float(v*100)/total_files
+                
+                percent_cloning = float(percentage_clone_projects_counter[k]*100)/total_files
                 percent_host = float(v*100)/project_file_counts[k]
                 
                 # Don't store insignificant clones
                 if percent_cloning < 50:
                     continue
 
+                logging.debug(str(files_clones))
                 if debug == 'all' or debug == 'final':
                     if True:#(percent_cloning > 99) and (str(project_id) != k):
                         print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
 
                 else:
-                    db_object.insert_projectClones(project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), 
+                    db_object.insert_projectClones(project_id, percentage_clone_projects_counter[k], total_files, float("{0:.2f}".format(percent_cloning)), 
                                                    k, v, project_file_counts[k], 
                                                    float("{0:.2f}".format(percent_host)))
 
