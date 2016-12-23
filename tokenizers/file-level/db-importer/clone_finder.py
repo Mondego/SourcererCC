@@ -126,7 +126,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                 percent_host = float(v*100)/project_file_counts[k]
                 
                 # Don't store insignificant clones
-                if percent_cloning < 0:
+                if percent_cloning < 50:
                     continue
 
                 if debug == 'all' or debug == 'final':
@@ -153,16 +153,14 @@ def load_project_file_counts(db_object, project_file_counts):
     logging.debug("Loading project file counts... done")
 
 
-def start_process(pnum, input_process, DB_user, DB_name, DB_pass):
+def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_counts):
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
     logging.info('Starting process %s', pnum)
     db_object = DB(DB_user, DB_name, DB_pass, logging)
 
-    project_file_counts = {}
     try:
-        load_project_file_counts(db_object, project_file_counts)
         pcounter =  0
         for projectId in input_process:
             if pcounter % 50 == 0:
@@ -223,6 +221,10 @@ if __name__ == "__main__":
         #project_id = '20000';
         #project_id = '50000';
 
+
+        project_file_counts = {}
+        load_project_file_counts(db_object, project_file_counts)
+
         pair_number = 0
         commit_interval = 500
 
@@ -242,7 +244,8 @@ if __name__ == "__main__":
 
         processes = []
         for process_num in xrange(N_PROCESSES):
-            p = Process(name='Process '+str(process_num), target=start_process, args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass,))
+            p = Process(name='Process '+str(process_num), target=start_process, 
+                        args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, ))
             processes.append(p)
             p.start()
 
