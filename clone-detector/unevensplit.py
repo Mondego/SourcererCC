@@ -39,6 +39,7 @@ class Spliter(object):
                         self.outfile.flush()
                         self.outfile.close()
                         file_count+=1
+                        count =0
                         line_limit =line_limit + 0.5*line_limit
                         print "line_limit is ", line_limit 
                         print "creating split ",file_count 
