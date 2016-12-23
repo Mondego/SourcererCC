@@ -40,7 +40,7 @@ class Spliter(object):
                         self.outfile.close()
                         file_count+=1
                         count =0
-                        line_limit =line_limit + 0.5*line_limit
+                        line_limit =line_limit + 0.5*self.base_x
                         print "line_limit is ", line_limit 
                         print "creating split ",file_count 
                         self.outfile = open("query_{part}.file".format(part=file_count),'w')
