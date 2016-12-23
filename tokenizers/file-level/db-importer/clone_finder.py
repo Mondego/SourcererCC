@@ -116,13 +116,17 @@ def find_clones_for_project(project_id, db_object, debug):
                 percent_cloning = float(v*100)/total_files
                 percent_host = float(v*100)/project_file_counts[k]
                 
+                # Don't store insignificant clones
+                if percent_cloning < 50:
+                    continue
+
                 if debug == 'all' or debug == 'final':
                     if True:#(percent_cloning > 99) and (str(project_id) != k):
                         print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
 
                 else:
                     db_object.insert_projectClones(project_id, v, total_files, float("{0:.2f}".format(percent_cloning)), 
-                                                   k, v, total_files_host, 
+                                                   k, v, project_file_counts[k], 
                                                    float("{0:.2f}".format(percent_host)))
 
     except Exception as e:
