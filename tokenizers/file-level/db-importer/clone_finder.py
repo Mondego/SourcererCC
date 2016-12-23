@@ -12,21 +12,17 @@ import traceback
 TOKEN_THRESHOLD = 1
 N_PROCESSES = 2
 
-def findAllTokenHashClones(project_id, files_hashes, token_hashes, files_clones, db_object):
-    hashes = files_hashes.values()
-    thashes = []
-    for th in hashes:
-        thashes.append(th['thash'])
+def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
 
     try:
         query = """SELECT fileId, projectId, f.fileHash, tokenHash FROM files as f 
                    JOIN stats as s ON f.fileHash=s.fileHash 
-                   WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(thashes) + "'", project_id)
+                   WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(token_hashes.keys()) + "'", project_id)
         res = db_object.execute(query);
         for (file_id, projectId, fileHash, tokenHash, ) in res:
             pfiles = token_hashes[tokenHash]
             for f in pfiles:
-                if str(file_id) != f:
+                if str(file_id) != str(f):
                     files_clones[f].add((str(file_id), projectId))
 
     except Exception as e:
@@ -87,7 +83,7 @@ def find_clones_for_project(project_id, db_object, debug):
         #        print k,'-',v
 
         # Find token-hash clones
-        findAllTokenHashClones(project_id, files_hashes, token_hashes, files_clones, db_object)
+        findAllTokenHashClones(project_id, token_hashes, files_clones, db_object)
 
         #if debug:
         #    print '## After round 3'
