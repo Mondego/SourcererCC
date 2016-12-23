@@ -30,7 +30,7 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
         print e
         sys.exit(1)
 
-def find_clones_for_project(project_id, db_object, debug):
+def find_clones_for_project(project_id, project_file_counts, db_object, debug):
     result = []
 
     try:
@@ -118,13 +118,6 @@ def find_clones_for_project(project_id, db_object, debug):
                 percentage_host_projects_counter[projectId] = 1
 
         if len(percentage_host_projects_counter) > 0:
-            pkeys_str = [str(k) for k in percentage_host_projects_counter.keys()]
-            q = "SELECT projectId, COUNT(*) FROM files WHERE projectId in (%s) GROUP BY projectId;" % (','.join(pkeys_str))
-            project_file_counts = {}
-            res = db_object.execute(q)
-            for (pid, total_files_host, ) in res:
-                project_file_counts[pid] = total_files_host
-
             # The key k (projects) should be the same between 
             # percentage_clone_projects_counter and percentage_host_projects_counter
             for k, v in percentage_host_projects_counter.iteritems():
@@ -133,7 +126,7 @@ def find_clones_for_project(project_id, db_object, debug):
                 percent_host = float(v*100)/project_file_counts[k]
                 
                 # Don't store insignificant clones
-                if percent_cloning < 50:
+                if percent_cloning < 0:
                     continue
 
                 if debug == 'all' or debug == 'final':
@@ -151,6 +144,15 @@ def find_clones_for_project(project_id, db_object, debug):
         traceback.print_exc()
         sys.exit(1)
 
+def load_project_file_counts(db_object, project_file_counts):
+    logging.debug("Loading project file counts...")
+    q = "SELECT projectId, COUNT(*) FROM files GROUP BY projectId;" 
+    res = db_object.execute(q)
+    for (pid, total_files_host, ) in res:
+        project_file_counts[pid] = total_files_host
+    logging.debug("Loading project file counts... done")
+
+
 def start_process(pnum, input_process, DB_user, DB_name, DB_pass):
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
@@ -158,12 +160,14 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass):
     logging.info('Starting process %s', pnum)
     db_object = DB(DB_user, DB_name, DB_pass, logging)
 
+    project_file_counts = {}
     try:
+        load_project_file_counts(db_object, project_file_counts)
         pcounter =  0
         for projectId in input_process:
             if pcounter % 50 == 0:
                 logging.debug('[%s]: Processing project %s', pnum, projectId)
-            find_clones_for_project(projectId, db_object, '') # last field is for debug, and can be 'all','final' or '' (empty)
+            find_clones_for_project(projectId, project_file_counts, db_object, '') # last field is for debug, and can be 'all','final' or '' (empty)
             pcounter += 1
 
         db_object.flush_projectClones()
