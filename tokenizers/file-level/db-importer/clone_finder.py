@@ -146,7 +146,6 @@ def find_clones_for_project(project_id, db_object, debug):
                 if percent_cloning < 50:
                     continue
 
-                logging.debug(str(files_clones))
                 if debug == 'all' or debug == 'final':
                     if True:#(percent_cloning > 99) and (str(project_id) != k):
                         print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
