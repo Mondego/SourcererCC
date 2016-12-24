@@ -126,7 +126,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                 percent_host = float(v*100)/project_file_counts[k]
                 
                 # Don't store insignificant clones
-                if percent_cloning < 50:
+                if percent_cloning < 50 and percent_host < 50:
                     continue
 
                 if debug == 'all' or debug == 'final':
