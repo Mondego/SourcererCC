@@ -9,7 +9,7 @@ DB_MAX_STRING_SIZE = 4000
 # For buffer sizes of 100,000, make max_allowed_packet = 16G
 FILES_BUFFER_SIZE = 100000
 STATS_BUFFER_SIZE = 100000
-PROJECT_CLONES_BUFFER_SIZE = 500
+PROJECT_CLONES_BUFFER_SIZE = 1000
 
 table1 = """ CREATE TABLE IF NOT EXISTS `projects` (
                projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -71,7 +71,7 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
                INDEX(hostAffectedPercent)
                ) Engine=MyISAM;"""
 
-add_projectClones = """INSERT INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES %s;"""
+add_projectClones = """INSERT IGNORE INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES %s;"""
 clone_list        = "(%s, %s, %s, %s, %s, %s, %s, %s)"
 add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (%s, %s, %s);"""
 add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES %s ;"""

@@ -164,7 +164,7 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_c
         pcounter =  0
         for projectId in input_process:
             if pcounter % 50 == 0:
-                logging.debug('[%s]: Processing project %s', pnum, pcounter)
+                logging.debug('[%s]: Processing project %s (%s)', pnum, pcounter, projectId)
             find_clones_for_project(projectId, project_file_counts, db_object, '') # last field is for debug, and can be 'all','final' or '' (empty)
             pcounter += 1
 
@@ -205,22 +205,14 @@ if __name__ == "__main__":
                        hostTotalFiles      INT(6)       UNSIGNED NOT NULL,
                        hostAffectedPercent DECIMAL(6,3) UNSIGNED NOT NULL,
                        INDEX(cloneId),
-                       INDEX(cloneClonedFiles),
                        INDEX(cloneTotalFiles),
                        INDEX(cloneCloningPercent),
                        INDEX(hostId),
-                       INDEX(hostAffectedFiles),
                        INDEX(hostTotalFiles),
-                       INDEX(hostAffectedPercent)
+                       INDEX(hostAffectedPercent),
+                       UNIQUE INDEX pair (cloneId, hostId)
                        ) ENGINE = MYISAM;"""
         db_object.execute(table)
-
-        # Interesting cases for testing
-        #project_id = '42';
-        #project_id = '700';
-        #project_id = '20000';
-        #project_id = '50000';
-
 
         project_file_counts = {}
         load_project_file_counts(db_object, project_file_counts)
@@ -235,8 +227,7 @@ if __name__ == "__main__":
 
         project_ids = []
 
-        res = db_object.execute("SELECT projectId FROM projects;");
-        for (projectId, ) in res:
+        for projectId in project_file_counts.keys():
             project_ids.append(projectId)
             pair_number += 1
 
