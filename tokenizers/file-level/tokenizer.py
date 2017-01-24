@@ -395,11 +395,11 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
     tar_files = [f for f in tar_files if '_code' in f]
     if(len(tar_files) != 1):
       logging.warning('Tar not found on <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-      times = [0,0,0,0,0,0]
+      times = [0,0,0,0,0,0,0]
       os.path.walk(proj_path, process_regular_folder, 
              (process_num, proj_id, proj_path, proj_url, base_file_id, 
               FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times))
-      file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
+      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
       zip_time = 0
     else:
       tar_file = tar_files[0]
