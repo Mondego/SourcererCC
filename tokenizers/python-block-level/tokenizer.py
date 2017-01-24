@@ -9,6 +9,7 @@ import sys
 import hashlib
 import datetime as dt
 import zipfile
+import extractFunction
 
 try:
   from configparser import ConfigParser
@@ -71,7 +72,7 @@ def read_config():
   PATH_logs = config.get('Folders/Files', 'PATH_logs')
 
   # Reading Language settings
-  separators = config.get('Language', 'separators').strip('"').split(' ')
+  separators = config.get('Language', 'separators').strip("").split(' ')
   comment_inline = re.escape(config.get('Language', 'comment_inline'))
   comment_inline_pattern = comment_inline + '.*?$'
   comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
@@ -172,7 +173,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
 
-  blocks = extractFunctions.getFunctions(file_string)
+  blocks = extractFunction.getFunctions(file_string)
 
   h_time = dt.datetime.now()
   m = hashlib.md5()
@@ -206,8 +207,10 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
 
   blocks_data = []
 
-  se_time = dt.datetime.now()
-  token_time = dt.datetime.now()
+  s_time = dt.datetime,now()
+  se_time = (dt.datetime.now() - s_time).microseconds
+  t_time = dt.datetime,now()
+  token_time = (dt.datetime.now() - t_time).microseconds
 
   for block_string in blocks:
     block_stats = 'ERROR'
@@ -277,7 +280,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     h_time = dt.datetime.now()
     m = hashlib.md5()
     m.update(tokens)
-    hash_time += (dt.datetime.now() - block_h_time).microseconds
+    hash_time += (dt.datetime.now() - h_time).microseconds
 
     block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
     
@@ -297,7 +300,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   if project_format == 'zipblocks':
 
     # adjust the block id to mark GH or SO blocks
-    proj_id = proj_id_flag + proj_id
+    proj_id = str(proj_id_flag) + proj_id
 
     (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
     if len(blocks_data) > 9000:
@@ -315,7 +318,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
       blocks_data = zip(range(1000,9999),blocks_data)
 
       ww_time = dt.datetime.now()
-      for relative_id, block_data in enumerate(blocks_data):
+      for relative_id, block_data in blocks_data:
         (blocks_tokens, blocks_stats, block_parsing_times) = block_data
         block_id = str(relative_id)+str(file_id)
 
@@ -325,7 +328,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
         # Adjust the blocks stats written to the files, file stats start with a letter 'b'
         FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC)]) + '\n')
         FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-      w_time += (dt.datetime.now() - ww_time).microseconds
+      w_time = (dt.datetime.now() - ww_time).microseconds
 
   else:
     (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
