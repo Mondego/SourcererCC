@@ -207,11 +207,11 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
 
   blocks_data = []
 
-  s_time = dt.datetime,now()
+  s_time = dt.datetime.now()
   se_time = (dt.datetime.now() - s_time).microseconds
-  t_time = dt.datetime,now()
+  t_time = dt.datetime.now()
   token_time = (dt.datetime.now() - t_time).microseconds
-
+  
   for block_string in blocks:
     block_stats = 'ERROR'
     block_tokens = 'ERROR'
@@ -252,7 +252,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     block_stats = (block_hash, block_lines, block_LOC, block_SLOC)
 
     # Rather a copy of the file string here for tokenization
-    block_string_for_tokenization = file_string
+    block_string_for_tokenization = block_string
 
     #Transform separators into spaces (remove them)
     s_time = dt.datetime.now()
@@ -270,7 +270,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     block_string_for_tokenization=dict(block_string_for_tokenization)
     ## Unique number of tokens
     tokens_count_unique = len(block_string_for_tokenization)
-
+    
     t_time = dt.datetime.now()
     #SourcererCC formatting
     tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
@@ -285,7 +285,6 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
     
     blocks_data.append((block_tokens, block_stats))
-
   return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
 
 
@@ -303,6 +302,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     proj_id = str(proj_id_flag) + proj_id
 
     (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
+    
     if len(blocks_data) > 9000:
       logging.error('The file %s has more than %s blocks. Range MUST be increased.')
       sys.exit(1)
@@ -316,13 +316,13 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
       FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
       
       blocks_data = zip(range(1000,9999),blocks_data)
-
+      
       ww_time = dt.datetime.now()
       for relative_id, block_data in blocks_data:
-        (blocks_tokens, blocks_stats, block_parsing_times) = block_data
+        (blocks_tokens, blocks_stats) = block_data
         block_id = str(relative_id)+str(file_id)
 
-        (block_hash, block_lines, block_LOC, block_SLOC) = blocks_stats
+	(block_hash, block_lines, block_LOC, block_SLOC) = blocks_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
 
         # Adjust the blocks stats written to the files, file stats start with a letter 'b'

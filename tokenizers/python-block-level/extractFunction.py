@@ -15,7 +15,7 @@ def getFunctions(filestring):
 			for idx, s in enumerate(stmt.body):
 				if isinstance(s, ast.FunctionDef):
 					start_lineno = None
-					ebd_lineno = None
+					end_lineno = None
 					# unparser = unparse.Unparser(s)
 					start_lineno =  s.lineno
 					if idx == len(stmt.body)-1:
@@ -26,6 +26,9 @@ def getFunctions(filestring):
 						else:
 							# but not the last stmt in tree.body
 							end_lineno =  tree.body[index+1].lineno-1
+					else:
+						#not the last one in stmt.body
+						end_lineno = stmt.body[idx+1].lineno-1
 					blocks_linenos.append([start_lineno, end_lineno])
 					
 		if isinstance(stmt, ast.FunctionDef):
@@ -39,7 +42,7 @@ def getFunctions(filestring):
 				end_lineno = tree.body[index+1].lineno-1
 			blocks_linenos.append([start_lineno, end_lineno])
 
-	print blocks_linenos
+	#print blocks_linenos
 	strings = [""] * len(blocks_linenos)
 	for i, line in enumerate(filestring.split("\n")):	
 		for j, linenos in enumerate(blocks_linenos):
@@ -47,11 +50,11 @@ def getFunctions(filestring):
 				strings[j] += line
 
 	return strings
-
+'''
 fileopen = open("test.py")
 file = fileopen.read()
 print getFunctions(file)
-
+'''
 
 		
 
