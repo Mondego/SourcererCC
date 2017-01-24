@@ -173,7 +173,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
 
-  blocks = extractFunction.getFunctions(file_string)
+  (block_linenos, blocks) = extractFunction.getFunctions(file_string)
 
   h_time = dt.datetime.now()
   m = hashlib.md5()
@@ -211,8 +211,10 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   se_time = (dt.datetime.now() - s_time).microseconds
   t_time = dt.datetime.now()
   token_time = (dt.datetime.now() - t_time).microseconds
-  
-  for block_string in blocks:
+
+  for i, block_string in enumerate(blocks):
+    (start_line, end_line) = block_linenos[i]
+    
     block_stats = 'ERROR'
     block_tokens = 'ERROR'
 
@@ -231,7 +233,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     if not block_string.endswith('\n'):
       block_lines += 1
     block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
-
+   
     block_LOC = block_string.count('\n')
     if not block_string.endswith('\n'):
       block_LOC += 1
@@ -249,8 +251,8 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     if block_string != '' and not block_string.endswith('\n'):
       block_SLOC += 1
 
-    block_stats = (block_hash, block_lines, block_LOC, block_SLOC)
-
+    block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
+    
     # Rather a copy of the file string here for tokenization
     block_string_for_tokenization = block_string
 
@@ -321,12 +323,12 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
       for relative_id, block_data in blocks_data:
         (blocks_tokens, blocks_stats) = block_data
         block_id = str(relative_id)+str(file_id)
-
-	(block_hash, block_lines, block_LOC, block_SLOC) = blocks_stats
+	
+	(block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
 
         # Adjust the blocks stats written to the files, file stats start with a letter 'b'
-        FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC)]) + '\n')
+        FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
         FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
       w_time = (dt.datetime.now() - ww_time).microseconds
 
@@ -550,6 +552,8 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
 
   if project_format in ['zip','zipblocks']:
     proj_url = 'NULL'
+    
+    proj_id = str(proj_id_flag) + proj_id
 
     logging.info('Starting zip project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
 
