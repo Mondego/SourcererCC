@@ -281,7 +281,8 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
 
     block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
     
-    blocks_data.append((block_tokens, block_stats)
+    blocks_data.append((block_tokens, block_stats))
+
   return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
 
 
