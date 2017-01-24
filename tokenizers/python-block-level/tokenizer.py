@@ -46,7 +46,7 @@ def read_config():
   global init_file_id
   global init_proj_id
 
-  global GH_SO
+  global proj_id_flag
 
 
   # instantiate
@@ -83,8 +83,8 @@ def read_config():
   init_file_id = config.getint('Config', 'init_file_id')
   init_proj_id = config.getint('Config', 'init_proj_id')
 
-  # Reading GH or SO
-  GH_SO = config.getint('Config', 'init_proj_id')
+  # flag before proj_id
+  proj_id_flag = config.getint('Config', 'init_proj_id')
 
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
 
@@ -162,7 +162,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
 def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-  # This function will return (file_stats, [(blocks_tokens,blocks_stats,blocks_parsing_times)]]
+  # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
 
   final_stats  = 'ERROR'
   final_tokens = 'ERROR'
@@ -189,12 +189,12 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   if not file_string.endswith('\n'):
     LOC += 1
 
-  re_time = dt.datetime.now()
+  r_time = dt.datetime.now()
   # Remove tagged comments
   file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
   # Remove end of line comments
   file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
-  re_time = (dt.datetime.now() - re_time).microseconds
+  re_time = (dt.datetime.now() - r_time).microseconds
 
   file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
 
@@ -205,6 +205,9 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   final_stats = (file_hash,lines,LOC,SLOC)
 
   blocks_data = []
+
+  se_time = dt.datetime.now()
+  token_time = dt.datetime.now()
 
   for block_string in blocks:
     block_stats = 'ERROR'
@@ -219,7 +222,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     m = hashlib.md5()
     m.update(block_string)
     block_hash = m.hexdigest()
-    block_hash_time = (dt.datetime.now() - h_time).microseconds
+    hash_time = (dt.datetime.now() - h_time).microseconds
     
     block_lines = block_string.count('\n')
     if not block_string.endswith('\n'):
@@ -230,12 +233,12 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     if not block_string.endswith('\n'):
       block_LOC += 1
 
-    block_re_time = dt.datetime.now()
+    r_time = dt.datetime.now()
     # Remove tagged comments
     block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)
     # Remove end of line comments
     block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)
-    block_re_time = (dt.datetime.now() - re_time).microseconds
+    re_time += (dt.datetime.now() - r_time).microseconds
 
     block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
 
@@ -249,10 +252,10 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     block_string_for_tokenization = file_string
 
     #Transform separators into spaces (remove them)
-    block_s_time = dt.datetime.now()
+    s_time = dt.datetime.now()
     for x in separators:
       block_string_for_tokenization = block_string_for_tokenization.replace(x,' ')
-    block_s_time = (dt.datetime.now() - block_s_time).microseconds
+    se_time += (dt.datetime.now() - s_time).microseconds
 
     ##Create a list of tokens
     block_string_for_tokenization = block_string_for_tokenization.split()
@@ -265,22 +268,21 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     ## Unique number of tokens
     tokens_count_unique = len(block_string_for_tokenization)
 
-    block_t_time = dt.datetime.now()
+    t_time = dt.datetime.now()
     #SourcererCC formatting
     tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
-    block_t_time = (dt.datetime.now() - block_t_time).microseconds
+    token_time += (dt.datetime.now() - t_time).microseconds
 
     # MD5
-    block_h_time = dt.datetime.now()
+    h_time = dt.datetime.now()
     m = hashlib.md5()
     m.update(tokens)
-    block_hash_time += (dt.datetime.now() - block_h_time).microseconds
+    hash_time += (dt.datetime.now() - block_h_time).microseconds
 
     block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
     
-    blocks_data.append((block_tokens, block_stats, [block_s_time, block_t_time, block_hash_time, block_re_time]))
-
-  return (final_stats, blocks_data)
+    blocks_data.append((block_tokens, block_stats)
+  return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
 
 
 def process_file_contents(file_string, proj_id, file_id, container_path, 
@@ -292,11 +294,11 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   file_count += 1
   
   if project_format == 'zipblocks':
-    
-    # adjust the block id to mark GH or SO blocks
-    proj_id = '1' + proj_id
 
-    (final_stats, blocks_data) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
+    # adjust the block id to mark GH or SO blocks
+    proj_id = proj_id_flag + proj_id
+
+    (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
     if len(blocks_data) > 9000:
       logging.error('The file %s has more than %s blocks. Range MUST be increased.')
       sys.exit(1)
@@ -314,13 +316,13 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
       ww_time = dt.datetime.now()
       for relative_id, block_data in enumerate(blocks_data):
         (blocks_tokens, blocks_stats, block_parsing_times) = block_data
-        blocks_id = str(relative_id)+str(file_id)
+        block_id = str(relative_id)+str(file_id)
 
         (block_hash, block_lines, block_LOC, block_SLOC) = blocks_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
 
         # Adjust the blocks stats written to the files, file stats start with a letter 'b'
-        FILE_stats_file.write('b' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
+        FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC)]) + '\n')
         FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
       w_time += (dt.datetime.now() - ww_time).microseconds
 
