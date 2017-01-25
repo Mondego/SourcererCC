@@ -300,9 +300,6 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   
   if project_format == 'zipblocks':
 
-    # adjust the block id to mark GH or SO blocks
-    proj_id = str(proj_id_flag) + proj_id
-
     (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
     
     if len(blocks_data) > 9000:
