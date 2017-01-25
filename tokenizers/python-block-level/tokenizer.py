@@ -72,7 +72,7 @@ def read_config():
   PATH_logs = config.get('Folders/Files', 'PATH_logs')
 
   # Reading Language settings
-  separators = config.get('Language', 'separators').strip("").split(' ')
+  separators = config.get('Language', 'separators').strip('"').split(' ')
   comment_inline = re.escape(config.get('Language', 'comment_inline'))
   comment_inline_pattern = comment_inline + '.*?$'
   comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
@@ -261,7 +261,6 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
     for x in separators:
       block_string_for_tokenization = block_string_for_tokenization.replace(x,' ')
     se_time += (dt.datetime.now() - s_time).microseconds
-
     ##Create a list of tokens
     block_string_for_tokenization = block_string_for_tokenization.split()
     ## Total number of tokens

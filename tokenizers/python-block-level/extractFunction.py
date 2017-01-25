@@ -2,7 +2,10 @@ import ast
 
 def getFunctions(filestring):
 	tree = ast.parse(filestring)
-	linecount = len(filestring.split("\n"))
+	
+	linecount = filestring.count("\n")
+	if not filestring.endswith("\n"):
+		linecount += 1
 
 	blocks_linenos = []
 
