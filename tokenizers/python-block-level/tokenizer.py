@@ -162,7 +162,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
-def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging):
+def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
   # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
 
   final_stats  = 'ERROR'
@@ -173,7 +173,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
 
-  (block_linenos, blocks) = extractFunction.getFunctions(file_string, logging)
+  (block_linenos, blocks) = extractFunction.getFunctions(file_string, logging, file_path)
 
   if block_linenos is None:
 	return (None, None, None)
@@ -302,12 +302,12 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   
   if project_format == 'zipblocks':
 
-    (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging)
+    (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path,file_path))
     if final_stats is None:
 	return [0, 0, 0, 0, 0]
-    elif len(blocks_data) > 9000:
-      logging.error('The file %s has more than %s blocks. Range MUST be increased.')
-      sys.exit(1)
+    elif len(blocks_data) > 90000:
+      logging.warning('File' + filepath + 'has' + len(blocks_data) + 'blocks, more than 90000. Range MUST be increased.')
+      return [0, 0, 0, 0, 0]
     else:
       # write file stats
       (file_hash,lines,LOC,SLOC) = final_stats

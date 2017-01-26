@@ -1,12 +1,11 @@
 import ast
 
-def getFunctions(filestring, logging):
+def getFunctions(filestring, logging, file_path):
 	tree = None
 	try:
 		tree = ast.parse(filestring)
 	except Exception as e:
-		logging.warning("This file cannot be parsed.")
-		logging.warning(e)
+		logging.warning("File" + file_path + " cannot be parsed. " + str(e))
 		return (None, None)
 
 	linecount = filestring.count("\n")
