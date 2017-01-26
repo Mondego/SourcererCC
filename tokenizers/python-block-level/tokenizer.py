@@ -162,7 +162,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
-def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
+def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging):
   # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
 
   final_stats  = 'ERROR'
@@ -173,120 +173,123 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
 
-  (block_linenos, blocks) = extractFunction.getFunctions(file_string)
+  (block_linenos, blocks) = extractFunction.getFunctions(file_string, logging)
 
-  h_time = dt.datetime.now()
-  m = hashlib.md5()
-  m.update(file_string)
-  file_hash = m.hexdigest()
-  hash_time = (dt.datetime.now() - h_time).microseconds
-  
-  lines = file_string.count('\n')
-  if not file_string.endswith('\n'):
-    lines += 1
-  file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
-
-  LOC = file_string.count('\n')
-  if not file_string.endswith('\n'):
-    LOC += 1
-
-  r_time = dt.datetime.now()
-  # Remove tagged comments
-  file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
-  # Remove end of line comments
-  file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
-  re_time = (dt.datetime.now() - r_time).microseconds
-
-  file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
-
-  SLOC = file_string.count('\n')
-  if file_string != '' and not file_string.endswith('\n'):
-    SLOC += 1
-
-  final_stats = (file_hash,lines,LOC,SLOC)
-
-  blocks_data = []
-
-  s_time = dt.datetime.now()
-  se_time = (dt.datetime.now() - s_time).microseconds
-  t_time = dt.datetime.now()
-  token_time = (dt.datetime.now() - t_time).microseconds
-
-  for i, block_string in enumerate(blocks):
-    (start_line, end_line) = block_linenos[i]
-    
-    block_stats = 'ERROR'
-    block_tokens = 'ERROR'
-
-    block_hash = 'ERROR'
-    block_lines = 'ERROR'
-    block_LOC = 'ERROR'
-    block_SLOC = 'ERROR'
-
+  if block_linenos is None:
+	return (None, None, None)
+  else:
     h_time = dt.datetime.now()
     m = hashlib.md5()
-    m.update(block_string)
-    block_hash = m.hexdigest()
+    m.update(file_string)
+    file_hash = m.hexdigest()
     hash_time = (dt.datetime.now() - h_time).microseconds
     
-    block_lines = block_string.count('\n')
-    if not block_string.endswith('\n'):
-      block_lines += 1
-    block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
-   
-    block_LOC = block_string.count('\n')
-    if not block_string.endswith('\n'):
-      block_LOC += 1
-
+    lines = file_string.count('\n')
+    if not file_string.endswith('\n'):
+      lines += 1
+    file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
+    
+    LOC = file_string.count('\n')
+    if not file_string.endswith('\n'):
+      LOC += 1
+    
     r_time = dt.datetime.now()
     # Remove tagged comments
-    block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)
+    file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
     # Remove end of line comments
-    block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)
-    re_time += (dt.datetime.now() - r_time).microseconds
-
-    block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
-
-    block_SLOC = block_string.count('\n')
-    if block_string != '' and not block_string.endswith('\n'):
-      block_SLOC += 1
-
-    block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
+    file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
+    re_time = (dt.datetime.now() - r_time).microseconds
     
-    # Rather a copy of the file string here for tokenization
-    block_string_for_tokenization = block_string
-
-    #Transform separators into spaces (remove them)
+    file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
+    
+    SLOC = file_string.count('\n')
+    if file_string != '' and not file_string.endswith('\n'):
+      SLOC += 1
+    
+    final_stats = (file_hash,lines,LOC,SLOC)
+   
+    blocks_data = []
+   
     s_time = dt.datetime.now()
-    for x in separators:
-      block_string_for_tokenization = block_string_for_tokenization.replace(x,' ')
-    se_time += (dt.datetime.now() - s_time).microseconds
-    ##Create a list of tokens
-    block_string_for_tokenization = block_string_for_tokenization.split()
-    ## Total number of tokens
-    tokens_count_total = len(block_string_for_tokenization)
-    ##Count occurrences
-    block_string_for_tokenization = collections.Counter(block_string_for_tokenization)
-    ##Converting Counter to dict because according to StackOverflow is better
-    block_string_for_tokenization=dict(block_string_for_tokenization)
-    ## Unique number of tokens
-    tokens_count_unique = len(block_string_for_tokenization)
-    
+    se_time = (dt.datetime.now() - s_time).microseconds
     t_time = dt.datetime.now()
-    #SourcererCC formatting
-    tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
-    token_time += (dt.datetime.now() - t_time).microseconds
-
-    # MD5
-    h_time = dt.datetime.now()
-    m = hashlib.md5()
-    m.update(tokens)
-    hash_time += (dt.datetime.now() - h_time).microseconds
-
-    block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
-    
-    blocks_data.append((block_tokens, block_stats))
-  return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
+    token_time = (dt.datetime.now() - t_time).microseconds
+   
+    for i, block_string in enumerate(blocks):
+      (start_line, end_line) = block_linenos[i]
+      
+      block_stats = 'ERROR'
+      block_tokens = 'ERROR'
+     
+      block_hash = 'ERROR'
+      block_lines = 'ERROR'
+      block_LOC = 'ERROR'
+      block_SLOC = 'ERROR'
+     
+      h_time = dt.datetime.now()
+      m = hashlib.md5()
+      m.update(block_string)
+      block_hash = m.hexdigest()
+      hash_time = (dt.datetime.now() - h_time).microseconds
+      
+      block_lines = block_string.count('\n')
+      if not block_string.endswith('\n'):
+        block_lines += 1
+      block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
+      
+      block_LOC = block_string.count('\n')
+      if not block_string.endswith('\n'):
+        block_LOC += 1
+     
+      r_time = dt.datetime.now()
+      # Remove tagged comments
+      block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)
+      # Remove end of line comments
+      block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)
+      re_time += (dt.datetime.now() - r_time).microseconds
+     
+      block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
+     
+      block_SLOC = block_string.count('\n')
+      if block_string != '' and not block_string.endswith('\n'):
+        block_SLOC += 1
+     
+      block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
+      
+      # Rather a copy of the file string here for tokenization
+      block_string_for_tokenization = block_string
+     
+      #Transform separators into spaces (remove them)
+      s_time = dt.datetime.now()
+      for x in separators:
+        block_string_for_tokenization = block_string_for_tokenization.replace(x,' ')
+      se_time += (dt.datetime.now() - s_time).microseconds
+      ##Create a list of tokens
+      block_string_for_tokenization = block_string_for_tokenization.split()
+      ## Total number of tokens
+      tokens_count_total = len(block_string_for_tokenization)
+      ##Count occurrences
+      block_string_for_tokenization = collections.Counter(block_string_for_tokenization)
+      ##Converting Counter to dict because according to StackOverflow is better
+      block_string_for_tokenization=dict(block_string_for_tokenization)
+      ## Unique number of tokens
+      tokens_count_unique = len(block_string_for_tokenization)
+      
+      t_time = dt.datetime.now()
+      #SourcererCC formatting
+      tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
+      token_time += (dt.datetime.now() - t_time).microseconds
+     
+      # MD5
+      h_time = dt.datetime.now()
+      m = hashlib.md5()
+      m.update(tokens)
+      hash_time += (dt.datetime.now() - h_time).microseconds
+     
+      block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
+      
+      blocks_data.append((block_tokens, block_stats))
+    return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
 
 
 def process_file_contents(file_string, proj_id, file_id, container_path, 
@@ -299,15 +302,16 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   
   if project_format == 'zipblocks':
 
-    (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
-    
-    if len(blocks_data) > 9000:
+    (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging)
+    if final_stats is None:
+	return [0, 0, 0, 0, 0]
+    elif len(blocks_data) > 9000:
       logging.error('The file %s has more than %s blocks. Range MUST be increased.')
       sys.exit(1)
     else:
       # write file stats
       (file_hash,lines,LOC,SLOC) = final_stats
-      file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
+      file_url = proj_url + '/' + file_path.replace(' ','%20')
       file_path = os.path.join(container_path, file_path)
 
       # file stats start with a letter 'f'
