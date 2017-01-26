@@ -317,7 +317,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
       # file stats start with a letter 'f'
       FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
       
-      blocks_data = zip(range(1000,9999),blocks_data)
+      blocks_data = zip(range(10000,99999),blocks_data)
       
       ww_time = dt.datetime.now()
       for relative_id, block_data in blocks_data:
