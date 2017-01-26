@@ -5,7 +5,7 @@ def getFunctions(filestring, logging, file_path):
 	try:
 		tree = ast.parse(filestring)
 	except Exception as e:
-		logging.warning("File" + file_path + " cannot be parsed. " + str(e))
+		logging.warning("File " + file_path + " cannot be parsed. " + str(e))
 		return (None, None)
 
 	linecount = filestring.count("\n")

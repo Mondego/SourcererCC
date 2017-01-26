@@ -302,11 +302,11 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   
   if project_format == 'zipblocks':
 
-    (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path,file_path))
+    (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path, file_path))
     if final_stats is None:
 	return [0, 0, 0, 0, 0]
     elif len(blocks_data) > 90000:
-      logging.warning('File' + filepath + 'has' + len(blocks_data) + 'blocks, more than 90000. Range MUST be increased.')
+      logging.warning('File ' + os.path.join(container_path, file_path) + ' has ' + len(blocks_data) + ' blocks, more than 90000. Range MUST be increased.')
       return [0, 0, 0, 0, 0]
     else:
       # write file stats
