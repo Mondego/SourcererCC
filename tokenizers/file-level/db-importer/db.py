@@ -10,16 +10,17 @@ DB_MAX_STRING_SIZE = 4000
 FILES_BUFFER_SIZE = 100000
 STATS_BUFFER_SIZE = 100000
 PROJECT_CLONES_BUFFER_SIZE = 1000
+BLOCKS_BUFFER_SIZE = 100000
 
 table1 = """ CREATE TABLE IF NOT EXISTS `projects` (
-               projectId   INT(6)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+               projectId   INT(8)        UNSIGNED PRIMARY KEY AUTO_INCREMENT,
                projectPath VARCHAR(%s)            NULL,
                projectUrl  VARCHAR(%s)            NULL
                ) Engine=MyISAM; """ % (DB_MAX_STRING_SIZE,DB_MAX_STRING_SIZE)
 
 table2 = """CREATE TABLE IF NOT EXISTS `files` (
                fileId       BIGINT(6)     UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-               projectId    INT(6)        UNSIGNED NOT NULL,
+               projectId    INT(8)        UNSIGNED NOT NULL,
                relativePath VARCHAR(%s)            NULL,
                relativeUrl  VARCHAR(%s)            NULL,
                fileHash     CHAR(32)               NOT NULL,
@@ -40,10 +41,10 @@ table3 = """CREATE TABLE IF NOT EXISTS `stats` (
                ) Engine=MyISAM;"""
 
 table4 = """CREATE TABLE IF NOT EXISTS `CCPairs` (
-               projectId1 INT(6) NOT NULL,
-               fileId1    INT(6) NOT NULL,
-               projectId2 INT(6) NOT NULL,
-               fileId2    INT(6) NOT NULL,
+               projectId1 INT(8)     NOT NULL,
+               fileId1    BIGINT(15) NOT NULL,
+               projectId2 INT(8)     NOT NULL,
+               fileId2    BIGINT(15) NOT NULL,
                PRIMARY KEY(fileId1, fileId2),
                INDEX (projectId1),
                INDEX (fileId1),
@@ -53,11 +54,11 @@ table4 = """CREATE TABLE IF NOT EXISTS `CCPairs` (
 
 table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
                id                  INT(6)       UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
-               cloneId             INT(6)       UNSIGNED NOT NULL,
+               cloneId             INT(8)       UNSIGNED NOT NULL,
                cloneClonedFiles    INT(6)       UNSIGNED NOT NULL,
                cloneTotalFiles     INT(6)       UNSIGNED NOT NULL,
                cloneCloningPercent DECIMAL(6,3) UNSIGNED NOT NULL,
-               hostId              INT(6)       UNSIGNED NOT NULL,
+               hostId              INT(8)       UNSIGNED NOT NULL,
                hostAffectedFiles   INT(6)       UNSIGNED NOT NULL,
                hostTotalFiles      INT(6)       UNSIGNED NOT NULL,
                hostAffectedPercent DECIMAL(6,3) UNSIGNED NOT NULL,
@@ -71,17 +72,33 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
                INDEX(hostAffectedPercent)
                ) Engine=MyISAM;"""
 
+table6 = """CREATE TABLE IF NOT EXISTS `blocks` (
+               blockId        BIGINT(15)      UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+               projectId      INT(8)          UNSIGNED NOT NULL,
+               blockhash      CHAR(32)        PRIMARY KEY,
+               blockLines     INT(6) UNSIGNED NOT NULL,
+               blockLOC       INT(6) UNSIGNED NOT NULL,
+               blockSLOC      INT(6) UNSIGNED NOT NULL,
+               blockStartLine INT(6) UNSIGNED NOT NULL,
+               blockEndLine   INT(6) UNSIGNED NOT NULL,
+               INDEX (projectId),
+               INDEX (blockhash)
+               ) Engine=MyISAM;"""
+
 add_projectClones = """INSERT IGNORE INTO projectClones (cloneId,cloneClonedFiles,cloneTotalFiles,cloneCloningPercent,hostId,hostAffectedFiles,hostTotalFiles,hostAffectedPercent) VALUES %s;"""
 clone_list        = "(%s, %s, %s, %s, %s, %s, %s, %s)"
 add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) VALUES (%s, %s, %s);"""
 add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES %s ;"""
 files_list        = "('%s', '%s', '%s', '%s', '%s')"
-add_stats_ignore_repetition = """INSERT IGNORE INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES %s ;"""
+add_files_stats_ignore_repetition = """INSERT IGNORE INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES %s ;"""
 stats_list        = "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
 add_stats_and_check_tokenHash_uniqueness = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 add_CCPairs       = """INSERT INTO CCPairs (projectId1,fileId1,projectId2,fileId2) VALUES (%s, %s, %s, %s);"""
 check_fileHash    = """SELECT fileHash FROM stats WHERE fileHash = '%s';"""
 project_exists    = """SELECT projectPath FROM projects WHERE projectPath = '%s';"""
+add_blocks_stats_ignore_repetition = """INSERT IGNORE INTO blocks (blockId,projectId,blockhash,blockLines,blockLOC,blockSLOC,blockStartLine,blockEndLine) VALUES %s ;"""
+blocks_list       = "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+add_blocks        = """INSERT INTO blocks (blockId, projectId, blockhash, blockLines, blockLOC, blockSLOC, blockStartLine, blockEndLine) VALUES %s ;"""
 
 class DB:
     # connection is a MySQLConnection object
@@ -97,6 +114,8 @@ class DB:
         self.stats = []
         self.file_count = 0
         self.clones = []
+        self.blocks = []
+        self.block_count = 0
 
         try:
             ## All cursors will be buffered by default
@@ -192,7 +211,7 @@ class DB:
         finally:
             cursor.close()
 
-    def insert_stats_ignore_repetition(self, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, flush = False):
+    def insert_files_stats_ignore_repetition(self, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, flush = False):
         if not flush:
             self.stats.append( stats_list % (fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash) )
             if len(self.stats) < STATS_BUFFER_SIZE:
@@ -204,7 +223,7 @@ class DB:
         cursor = self.connection.cursor()
         try:
             try:
-                results = cursor.execute(add_stats_ignore_repetition % (slist))
+                results = cursor.execute(add_files_stats_ignore_repetition % (slist))
             except mysql.connector.Error as err:
                 if err.errno == errorcode.ER_DUP_ENTRY:
                     # If the error is because the entry is a duplicate we wont't care about it
@@ -245,12 +264,39 @@ class DB:
             cursor.close()
             self.files = []
 
+    def insert_block(self, block_id, project_id, block_hash, block_lines, block_LOC, block_SLOC, block_start_line, block_end_line, flush = False):
+        if not flush:
+            self.blocks.append( blocks_list % (block_id, project_id, block_hash, block_lines, block_LOC, block_SLOC, block_start_line, block_end_line) )
+            if len(self.blocks) < BLOCKS_BUFFER_SIZE:
+                return
+
+        # Prepare the complete list
+        flist = ','.join(self.blocks)
+
+        self.check_connection()
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(add_blocks % (flist))
+            return cursor.lastrowid
+        except Exception as err:
+            self.logging.error('Failed to insert block %s' % (block_id))
+            self.logging.error(err)
+            sys.exit(1)
+        finally:
+            self.block_count += len(self.blocks)
+            self.logging.info("Inserted %s blocks. Total: %s." % (len(self.blocks), self.block_count))
+            cursor.close()
+            self.blocks = []
 
     def flush_files_and_stats(self):
         if len(self.files) > 0:
             self.insert_file(None, None, None, None, None, flush = True)
         if len(self.stats) > 0:
             self.insert_stats_ignore_repetition(None, None, None, None, None, None, None, None, flush = True)
+
+    def flush_blocks(self):
+        if len(self.blocks) > 0:
+            self.insert_block(None, None, None, None, None, None, None, None, flush = True)
 
     def get_max_project_id(self):
         self.check_connection()
