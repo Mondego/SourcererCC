@@ -103,9 +103,13 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
   files_stats_path      = os.path.join(output_path,'files_stats')
   blocks_tokens_path    = os.path.join(output_path,'blocks_tokens')
   blocks_stats_path     = os.path.join(output_path,'blocks_stats')
+  SO_blocks_tokens_path = os.path.join(output_path,'SO_blocks_tokens')
+  SO_blocks_stats_path  = os.path.join(output_path,'SO_blocks_stats')
 
   try:
-    logging.info('## Warming up token values')
+    logging.info('## Import into database')
+
+    logging.info('## Warming up block token values')
     token_info = {}
     for file in os.listdir(blocks_tokens_path):
       if file.endswith('.tokens'):
@@ -115,8 +119,6 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
           for line in csvfile:
             pid, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
             token_info[fid] = [total_tokens, unique_tokens, thash]
-
-    logging.info('## Import into database')
 
     logging.info('## Importing blocks and stats')
     # Insert files and stats
@@ -134,7 +136,38 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
               file_id = block_id[5:]
               block_hash = block_hash[1:-1] # To remove surrounding quotation marks
 
-              db.insert_block(proj_id, b_id, file_id, block_hash, starting_line, ending_line)
+              db.insert_block(proj_id, file_id, b_id, block_hash, starting_line, ending_line)
+              info = token_info[block_id]
+              db.insert_blocks_stats_ignore_repetition(block_hash, lines, loc, sloc, info[0], info[1], info[2])
+
+    db.flush_blocks_and_stats()
+
+    logging.info('## Warming up SO block token values')
+    token_info = {}
+    for file in os.listdir(SO_blocks_tokens_path):
+      if file.endswith('.tokens'):
+        file = os.path.join(SO_blocks_tokens_path,file)
+        logging.info('Getting info from '+file)
+        with open(file, 'r') as csvfile:
+          for line in csvfile:
+            pid, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
+            token_info[fid] = [total_tokens, unique_tokens, thash]
+
+    logging.info('## Importing SO blocks and stats')
+    # Insert files and stats
+    for file in os.listdir(SO_blocks_stats_path):
+      if file.endswith('.stats'):
+        file = os.path.join(SO_blocks_stats_path,file)
+        logging.info('Importing from '+file)
+        with open(file, 'r') as csvfile:
+          for entry in csvfile:
+            entry_split = (entry[:-1]).split(',')
+            if len(entry_split) == 8: 
+              post_id, block_id, block_hash, lines, loc, sloc, starting_line, ending_line = entry_split
+
+              block_hash = block_hash[1:-1] # To remove surrounding quotation marks
+
+              db.insert_block(post_id, 'NULL', block_id, block_hash, 'NULL', 'NULL')
               info = token_info[block_id]
               db.insert_blocks_stats_ignore_repetition(block_hash, lines, loc, sloc, info[0], info[1], info[2])
 
@@ -179,6 +212,34 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
             db.insert_files_stats_ignore_repetition(file_hash, bytess, lines, loc, sloc, 'NULL', 'NULL', 'NULL')
 
     db.flush_files_and_stats()
+
+    logging.info('## Importing projects')
+    # Insert projects 
+    for file in os.listdir(bookkeeping_file_path):
+      if file.endswith('.projs'):
+        file = os.path.join(bookkeeping_file_path,file)
+        logging.info('Importing from '+file)
+        with open(file, 'r') as csvfile:
+          for line in csvfile:
+            entry_split = (line[:-1]).split(',')
+
+            proj_id = entry_split[0]
+            del entry_split[0]
+
+            if(len(entry_split) == 2):
+              db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
+            else:
+              if (len(entry_split) % 2 != 0):
+                logging.warning('Problems parsing project: '+str(entry_split))
+                path = ','.join(entry_split[:len(entry_split)/2])
+                path = path[1:-1]
+                url  = ','.join(entry_split[len(entry_split)/2:])
+                url = url[1:-1]
+                logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
+                logging.warning('Previous warning was solved')
+                db.insert_project(proj_id,path,url)
+              else:
+                logging.error('Problems parsing project: '+str(entry_split))
 
   except Exception as e:
     logging.error('Error accessing Database')

@@ -75,12 +75,12 @@ table5 = """CREATE TABLE IF NOT EXISTS `projectClones` (
 
 table6 = """CREATE TABLE IF NOT EXISTS `blocks` (
         id             INT(6)          UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
-        blockId        BIGINT(15)      UNSIGNED NOT NULL,
-        fileId         BIGINT(15)      UNSIGNED,
         projectId      INT(8)          UNSIGNED NOT NULL,
+        fileId         BIGINT(15)      UNSIGNED,
+        blockId        BIGINT(15)      UNSIGNED NOT NULL,
         blockhash      CHAR(32)        NOT NULL,
-        blockStartLine INT(6) UNSIGNED NOT NULL,
-        blockEndLine   INT(6) UNSIGNED NOT NULL,
+        blockStartLine INT(6) UNSIGNED,
+        blockEndLine   INT(6) UNSIGNED,
         INDEX (projectId),
         INDEX (fileId),
         INDEX (blockhash)
@@ -110,7 +110,7 @@ check_fileHash    = """SELECT fileHash FROM stats WHERE fileHash = '%s';"""
 project_exists    = """SELECT projectPath FROM projects WHERE projectPath = '%s';"""
 add_blocks_stats_ignore_repetition = """INSERT IGNORE INTO blockStats (blockHash, blockLines, blockLOC, blockSLOC, totalTokens, uniqueTokens, tokenHash) VALUES %s ;"""
 blocks_list       = "('%s', '%s', '%s', '%s', '%s', '%s')"
-add_blocks        = """INSERT INTO blocks (blockId, fileId, projectId, blockhash, blockStartLine, blockEndLine) VALUES %s ;"""
+add_blocks        = """INSERT IGNORE INTO blocks (projectId, fileId, blockId, blockhash, blockStartLine, blockEndLine) VALUES %s ;"""
 blocks_stats_list = "('%s', '%s', '%s', '%s', '%s', '%s', '%s')"
 
 class DB:
@@ -306,9 +306,9 @@ class DB:
       cursor.close()
       self.files = []
 
-  def insert_block(self, block_id, file_id, project_id, block_hash, block_start_line, block_end_line, flush = False):
+  def insert_block(self, project_id, file_id, block_id, block_hash, block_start_line, block_end_line, flush = False):
     if not flush:
-      self.blocks.append( blocks_list % (block_id, file_id, project_id, block_hash, block_start_line, block_end_line) )
+      self.blocks.append( blocks_list % (project_id, file_id, block_id, block_hash, block_start_line, block_end_line) )
       if len(self.blocks) < BLOCKS_BUFFER_SIZE:
         return
 
@@ -317,6 +317,7 @@ class DB:
 
     self.check_connection()
     cursor = self.connection.cursor()
+
     try:
       cursor.execute(add_blocks % (flist))
       return cursor.lastrowid
