@@ -112,8 +112,8 @@ public class CloneDetector {
                                             && candidate.numTokens <= query.maxNumTokens) {
                                         if (candidate.uniqueTokens >= query.minUniqueTokens
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
-                                            if (candidate.numChars >= query.minNumChars
-                                                    && candidate.numChars <= query.maxNumChars) {
+                                            //if (candidate.numChars >= query.minNumChars
+                                                //    && candidate.numChars <= query.maxNumChars) {
                                                 // if ((candidate.mad >=
                                                 // query.minMad && candidate.mad
                                                 // <= query.maxMad)
@@ -130,7 +130,7 @@ public class CloneDetector {
                                                         CloneDetector.clonesWriter,
                                                         text, true);
                                                 // }
-                                            }
+                                            //}
                                         }
                                     }
                                 }
@@ -157,13 +157,15 @@ public class CloneDetector {
         int fileId = Integer.parseInt(metadataParts[1]);
         int numTokens = Integer.parseInt(metadataParts[2]);
         int uniqueTokens = Integer.parseInt(metadataParts[3]);
-        int numCharacters = Integer.parseInt(metadataParts[4]);
+        //int numCharacters = Integer.parseInt(metadataParts[4]);
+        String tokenHash=metadataParts[4];
         float median = Float.parseFloat(metadataParts[5]);
-        float stdDev = Float.parseFloat(metadataParts[6]);
-        float variance = 0;//Float.parseFloat(metadataParts[7]);
-        float mad = Float.parseFloat(metadataParts[7]);
-        Block candidate = new Block(median, projectId, fileId, numTokens,
-                stdDev, variance, numCharacters, uniqueTokens, mad);
+        float mean=Float.parseFloat(metadataParts[6]);
+        float stdDev = Float.parseFloat(metadataParts[7]);
+        float variance = 0;//Float.parseFloat(metadataParts[8]);
+        float mad = 0;//Float.parseFloat(metadataParts[9]);
+        Block candidate = new Block(median,mean, projectId, fileId, numTokens,
+                stdDev, variance, tokenHash, uniqueTokens, mad);
         candidate.setMetric(candidate.numTokens,0);
         return candidate;
     }
@@ -182,7 +184,7 @@ public class CloneDetector {
                 try {
                     br = new BufferedReader(new InputStreamReader(
                             new FileInputStream(inputFile), "UTF-8"));
-                    String line;
+                        String line;
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         Block candidate = this.getCandidateFromLine(line);
