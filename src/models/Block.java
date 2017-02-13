@@ -14,10 +14,14 @@ public class Block implements Comparable<Block> {
     public float median;
     public float min_median;
     public float max_median;
+    public float mean;
+    public float min_mean;
+    public float max_mean;
     public float variance;
     public float minVariance;
     public float maxVariance;
-    public long numChars;
+    //public long numChars;
+    public String tokenHash;
     public long minNumChars;
     public long maxNumChars;
     public int uniqueTokens;
@@ -34,28 +38,33 @@ public class Block implements Comparable<Block> {
     public float maxMetric;
     
     
-    public Block(float median, int project_id, int file_id, int numTokens,float stdDev, float variance, long numChars, int uniqueTokens, float mad) {
+    public Block(float median,float mean, int project_id, int file_id, int numTokens,float stdDev, float variance, String tokenHash, int uniqueTokens, float mad) {
+        this.mean=mean;
         this.median = median;
         this.project_id = project_id;
         this.file_id = file_id;
         this.numTokens = numTokens;
         this.variance = variance;
-        this.numChars = numChars;
+        this.tokenHash = tokenHash;
         this.uniqueTokens=uniqueTokens;
         this.stdDev=stdDev;
         this.mad = mad;
         
         this.min_median = BlockInfo.getMinimumSimilarityThreshold(this.median, CloneDetector.th);
         this.max_median = BlockInfo.getMaximumSimilarityThreshold(this.median, CloneDetector.th);
-        
+
+        this.min_mean=BlockInfo.getMinimumSimilarityThreshold(this.mean,CloneDetector.th);
+        this.max_mean=BlockInfo.getMaximumSimilarityThreshold(this.mean,CloneDetector.th);
+
         this.minNumTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTokens, CloneDetector.th);
         this.maxNumTokens = BlockInfo.getMaximumSimilarityThreshold(this.numTokens, CloneDetector.th);
         
         this.minVariance = BlockInfo.getMinimumSimilarityThreshold(this.variance, CloneDetector.th);
         this.maxVariance = BlockInfo.getMaximumSimilarityThreshold(this.variance, CloneDetector.th);
-        
-        this.minNumChars = BlockInfo.getMinimumSimilarityThreshold(this.numChars, CloneDetector.th-(1.5f*Util.MUL_FACTOR));
-        this.maxNumChars = BlockInfo.getMaximumSimilarityThreshold(this.numChars, CloneDetector.th-(1.5f*Util.MUL_FACTOR));
+
+        //change it later to reflect token hash
+        //this.minNumChars = BlockInfo.getMinimumSimilarityThreshold(this.numChars, CloneDetector.th-(1.5f*Util.MUL_FACTOR));
+        //this.maxNumChars = BlockInfo.getMaximumSimilarityThreshold(this.numChars, CloneDetector.th-(1.5f*Util.MUL_FACTOR));
         
         this.minUniqueTokens = BlockInfo.getMinimumSimilarityThreshold(this.uniqueTokens, CloneDetector.th);
         this.maxUniqueTokens = BlockInfo.getMaximumSimilarityThreshold(this.uniqueTokens, CloneDetector.th);
@@ -87,7 +96,7 @@ public class Block implements Comparable<Block> {
                 + ", maxNumTokens=" + maxNumTokens + ", median=" + median
                 + ", min_median=" + min_median + ", max_median=" + max_median
                 + ", variance=" + variance + ", minVariance=" + minVariance
-                + ", maxVariance=" + maxVariance + ", numChars=" + numChars
+                + ", maxVariance=" + maxVariance + ", tokenHash=" + tokenHash
                 + ", minNumChars=" + minNumChars + ", maxNumChars="
                 + maxNumChars + ", uniqueTokens=" + uniqueTokens
                 + ", minUniqueTokens=" + minUniqueTokens + ", maxUniqueTokens="
