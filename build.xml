@@ -15,8 +15,7 @@
 	<property name="fixIdMethodMap"  value="postprocessing.FixIdMethodMap"/>
     <property name="cdIndex"  value="indexbased.SearchManager"/>
 	<property name="indexMerge"  value="indexbased.IndexMerger"/>
-	<property name="mediancd"  value="medianbased.CloneDetector"/>
-	
+	<property name="preprocessor"  value="preprocessing.Preprocessor"/>
 	
 	<property name="lib"  value="lib"/>
     
@@ -30,7 +29,7 @@
     <target name="compile">
         <mkdir dir="${classes.dir}"/>
         <mkdir dir="${jar.dir}"/>
-        <javac source="1.7" target="1.7" includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}">
+        <javac encoding="utf-8" source="1.7" target="1.7" debug ="true" includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}">
             <classpath>
                <fileset dir="${lib}">
                   <include name="**/*.jar" />
@@ -43,7 +42,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${cdWithFilter}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${cdWithFilter}"/>
+                <attribute name="Main-Class" value="com.mondego.${cdWithFilter}"/>
             </manifest>
         </jar>
     </target>
@@ -51,7 +50,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${cdWithoutFilter}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${cdWithoutFilter}"/>
+                <attribute name="Main-Class" value="com.mondego.${cdWithoutFilter}"/>
             </manifest>
         </jar>
     </target>
@@ -59,7 +58,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${cdIndex}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${cdIndex}"/>
+                <attribute name="Main-Class" value="com.mondego.${cdIndex}"/>
             </manifest>
             <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
         </jar>
@@ -69,7 +68,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonesBugsAssembler}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${clonesBugsAssembler}"/>
+                <attribute name="Main-Class" value="com.mondego.${clonesBugsAssembler}"/>
             </manifest>
         </jar>
     </target>
@@ -77,7 +76,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonesNamesAssembler}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${clonesNamesAssembler}"/>
+                <attribute name="Main-Class" value="com.mondego.${clonesNamesAssembler}"/>
             </manifest>
         </jar>
     </target>
@@ -85,7 +84,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonesBugPattern}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${clonesBugPattern}"/>
+                <attribute name="Main-Class" value="com.mondego.${clonesBugPattern}"/>
             </manifest>
         </jar>
     </target>
@@ -100,7 +99,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${aggregatorClones}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${aggregatorClones}"/>
+                <attribute name="Main-Class" value="$com.mondego.{aggregatorClones}"/>
             </manifest>
         </jar>
     </target>
@@ -109,7 +108,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${clonedMethod}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="${clonedMethod}"/>
+                <attribute name="Main-Class" value="com.mondego.${clonedMethod}"/>
             </manifest>
         	<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
         </jar>
@@ -119,7 +118,7 @@
 	        <mkdir dir="${jar.dir}"/>
 	        <jar destfile="${jar.dir}/${fixIdMethodMap}.jar" basedir="${classes.dir}">
 	            <manifest>
-	                <attribute name="Main-Class" value="${fixIdMethodMap}"/>
+	                <attribute name="Main-Class" value="com.mondego.${fixIdMethodMap}"/>
 	            </manifest>
 	        	<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
 	        </jar>
@@ -129,21 +128,22 @@
 	            <mkdir dir="${jar.dir}"/>
 	            <jar destfile="${jar.dir}/${indexMerge}.jar" basedir="${classes.dir}">
 	                <manifest>
-	                    <attribute name="Main-Class" value="${indexMerge}"/>
+	                    <attribute name="Main-Class" value="com.mondego.${indexMerge}"/>
 	                </manifest>
 	                <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
 	            </jar>
 	        </target>
-	<target name="jarMedian" depends="compile">
-        <mkdir dir="${jar.dir}"/>
-        <jar destfile="${jar.dir}/${mediancd}.jar" basedir="${classes.dir}">
-            <manifest>
-                <attribute name="Main-Class" value="${mediancd}"/>
-            </manifest>
-            <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
-        </jar>
-    </target>
-	
+
+    <target name="jarPreProcess" depends="compile">
+                    <mkdir dir="${jar.dir}"/>
+                    <jar destfile="${jar.dir}/${preprocessor}.jar" basedir="${classes.dir}">
+                        <manifest>
+                            <attribute name="Main-Class" value="com.mondego.preprocessing${preprocessor}"/>
+                        </manifest>
+                        <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+                    </jar>
+                </target>
+
 	
 <!--     <target name="clean-build" depends="clean,jar"/> -->
     <target name="cdwf" depends="clean,runWF"/>
@@ -153,8 +153,9 @@
     <target name="cdv" depends="jarV"/>
     <target name="cda" depends="jarAg"/>
     <target name="cdi" depends="jarCDI"/>
-	<target name="cdini" depends="cdboth, cdi"/>
-	<target name="ppm" depends="clean, jarCM, jarFix"/>
-	<target name="mcd" depends="clean, jarMedian"/>
-	<target name="cdmerge" depends="jarMerge"/>
+    <target name="cdini" depends="cdboth, cdi"/>
+    <target name="ppm" depends="clean, jarCM, jarFix"/>
+    <target name="cdmerge" depends="jarMerge"/>
+    <target name="cdpreprocess" depends="jarPreProcess"/>
+   
 </project>
