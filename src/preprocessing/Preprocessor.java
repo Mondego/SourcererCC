@@ -20,7 +20,7 @@ public class Preprocessor {
         try {
             String eachFile="";
             BufferedReader bf=new BufferedReader(new FileReader("blocks.file"));
-            PrintWriter writer=new PrintWriter("output.txt");
+            PrintWriter writer=new PrintWriter("outputTest.txt");
             HashMap<String,Integer> wordNumbers=new HashMap<>();
             while ((eachFile=bf.readLine())!=null){
                 String[] separatedLineFromMeta=eachFile.split("@#@");
@@ -29,7 +29,8 @@ public class Preprocessor {
                 String lineNewFile="";
                 double mean;
                 double variance;
-                double mode;
+                double mad;
+                double stdDev;
                 double median;
                 ArrayList<Double> numbersInLine=new ArrayList<>();
                 for (int i = 0; i <words.length ; i++) {
@@ -51,8 +52,10 @@ public class Preprocessor {
                 }
                 median=getMedian(numbers);
                 variance=StatUtils.variance(numbers);
+                stdDev=Math.sqrt(variance);
                 mean=StatUtils.mean(numbers);
-                writer.append(separatedLineFromMeta[0]+","+median+","+mean+","+variance+"@#@"+lineNewFile.substring(0,lineNewFile.length()-1)+System.lineSeparator());
+                mad=getMad(numbers);
+                writer.append(separatedLineFromMeta[0]+","+median+","+mean+","+variance+","+stdDev+","+mad+"@#@"+lineNewFile.substring(0,lineNewFile.length()-1)+System.lineSeparator());
             }
             writer.close();
             bf.close();
@@ -74,6 +77,15 @@ public class Preprocessor {
         else
             median = (double) numArray[numArray.length/2];
         return median;
+    }
+	
+	private static double getMad(double[] numArray){
+        double mean=StatUtils.mean(numArray);
+        double[] medDiffenences=new double[numArray.length];
+        for (int i = 0; i <numArray.length ; i++) {
+            medDiffenences[i]=Math.abs(numArray[i]-mean);
+        }
+        return StatUtils.mean(medDiffenences);
     }
 
 }
