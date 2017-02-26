@@ -21,6 +21,7 @@ public class BlockInfo {
 		return prefixSize;
 	}
 
+	//test done
 	public int getComputedThreshold() {
 		return computedThreshold;
 	}
@@ -31,25 +32,30 @@ public class BlockInfo {
 	private int getMinimumSimilarityThreshold(Bag bag,float threshold) {
         return (int) Math.ceil((threshold * bag.getSize())/ (Util.MUL_FACTOR*10));
     }
-	
-	public static int getMinimumSimilarityThreshold(int size,float threshold) {
-        return (int) Math.ceil((threshold * size)/ (Util.MUL_FACTOR*10));
+
+	//test done
+	public static int getMinimumSimilarityThreshold(int metric,float threshold) {
+        return (int) Math.ceil((threshold * metric)/ (Util.MUL_FACTOR*10));
     }
-	public static int getMaximumSimilarityThreshold(int size,float threshold) {
-        return (int) Math.floor((size*Util.MUL_FACTOR*10)/threshold);
+	//test done
+	public static int getMaximumSimilarityThreshold(int metric,float threshold) {
+        return (int) Math.floor((metric*Util.MUL_FACTOR*10)/threshold);
     }
-	
-	public static float getMinimumSimilarityThreshold(float size,float threshold) {
-        return (threshold * size)/ (Util.MUL_FACTOR*10);
+	//test done
+	public static float getMinimumSimilarityThreshold(float metric,float threshold) {
+        return (threshold * metric)/ (Util.MUL_FACTOR*10);
     }
-    public static float getMaximumSimilarityThreshold(float size,float threshold) {
-        return (size*Util.MUL_FACTOR*10)/threshold;
+	//test done
+    public static float getMaximumSimilarityThreshold(float metric,float threshold) {
+        return (metric*Util.MUL_FACTOR*10)/threshold;
     }
-    public static long getMinimumSimilarityThreshold(long size,float threshold) {
-        return (long) Math.ceil((threshold * size)/ (Util.MUL_FACTOR*10));
+	//test done
+    public static long getMinimumSimilarityThreshold(long metric,float threshold) {
+        return (long) Math.ceil((threshold * metric)/ (Util.MUL_FACTOR*10));
     }
-    public static long getMaximumSimilarityThreshold(long size,float threshold) {
-        return (long) Math.floor((size*Util.MUL_FACTOR*10)/threshold);
+	//test done
+    public static long getMaximumSimilarityThreshold(long metric,float threshold) {
+        return (long) Math.floor((metric*Util.MUL_FACTOR*10)/threshold);
     }
 	
 	public static int getPrefixSize(int size, int computedThreshold){
