@@ -4,11 +4,17 @@ import logging
 import urllib
 
 pattern = r'\"(.+?)\"'
+flag = None
 
 def import_tokenizer_output_files_tokens(db, output_path, logging):
   bookkeeping_file_path = os.path.join(output_path,'bookkeeping_projs')
   files_stats_path      = os.path.join(output_path,'files_stats')
   files_tokens_path     = os.path.join(output_path,'files_tokens')
+
+  # When projects and files are inserted with auto-increment, we save the
+  # id attributed by the tokenizer together with the id attributed by
+  # the DB, so that projectId's match when inserting files
+  projects_key_map = dict()
 
   try:
     logging.info('## Warming up token values')
@@ -23,6 +29,46 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
             token_info[fid] = [total_tokens, unique_tokens, thash]
 
     logging.info('## Import into database')
+
+    logging.info('## Importing projects')
+    # Insert projects 
+    for file in os.listdir(bookkeeping_file_path):
+      if file.endswith('.projs'):
+        file = os.path.join(bookkeeping_file_path,file)
+        logging.info('Importing from '+file)
+        with open(file, 'r') as csvfile:
+          for line in csvfile:
+            entry_split = (line[:-1]).split(',')
+
+            proj_id = entry_split[0]
+            del entry_split[0]
+
+            if(len(entry_split) == 2):
+              if flag == 'files-autoID':
+                ret = db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1],autoID=True)
+                projects_key_map[proj_id] = ret
+              else:
+                db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
+            else:
+              if (len(entry_split) % 2 != 0):
+                logging.warning('Problems parsing project: '+str(entry_split))
+                path = ','.join(entry_split[:len(entry_split)/2])
+                path = path[1:-1]
+                url  = ','.join(entry_split[len(entry_split)/2:])
+                url = url[1:-1]
+                logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
+                logging.warning('Previous warning was solved')
+
+                #if flag == 'files-autoID':
+                #  proj_id = 'NULL'
+                if flag == 'files-autoID':
+                  ret = db.insert_project(proj_id,path,url,autoID=True)
+                  projects_key_map[proj_id] = ret
+                else:
+                  db.insert_project(proj_id,path,url)
+
+              else:
+                logging.error('Problems parsing project: '+str(entry_split))
 
     logging.info('## Importing files and stats')
     # Insert files and stats
@@ -59,39 +105,14 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
             url = urllib.quote(url.strip('"'))
             file_hash = file_hash.strip('"')
 
-            db.insert_file(file_id, proj_id, path, url, file_hash)
-            db.insert_files_stats_ignore_repetition(file_hash, bytess, lines, loc, sloc, token_info[file_id][0], token_info[file_id][1], token_info[file_id][2])
+            if flag == 'files-autoID':
+              db.insert_file(file_id, projects_key_map[proj_id], path, url, file_hash, autoID=True)
+              db.insert_files_stats_ignore_repetition(file_hash, bytess, lines, loc, sloc, token_info[file_id][0], token_info[file_id][1], token_info[file_id][2])
+            else:
+              db.insert_file(file_id, proj_id, path, url, file_hash)
+              db.insert_files_stats_ignore_repetition(file_hash, bytess, lines, loc, sloc, token_info[file_id][0], token_info[file_id][1], token_info[file_id][2])
 
     db.flush_files_and_stats()
-
-    logging.info('## Importing projects')
-    # Insert projects 
-    for file in os.listdir(bookkeeping_file_path):
-      if file.endswith('.projs'):
-        file = os.path.join(bookkeeping_file_path,file)
-        logging.info('Importing from '+file)
-        with open(file, 'r') as csvfile:
-          for line in csvfile:
-            entry_split = (line[:-1]).split(',')
-
-            proj_id = entry_split[0]
-            del entry_split[0]
-
-            if(len(entry_split) == 2):
-              db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
-            else:
-              if (len(entry_split) % 2 != 0):
-                logging.warning('Problems parsing project: '+str(entry_split))
-                path = ','.join(entry_split[:len(entry_split)/2])
-                path = path[1:-1]
-                url  = ','.join(entry_split[len(entry_split)/2:])
-                url = url[1:-1]
-                logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
-                logging.warning('Previous warning was solved')
-                db.insert_project(proj_id,path,url)
-              else:
-                logging.error('Problems parsing project: '+str(entry_split))
-
 
   except Exception as e:
     logging.error('Error accessing Database')
@@ -278,8 +299,8 @@ if __name__ == "__main__":
   passw   = sys.argv[3]
   DB_name = sys.argv[4]
 
-  if flag not in ['blocks','files']:
-    logging.error('Usage: python mysql-import.py blocks|files user passwd database [output_path] [pairs_path]')
+  if flag not in ['blocks','files','files-autoID']:
+    logging.error('Usage: python mysql-import.py blocks|files|files-autoID user passwd database [output_path] [pairs_path]')
     sys.exit(1)
 
   log_path = 'LOG-db-importer.log'
@@ -309,7 +330,7 @@ if __name__ == "__main__":
       if flag == 'blocks':
         logging.info('### Importing blocks output from tokenizer')
         import_tokenizer_output_blocks_tokens(db_object,output_path,logging)
-      if flag == 'files':
+      if flag == 'files' or flag == 'files-autoID':
         logging.info('### Importing files output from tokenizer')
         import_tokenizer_output_files_tokens(db_object,output_path,logging)
     #if len(sys.argv) >= 7:

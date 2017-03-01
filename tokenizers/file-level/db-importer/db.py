@@ -103,7 +103,7 @@ add_projects      = """INSERT INTO projects (projectId,projectPath,projectUrl) V
 add_files         = """INSERT INTO files (fileId,projectId,relativePath,relativeUrl,fileHash) VALUES %s ;"""
 files_list        = "('%s', '%s', '%s', '%s', '%s')"
 add_files_stats_ignore_repetition = """INSERT IGNORE INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES %s ;"""
-files_stats_list        = "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+files_stats_list  = "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
 add_stats_and_check_tokenHash_uniqueness = """INSERT INTO stats (fileHash,fileBytes,fileLines,fileLOC,fileSLOC,totalTokens,uniqueTokens,tokenHash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s); SELECT tokenHash FROM stats WHERE tokenHash = %s;"""
 add_CCPairs       = """INSERT INTO CCPairs (projectId1,fileId1,projectId2,fileId2) VALUES (%s, %s, %s, %s);"""
 check_fileHash    = """SELECT fileHash FROM stats WHERE fileHash = '%s';"""
@@ -112,6 +112,9 @@ add_blocks_stats_ignore_repetition = """INSERT IGNORE INTO blockStats (blockHash
 blocks_list       = "('%s', '%s', '%s', '%s', '%s', '%s')"
 add_blocks        = """INSERT IGNORE INTO blocks (projectId, fileId, blockId, blockhash, blockStartLine, blockEndLine) VALUES %s ;"""
 blocks_stats_list = "('%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+
+add_projects_autoId = """INSERT INTO projects (projectPath,projectUrl) VALUES (%s, %s);"""
+add_files_autoId    = """INSERT INTO files (projectId,relativePath,relativeUrl,fileHash) VALUES %s ;"""
 
 class DB:
   # connection is a MySQLConnection object
@@ -211,14 +214,15 @@ class DB:
     if len(self.clones) > 0:
       self.insert_projectClones(None, None, None, None, None, None, None, None, flush = True)
 
-  def insert_project(self, proj_id, projectPath, projectUrl):
+  def insert_project(self, proj_id, projectPath, projectUrl, autoID = False):
     self.check_connection()
     cursor = self.connection.cursor()
+
+    if projectUrl is None:
+      projectUrl = 'NULL' 
+
     try:
-      if projectUrl is None:
-        cursor.execute(add_projects, (proj_id, self.sanitize_string(projectPath), 'NULL'))
-      else:
-        cursor.execute(add_projects, (proj_id, self.sanitize_string(projectPath), self.sanitize_string(projectUrl)) )
+      cursor.execute(add_projects_autoId, (self.sanitize_string(projectPath), self.sanitize_string(projectUrl)))
       return cursor.lastrowid
     except Exception as err:
       self.logging.error('Failed to insert project %s' % (projectPath))
@@ -280,7 +284,7 @@ class DB:
       cursor.close()
       self.blocks_stats = []
 
-  def insert_file(self, file_id, proj_id, file_path, file_url, file_hash, flush = False):
+  def insert_file(self, file_id, proj_id, file_path, file_url, file_hash, flush = False, autoID = False):
     if not flush:
       if file_url is None:
         file_url = 'NONE'
@@ -289,12 +293,17 @@ class DB:
         return
 
     # Prepare the complete list
+    if autoID:
+      self.files = map(lambda (a, b, c, d, e): (b, c, d, e), self.files)
     flist = ','.join(self.files)
 
     self.check_connection()
     cursor = self.connection.cursor()
     try:
-      cursor.execute(add_files % (flist))
+      if autoID:
+        cursor.execute(add_files_autoId % (flist))
+      else:
+        cursor.execute(add_files % (flist))
       return cursor.lastrowid
     except Exception as err:
       self.logging.error('Failed to insert file %s' % (file_path))
