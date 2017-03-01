@@ -382,8 +382,9 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
   p_start = dt.datetime.now()
 
   if project_format == 'leidos':
-    proj_path, proj_url = proj_path
-
+    proj_path = proj_path
+    proj_url = 'None'
+    
     logging.info('Starting leidos project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
 
     if not os.path.isdir(proj_path):
@@ -517,8 +518,8 @@ if __name__ == '__main__':
   if FILE_priority_projects != None:
     with open(FILE_priority_projects) as f:
       for line in f:
-        line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
-        prio_proj_paths.append((line_split[0],line_split[4]))
+        line_split = line.strip('\n') # [:-1] to strip final character which is '\n'
+        prio_proj_paths.append(line_split)
     prio_proj_paths = zip(range(init_proj_id, len(prio_proj_paths)+init_proj_id), prio_proj_paths)
 
   proj_paths = []
@@ -527,13 +528,13 @@ if __name__ == '__main__':
     with open(FILE_projects_list) as f:
       for line in f:
         prio = False
-        line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
+        line_split = line.strip('\n') # [:-1] to strip final character which is '\n'
         for p in prio_proj_paths:
-          if p[1][0] == line_split[0]:
+          if p[1][0] == line_split:
             prio = True
-            print "Project %s is in priority list" % line_split[0]
+            print "Project %s is in priority list" % line_split
         if not prio:
-          proj_paths.append((line_split[0],line_split[4]))
+          proj_paths.append(line_split)
     proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
   if project_format in ['zip','zipblocks']: # zipblocks will diverge the process flow on process_file()
     print '\'',project_format,'\'','format'
