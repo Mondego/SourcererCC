@@ -4,8 +4,18 @@ import medianbased.CloneDetector;
 import utility.BlockInfo;
 import utility.Util;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Block implements Comparable<Block> {
-    
+
+    private static PrintWriter printWriter;
+    private static String pathToWrite;
+    private static int shardId=0;
+
     public int project_id;
     public int file_id;
     public int numTokens;
@@ -20,7 +30,7 @@ public class Block implements Comparable<Block> {
     public float variance;
     public float minVariance;
     public float maxVariance;
-    //public long numChars;
+    public long numChars;
     public String tokenHash;
     public long minNumChars;
     public long maxNumChars;
@@ -36,9 +46,13 @@ public class Block implements Comparable<Block> {
     public float metric;
     public float minMetric;
     public float maxMetric;
-    
-    
-    public Block(float median,float mean, int project_id, int file_id, int numTokens,float stdDev, float variance, String tokenHash, int uniqueTokens, float mad) {
+
+    //public float mode;
+    public Map<Double,Integer> modes;
+    public Block(float median,float mean, int project_id, int file_id, int numTokens,float stdDev,
+                 float variance, String tokenHash, int uniqueTokens, float mad,Map<Double,Integer> modes,long numChars, String pathToWrite) {
+
+        this.pathToWrite=pathToWrite;
         this.mean=mean;
         this.median = median;
         this.project_id = project_id;
@@ -49,7 +63,9 @@ public class Block implements Comparable<Block> {
         this.uniqueTokens=uniqueTokens;
         this.stdDev=stdDev;
         this.mad = mad;
-        
+        this.modes=modes;
+        this.numChars=numChars;
+
         this.min_median = BlockInfo.getMinimumSimilarityThreshold(this.median, CloneDetector.th);
         this.max_median = BlockInfo.getMaximumSimilarityThreshold(this.median, CloneDetector.th);
 
@@ -63,8 +79,8 @@ public class Block implements Comparable<Block> {
         this.maxVariance = BlockInfo.getMaximumSimilarityThreshold(this.variance, CloneDetector.th);
 
         //change it later to reflect token hash
-        //this.minNumChars = BlockInfo.getMinimumSimilarityThreshold(this.numChars, CloneDetector.th-(1.5f*Util.MUL_FACTOR));
-        //this.maxNumChars = BlockInfo.getMaximumSimilarityThreshold(this.numChars, CloneDetector.th-(1.5f*Util.MUL_FACTOR));
+        this.minNumChars = BlockInfo.getMinimumSimilarityThreshold(this.numChars, CloneDetector.th-(1.5f*Util.MUL_FACTOR));
+        this.maxNumChars = BlockInfo.getMaximumSimilarityThreshold(this.numChars, CloneDetector.th-(1.5f*Util.MUL_FACTOR));
         
         this.minUniqueTokens = BlockInfo.getMinimumSimilarityThreshold(this.uniqueTokens, CloneDetector.th);
         this.maxUniqueTokens = BlockInfo.getMaximumSimilarityThreshold(this.uniqueTokens, CloneDetector.th);
@@ -102,11 +118,43 @@ public class Block implements Comparable<Block> {
                 + ", minUniqueTokens=" + minUniqueTokens + ", maxUniqueTokens="
                 + maxUniqueTokens + ", stdDev=" + stdDev + ", minStdDev="
                 + minStdDev + ", maxStdDev=" + maxStdDev + ", mad=" + mad
-                + ", minMad=" + minMad + ", maxMad=" + maxMad + ", metric="
-                + metric + ", minMetric=" + minMetric + ", maxMetric="
+                + ", minMad=" + minMad + ", maxMad=" + maxMad
+                + ", metric="+ metric + ", minMetric=" + minMetric + ", maxMetric="
                 + maxMetric + "]";
     }
 
+    public void writeToFile(int shardId){
+        PrintWriter pw=getPrintWriter(shardId);
+        String modesToString="";
+        for (Double mode:modes.keySet()){
+            modesToString+=mode+"#"+modes.get(mode)+",";
+        }
+        modesToString=modesToString.substring(0,modesToString.length()-1);
+        pw.append(project_id+","+ file_id+","+ numTokens+","+ minNumTokens+","
+                + maxNumTokens +","+numChars+"," + minNumChars + ","+maxNumChars + ","
+                + uniqueTokens+ "," + minUniqueTokens + ","+ maxUniqueTokens+","+modesToString+System.lineSeparator());
+
+    }
+    public static void writeFinished(){
+        printWriter.close();
+    }
+    private PrintWriter getPrintWriter(int shardId){
+        try {
+        if (this.shardId==0) {
+            this.shardId=shardId;
+            printWriter = new PrintWriter(pathToWrite+"\\"+shardId+".txt");
+        }
+        else if (this.shardId!=shardId) {
+            this.shardId = shardId;
+            printWriter.close();
+            printWriter = new PrintWriter(pathToWrite + "\\" + shardId + ".txt");
+        }
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+        return printWriter;
+    }
     public void setMetric(float statistic,int includeWidth) {
         this.metric = statistic;
         int width = -Util.MUL_FACTOR * includeWidth;
