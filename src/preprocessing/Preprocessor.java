@@ -21,7 +21,7 @@ public class Preprocessor {
 		long beginTime=System.currentTimeMillis();
         addStatsAndGiveIdsToTokens();
 		long endTime=System.currentTimeMillis();
-
+        System.out.println(endTime-beginTime);
     }
     private static void addStatsAndGiveIdsToTokens(){
                 int randomNumber=0;
