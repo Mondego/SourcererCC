@@ -16,6 +16,8 @@
     <property name="cdIndex"  value="indexbased.SearchManager"/>
 	<property name="indexMerge"  value="indexbased.IndexMerger"/>
 	<property name="preprocessor"  value="preprocessing.Preprocessor"/>
+    <property name="metacd"  value="medianbased.CloneDetector"/>
+
 	
 	<property name="lib"  value="lib"/>
     
@@ -144,6 +146,16 @@
                     </jar>
                 </target>
 
+    <target name="jarMeta" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${metacd}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${metacd}"/>
+            </manifest>
+            <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+        </jar>
+    </target>
+
 	
 <!--     <target name="clean-build" depends="clean,jar"/> -->
     <target name="cdwf" depends="clean,runWF"/>
@@ -157,5 +169,6 @@
     <target name="ppm" depends="clean, jarCM, jarFix"/>
     <target name="cdmerge" depends="jarMerge"/>
     <target name="cdpreprocess" depends="jarPreProcess"/>
+    <target name="cdmeta" depends="jarMeta"/>
    
 </project>
