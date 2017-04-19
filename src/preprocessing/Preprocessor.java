@@ -28,8 +28,8 @@ public class Preprocessor {
         try {
             String eachFile="";
 
-            BufferedReader bf=new BufferedReader(new FileReader(Paths.get("input_preprocessing/farima_1k.tokens").toString()));
-            PrintWriter writer=new PrintWriter((Paths.get("output_preprocessing/output_farima_1k.txt").toString()));
+            BufferedReader bf=new BufferedReader(new FileReader(Paths.get("./input_preprocessing/farima_1k.tokens").toString()));
+            PrintWriter writer=new PrintWriter((Paths.get("./output_preprocessing/output_farima_1k.txt").toString()));
             HashMap<String,Integer> wordNumbers=new HashMap<>();
             int charactersNum=0;
             while ((eachFile=bf.readLine())!=null) {
