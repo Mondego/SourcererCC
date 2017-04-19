@@ -7,10 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -75,19 +72,23 @@ public class CloneDetector {
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         Block query = this.getCandidateFromLine(line);
+                        if (query.project_id == 19 && query.file_id == 915) {
+                            int a =0;
+                        }
                         List<TokenShard> tokenShardsToSearch = getShardIdsForCandidate(query);
                         Block candidate = null;
-                        if (query.project_id == 54 && query.file_id == 136) {
-                            // System.out.println("query: " + query);
+                        //19,907,19,906
+                        if (query.project_id == 19 && query.file_id == 915) {
+                             System.out.println("query: " + query);
                         }
                         for (TokenShard shard : tokenShardsToSearch) {
                             int[] minmax = shard.getIndexRangeCandidates(
-                                    query.metric, query.metric);
-                            if (query.project_id == 54 && query.file_id == 136) {
-                                /*
-                                 * System.out.println("min in shard: " +
-                                 * minmax[0] + ", max in shard: " + minmax[1]);
-                                 */
+                                    query.minNumTokens, query.maxNumTokens);
+                            if (query.project_id == 19 && query.file_id == 901) {
+
+                                  System.out.println("min in shard: " +
+                                 minmax[0] + ", max in shard: " + minmax[1]);
+
                             }
                             System.out.println(query + "\n NUM candidates: "+ (minmax[1]-minmax[0]));
                             /*
@@ -100,39 +101,70 @@ public class CloneDetector {
                              */
                             for (int i = minmax[0]; i <= minmax[1]; i++) {
                                 candidate = shard.candidates.get(i);
-                                if (candidate.project_id == 54
-                                        && candidate.file_id == 137) {
-                                    /*
-                                     * System.out.println("candidate: " +
-                                     * candidate);
-                                     */
+                                if (candidate.project_id == 19
+                                        && candidate.file_id == 920
+                                        && query.project_id==19
+                                        && query.file_id==915) {
+
+                                     System.out.println("candidate: " +
+                                      candidate);
+
                                 }
+                                // precision
+                                int similarity=0;
+                                int tokensSeenInCandidate =0;
+                                int tokensSeenInQuery = 0;
                                 if ((candidate.file_id > query.file_id)) {
-                                    if (candidate.numTokens >= query.minNumTokens
-                                            && candidate.numTokens <= query.maxNumTokens) {
+                                        if (query.project_id==19 && query.file_id==915 &&
+                                                candidate.project_id==19 &&candidate.file_id==920){
+                                            int x =0;
+                                        }
                                         if (candidate.uniqueTokens >= query.minUniqueTokens
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
-                                            //if (candidate.numChars >= query.minNumChars
-                                                //    && candidate.numChars <= query.maxNumChars) {
-                                                // if ((candidate.mad >=
-                                                // query.minMad && candidate.mad
-                                                // <= query.maxMad)
-                                                // || (candidate.stdDev >=
-                                                // query.minStdDev &&
-                                                // candidate.stdDev <=
-                                                // query.maxStdDev)) {
-                                                text = query.project_id + ","
-                                                        + query.file_id + ","
-                                                        + candidate.project_id
-                                                        + ","
-                                                        + candidate.file_id;
-                                                Util.writeToFile(
-                                                        CloneDetector.clonesWriter,
-                                                        text, true);
-                                                // }
-                                            //}
+                                           // if (candidate.mode==query.mode) {
+                                            for (Map.Entry<Double, Integer> entry : candidate.modes.entrySet()) {
+                                                if (entry.getValue()>0) {
+                                                    tokensSeenInCandidate += entry.getValue();
+                                                    if (query.modes.containsKey(entry.getKey())) {
+                                                        similarity += Math.min(entry.getValue(), query.modes.get(entry.getKey()));
+                                                        tokensSeenInQuery += query.modes.get(entry.getKey());
+                                                    }
+                                                }
+                                            }
+                                            int sizeThreshold = 0;
+                                            if (query.numTokens >= candidate.numTokens) {
+                                                sizeThreshold = query.minNumTokens;
+                                            } else {
+                                                sizeThreshold = candidate.minNumTokens;
+                                            }
+                                            if (sizeThreshold - similarity - Math.min(candidate.numTokens - tokensSeenInCandidate,
+                                                    query.numTokens - tokensSeenInQuery) <= 0) {
+                                                if (query.numChars >= candidate.minNumChars && query.numChars<=candidate.maxNumChars) {
+
+
+                                                    //if (candidate.numChars >= query.minNumChars
+                                                    //    && candidate.numChars <= query.maxNumChars) {
+                                                    // if ((candidate.mad >=
+                                                    // query.minMad && candidate.mad
+                                                    // <= query.maxMad)
+                                                    // || (candidate.stdDev >=
+                                                    // query.minStdDev &&
+                                                    // candidate.stdDev <=
+                                                    // query.maxStdDev)) {
+                                                    text = query.project_id + ","
+                                                            + query.file_id + ","
+                                                            + candidate.project_id
+                                                            + ","
+                                                            + candidate.file_id;
+                                                    Util.writeToFile(
+                                                            CloneDetector.clonesWriter,
+                                                            text, true);
+                                                    // }
+                                                    //}
+                                                     }
+                                                }
+                                           // }
                                         }
-                                    }
                                 }
                             }
                         }
@@ -159,13 +191,22 @@ public class CloneDetector {
         int uniqueTokens = Integer.parseInt(metadataParts[3]);
         //int numCharacters = Integer.parseInt(metadataParts[4]);
         String tokenHash=metadataParts[4];
-        float median = Float.parseFloat(metadataParts[5]);
-        float mean=Float.parseFloat(metadataParts[6]);
-        float stdDev = Float.parseFloat(metadataParts[7]);
+        long numChars=Integer.parseInt(metadataParts[5]);
+        float median = Float.parseFloat(metadataParts[6]);
+        float mean=Float.parseFloat(metadataParts[7]);
         float variance = Float.parseFloat(metadataParts[8]);
-        float mad = Float.parseFloat(metadataParts[9]);
+        float stdDev = Float.parseFloat(metadataParts[9]);
+        float mad = Float.parseFloat(metadataParts[10]);
+       // float mode=Float.parseFloat(metadataParts[10]);
+        LinkedHashMap<Double,Integer> modes=new LinkedHashMap<>();
+        modes.put(Double.parseDouble(metadataParts[11].split("#")[0]),Integer.parseInt(metadataParts[11].split("#")[1]));
+        modes.put(Double.parseDouble(metadataParts[12].split("#")[0]),Integer.parseInt(metadataParts[12].split("#")[1]));
+        modes.put(Double.parseDouble(metadataParts[13].split("#")[0]),Integer.parseInt(metadataParts[13].split("#")[1]));
+        modes.put(Double.parseDouble(metadataParts[14].split("#")[0]),Integer.parseInt(metadataParts[14].split("#")[1]));
+        modes.put(Double.parseDouble(metadataParts[15].split("#")[0]),Integer.parseInt(metadataParts[15].split("#")[1]));
+
         Block candidate = new Block(median,mean, projectId, fileId, numTokens,
-                stdDev, variance, tokenHash, uniqueTokens, mad);
+                stdDev, variance, tokenHash, uniqueTokens, mad,modes,numChars,properties.getProperty("MEDIAN_OUTPUT_DIR")+"\\"+"prepared_data");
         candidate.setMetric(candidate.numTokens,0);
         return candidate;
     }
@@ -189,12 +230,15 @@ public class CloneDetector {
                             && line.trim().length() > 0) {
                         Block candidate = this.getCandidateFromLine(line);
                         List<TokenShard> tokenShardsToIndex = getShardIdsForCandidate(candidate);
+                        //System.out.println(count);
                         for (TokenShard shard : tokenShardsToIndex) {
                             shard.candidates.add(candidate);
+                            candidate.writeToFile(shard.id);
                         }
                         count++;
                         // System.out.println("lines indexed: " + count);
                     }
+                    Block.writeFinished();
                 } catch (Exception e) {
                     System.out.println("Exception caught: " + e.getMessage());
                 }
@@ -296,6 +340,7 @@ public class CloneDetector {
         begin_time = System.currentTimeMillis();
         cd.search();
         end_time = System.currentTimeMillis();
+        System.out.println("time taken to search: "+(end_time-begin_time));
         cd.printDuration(end_time, begin_time, "search_time");
         System.out.println("search over!");
         if (null != fis) {
