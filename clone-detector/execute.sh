@@ -10,7 +10,7 @@ queryfile="$rootPATH/input/dataset/blocks.file"
 echo "spliting query file $queryfile into $num_nodes parts"
 python $rootPATH/unevensplit.py $queryfile $num_nodes
 echo "moving files"
-bash $rootPATH/preparequery.sh
+bash $rootPATH/preparequery.sh $num_nodes
 echo "done!"
 bash $rootPATH/replacenodeprefix.sh $num_nodes
 
