@@ -1,0 +1,10 @@
+/bin/
+Log*
+NODE*
+*index
+query*
+input/dataset/*
+*.scc
+*.log
+dist*
+SCC_LOGS*
