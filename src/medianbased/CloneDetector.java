@@ -197,16 +197,19 @@ public class CloneDetector {
         float variance = Float.parseFloat(metadataParts[8]);
         float stdDev = Float.parseFloat(metadataParts[9]);
         float mad = Float.parseFloat(metadataParts[10]);
+        double skewness=Double.parseDouble(metadataParts[11]);
+        double kurtosis=Double.parseDouble(metadataParts[12]);
        // float mode=Float.parseFloat(metadataParts[10]);
         LinkedHashMap<Double,Integer> modes=new LinkedHashMap<>();
-        modes.put(Double.parseDouble(metadataParts[11].split("#")[0]),Integer.parseInt(metadataParts[11].split("#")[1]));
-        modes.put(Double.parseDouble(metadataParts[12].split("#")[0]),Integer.parseInt(metadataParts[12].split("#")[1]));
         modes.put(Double.parseDouble(metadataParts[13].split("#")[0]),Integer.parseInt(metadataParts[13].split("#")[1]));
         modes.put(Double.parseDouble(metadataParts[14].split("#")[0]),Integer.parseInt(metadataParts[14].split("#")[1]));
         modes.put(Double.parseDouble(metadataParts[15].split("#")[0]),Integer.parseInt(metadataParts[15].split("#")[1]));
+        modes.put(Double.parseDouble(metadataParts[16].split("#")[0]),Integer.parseInt(metadataParts[16].split("#")[1]));
+        modes.put(Double.parseDouble(metadataParts[17].split("#")[0]),Integer.parseInt(metadataParts[17].split("#")[1]));
 
         Block candidate = new Block(median,mean, projectId, fileId, numTokens,
-                stdDev, variance, tokenHash, uniqueTokens, mad,modes,numChars,properties.getProperty("MEDIAN_OUTPUT_DIR")+"\\"+"prepared_data");
+                stdDev, variance, tokenHash, uniqueTokens, mad,modes,numChars,skewness,kurtosis
+                ,properties.getProperty("MEDIAN_OUTPUT_DIR")+"\\"+"prepared_data");
         candidate.setMetric(candidate.numTokens,0);
         return candidate;
     }
