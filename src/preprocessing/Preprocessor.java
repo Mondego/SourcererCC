@@ -1,9 +1,6 @@
 package preprocessing;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,10 +23,13 @@ public class Preprocessor {
     private static void addStatsAndGiveIdsToTokens(){
                 int randomNumber=0;
         try {
-            String eachFile="";
+            String inputFileName=new File(Paths.get("./input_preprocessing").toString()).listFiles()[0].getName();
+            String ouputFileName=inputFileName+"_preprocessed";
 
-            BufferedReader bf=new BufferedReader(new FileReader(Paths.get("./input_preprocessing/farima_1k.tokens").toString()));
-            PrintWriter writer=new PrintWriter((Paths.get("./output_preprocessing/output_farima_1k.txt").toString()));
+            String eachFile="";
+            System.out.println(ouputFileName);
+            BufferedReader bf=new BufferedReader(new FileReader(Paths.get("./input_preprocessing").toString()+"/"+inputFileName));
+            PrintWriter writer=new PrintWriter((Paths.get("./output_preprocessing/").toString()+"/"+ouputFileName));
             HashMap<String,Integer> wordNumbers=new HashMap<>();
             int charactersNum=0;
             while ((eachFile=bf.readLine())!=null) {
