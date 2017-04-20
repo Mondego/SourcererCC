@@ -46,11 +46,13 @@ public class Block implements Comparable<Block> {
     public float metric;
     public float minMetric;
     public float maxMetric;
-
+    public double skewness;
+    public double kurtosis; 
     //public float mode;
     public Map<Double,Integer> modes;
     public Block(float median,float mean, int project_id, int file_id, int numTokens,float stdDev,
-                 float variance, String tokenHash, int uniqueTokens, float mad,Map<Double,Integer> modes,long numChars, String pathToWrite) {
+                 float variance, String tokenHash, int uniqueTokens, float mad,Map<Double,Integer> modes,long numChars,
+                 double skewness,double kurtosis, String pathToWrite) {
 
         this.pathToWrite=pathToWrite;
         this.mean=mean;
@@ -65,6 +67,8 @@ public class Block implements Comparable<Block> {
         this.mad = mad;
         this.modes=modes;
         this.numChars=numChars;
+        this.kurtosis=kurtosis;
+        this.skewness=skewness;
 
         this.min_median = BlockInfo.getMinimumSimilarityThreshold(this.median, CloneDetector.th);
         this.max_median = BlockInfo.getMaximumSimilarityThreshold(this.median, CloneDetector.th);
