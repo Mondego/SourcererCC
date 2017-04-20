@@ -24,10 +24,9 @@ public class Preprocessor {
                 int randomNumber=0;
         try {
             String inputFileName=new File(Paths.get("./input_preprocessing").toString()).listFiles()[0].getName();
-            String ouputFileName=inputFileName+"_preprocessed";
+            String ouputFileName=inputFileName.substring(0,inputFileName.indexOf("."))+"_preprocessed";
 
             String eachFile="";
-            System.out.println(ouputFileName);
             BufferedReader bf=new BufferedReader(new FileReader(Paths.get("./input_preprocessing").toString()+"/"+inputFileName));
             PrintWriter writer=new PrintWriter((Paths.get("./output_preprocessing/").toString()+"/"+ouputFileName));
             HashMap<String,Integer> wordNumbers=new HashMap<>();
