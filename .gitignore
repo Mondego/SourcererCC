@@ -51,3 +51,4 @@ index_nofilter/*
 output*
 /bin/
 *.class
+input/dataset/*

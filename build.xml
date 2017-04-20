@@ -31,7 +31,7 @@
     <target name="compile">
         <mkdir dir="${classes.dir}"/>
         <mkdir dir="${jar.dir}"/>
-        <javac encoding="utf-8" source="1.7" target="1.7" debug ="true" includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}">
+        <javac encoding="utf-8" source="8" target="1.8" debug ="true" includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}">
             <classpath>
                <fileset dir="${lib}">
                   <include name="**/*.jar" />
@@ -140,7 +140,7 @@
                     <mkdir dir="${jar.dir}"/>
                     <jar destfile="${jar.dir}/${preprocessor}.jar" basedir="${classes.dir}">
                         <manifest>
-                            <attribute name="Main-Class" value="com.mondego.preprocessing${preprocessor}"/>
+                            <attribute name="Main-Class" value="${preprocessor}"/>
                         </manifest>
                         <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
                     </jar>
