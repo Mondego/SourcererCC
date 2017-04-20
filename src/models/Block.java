@@ -47,7 +47,7 @@ public class Block implements Comparable<Block> {
     public float minMetric;
     public float maxMetric;
     public double skewness;
-    public double kurtosis;
+    public double kurtosis; 
     //public float mode;
     public Map<Double,Integer> modes;
     public Block(float median,float mean, int project_id, int file_id, int numTokens,float stdDev,

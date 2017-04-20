@@ -355,5 +355,6 @@ public class CloneDetector {
         cd.printDuration(end_time_final, time_start, "total_time");
         System.out.println("time taken to prepare: "+(end_time_prepare-begin_time_prepare));
         System.out.println("time taken to search: "+(end_time_search-begin_time_search));
+
     }
 }
