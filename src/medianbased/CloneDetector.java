@@ -69,6 +69,10 @@ public class CloneDetector {
                             new FileInputStream(inputFile), "UTF-8"));
                     String line;
                     String text = null;
+                    int numberCandidateNumTokens=0;
+                    int numberCandidatesNumUniqueTokens=0;
+                    int numberCandidatesNumChars=0;
+                    int numberCandidatesModes=0;
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         Block query = this.getCandidateFromLine(line);
@@ -82,6 +86,7 @@ public class CloneDetector {
                              System.out.println("query: " + query);
                         }
                         for (TokenShard shard : tokenShardsToSearch) {
+
                             int[] minmax = shard.getIndexRangeCandidates(
                                     query.minNumTokens, query.maxNumTokens);
                             if (query.project_id == 19 && query.file_id == 901) {
@@ -114,14 +119,19 @@ public class CloneDetector {
                                 int similarity=0;
                                 int tokensSeenInCandidate =0;
                                 int tokensSeenInQuery = 0;
+
                                 if ((candidate.file_id > query.file_id)) {
                                         if (query.project_id==19 && query.file_id==915 &&
                                                 candidate.project_id==19 &&candidate.file_id==920){
                                             int x =0;
                                         }
+                                    numberCandidateNumTokens++;
                                         if (candidate.uniqueTokens >= query.minUniqueTokens
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
-                                           // if (candidate.mode==query.mode) {
+                                            numberCandidatesNumUniqueTokens++;
+                                            if (candidate.numChars >= query.minNumChars && candidate.numChars<=query.maxNumChars) {
+                                                numberCandidatesNumChars++;
+//                                            if (candidate.mode==query.mode) {
                                             for (Map.Entry<Double, Integer> entry : candidate.modes.entrySet()) {
                                                 if (entry.getValue()>0) {
                                                     tokensSeenInCandidate += entry.getValue();
@@ -139,11 +149,11 @@ public class CloneDetector {
                                             }
                                             if (sizeThreshold - similarity - Math.min(candidate.numTokens - tokensSeenInCandidate,
                                                     query.numTokens - tokensSeenInQuery) <= 0) {
-                                                if (query.numChars >= candidate.minNumChars && query.numChars<=candidate.maxNumChars) {
+                                                numberCandidatesModes++;
 
 
-                                                    //if (candidate.numChars >= query.minNumChars
-                                                    //    && candidate.numChars <= query.maxNumChars) {
+//                                                    if (candidate.numChars >= query.minNumChars
+//                                                        && candidate.numChars <= query.maxNumChars) {
                                                     // if ((candidate.mad >=
                                                     // query.minMad && candidate.mad
                                                     // <= query.maxMad)
@@ -159,18 +169,21 @@ public class CloneDetector {
                                                     Util.writeToFile(
                                                             CloneDetector.clonesWriter,
                                                             text, true);
-                                                    // }
-                                                    //}
                                                      }
-                                                }
-                                           // }
+                                                    //}
+                                                    // }
+                                                //}
+                                           }
                                         }
                                 }
                             }
                         }
                         count++;
-                        System.out.println("lines processed: " + count);
                     }
+                    System.out.println("Num Tokens Filter Candidates Num: "+numberCandidateNumTokens);
+                    System.out.println("Num Unique Tokens Filter Candidates Num: "+numberCandidatesNumUniqueTokens);
+                    System.out.println("Num Chars Filter Candidates Num: "+numberCandidatesNumChars);
+                    System.out.println("Modes Filter Candidates Num: "+numberCandidatesModes);
                 } catch (NumberFormatException e) {
                     System.out.println("Exception caught: " + e.getMessage());
                 } catch (IOException e) {

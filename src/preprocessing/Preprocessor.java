@@ -29,12 +29,12 @@ public class Preprocessor {
             String eachFile="";
             System.out.println(ouputFileName);
             BufferedReader bf=new BufferedReader(new FileReader(Paths.get("./input_preprocessing").toString()+"/"+inputFileName));
-            PrintWriter writer=new PrintWriter((Paths.get("./output_preprocessing/").toString()+"/"+ouputFileName));
+            PrintWriter writer=new PrintWriter((Paths.get("./output_preprocessing/").toString()+"/"+ouputFileName)+".txt");
             HashMap<String,Integer> wordNumbers=new HashMap<>();
             int charactersNum=0;
             while ((eachFile=bf.readLine())!=null) {
                 String[] separatedLineFromMeta = eachFile.split("@#@");
-                if (Integer.parseInt(separatedLineFromMeta[0].split(",")[2]) >=65&&Integer.parseInt(separatedLineFromMeta[0].split(",")[2]) <=5000) {//we do calculations just for files have more than 65 tokens and less than 5000 tokens
+                if (Integer.parseInt(separatedLineFromMeta[0].split(",")[2]) >=65&&Integer.parseInt(separatedLineFromMeta[0].split(",")[2]) <=500000) {//we do calculations just for files have more than 65 tokens and less than 5000 tokens
                     String[] words = null;
                     try {
                         words = separatedLineFromMeta[1].split(",");
