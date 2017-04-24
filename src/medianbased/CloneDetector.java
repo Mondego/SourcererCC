@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.util.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -69,10 +70,10 @@ public class CloneDetector {
                             new FileInputStream(inputFile), "UTF-8"));
                     String line;
                     String text = null;
-                    int numberCandidateNumTokens=0;
-                    int numberCandidatesNumUniqueTokens=0;
-                    int numberCandidatesNumChars=0;
-                    int numberCandidatesModes=0;
+                    BigInteger numberCandidateNumTokens=BigInteger.valueOf(0);
+                    BigInteger numberCandidatesNumUniqueTokens=BigInteger.valueOf(0);
+                    BigInteger numberCandidatesNumChars=BigInteger.valueOf(0);
+                    BigInteger numberCandidatesModes=BigInteger.valueOf(0);
                     while ((line = br.readLine()) != null
                             && line.trim().length() > 0) {
                         Block query = this.getCandidateFromLine(line);
@@ -125,13 +126,13 @@ public class CloneDetector {
                                                 candidate.project_id==19 &&candidate.file_id==920){
                                             int x =0;
                                         }
-                                    numberCandidateNumTokens++;
+                                    numberCandidateNumTokens=numberCandidateNumTokens.add(BigInteger.valueOf(1));
                                         if (candidate.uniqueTokens >= query.minUniqueTokens
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
-                                            numberCandidatesNumUniqueTokens++;
+                                            numberCandidatesNumUniqueTokens=numberCandidatesNumUniqueTokens.add(BigInteger.valueOf(1));;
                                             if (candidate.numChars >= query.minNumChars && candidate.numChars<=query.maxNumChars) {
-                                                numberCandidatesNumChars++;
-//                                            if (candidate.mode==query.mode) {
+                                                numberCandidatesNumChars=numberCandidatesNumChars.add(BigInteger.valueOf(1));;
+////                                            if (candidate.mode==query.mode) {
                                             for (Map.Entry<Double, Integer> entry : candidate.modes.entrySet()) {
                                                 if (entry.getValue()>0) {
                                                     tokensSeenInCandidate += entry.getValue();
@@ -149,7 +150,7 @@ public class CloneDetector {
                                             }
                                             if (sizeThreshold - similarity - Math.min(candidate.numTokens - tokensSeenInCandidate,
                                                     query.numTokens - tokensSeenInQuery) <= 0) {
-                                                numberCandidatesModes++;
+                                                numberCandidatesModes=numberCandidatesModes.add(BigInteger.valueOf(1));;
 
 
 //                                                    if (candidate.numChars >= query.minNumChars
@@ -163,16 +164,15 @@ public class CloneDetector {
                                                     // query.maxStdDev)) {
                                                     text = query.project_id + ","
                                                             + query.file_id + ","
-                                                            + candidate.project_id
-                                                            + ","
+                                                            + candidate.project_id + ","
                                                             + candidate.file_id;
                                                     Util.writeToFile(
                                                             CloneDetector.clonesWriter,
                                                             text, true);
-                                                     }
+                                                     //}
                                                     //}
                                                     // }
-                                                //}
+                                                }
                                            }
                                         }
                                 }
