@@ -24,14 +24,16 @@ public class Shard {
     int minSize, maxSize;
     int minBagSizeToIndex;
     int maxBagSizeToIndex;
+    String indexPath;
     IndexWriter invertedIndexWriter;
     IndexWriter forwardIndexWriter;
     public List<Shard> subShards;
     private static final Logger logger = LogManager.getLogger(Shard.class);
 
     public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch,
-            boolean forWriting) {
+            String indexPath, boolean forWriting) {
         this.id = id;
+        this.indexPath = indexPath;
         this.minSize = minBagSizeToSearch;
         this.maxSize = maxBagSizeToSearch;
         this.minBagSizeToIndex = BlockInfo.getMinimumSimilarityThreshold(
@@ -97,15 +99,15 @@ public class Shard {
 
         try {
             FSDirectory dir = FSDirectory.open(new File(SearchManager.ROOT_DIR
-                    + SearchManager.NODE_PREFIX + "/index/shards/" + this.id));
-            if (SearchManager.invertedIndexDirectoriesOfShard.containsKey(id)) {
+                    + SearchManager.NODE_PREFIX + "/index/shards/" + this.indexPath));
+            if (SearchManager.invertedIndexDirectoriesOfShard.containsKey(this.indexPath)) {
                 List<FSDirectory> dirs = SearchManager.invertedIndexDirectoriesOfShard
                         .get(id);
                 dirs.add(dir);
             } else {
                 List<FSDirectory> dirs = new ArrayList<FSDirectory>();
                 dirs.add(dir);
-                SearchManager.invertedIndexDirectoriesOfShard.put(id, dirs);
+                SearchManager.invertedIndexDirectoriesOfShard.put(this.indexPath, dirs);
             }
             this.invertedIndexWriter = new IndexWriter(dir, indexWriterConfig);
         } catch (Exception e) {
@@ -130,17 +132,18 @@ public class Shard {
         mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
         try {
             FSDirectory dir = FSDirectory.open(new File(SearchManager.ROOT_DIR
-                    + SearchManager.NODE_PREFIX + "/fwdindex/shards/" + id));
-            if (SearchManager.forwardIndexDirectoriesOfShard.containsKey(id)) {
+                    + SearchManager.NODE_PREFIX + "/fwdindex/shards/" + this.indexPath));
+            if (SearchManager.forwardIndexDirectoriesOfShard.containsKey(this.indexPath)) {
                 List<FSDirectory> dirs = SearchManager.forwardIndexDirectoriesOfShard
-                        .get(id);
+                        .get(this.indexPath);
                 dirs.add(dir);
             } else {
                 List<FSDirectory> dirs = new ArrayList<FSDirectory>();
                 dirs.add(dir);
-                SearchManager.forwardIndexDirectoriesOfShard.put(id, dirs);
+                SearchManager.forwardIndexDirectoriesOfShard.put(this.indexPath, dirs);
             }
-            this.forwardIndexWriter = new IndexWriter(dir, fwdIndexWriterConfig);
+            this.forwardIndexWriter = new IndexWriter(dir,
+                    fwdIndexWriterConfig);
         } catch (IOException e) {
             e.printStackTrace();
         }

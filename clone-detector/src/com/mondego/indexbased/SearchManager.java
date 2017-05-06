@@ -17,6 +17,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -100,8 +101,8 @@ public class SearchManager {
     public static ThreadedChannel<Bag> bagsToInvertedIndexQueue;
     public static ThreadedChannel<Bag> bagsToForwardIndexQueue;
     public static SearchManager theInstance;
-    public static Map<Integer, List<FSDirectory>> invertedIndexDirectoriesOfShard;
-    public static Map<Integer, List<FSDirectory>> forwardIndexDirectoriesOfShard;
+    public static Map<String, List<FSDirectory>> invertedIndexDirectoriesOfShard;
+    public static Map<String, List<FSDirectory>> forwardIndexDirectoriesOfShard;
     // private List<FSDirectory> invertedIndexDirectories;
     // private List<FSDirectory> forwardIndexDirectories;
     public static List<IndexWriter> indexerWriters;
@@ -182,7 +183,7 @@ public class SearchManager {
                     .parseBoolean(properties.getProperty("IS_SHARDING"));
 
         } catch (NumberFormatException e) {
-            logger.error(e.getMessage() + ", exiting now",e);
+            logger.error(e.getMessage() + ", exiting now", e);
             System.exit(1);
         }
         if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
@@ -237,54 +238,48 @@ public class SearchManager {
         int minTokens = SearchManager.min_tokens;
         int maxTokens = SearchManager.max_tokens;
         int shardId = 1;
-        SearchManager.invertedIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
-        SearchManager.forwardIndexDirectoriesOfShard = new HashMap<Integer, List<FSDirectory>>();
+        SearchManager.invertedIndexDirectoriesOfShard = new HashMap<String, List<FSDirectory>>();
+        SearchManager.forwardIndexDirectoriesOfShard = new HashMap<String, List<FSDirectory>>();
         SearchManager.shards = new ArrayList<Shard>();
         if (this.isSharding) {
-            String shardSegment = properties
+            String level1ShardSegmentString = properties
                     .getProperty("SHARD_MAX_NUM_TOKENS");
-            logger.info("shardSegments String is : " + shardSegment);
-            String[] shardSegments = shardSegment.split(",");
-            for (String segment : shardSegments) {
+            logger.info("level1ShardSegmentString String is : " + level1ShardSegmentString);
+            List<String>level1ShardSegments = new ArrayList<String>(Arrays.asList(level1ShardSegmentString.split(",")));
+            level1ShardSegments.add(SearchManager.max_tokens+""); // add the last shard
+            for (String segment : level1ShardSegments) {
                 // create shards
                 maxTokens = Integer.parseInt(segment);
-                Shard shard = new Shard(shardId, minTokens, maxTokens,
-                        forWriting);
-                SearchManager.shards.add(shard);
-                String level2Segment = properties
+                String l1Path = shardId + "";
+                Shard level1Shard = new Shard(shardId, minTokens, maxTokens, l1Path,
+                        false);
+                SearchManager.shards.add(level1Shard);
+                String level2ShardSegmentString = properties
                         .getProperty("LEVEL_2_SHARD_MAX_NUM_TOKENS");
-                logger.info("level2Segment String is : " + level2Segment);
-                
-                int l2MinTokens = Integer.parseInt(properties.getProperty("LEVEL_2_MIN_TOKENS"));
-                int l2MaxTokens = Integer.parseInt(properties.getProperty("LEVEL_2_MAX_TOKENS"));
+                logger.info("level2Segment String is : " + level2ShardSegmentString);
+
+                int l2MinTokens = Integer
+                        .parseInt(properties.getProperty("LEVEL_2_MIN_TOKENS"));
+                int l2MaxTokens=0;
                 int l2ShardId = 1;
-                String[] level2ShardSegments = level2Segment.split(",");
+                List<String>level2ShardSegments = new ArrayList<String>(Arrays.asList(level2ShardSegmentString.split(",")));
+                level2ShardSegments.add(properties.getProperty("LEVEL_2_MAX_TOKENS")); // add the last shard
                 for (String l2Segment : level2ShardSegments) {
                     // create shards
-                	l2MaxTokens = Integer.parseInt(l2Segment);
-                    Shard l2Shard = new Shard(l2ShardId, minTokens, maxTokens,
+                    l2MaxTokens = Integer.parseInt(l2Segment);
+                    String l2Path = l1Path+"/"+l2ShardId;
+                    Shard l2Shard = new Shard(l2ShardId, l2MinTokens, maxTokens,l2Path,
                             forWriting);
-                    shard.subShards.add(l2Shard);
+                    level1Shard.subShards.add(l2Shard);
                     l2MinTokens = l2MaxTokens + 1;
                     l2ShardId++;
                 }
-                
-                
-                
-                
-                
-                
-                
                 minTokens = maxTokens + 1;
                 shardId++;
             }
-            // create the last shard
-            Shard shard = new Shard(shardId, minTokens,
-                    SearchManager.max_tokens, forWriting);
-            SearchManager.shards.add(shard);
         } else {
             Shard shard = new Shard(shardId, SearchManager.min_tokens,
-                    SearchManager.max_tokens, forWriting);
+                    SearchManager.max_tokens, shardId+"",forWriting);
             SearchManager.shards.add(shard);
         }
         logger.debug(
@@ -752,8 +747,9 @@ public class SearchManager {
                                                             + bag.getId()
                                                             + " to queue" + e);
                                         }
-                                    }else{
-                                        logger.fatal("FATAL error detected. exiting now");
+                                    } else {
+                                        logger.fatal(
+                                                "FATAL error detected. exiting now");
                                         System.exit(1);
                                     }
                                 }
