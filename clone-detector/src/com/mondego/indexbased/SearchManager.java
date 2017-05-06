@@ -251,6 +251,30 @@ public class SearchManager {
                 Shard shard = new Shard(shardId, minTokens, maxTokens,
                         forWriting);
                 SearchManager.shards.add(shard);
+                String level2Segment = properties
+                        .getProperty("LEVEL_2_SHARD_MAX_NUM_TOKENS");
+                logger.info("level2Segment String is : " + level2Segment);
+                
+                int l2MinTokens = Integer.parseInt(properties.getProperty("LEVEL_2_MIN_TOKENS"));
+                int l2MaxTokens = Integer.parseInt(properties.getProperty("LEVEL_2_MAX_TOKENS"));
+                int l2ShardId = 1;
+                String[] level2ShardSegments = level2Segment.split(",");
+                for (String l2Segment : level2ShardSegments) {
+                    // create shards
+                	l2MaxTokens = Integer.parseInt(l2Segment);
+                    Shard l2Shard = new Shard(l2ShardId, minTokens, maxTokens,
+                            forWriting);
+                    shard.subShards.add(l2Shard);
+                    l2MinTokens = l2MaxTokens + 1;
+                    l2ShardId++;
+                }
+                
+                
+                
+                
+                
+                
+                
                 minTokens = maxTokens + 1;
                 shardId++;
             }

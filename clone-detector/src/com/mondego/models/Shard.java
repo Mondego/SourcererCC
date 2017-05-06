@@ -26,6 +26,7 @@ public class Shard {
     int maxBagSizeToIndex;
     IndexWriter invertedIndexWriter;
     IndexWriter forwardIndexWriter;
+    public List<Shard> subShards;
     private static final Logger logger = LogManager.getLogger(Shard.class);
 
     public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch,
@@ -38,6 +39,7 @@ public class Shard {
         ; // minBagSizeToSearch;
         this.maxBagSizeToIndex = BlockInfo.getMaximumSimilarityThreshold(
                 maxBagSizeToSearch, SearchManager.th);
+        this.subShards = new ArrayList<Shard>();
         if (forWriting) {
             logger.debug("setinverted index");
             this.setInvertedIndexWriter();
