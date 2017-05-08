@@ -28,6 +28,9 @@ public class CloneDetector {
     public static float threshold = 8.0f;
     public static float th = threshold * Util.MUL_FACTOR;
 
+    public static float thresholdNumUnique = 7.5f;
+    public static float thNumUnique = thresholdNumUnique * Util.MUL_FACTOR;
+
     public CloneDetector() throws FileNotFoundException {
         this.properties = new EProperties();
         this.readProperties();
@@ -130,27 +133,27 @@ public class CloneDetector {
                                         if (candidate.uniqueTokens >= query.minUniqueTokens
                                                 && candidate.uniqueTokens <= query.maxUniqueTokens) {
                                             numberCandidatesNumUniqueTokens=numberCandidatesNumUniqueTokens.add(BigInteger.valueOf(1));;
-                                            if (candidate.numChars >= query.minNumChars && candidate.numChars<=query.maxNumChars) {
-                                                numberCandidatesNumChars=numberCandidatesNumChars.add(BigInteger.valueOf(1));;
+//                                            if (candidate.numChars >= query.minNumChars && candidate.numChars<=query.maxNumChars) {
+//                                                numberCandidatesNumChars=numberCandidatesNumChars.add(BigInteger.valueOf(1));;
 ////                                            if (candidate.mode==query.mode) {
-                                            for (Map.Entry<Double, Integer> entry : candidate.modes.entrySet()) {
-                                                if (entry.getValue()>0) {
-                                                    tokensSeenInCandidate += entry.getValue();
-                                                    if (query.modes.containsKey(entry.getKey())) {
-                                                        similarity += Math.min(entry.getValue(), query.modes.get(entry.getKey()));
-                                                        tokensSeenInQuery += query.modes.get(entry.getKey());
-                                                    }
-                                                }
-                                            }
-                                            int sizeThreshold = 0;
-                                            if (query.numTokens >= candidate.numTokens) {
-                                                sizeThreshold = query.minNumTokens;
-                                            } else {
-                                                sizeThreshold = candidate.minNumTokens;
-                                            }
-                                            if (sizeThreshold - similarity - Math.min(candidate.numTokens - tokensSeenInCandidate,
-                                                    query.numTokens - tokensSeenInQuery) <= 0) {
-                                                numberCandidatesModes=numberCandidatesModes.add(BigInteger.valueOf(1));;
+//                                            for (Map.Entry<Double, Integer> entry : candidate.modes.entrySet()) {
+//                                                if (entry.getValue()>0) {
+//                                                    tokensSeenInCandidate += entry.getValue();
+//                                                    if (query.modes.containsKey(entry.getKey())) {
+//                                                        similarity += Math.min(entry.getValue(), query.modes.get(entry.getKey()));
+//                                                        tokensSeenInQuery += query.modes.get(entry.getKey());
+//                                                    }
+//                                                }
+//                                            }
+//                                            int sizeThreshold = 0;
+//                                            if (query.numTokens >= candidate.numTokens) {
+//                                                sizeThreshold = query.minNumTokens;
+//                                            } else {
+//                                                sizeThreshold = candidate.minNumTokens;
+//                                            }
+//                                            if (sizeThreshold - similarity - Math.min(candidate.numTokens - tokensSeenInCandidate,
+//                                                    query.numTokens - tokensSeenInQuery) <= 0) {
+//                                                numberCandidatesModes=numberCandidatesModes.add(BigInteger.valueOf(1));;
 
 
 //                                                    if (candidate.numChars >= query.minNumChars
@@ -172,8 +175,8 @@ public class CloneDetector {
                                                      //}
                                                     //}
                                                     // }
-                                                }
-                                           }
+                                                //}
+                                           //}
                                         }
                                 }
                             }
