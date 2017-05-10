@@ -28,7 +28,7 @@ public class CloneDetector {
     public static float threshold = 8.0f;
     public static float th = threshold * Util.MUL_FACTOR;
 
-    public static float thresholdNumUnique = 7.5f;
+    public static float thresholdNumUnique = 8.0f;
     public static float thNumUnique = thresholdNumUnique * Util.MUL_FACTOR;
 
     public CloneDetector() throws FileNotFoundException {
