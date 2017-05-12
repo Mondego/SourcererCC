@@ -124,7 +124,7 @@ public class CloneDetector {
                                 int tokensSeenInCandidate =0;
                                 int tokensSeenInQuery = 0;
 
-                                if ((candidate.file_id > query.file_id)) {
+                                if ((candidate.file_id < query.file_id)) {
                                         if (query.project_id==19 && query.file_id==915 &&
                                                 candidate.project_id==19 &&candidate.file_id==920){
                                             int x =0;
