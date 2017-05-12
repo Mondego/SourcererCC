@@ -237,7 +237,7 @@ public class SearchManager {
     private void createShards(boolean forWriting) {
         int minTokens = SearchManager.min_tokens;
         int maxTokens = SearchManager.max_tokens;
-        int shardId = 1;
+        int l1ShardId = 1;
         SearchManager.invertedIndexDirectoriesOfShard = new HashMap<String, List<FSDirectory>>();
         SearchManager.forwardIndexDirectoriesOfShard = new HashMap<String, List<FSDirectory>>();
         SearchManager.shards = new ArrayList<Shard>();
@@ -250,8 +250,8 @@ public class SearchManager {
             for (String segment : level1ShardSegments) {
                 // create shards
                 maxTokens = Integer.parseInt(segment);
-                String l1Path = shardId + "";
-                Shard level1Shard = new Shard(shardId, minTokens, maxTokens, l1Path,
+                String l1Path = l1ShardId + "";
+                Shard level1Shard = new Shard(l1ShardId, minTokens, maxTokens, l1Path,
                         false);
                 SearchManager.shards.add(level1Shard);
                 String level2ShardSegmentString = properties
@@ -275,11 +275,11 @@ public class SearchManager {
                     l2ShardId++;
                 }
                 minTokens = maxTokens + 1;
-                shardId++;
+                l1ShardId++;
             }
         } else {
-            Shard shard = new Shard(shardId, SearchManager.min_tokens,
-                    SearchManager.max_tokens, shardId+"",forWriting);
+            Shard shard = new Shard(l1ShardId, SearchManager.min_tokens,
+                    SearchManager.max_tokens, l1ShardId+"",forWriting);
             SearchManager.shards.add(shard);
         }
         logger.debug(
@@ -289,10 +289,16 @@ public class SearchManager {
     // this bag needs to be indexed in following shards
     public static List<Shard> getShards(Bag bag) {
         List<Shard> shardsToReturn = new ArrayList<Shard>();
-        for (Shard shard : SearchManager.shards)
-            if (bag.getSize() >= shard.getMinBagSizeToIndex()
-                    && bag.getSize() <= shard.getMaxBagSizeToIndex()) {
-                shardsToReturn.add(shard);
+        for (Shard l1Shard : SearchManager.shards)
+            if (bag.getSize() >= l1Shard.getMinBagSizeToIndex()
+                    && bag.getSize() <= l1Shard.getMaxBagSizeToIndex()) {
+                for (Shard l2Shard : l1Shard.subShards){
+                    if (bag.getNumUniqueTokens() >= l1Shard.getMinBagSizeToIndex()
+                            && bag.getNumUniqueTokens() <= l1Shard.getMaxBagSizeToIndex()) {
+                        shardsToReturn.add(l2Shard);
+                    }
+                }
+                
             }
 
         return shardsToReturn;
@@ -300,10 +306,16 @@ public class SearchManager {
 
     // This query needs to be directed to the following shard
     public static Shard getShard(QueryBlock qb) {
-        for (Shard shard : SearchManager.shards)
-            if (qb.getSize() >= shard.getMinSize()
-                    && qb.getSize() <= shard.getMaxSize()) {
-                return shard;
+        for (Shard l1Shard : SearchManager.shards)
+            if (qb.getSize() >= l1Shard.getMinSize()
+                    && qb.getSize() <= l1Shard.getMaxSize()) {
+                for (Shard l2Shard : l1Shard.subShards){
+                    if (qb.getNumUniqueTokens() >= l1Shard.getMinSize()
+                            && qb.getNumUniqueTokens() <= l1Shard.getMaxSize()) {
+                        return l2Shard;
+                    }
+                }
+                
             }
 
         return null;

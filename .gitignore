@@ -40,6 +40,7 @@ local.properties
 .classpath
 .settings/
 .loadpath
+*.vscode
 
 
 # PDT-specific
@@ -51,3 +52,4 @@ fwdindex/*
 index_nofilter/*
 output*
 /bin/
+src

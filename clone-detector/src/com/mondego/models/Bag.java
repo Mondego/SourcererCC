@@ -21,6 +21,7 @@ public class Bag extends LinkedHashSet<TokenFrequency>  { // TODO: why is this
     private int size;
     private int comparisions;
     private long functionId;
+    private int numUniqueTokens;
 
     public int getComparisions() {
         return comparisions;
@@ -39,6 +40,7 @@ public class Bag extends LinkedHashSet<TokenFrequency>  { // TODO: why is this
         this.size = 0;
         this.comparisions = 0;
         this.functionId = -1;
+        this.numUniqueTokens=0;
     }
 
     public Bag() {
@@ -123,4 +125,22 @@ public class Bag extends LinkedHashSet<TokenFrequency>  { // TODO: why is this
     public void setSize(int size){
         this.size = size;
     }
+
+    /**
+     * @return the numUniqueTokens
+     */
+    public int getNumUniqueTokens() {
+        if (this.numUniqueTokens==0){
+            this.numUniqueTokens=this.size();
+        }
+        return numUniqueTokens;
+    }
+
+    /**
+     * @param numUniqueTokens the numUniqueTokens to set
+     */
+    public void setNumUniqueTokens(int numUniqueTokens) {
+        this.numUniqueTokens = numUniqueTokens;
+    }
+    
 }

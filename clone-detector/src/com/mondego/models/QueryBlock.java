@@ -27,6 +27,7 @@ public class QueryBlock {
     private int prefixMapSize;
     private int maxCandidateSize;
     private int shardId;
+    private int numUniqueTokens;
 
     /**
      * @param id
@@ -43,6 +44,7 @@ public class QueryBlock {
         this.setMaxCandidateSize(BlockInfo.getMaximumSimilarityThreshold(this.size, SearchManager.th));
         this.lenientCt = BlockInfo.getMinimumSimilarityThreshold(this.size, (SearchManager.th-0.5f));
         this.prefixSize = BlockInfo.getPrefixSize(this.size, this.computedThreshold);
+        this.numUniqueTokens=0;
 
     }
 
@@ -144,5 +146,19 @@ public class QueryBlock {
     @Override
     public String toString() {
         return this.getFunctionId()+":"+this.getId()+":"+ this.getSize();
+    }
+
+    /**
+     * @return the numUniqueTokens
+     */
+    public int getNumUniqueTokens() {
+        return numUniqueTokens;
+    }
+
+    /**
+     * @param numUniqueTokens the numUniqueTokens to set
+     */
+    public void setNumUniqueTokens(int numUniqueTokens) {
+        this.numUniqueTokens = numUniqueTokens;
     }
 }
