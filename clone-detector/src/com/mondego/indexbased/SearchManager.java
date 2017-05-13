@@ -60,8 +60,8 @@ import com.mondego.validation.TestGson;
  */
 public class SearchManager {
     private static long clonePairsCount;
-    public static ArrayList<CodeSearcher> searcher;
-    public static ArrayList<CodeSearcher> fwdSearcher;
+    public static Map<String,CodeSearcher> invertedIndexsearcher;
+    public static Map<String,CodeSearcher> fwdIndexSearcher;
     public static CodeSearcher gtpmSearcher;
     public CloneHelper cloneHelper;
     public static String QUERY_DIR_PATH;
@@ -235,8 +235,8 @@ public class SearchManager {
     }
 
     private void createShards(boolean forWriting) {
-        int minTokens = SearchManager.min_tokens;
-        int maxTokens = SearchManager.max_tokens;
+        int l1MinTokens = SearchManager.min_tokens;
+        int l1MaxTokens = SearchManager.max_tokens;
         int l1ShardId = 1;
         SearchManager.invertedIndexDirectoriesOfShard = new HashMap<String, List<FSDirectory>>();
         SearchManager.forwardIndexDirectoriesOfShard = new HashMap<String, List<FSDirectory>>();
@@ -244,46 +244,56 @@ public class SearchManager {
         if (this.isSharding) {
             String level1ShardSegmentString = properties
                     .getProperty("SHARD_MAX_NUM_TOKENS");
-            logger.info("level1ShardSegmentString String is : " + level1ShardSegmentString);
-            List<String>level1ShardSegments = new ArrayList<String>(Arrays.asList(level1ShardSegmentString.split(",")));
-            level1ShardSegments.add(SearchManager.max_tokens+""); // add the last shard
+            logger.info("level1ShardSegmentString String is : "
+                    + level1ShardSegmentString);
+            List<String> level1ShardSegments = new ArrayList<String>(
+                    Arrays.asList(level1ShardSegmentString.split(",")));
+            level1ShardSegments.add(SearchManager.max_tokens + ""); // add the
+                                                                    // last
+                                                                    // shard
             for (String segment : level1ShardSegments) {
                 // create shards
-                maxTokens = Integer.parseInt(segment);
+                l1MaxTokens = Integer.parseInt(segment);
                 String l1Path = l1ShardId + "";
-                Shard level1Shard = new Shard(l1ShardId, minTokens, maxTokens, l1Path,
-                        false);
+                Shard level1Shard = new Shard(l1ShardId, l1MinTokens, l1MaxTokens,
+                        l1Path, false);
                 SearchManager.shards.add(level1Shard);
                 String level2ShardSegmentString = properties
                         .getProperty("LEVEL_2_SHARD_MAX_NUM_TOKENS");
-                logger.info("level2Segment String is : " + level2ShardSegmentString);
+                logger.info("level2Segment String is : "
+                        + level2ShardSegmentString);
 
                 int l2MinTokens = Integer
                         .parseInt(properties.getProperty("LEVEL_2_MIN_TOKENS"));
-                int l2MaxTokens=0;
+                int l2MaxTokens = 0;
                 int l2ShardId = 1;
-                List<String>level2ShardSegments = new ArrayList<String>(Arrays.asList(level2ShardSegmentString.split(",")));
-                level2ShardSegments.add(properties.getProperty("LEVEL_2_MAX_TOKENS")); // add the last shard
+                List<String> level2ShardSegments = new ArrayList<String>(
+                        Arrays.asList(level2ShardSegmentString.split(",")));
+                level2ShardSegments
+                        .add(properties.getProperty("LEVEL_2_MAX_TOKENS")); // add
+                                                                            // the
+                                                                            // last
+                                                                            // shard
                 for (String l2Segment : level2ShardSegments) {
                     // create shards
                     l2MaxTokens = Integer.parseInt(l2Segment);
-                    String l2Path = l1Path+"/"+l2ShardId;
-                    Shard l2Shard = new Shard(l2ShardId, l2MinTokens, maxTokens,l2Path,
-                            forWriting);
+                    String l2Path = l1Path + "/" + l2ShardId;
+                    Shard l2Shard = new Shard(l2ShardId, l2MinTokens, l2MaxTokens,
+                            l2Path, forWriting);
                     level1Shard.subShards.add(l2Shard);
                     l2MinTokens = l2MaxTokens + 1;
                     l2ShardId++;
                 }
-                minTokens = maxTokens + 1;
+                l1MinTokens = l1MaxTokens + 1;
                 l1ShardId++;
             }
         } else {
             Shard shard = new Shard(l1ShardId, SearchManager.min_tokens,
-                    SearchManager.max_tokens, l1ShardId+"",forWriting);
+                    SearchManager.max_tokens, l1ShardId + "", forWriting);
             SearchManager.shards.add(shard);
         }
         logger.debug(
-                "Number of shards created: " + SearchManager.shards.size());
+                "Number of Top level shards created: " + SearchManager.shards.size());
     }
 
     // this bag needs to be indexed in following shards
@@ -292,13 +302,14 @@ public class SearchManager {
         for (Shard l1Shard : SearchManager.shards)
             if (bag.getSize() >= l1Shard.getMinBagSizeToIndex()
                     && bag.getSize() <= l1Shard.getMaxBagSizeToIndex()) {
-                for (Shard l2Shard : l1Shard.subShards){
-                    if (bag.getNumUniqueTokens() >= l1Shard.getMinBagSizeToIndex()
-                            && bag.getNumUniqueTokens() <= l1Shard.getMaxBagSizeToIndex()) {
+                for (Shard l2Shard : l1Shard.subShards) {
+                    if (bag.getNumUniqueTokens() >= l2Shard
+                            .getMinBagSizeToIndex()
+                            && bag.getNumUniqueTokens() <= l2Shard
+                                    .getMaxBagSizeToIndex()) {
                         shardsToReturn.add(l2Shard);
                     }
                 }
-                
             }
 
         return shardsToReturn;
@@ -309,13 +320,13 @@ public class SearchManager {
         for (Shard l1Shard : SearchManager.shards)
             if (qb.getSize() >= l1Shard.getMinSize()
                     && qb.getSize() <= l1Shard.getMaxSize()) {
-                for (Shard l2Shard : l1Shard.subShards){
-                    if (qb.getNumUniqueTokens() >= l1Shard.getMinSize()
-                            && qb.getNumUniqueTokens() <= l1Shard.getMaxSize()) {
+                for (Shard l2Shard : l1Shard.subShards) {
+                    if (qb.getNumUniqueTokens() >= l2Shard.getMinSize() && qb
+                            .getNumUniqueTokens() <= l2Shard.getMaxSize()) {
                         return l2Shard;
                     }
                 }
-                
+
             }
 
         return null;
@@ -794,7 +805,12 @@ public class SearchManager {
             File[] queryFiles = this.getQueryFiles(queryDirectory);
             QueryFileProcessor queryFileProcessor = new QueryFileProcessor();
             for (File queryFile : queryFiles) {
+                if(queryFile.getName().startsWith(".git")){
+                    //ignore this file
+                    continue;
+                }
                 // System.out.println("Query File: " + queryFile);
+                logger.info("Query File: " + queryFile.getAbsolutePath());
                 String filename = queryFile.getName().replaceFirst("[.][^.]+$",
                         "");
                 try {
@@ -845,13 +861,16 @@ public class SearchManager {
     }
 
     private void initSearchEnv() {
-        SearchManager.fwdSearcher = new ArrayList<CodeSearcher>();
-        SearchManager.searcher = new ArrayList<CodeSearcher>();
-        for (Shard shard : SearchManager.shards) {
-            SearchManager.fwdSearcher.add(new CodeSearcher(
-                    Util.FWD_INDEX_DIR + "/" + shard.getId(), "id"));
-            SearchManager.searcher.add(new CodeSearcher(
-                    Util.INDEX_DIR + "/" + shard.getId(), "tokens"));
+        SearchManager.fwdIndexSearcher = new HashMap<String,CodeSearcher>();
+        SearchManager.invertedIndexsearcher = new HashMap<String,CodeSearcher>();
+        for (Shard l1Shard : SearchManager.shards) {
+            for(Shard l2Shard : l1Shard.subShards){
+                SearchManager.fwdIndexSearcher.put(l2Shard.indexPath, new CodeSearcher(
+                        Util.FWD_INDEX_DIR + "/" + l2Shard.indexPath, "id"));
+                SearchManager.invertedIndexsearcher.put(l2Shard.indexPath,new CodeSearcher(
+                        Util.INDEX_DIR + "/" + l2Shard.indexPath, "tokens"));
+            }
+            
         }
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");

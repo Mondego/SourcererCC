@@ -96,7 +96,7 @@ public class QueryLineProcessor implements Runnable {
                 .getSortedQueryBlock(line, listOfTokens);
         if (queryBlock == null) {
             logger.debug(SearchManager.NODE_PREFIX + " QLP, Invalid QueryBlock "
-                    + queryBlock);
+                    + line.substring(0,40));
             return null;
         }
 

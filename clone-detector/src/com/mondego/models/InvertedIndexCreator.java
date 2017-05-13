@@ -17,7 +17,9 @@ public class InvertedIndexCreator implements IListener, Runnable {
     private DocumentMaker documentMaker;
     private Document document;
     private Bag bag;
-    private static final Logger logger = LogManager.getLogger(InvertedIndexCreator.class);
+    private static final Logger logger = LogManager
+            .getLogger(InvertedIndexCreator.class);
+
     public InvertedIndexCreator(Bag bag) {
         super();
         this.documentMaker = new DocumentMaker();
@@ -60,24 +62,28 @@ public class InvertedIndexCreator implements IListener, Runnable {
 
     }
 
-    private void index(Bag bag) throws InterruptedException, InstantiationException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+    private void index(Bag bag) throws InterruptedException,
+            InstantiationException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException,
+            NoSuchMethodException, SecurityException {
         long startTime = System.nanoTime();
         List<Shard> shards = SearchManager.getShards(bag);
-	StringBuilder sid = new StringBuilder();
+        StringBuilder sid = new StringBuilder();
         this.document = this.documentMaker.prepareDocument(bag);
         for (Shard shard : shards) {
-	    sid.append(shard.getId() + ":");
+            sid.append(shard.indexPath + ": ");
             try {
                 shard.getInvertedIndexWriter().addDocument(this.document);
             } catch (IOException e) {
-                logger.error(SearchManager.NODE_PREFIX + ": error in indexing bag, " + bag);
+                logger.error(SearchManager.NODE_PREFIX
+                        + ": error in indexing bag, " + bag);
                 e.printStackTrace();
             }
         }
         long estimatedTime = System.nanoTime() - startTime;
-        logger.debug(SearchManager.NODE_PREFIX + " II, Bag " + bag + " in shards " + sid.toString()
-			   + " in " + estimatedTime / 1000 + " micros");
+        logger.debug(SearchManager.NODE_PREFIX + " II, Bag " + bag
+                + " in shards " + sid.toString() + " in " + estimatedTime / 1000
+                + " micros");
 
         SearchManager.bagsToForwardIndexQueue.send(bag);
     }

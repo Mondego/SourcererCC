@@ -15,7 +15,9 @@ public class ForwardIndexCreator implements IListener, Runnable {
     private DocumentMaker documentMaker;
     private Document document;
     private Bag bag;
-    private static final Logger logger = LogManager.getLogger(ForwardIndexCreator.class);
+    private static final Logger logger = LogManager
+            .getLogger(ForwardIndexCreator.class);
+
     public ForwardIndexCreator(Bag bag) {
         super();
         this.documentMaker = new DocumentMaker();
@@ -32,26 +34,32 @@ public class ForwardIndexCreator implements IListener, Runnable {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (Exception e) {
-            logger.fatal(SearchManager.NODE_PREFIX + ", something nasty in fwd indexing bags, exiting");
+            logger.fatal(SearchManager.NODE_PREFIX
+                    + ", something nasty in fwd indexing bags, exiting");
             System.exit(1);
         }
     }
 
     private void index(Bag bag) throws InterruptedException {
-	long startTime = System.nanoTime(); 
+        long startTime = System.nanoTime();
         List<Shard> shards = SearchManager.getShards(bag);
+        StringBuilder sid = new StringBuilder();
         this.document = this.documentMaker.prepareDocumentForFwdIndex(bag);
         for (Shard shard : shards) {
+            sid.append(shard.indexPath + ": ");
             try {
                 shard.getForwardIndexWriter().addDocument(this.document);
             } catch (IOException e) {
-                logger.error(SearchManager.NODE_PREFIX + ": error in indexing bag, " + bag);
+                logger.error(SearchManager.NODE_PREFIX
+                        + ": error in indexing bag, " + bag);
                 e.printStackTrace();
             }
         }
-	long estimatedTime = System.nanoTime() - startTime;
+        long estimatedTime = System.nanoTime() - startTime;
 
-        logger.debug(SearchManager.NODE_PREFIX + " FI, Bag " + bag + " in " + estimatedTime/1000 + " micros");
+        logger.debug(SearchManager.NODE_PREFIX + " FI, Bag " + bag
+                + " in shards " + sid.toString() + " in " + estimatedTime / 1000
+                + " micros");
     }
 
 }

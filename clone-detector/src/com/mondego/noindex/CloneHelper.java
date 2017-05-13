@@ -300,19 +300,21 @@ public class CloneHelper {
                         return null;
                     }
 
-                    queryBlock.setShardId(shard.getId());
+                    queryBlock.setShardPath(shard.indexPath);
 
                 } catch (NumberFormatException e) {
+                    logger.error(SearchManager.NODE_PREFIX +
+                            "NumberFormatException: "+ e.getMessage());
                     throw e;
                 }
                 String tokenString = null;// bagAndTokens[1];
-                CustomCollectorFwdIndex collector = SearchManager.fwdSearcher
-                        .get(queryBlock.getShardId()).search(bagId);
+                CustomCollectorFwdIndex collector = SearchManager.fwdIndexSearcher
+                        .get(queryBlock.getShardPath()).search(bagId);
                 List<Integer> blocks = collector.getBlocks();
                 if (!blocks.isEmpty()) {
                     if (blocks.size() == 1) {
-                        Document document = SearchManager.fwdSearcher
-                                .get(queryBlock.getShardId())
+                        Document document = SearchManager.fwdIndexSearcher
+                                .get(queryBlock.getShardPath())
                                 .getDocument(blocks.get(0));
                         tokenString = document.get("tokens");
                         this.parseAndPopulateQueryBlock(listOfTokens,
@@ -324,8 +326,8 @@ public class CloneHelper {
                                         + blocks.size());
                     }
                 } else {
-                    logger.warn("warning! " + bagId
-                            + " not in fwdindex, cant get query string");
+                    logger.warn("warning! " + queryBlock
+                            + " not in fwdindex, cant get query string, shardPath:"+ queryBlock.getShardPath());
                 }
 
             }

@@ -24,7 +24,7 @@ public class Shard {
     int minSize, maxSize;
     int minBagSizeToIndex;
     int maxBagSizeToIndex;
-    String indexPath;
+    public String indexPath;
     IndexWriter invertedIndexWriter;
     IndexWriter forwardIndexWriter;
     public List<Shard> subShards;
@@ -151,7 +151,13 @@ public class Shard {
 
     public void closeInvertedIndexWriter() {
         try {
-            this.invertedIndexWriter.close();
+            if (this.subShards.size()>0){
+                for (Shard shard : this.subShards){
+                    shard.closeInvertedIndexWriter();
+                }
+            }else{
+                this.invertedIndexWriter.close();
+            }
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
@@ -159,20 +165,27 @@ public class Shard {
 
     public void closeForwardIndexWriter() {
         try {
-            this.forwardIndexWriter.close();
+            if (this.subShards.size()>0){
+                for (Shard shard : this.subShards){
+                    shard.closeForwardIndexWriter();
+                }
+            }else{
+                this.forwardIndexWriter.close();
+            }
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "Shard [id=" + id + ", minBagSizeToIndex=" + minBagSizeToIndex
-                + ", maxBagSizeToIndex=" + maxBagSizeToIndex + "]";
+        return "Shard [id=" + id + ", minSizeToSearch=" + minSize + ", maxSizeToSearch="
+                + maxSize + ", minBagSizeToIndex=" + minBagSizeToIndex
+                + ", maxBagSizeToIndex=" + maxBagSizeToIndex + ", indexPath="
+                + indexPath + "]";
     }
+
 }

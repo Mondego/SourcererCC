@@ -36,12 +36,12 @@ public class TermSearcher {
     private Map<Long, CandidateSimInfo> simMap;
     private int querySize;
     private int computedThreshold;
-    private int shard;
+    private String shardPath;
     private static final Logger logger = LogManager.getLogger(TermSearcher.class);
-    public TermSearcher(int shard, long qid) {
+    public TermSearcher(String shardPath, long qid) {
         this.earlierDocs = new ArrayList<Long>();
         this.simMap = new HashMap<Long, CandidateSimInfo>();
-        this.shard = shard;
+        this.shardPath = shardPath;
         this.queryId = qid;
     }
 
@@ -75,8 +75,8 @@ public class TermSearcher {
                                         if (earlierDocs.contains(docId))
                                             continue;
 
-                                        Document d = SearchManager.searcher
-                                                .get(shard).getDocument(docId);
+                                        Document d = SearchManager.invertedIndexsearcher
+                                                .get(shardPath).getDocument(docId);
                                         long candidateId = Long.parseLong(d
                                                 .get("id"));
                                         // Get rid of these early -- we're only

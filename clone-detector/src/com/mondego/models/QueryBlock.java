@@ -10,7 +10,6 @@ import java.util.Map;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.utility.BlockInfo;
 
-
 /**
  * @author vaibhavsaini
  *
@@ -19,32 +18,36 @@ public class QueryBlock {
     private long id;
     private int size;
     private long functionId;
-    private Map<String,TokenInfo> prefixMap;
-    private Map<String,TokenInfo> suffixMap;
+    private Map<String, TokenInfo> prefixMap;
+    private Map<String, TokenInfo> suffixMap;
     private int prefixSize;
     private int computedThreshold;
-    private int lenientCt; 
+    private int lenientCt;
     private int prefixMapSize;
     private int maxCandidateSize;
-    private int shardId;
+    private String shardPath;
     private int numUniqueTokens;
 
     /**
      * @param id
-     * @param size 
+     * @param size
      */
     public QueryBlock(long id, int size) {
         super();
         this.id = id;
-        this.size=size;
+        this.size = size;
         this.functionId = -1;
         this.prefixMap = new LinkedHashMap<String, TokenInfo>();
         this.suffixMap = new HashMap<String, TokenInfo>();
-        this.computedThreshold = BlockInfo.getMinimumSimilarityThreshold(this.size, SearchManager.th);
-        this.setMaxCandidateSize(BlockInfo.getMaximumSimilarityThreshold(this.size, SearchManager.th));
-        this.lenientCt = BlockInfo.getMinimumSimilarityThreshold(this.size, (SearchManager.th-0.5f));
-        this.prefixSize = BlockInfo.getPrefixSize(this.size, this.computedThreshold);
-        this.numUniqueTokens=0;
+        this.computedThreshold = BlockInfo
+                .getMinimumSimilarityThreshold(this.size, SearchManager.th);
+        this.setMaxCandidateSize(BlockInfo
+                .getMaximumSimilarityThreshold(this.size, SearchManager.th));
+        this.lenientCt = BlockInfo.getMinimumSimilarityThreshold(this.size,
+                (SearchManager.th - 0.5f));
+        this.prefixSize = BlockInfo.getPrefixSize(this.size,
+                this.computedThreshold);
+        this.numUniqueTokens = 0;
 
     }
 
@@ -56,14 +59,15 @@ public class QueryBlock {
     }
 
     /**
-     * @param id the id to set
+     * @param id
+     *            the id to set
      */
     public void setId(long id) {
         this.id = id;
     }
-    
+
     public int getSize() {
-        if(this.size == 0){
+        if (this.size == 0) {
             for (TokenInfo tokenInfo : this.prefixMap.values()) {
                 this.size += tokenInfo.getFrequency();
             }
@@ -73,57 +77,58 @@ public class QueryBlock {
         }
         return this.size;
     }
+
     public long getFunctionId() {
-		return functionId;
-	}
+        return functionId;
+    }
 
-	public void setFunctionId(long functionId) {
-		this.functionId = functionId;
-	}
+    public void setFunctionId(long functionId) {
+        this.functionId = functionId;
+    }
 
-	public Map<String, TokenInfo> getPrefixMap() {
-		return prefixMap;
-	}
+    public Map<String, TokenInfo> getPrefixMap() {
+        return prefixMap;
+    }
 
-	public void setPrefixMap(Map<String, TokenInfo> prefixMap) {
-		this.prefixMap = prefixMap;
-	}
+    public void setPrefixMap(Map<String, TokenInfo> prefixMap) {
+        this.prefixMap = prefixMap;
+    }
 
-	public Map<String, TokenInfo> getSuffixMap() {
-		return suffixMap;
-	}
+    public Map<String, TokenInfo> getSuffixMap() {
+        return suffixMap;
+    }
 
-	public void setSuffixMap(Map<String, TokenInfo> suffixMap) {
-		this.suffixMap = suffixMap;
-	}
+    public void setSuffixMap(Map<String, TokenInfo> suffixMap) {
+        this.suffixMap = suffixMap;
+    }
 
-	public int getPrefixSize() {
-		return prefixSize;
-	}
+    public int getPrefixSize() {
+        return prefixSize;
+    }
 
-	public void setPrefixSize(int prefixSize) {
-		this.prefixSize = prefixSize;
-	}
+    public void setPrefixSize(int prefixSize) {
+        this.prefixSize = prefixSize;
+    }
 
-	public int getComputedThreshold() {
-		return computedThreshold;
-	}
+    public int getComputedThreshold() {
+        return computedThreshold;
+    }
 
-	public void setComputedThreshold(int computedThreshold) {
-		this.computedThreshold = computedThreshold;
-	}
+    public void setComputedThreshold(int computedThreshold) {
+        this.computedThreshold = computedThreshold;
+    }
 
-	public int getPrefixMapSize() {
-		return prefixMapSize;
-	}
+    public int getPrefixMapSize() {
+        return prefixMapSize;
+    }
 
-	public void setPrefixMapSize(int prefixMapSize) {
-		this.prefixMapSize = prefixMapSize;
-	}
+    public void setPrefixMapSize(int prefixMapSize) {
+        this.prefixMapSize = prefixMapSize;
+    }
 
-	public int getLenientCt() {
-		return lenientCt;
-	}
+    public int getLenientCt() {
+        return lenientCt;
+    }
 
     public int getMaxCandidateSize() {
         return maxCandidateSize;
@@ -132,20 +137,18 @@ public class QueryBlock {
     public void setMaxCandidateSize(int maxCandidateSize) {
         this.maxCandidateSize = maxCandidateSize;
     }
-    
-    public void setShardId(int id) {
-	// We're subtracting 1, because shard ids start at 1, 
-	// but this is used an an index into an ArrayList
-	this.shardId = id - 1;
+
+    public void setShardPath(String path) {
+        this.shardPath = path;
     }
 
-    public int getShardId() {
-	return this.shardId;
+    public String getShardPath() {
+        return this.shardPath;
     }
 
     @Override
     public String toString() {
-        return this.getFunctionId()+":"+this.getId()+":"+ this.getSize();
+        return this.getFunctionId() + ":" + this.getId() + ":" + this.getSize() + ":"+ this.getNumUniqueTokens();
     }
 
     /**
@@ -156,7 +159,8 @@ public class QueryBlock {
     }
 
     /**
-     * @param numUniqueTokens the numUniqueTokens to set
+     * @param numUniqueTokens
+     *            the numUniqueTokens to set
      */
     public void setNumUniqueTokens(int numUniqueTokens) {
         this.numUniqueTokens = numUniqueTokens;
