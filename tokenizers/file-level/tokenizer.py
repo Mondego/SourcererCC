@@ -9,6 +9,7 @@ import sys
 import hashlib
 import datetime as dt
 import zipfile
+import javalang
 
 try:
   from configparser import ConfigParser
@@ -85,6 +86,30 @@ def read_config():
 
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
 
+  if experimental:
+    separators_count  = 0
+    assignments_count = 0 #(=)
+    statements_count = 0
+    expressions_count = 0
+    tree = None
+
+  if experimental:
+  	try:
+  	  print 'Parsing'
+  	  tree = javalang.parse.parse(file_string)
+
+  	  for path, node in tree.filter(javalang.tree.Assignment):
+  	  	assignments_count += 1
+
+  	  for path, node in tree.filter(javalang.tree.Statement):
+  	  	statements_count += 1
+
+  	  for path, node in tree.filter(javalang.tree.Expression):
+  	  	expressions_count += 1
+
+  	except Exception as e:
+  	  print 'ERROR: '+e
+
   final_stats  = 'ERROR'
   final_tokens = 'ERROR'
 
@@ -93,9 +118,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
 
-  if experimental:
-    separators_count  = 0
-    assignments_count = 0
 
   h_time = dt.datetime.now()
   m = hashlib.md5()
@@ -131,9 +153,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   file_string_for_tokenization = file_string
 
   temp_string = file_string_for_tokenization.split('\n')
-  for line in temp_string:
-    if ('=' in line) and ('==' not in line):
-      assignments_count += 1
 
   #Transform separators into spaces (remove them)
   s_time = dt.datetime.now()
@@ -166,7 +185,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   hash_time += (dt.datetime.now() - h_time).microseconds
 
   if experimental:
-    new_experimental_values = str(separators_count)+','+str(assignments_count) # String must go formatted to files_tokens
+    new_experimental_values = '%s,%s,%s,%s' % (separators_count,assignments_count,statements_count,expressions_count) # String must go formatted to files_tokens
     final_tokens = (tokens_count_total,tokens_count_unique,new_experimental_values,m.hexdigest(),'@#@'+tokens)
   else:
     final_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
@@ -531,10 +550,10 @@ if __name__ == '__main__':
   global project_format
   project_format = sys.argv[1] # 'zip' or 'leidos'  or 'zipblocks' (when want the blocks inside files)
 
-  global experimental
-  experimental = False
+  #global experimental
+  #experimental = False
   if len(sys.argv) >= 3:
-    if (sys.argv[2] == 'experimental'):
+    if (sys.argv[2] == 'experimentalJava'):
       experimental = True
     else:
       print 'Unknown parameter \''+sys.argv[2]+'\'.'
