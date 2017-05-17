@@ -98,9 +98,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
       print 'Parsing'
       tree = javalang.parse.parse(file_string)
 
-      a = tree.filter(javalang.tree.Assignment):
-      print a
-
       #for path, node in tree.filter(javalang.tree.Assignment):
       #  assignments_count += 1
       # Assignments are calculated below in the AST an Assignment node might be Assignment(),
