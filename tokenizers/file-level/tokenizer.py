@@ -94,21 +94,26 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     tree = None
 
   if experimental:
-  	try:
-  	  print 'Parsing'
-  	  tree = javalang.parse.parse(file_string)
+    try:
+      print 'Parsing'
+      tree = javalang.parse.parse(file_string)
 
-  	  for path, node in tree.filter(javalang.tree.Assignment):
-  	  	assignments_count += 1
+      a = tree.filter(javalang.tree.Assignment):
+      print a
 
-  	  for path, node in tree.filter(javalang.tree.Statement):
-  	  	statements_count += 1
+      #for path, node in tree.filter(javalang.tree.Assignment):
+      #  assignments_count += 1
+      # Assignments are calculated below in the AST an Assignment node might be Assignment(),
+      # VariableDeclarator(), and some more
 
-  	  for path, node in tree.filter(javalang.tree.Expression):
-  	  	expressions_count += 1
+      for path, node in tree.filter(javalang.tree.Statement):
+        statements_count += 1
 
-  	except Exception as e:
-  	  print 'ERROR: '+e
+      for path, node in tree.filter(javalang.tree.Expression):
+        expressions_count += 1
+
+    except Exception as e:
+      print 'ERROR: ',e
 
   final_stats  = 'ERROR'
   final_tokens = 'ERROR'
@@ -153,6 +158,10 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   file_string_for_tokenization = file_string
 
   temp_string = file_string_for_tokenization.split('\n')
+  if experimental:
+    for line in temp_string:
+      if ('=' in line) and ('==' not in line):
+        assignments_count += 1
 
   #Transform separators into spaces (remove them)
   s_time = dt.datetime.now()
