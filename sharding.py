@@ -22,9 +22,10 @@
 import sys
 
 FILE = sys.argv[1]
-INTERVAL_SIZE = sys.argv[2]
-LEVEL_NUM = sys.argv[3]
-FILTER_THRESHOLD = argv[4]
+SIMILARITY = sys.argv[2]
+INTERVAL_SIZE = sys.argv[3]
+LEVEL_NUM = sys.argv[4]
+FILTER_THRESHOLD = argv[5]
 
 
 print '1 - Getting distribution'
@@ -68,10 +69,10 @@ print start_index,'-',stop_index,'(',temp,'files',')'
 copy_paste_result += [stop_index]
 
 # define the rest of intervals based on RULE #1 first, and then RULE #2
-while i <= len(sorted_targets):
+while i < len(sorted_targets):
 	start_index = stop_index
 	# RULE #1
-	min_stop_index = start_index/INTERVAL_SIZE*100
+	min_stop_index = start_index/SIMILARITY*100
 	# RULE #2
 	# check if the number of files exceeds INTERVAL_SIZE
 	while sorted_targets[i] <= min_stop_index:
@@ -79,8 +80,8 @@ while i <= len(sorted_targets):
 		i += 1
 
 	if temp >= INTERVAL_SIZE:
-		stop_index = min_stop_index
-		copy_paste_result += stop_index
+		stop_index = sorted_targets[i]
+		copy_paste_result += [stop_index]
 	else:
 		while temp + dist[str(sorted_targets[i])] < INTERVAL_SIZE:
 			temp += dist[str(sorted_targets[i])]
