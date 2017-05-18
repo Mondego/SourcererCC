@@ -45,28 +45,55 @@ sorted_targets = map(int, dist.keys()) # return integer from string
 sorted_targets = filter(lambda l: l>=FILTER_THRESHOLD,sorted_targets)
 sorted_targets = sorted(sorted_targets, key=int)
 
-start_index = sorted_targets[0]
-temp = dist[str(sorted_targets[0])]
-stop_index = sorted_targets[0]
-n_intervals = 0
-copy_paste_result = []
 
-print '3 - Finding Intervals'
-# define intervals based on RULE #1 first, and then RULE #2
-for a in sorted_targets[1:]:
-	if temp + dist[str(a)] >= INTERVAL_SIZE:
-		print start_index,'-',stop_index,'(',temp,'files',')'
-		copy_paste_result += [stop_index]
-		start_index = a
-		stop_index = a
-		temp = 0
-		n_intervals +=1
-	else:
-		temp += dist[str(a)]
-		stop_index = a
-print start_index,'-',sorted_targets[-1],'(',temp,'files',')'
-copy_paste_result += [stop_index]
+print '3 - Finding intervals'
+# the lower bound for the first interval will be sorted_targets[0]
+# it's either the FILTER_THRESOLD, or the minimum n_targets
+start_index = sorted_targets[0]
+copy_paste_result = [start_index]
+
+temp = dist[str(sorted_targets[0])]
+n_intervals = 0
+
+# find the first interval (second stop_index) first
+i = 1 # i marks the position in sorted_targets list
+while temp + dist[str(sorted_targets[i])] < INTERVAL_SIZE:
+	temp += dist[str(sorted_targets[i])]
+	i += 1
+# the first interval is decided by INTERVAL_SIZE (N_files >= INTERVAL_SIZE)
+temp = 0
+stop_index = sorted_targets[i]
 n_intervals += 1
+print start_index,'-',stop_index,'(',temp,'files',')'
+copy_paste_result += [stop_index]
+
+# define the rest of intervals based on RULE #1 first, and then RULE #2
+while i <= len(sorted_targets):
+	start_index = stop_index
+	# RULE #1
+	min_stop_index = start_index/INTERVAL_SIZE*100
+	# RULE #2
+	# check if the number of files exceeds INTERVAL_SIZE
+	while sorted_targets[i] <= min_stop_index:
+		temp += dist[str(sorted_targets[i])]
+		i += 1
+
+	if temp >= INTERVAL_SIZE:
+		stop_index = min_stop_index
+		copy_paste_result += stop_index
+	else:
+		while temp + dist[str(sorted_targets[i])] < INTERVAL_SIZE:
+			temp += dist[str(sorted_targets[i])]
+			i += 1
+		stop_index = sorted_targets[i]
+		copy_paste_result += [stop_index]
+
+	print start_index,'-',stop_index,'(',temp,'files',')'
+	temp = 0
+	n_intervals += 1
+
+
+
 print 'Number of intervals:',n_intervals
 print '** COPY-PASTE LINE BELOW into sourcerercc.properties **'
 print 'SHARD_MAX_NUM_TOKENS='+','.join([str(i) for i in copy_paste_result])
