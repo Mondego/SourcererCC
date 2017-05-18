@@ -17,6 +17,7 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -65,6 +66,9 @@ public class Util {
             + "search_metadata.txt";
     public static final String RUN_METADATA = SearchManager.ROOT_DIR
             + "run_metadata.scc";
+    public static List<String> METRICS_ORDER_IN_INPUT_FILE = Arrays.asList("num_tokens", "num_unique_tokens", "num_separators"
+            ,"num_assignments","num_statements","num_expressions");
+    
     private static final Logger logger = LogManager.getLogger(Util.class);
 
     /**

@@ -1,6 +1,8 @@
 package com.mondego.models;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
 /**
  * 
@@ -22,7 +24,8 @@ public class Bag extends LinkedHashSet<TokenFrequency>  { // TODO: why is this
     private int comparisions;
     private long functionId;
     private int numUniqueTokens;
-
+    public Map<String,Long> metrics;
+    
     public int getComparisions() {
         return comparisions;
     }
@@ -41,6 +44,8 @@ public class Bag extends LinkedHashSet<TokenFrequency>  { // TODO: why is this
         this.comparisions = 0;
         this.functionId = -1;
         this.numUniqueTokens=0;
+        this.metrics = new HashMap<String,Long>();
+        
     }
 
     public Bag() {

@@ -21,9 +21,9 @@ import com.mondego.utility.BlockInfo;
 
 public class Shard {
     int id;
-    int minSize, maxSize;
-    int minBagSizeToIndex;
-    int maxBagSizeToIndex;
+    int minMetricValue, maxMetricValue;
+    int minMetricValueToIndex;
+    int maxMetricValueToIndex;
     public String indexPath;
     IndexWriter invertedIndexWriter;
     IndexWriter forwardIndexWriter;
@@ -34,12 +34,12 @@ public class Shard {
             String indexPath, boolean forWriting) {
         this.id = id;
         this.indexPath = indexPath;
-        this.minSize = minBagSizeToSearch;
-        this.maxSize = maxBagSizeToSearch;
-        this.minBagSizeToIndex = BlockInfo.getMinimumSimilarityThreshold(
+        this.minMetricValue = minBagSizeToSearch;
+        this.maxMetricValue = maxBagSizeToSearch;
+        this.minMetricValueToIndex = BlockInfo.getMinimumSimilarityThreshold(
                 minBagSizeToSearch, SearchManager.th);
         ; // minBagSizeToSearch;
-        this.maxBagSizeToIndex = BlockInfo.getMaximumSimilarityThreshold(
+        this.maxMetricValueToIndex = BlockInfo.getMaximumSimilarityThreshold(
                 maxBagSizeToSearch, SearchManager.th);
         this.subShards = new ArrayList<Shard>();
         if (forWriting) {
@@ -55,28 +55,28 @@ public class Shard {
         return id;
     }
 
-    public int getMinSize() {
-        return minSize;
+    public int getMinMetricValue() {
+        return minMetricValue;
     }
 
-    public int getMaxSize() {
-        return maxSize;
+    public int getMaxMetricValue() {
+        return maxMetricValue;
     }
 
-    public int getMinBagSizeToIndex() {
-        return minBagSizeToIndex;
+    public int getMinMetricValueToIndex() {
+        return minMetricValueToIndex;
     }
 
-    public void setMinBagSizeToIndex(int minBagSizeToIndex) {
-        this.minBagSizeToIndex = minBagSizeToIndex;
+    public void setMinMetricValueToIndex(int minMetricValueToIndex) {
+        this.minMetricValueToIndex = minMetricValueToIndex;
     }
 
-    public int getMaxBagSizeToIndex() {
-        return maxBagSizeToIndex;
+    public int getMaxMetricValueToIndex() {
+        return maxMetricValueToIndex;
     }
 
-    public void setMaxBagSizeToIndex(int maxBagSizeToIndex) {
-        this.maxBagSizeToIndex = maxBagSizeToIndex;
+    public void setMaxMetricValueToIndex(int maxMetricValueToIndex) {
+        this.maxMetricValueToIndex = maxMetricValueToIndex;
     }
 
     public IndexWriter getInvertedIndexWriter() {
@@ -182,9 +182,9 @@ public class Shard {
      */
     @Override
     public String toString() {
-        return "Shard [id=" + id + ", minSizeToSearch=" + minSize + ", maxSizeToSearch="
-                + maxSize + ", minBagSizeToIndex=" + minBagSizeToIndex
-                + ", maxBagSizeToIndex=" + maxBagSizeToIndex + ", indexPath="
+        return "Shard [id=" + id + ", minSizeToSearch=" + minMetricValue + ", maxSizeToSearch="
+                + maxMetricValue + ", minBagSizeToIndex=" + minMetricValueToIndex
+                + ", maxBagSizeToIndex=" + maxMetricValueToIndex + ", indexPath="
                 + indexPath + "]";
     }
 

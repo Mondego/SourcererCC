@@ -27,6 +27,7 @@ public class QueryBlock {
     private int maxCandidateSize;
     private String shardPath;
     private int numUniqueTokens;
+    public Map<String,Long> metrics;
 
     /**
      * @param id
@@ -48,6 +49,7 @@ public class QueryBlock {
         this.prefixSize = BlockInfo.getPrefixSize(this.size,
                 this.computedThreshold);
         this.numUniqueTokens = 0;
+        this.metrics = new HashMap<String,Long>();
 
     }
 
