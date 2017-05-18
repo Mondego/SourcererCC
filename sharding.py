@@ -22,14 +22,14 @@
 import sys
 
 FILE = sys.argv[1]
-SIMILARITY = sys.argv[2]
-INTERVAL_SIZE = sys.argv[3]
-LEVEL_NUM = sys.argv[4]
-FILTER_THRESHOLD = argv[5]
+SIMILARITY = int(sys.argv[2])
+INTERVAL_SIZE = int(sys.argv[3])
+LEVEL_NUM = int(sys.argv[4])
+FILTER_THRESHOLD = int(sys.argv[5])
 
 
 print '1 - Getting distribution'
-dist = () # (n_argets, file_count)
+dist = {} # (n_argets, file_count)
 # for example, (n_tokens=50, file_count=10k) means there are 10k files that have 50 tokens 
 
 with open(FILE,'r') as tokens:
@@ -40,6 +40,8 @@ with open(FILE,'r') as tokens:
 			dist[n_targets] = dist[n_targets] + 1
 		else:
 			dist[n_targets] = 1
+
+print dist
 
 print '2 - Creating sorted list of targets'
 sorted_targets = map(int, dist.keys()) # return integer from string
@@ -92,8 +94,6 @@ while i < len(sorted_targets):
 	print start_index,'-',stop_index,'(',temp,'files',')'
 	temp = 0
 	n_intervals += 1
-
-
 
 print 'Number of intervals:',n_intervals
 print '** COPY-PASTE LINE BELOW into sourcerercc.properties **'
