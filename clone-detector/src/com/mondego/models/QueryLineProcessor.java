@@ -29,9 +29,12 @@ public class QueryLineProcessor implements Runnable {
     public void run() {
         try {
             processLine();
+            logger.debug("processing line completed: "+this.line.substring(0,40));
         } catch (ParseException e) {
             logger.error(SearchManager.NODE_PREFIX
-                    + " QLP, parse exception on line " + line.substring(0, 40));
+                    + " QLP, parse exception on line " + this.line.substring(0, 40));
+        } catch (Exception e){
+            logger.error(e);
         }
     }
 

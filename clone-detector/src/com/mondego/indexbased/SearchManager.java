@@ -330,7 +330,7 @@ public class SearchManager {
                     && bag.metrics
                             .get(Util.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
                                     .getMaxMetricValueToIndex()) {
-                SearchManager.getSubShards(bag, shard, level,shardsToReturn);
+                SearchManager.getSubShards(bag, shard, level+1,shardsToReturn);
             }
         return shardsToReturn;
     }
@@ -956,18 +956,8 @@ public class SearchManager {
     private void initSearchEnv() {
         SearchManager.fwdIndexSearcher = new HashMap<String, CodeSearcher>();
         SearchManager.invertedIndexsearcher = new HashMap<String, CodeSearcher>();
-        for (Shard l1Shard : SearchManager.shards) {
-            for (Shard l2Shard : l1Shard.subShards) {
-                SearchManager.fwdIndexSearcher.put(l2Shard.indexPath,
-                        new CodeSearcher(
-                                Util.FWD_INDEX_DIR + "/" + l2Shard.indexPath,
-                                "id"));
-                SearchManager.invertedIndexsearcher.put(l2Shard.indexPath,
-                        new CodeSearcher(
-                                Util.INDEX_DIR + "/" + l2Shard.indexPath,
-                                "tokens"));
-            }
-
+        for (Shard shard : SearchManager.shards) {
+            this.setupSearchers(shard);
         }
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");
@@ -979,6 +969,24 @@ public class SearchManager {
                         + "exists, deleting it.");
                 completedNodeFile.delete();
             }
+        }
+    }
+    
+    private void setupSearchers(Shard shard){
+        
+        if (shard.subShards.size()>0){
+            for (Shard subShard : shard.subShards){
+                this.setupSearchers(subShard);
+            }
+        }else{
+            SearchManager.fwdIndexSearcher.put(shard.indexPath,
+                    new CodeSearcher(
+                            Util.FWD_INDEX_DIR + "/" + shard.indexPath,
+                            "id"));
+            SearchManager.invertedIndexsearcher.put(shard.indexPath,
+                    new CodeSearcher(
+                            Util.INDEX_DIR + "/" + shard.indexPath,
+                            "tokens"));
         }
     }
 

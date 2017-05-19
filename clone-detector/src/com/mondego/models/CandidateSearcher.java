@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,30 +22,42 @@ public class CandidateSearcher implements IListener, Runnable {
     public void run() {
         try {
             this.searchCandidates(queryBlock);
+            logger.debug("search Candidates completed for query: "+this.queryBlock);
         } catch (NoSuchElementException e) {
+            logger.error(e);
             e.printStackTrace();
         } catch (IOException e) {
+            logger.error(e);
             e.printStackTrace();
         } catch (InterruptedException e) {
+            logger.error(e);
             e.printStackTrace();
         } catch (InstantiationException e) {
             // TODO Auto-generated catch block
+            logger.error(e);
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
+            logger.error(e);
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
+            logger.error(e);
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             // TODO Auto-generated catch block
+            logger.error(e);
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
+            logger.error(e);
             e.printStackTrace();
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
+            logger.error(e);
             e.printStackTrace();
+        } catch (Exception e){
+            logger.error(e);
         }
     }
 

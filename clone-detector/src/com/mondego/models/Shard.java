@@ -28,6 +28,7 @@ public class Shard {
     IndexWriter invertedIndexWriter;
     IndexWriter forwardIndexWriter;
     public List<Shard> subShards;
+    int size;
     private static final Logger logger = LogManager.getLogger(Shard.class);
 
     public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch,
@@ -48,6 +49,7 @@ public class Shard {
             logger.debug("set forward index");
             this.setForwardIndexWriter();
         }
+        this.size =0;
         logger.info("shard " + this + " created");
     }
 
@@ -157,6 +159,7 @@ public class Shard {
                 }
             }else{
                 this.invertedIndexWriter.close();
+                logger.info("Shard size: "+ this.size+", Shard Path: "+this.indexPath);
             }
         } catch (IOException e) {
             logger.error(e.getMessage());
