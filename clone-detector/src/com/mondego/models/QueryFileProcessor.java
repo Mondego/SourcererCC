@@ -17,7 +17,7 @@ public class QueryFileProcessor implements ITokensFileProcessor {
         try {
             SearchManager.queryLineQueue.send(line);
         } catch (InstantiationException e) {
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             logger.error(e.getMessage()
@@ -26,15 +26,15 @@ public class QueryFileProcessor implements ITokensFileProcessor {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         }
     }

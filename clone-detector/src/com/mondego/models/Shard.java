@@ -188,7 +188,7 @@ public class Shard {
         return "Shard [id=" + id + ", minSizeToSearch=" + minMetricValue + ", maxSizeToSearch="
                 + maxMetricValue + ", minBagSizeToIndex=" + minMetricValueToIndex
                 + ", maxBagSizeToIndex=" + maxMetricValueToIndex + ", indexPath="
-                + indexPath + "]";
+                + indexPath +", subshardsSize="+subShards.size() +"]";
     }
 
 }

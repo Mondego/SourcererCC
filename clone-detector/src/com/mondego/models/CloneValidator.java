@@ -22,39 +22,38 @@ public class CloneValidator implements IListener, Runnable {
     public void run() {
         try {
             this.validate(this.candidatePair);
-            logger.debug("validation completed for candidatePair: "+this.candidatePair);
         } catch (NoSuchElementException e) {
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InterruptedException e) {
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InstantiationException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (Exception e){
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
         }
     }
 

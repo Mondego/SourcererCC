@@ -20,10 +20,11 @@ public class CloneReporter implements IListener, Runnable {
         try {
             this.reportClone(this.cp);
         } catch (NoSuchElementException e) {
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (Exception e){
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
+            e.printStackTrace();
         }
     }
 

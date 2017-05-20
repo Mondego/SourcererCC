@@ -298,31 +298,36 @@ public class CloneHelper {
                             bagSize);
                     queryBlock.setFunctionId(Long.parseLong(functionId));
                     queryBlock.setNumUniqueTokens(numUniqueTokens);
-
+                    //logger.debug("setting metrics data for "+ s.substring(0,40));
+                    
                     for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE
                             .size(); index++) {
                         queryBlock.metrics.put(
                                 Util.METRICS_ORDER_IN_INPUT_FILE.get(index),
                                 Long.parseLong(bagMetadata[index + 2]));
                     }
+                    
                     long startTime = System.nanoTime();
                     Shard shard = SearchManager.getShard(queryBlock);
                     long estimatedTime = System.nanoTime() - startTime;
-                    logger.debug(SearchManager.NODE_PREFIX + " found shard in "
-                            + estimatedTime / 1000 + " micros");
+                    
                     if (shard == null) {
                         logger.warn(SearchManager.NODE_PREFIX
                                 + " unable to find shard for query block "
                                 + queryBlock);
                         return null;
                     }
-
+                    logger.debug(SearchManager.NODE_PREFIX + " found shard in "
+                            + estimatedTime / 1000 + " micros + qb: "+queryBlock + ", shard: "+ shard);
                     queryBlock.setShardPath(shard.indexPath);
 
                 } catch (NumberFormatException e) {
                     logger.error(SearchManager.NODE_PREFIX
                             + "NumberFormatException: " + e.getMessage());
                     throw e;
+                }catch (Exception e){
+                    logger.error("EXCEPTION CAUGHT::", e);
+                    System.exit(1);
                 }
                 String tokenString = null;// bagAndTokens[1];
                 CustomCollectorFwdIndex collector = SearchManager.fwdIndexSearcher
@@ -354,6 +359,7 @@ public class CloneHelper {
         } catch (NumberFormatException e) {
             logger.error(e.getMessage() + ", ignoring query: " + s);
         } catch (IOException e) {
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         }
         throw new ParseException("parsing error", 0);

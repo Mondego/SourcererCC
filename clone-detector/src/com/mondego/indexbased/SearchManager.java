@@ -365,7 +365,6 @@ public class SearchManager {
                 }
 
             }*/
-        
          Shard shard = SearchManager.getRootShard(qb);
          int level=1;
          if (null!=shard){
@@ -377,6 +376,7 @@ public class SearchManager {
     }
 
     public static Shard getRootShard(QueryBlock qb) {
+        
         int low = 0;
         int high = SearchManager.shards.size() - 1;
         int mid = (low + high) / 2;
@@ -410,13 +410,14 @@ public class SearchManager {
                         && qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) <= shard.getMaxMetricValue()) {
                     return SearchManager.getShardRecursive(qb, shard, level+1);
                 } else {
-                    if (qb.getNumUniqueTokens() < shard.getMinMetricValue()) {
+                    if (qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) < shard.getMinMetricValue()) {
                         high = mid - 1;
-                    } else if (qb.getNumUniqueTokens() > shard
+                    } else if (qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) > shard
                             .getMaxMetricValue()) {
                         low = mid + 1;
                     }
                     mid = (low + high) / 2;
+                    
                 }
             }
             return shard;

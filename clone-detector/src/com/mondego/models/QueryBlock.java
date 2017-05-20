@@ -150,7 +150,7 @@ public class QueryBlock {
 
     @Override
     public String toString() {
-        return this.getFunctionId() + ":" + this.getId() + ":" + this.getSize() + ":"+ this.getNumUniqueTokens();
+        return this.getFunctionId() + "," + this.getId() + "," + this.getSize() + ","+ this.getNumUniqueTokens();
     }
 
     /**

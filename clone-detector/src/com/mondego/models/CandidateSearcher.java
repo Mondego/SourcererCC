@@ -22,42 +22,42 @@ public class CandidateSearcher implements IListener, Runnable {
     public void run() {
         try {
             this.searchCandidates(queryBlock);
-            logger.debug("search Candidates completed for query: "+this.queryBlock);
+            
         } catch (NoSuchElementException e) {
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IOException e) {
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InterruptedException e) {
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InstantiationException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (Exception e){
-            logger.error(e);
+            logger.error("EXCEPTION CAUGHT::", e);
         }
     }
 
