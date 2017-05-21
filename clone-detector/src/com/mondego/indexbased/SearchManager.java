@@ -137,6 +137,7 @@ public class SearchManager {
     private static final Logger logger = LogManager
             .getLogger(SearchManager.class);
     public static boolean FATAL_ERROR;
+    public static List<String> METRICS_ORDER_IN_SHARDS;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -325,10 +326,10 @@ public class SearchManager {
         List<Shard> shardsToReturn = new ArrayList<Shard>();
         int level = 0;
         for (Shard shard : SearchManager.shards)
-            if (bag.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
+            if (bag.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
                     .getMinMetricValueToIndex()
                     && bag.metrics
-                            .get(Util.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
+                            .get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
                                     .getMaxMetricValueToIndex()) {
                 SearchManager.getSubShards(bag, shard, level+1,shardsToReturn);
             }
@@ -338,10 +339,10 @@ public class SearchManager {
     private static void getSubShards(Bag bag, Shard parentShard, int level, List<Shard> shardsToReturn) {
         if (parentShard.subShards.size()>0){
             for(Shard shard : parentShard.subShards){
-                if (bag.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
+                if (bag.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
                         .getMinMetricValueToIndex()
                         && bag.metrics
-                                .get(Util.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
+                                .get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
                                         .getMaxMetricValueToIndex()) {
                     SearchManager.getSubShards(bag, shard, level+1,shardsToReturn);
                 }
@@ -406,13 +407,13 @@ public class SearchManager {
             Shard shard = null;
             while (low <= high) {
                 shard = parentShard.subShards.get(mid);
-                if (qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) >= shard.getMinMetricValue()
-                        && qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) <= shard.getMaxMetricValue()) {
+                if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) >= shard.getMinMetricValue()
+                        && qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) <= shard.getMaxMetricValue()) {
                     return SearchManager.getShardRecursive(qb, shard, level+1);
                 } else {
-                    if (qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) < shard.getMinMetricValue()) {
+                    if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) < shard.getMinMetricValue()) {
                         high = mid - 1;
-                    } else if (qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) > shard
+                    } else if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) > shard
                             .getMaxMetricValue()) {
                         low = mid + 1;
                     }
@@ -459,6 +460,17 @@ public class SearchManager {
                     .parseInt(properties.getProperty(
                             "LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", "1000"));
             theInstance = new SearchManager(params);
+            String shardsOrder = properties.getProperty("METRICS_ORDER_IN_SHARDS");
+            SearchManager.METRICS_ORDER_IN_SHARDS = new ArrayList<String>();
+            for (String metric : shardsOrder.split(",")){
+                SearchManager.METRICS_ORDER_IN_SHARDS.add(metric.trim());
+            }
+            if(!(SearchManager.METRICS_ORDER_IN_SHARDS.size()>0)){
+                logger.fatal("ERROR WHILE CREATING METRICS ORDER IN SHARDS, EXTING");
+                System.exit(1);
+            }else{
+                logger.info("METRICS_ORDER_IN_SHARDS created: "+ SearchManager.METRICS_ORDER_IN_SHARDS.size());
+            }
         } catch (IOException e) {
             logger.error("ERROR READING PROPERTIES FILE, " + e.getMessage());
             System.exit(1);
