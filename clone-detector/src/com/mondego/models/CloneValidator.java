@@ -23,27 +23,37 @@ public class CloneValidator implements IListener, Runnable {
         try {
             this.validate(this.candidatePair);
         } catch (NoSuchElementException e) {
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InterruptedException e) {
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InstantiationException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
+        } catch (Exception e){
+            logger.error("EXCEPTION CAUGHT::", e);
         }
     }
 

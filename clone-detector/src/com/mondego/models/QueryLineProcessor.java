@@ -18,8 +18,7 @@ import com.mondego.indexbased.SearchManager;
 public class QueryLineProcessor implements Runnable {
     private String line;
     private SearchManager searchManager;
-    private static final Logger logger = LogManager
-            .getLogger(QueryLineProcessor.class);
+    private static final Logger logger = LogManager.getLogger(QueryLineProcessor.class);
 
     public QueryLineProcessor(String line) {
         this.line = line;
@@ -29,25 +28,21 @@ public class QueryLineProcessor implements Runnable {
     public void run() {
         try {
             processLine();
-        } catch (ParseException e) {
-            logger.error(SearchManager.NODE_PREFIX
-                    + " QLP, parse exception on line " + line.substring(0, 40));
+        } catch (Exception e) {
+            logger.error("EXCEPTION CAUGHT::", e);
+            e.printStackTrace();
         }
     }
 
-    public void processLine() throws ParseException {
+    public void processLine() {
         // TODO Auto-generated method stub
         long startTime = System.nanoTime();
         try {
             QueryBlock queryBlock = this.getNextQueryBlock(line);
             if (queryBlock == null)
                 return;
-            if (searchManager.appendToExistingFile
-                    && searchManager.completedQueries
-                            .contains(queryBlock.getId())) {
-                logger.debug(
-                        "ignoring query, REASON: completed in previous run, "
-                                + queryBlock);
+            if (searchManager.appendToExistingFile && searchManager.completedQueries.contains(queryBlock.getId())) {
+                logger.debug("ignoring query, REASON: completed in previous run, " + queryBlock);
                 return;
             }
 
@@ -55,48 +50,45 @@ public class QueryLineProcessor implements Runnable {
                 SearchManager.statusCounter += 1;
             }
             long estimatedTime = System.nanoTime() - startTime;
-            logger.debug(SearchManager.NODE_PREFIX + " QLP, QueryBlock "
-                    + queryBlock + " in " + estimatedTime / 1000 + " micros");
-
+            logger.debug(SearchManager.NODE_PREFIX + " QLP processed QueryBlock " + queryBlock + " in "
+                    + estimatedTime / 1000 + " micros");
             SearchManager.queryBlockQueue.send(queryBlock);
             // System.out.println(SearchManager.NODE_PREFIX +
             // ", line number: "+ count);
         } catch (InstantiationException e) {
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            logger.error(
-                    e.getMessage() + " skiping this query block, illegal args: "
-                            + line.substring(0, 40));
+            logger.error(e.getMessage() + " skiping this query block, illegal args: " + line.substring(0, 40));
             e.printStackTrace();
         } catch (IllegalAccessException e) {
+            logger.error("EXCEPTION CAUGHT::", e);
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (InvocationTargetException e) {
+            logger.error("EXCEPTION CAUGHT::", e);
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (ParseException e) {
             logger.error("catching parseException, dont worry");
-            logger.error(e.getMessage()
-                    + " skiping this query block, parse exception: "
-                    + line.substring(0, 40));
+            logger.error(e.getMessage() + " skiping this query block, parse exception: " + line.substring(0, 40));
             // e.printStackTrace();
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         }
     }
 
-    public QueryBlock getNextQueryBlock(String line)
-            throws ParseException, IllegalArgumentException {
+    public QueryBlock getNextQueryBlock(String line) throws ParseException, IllegalArgumentException {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
-        QueryBlock queryBlock = searchManager.cloneHelper
-                .getSortedQueryBlock(line, listOfTokens);
+        QueryBlock queryBlock = searchManager.cloneHelper.getSortedQueryBlock(line, listOfTokens);
         if (queryBlock == null) {
-            logger.debug(SearchManager.NODE_PREFIX + " QLP, Invalid QueryBlock "
-                    + line.substring(0,40));
+            logger.debug(SearchManager.NODE_PREFIX + " QLP, Invalid QueryBlock " + line.substring(0, 40));
             return null;
         }
 

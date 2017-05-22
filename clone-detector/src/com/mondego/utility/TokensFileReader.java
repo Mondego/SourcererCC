@@ -60,13 +60,12 @@ public class TokensFileReader {
 
                 if ((line = br.readLine()) != null
                         && line.trim().length() > 0) {
+                    long estimatedTime = System.nanoTime() - startTime;
+                    logger.debug(this.nodeId + " RL " + lineNumber + ", file "
+                            + prefix + " in "
+                            + estimatedTime / 1000 + " micros");
                     this.processor.processLine(prefix + line);
                 }
-
-                long estimatedTime = System.nanoTime() - startTime;
-                logger.debug(this.nodeId + " RL " + lineNumber + ", file "
-                        + parts[1] + ", " + ntokens + " tokens in "
-                        + estimatedTime / 1000 + " micros");
             }
             lineNumber++;
             if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)

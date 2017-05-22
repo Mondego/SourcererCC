@@ -137,6 +137,7 @@ public class SearchManager {
     private static final Logger logger = LogManager
             .getLogger(SearchManager.class);
     public static boolean FATAL_ERROR;
+    public static List<String> METRICS_ORDER_IN_SHARDS;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -325,12 +326,12 @@ public class SearchManager {
         List<Shard> shardsToReturn = new ArrayList<Shard>();
         int level = 0;
         for (Shard shard : SearchManager.shards)
-            if (bag.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
+            if (bag.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
                     .getMinMetricValueToIndex()
                     && bag.metrics
-                            .get(Util.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
+                            .get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
                                     .getMaxMetricValueToIndex()) {
-                SearchManager.getSubShards(bag, shard, level,shardsToReturn);
+                SearchManager.getSubShards(bag, shard, level+1,shardsToReturn);
             }
         return shardsToReturn;
     }
@@ -338,10 +339,10 @@ public class SearchManager {
     private static void getSubShards(Bag bag, Shard parentShard, int level, List<Shard> shardsToReturn) {
         if (parentShard.subShards.size()>0){
             for(Shard shard : parentShard.subShards){
-                if (bag.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
+                if (bag.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
                         .getMinMetricValueToIndex()
                         && bag.metrics
-                                .get(Util.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
+                                .get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) <= shard
                                         .getMaxMetricValueToIndex()) {
                     SearchManager.getSubShards(bag, shard, level+1,shardsToReturn);
                 }
@@ -365,7 +366,6 @@ public class SearchManager {
                 }
 
             }*/
-        
          Shard shard = SearchManager.getRootShard(qb);
          int level=1;
          if (null!=shard){
@@ -377,6 +377,7 @@ public class SearchManager {
     }
 
     public static Shard getRootShard(QueryBlock qb) {
+        
         int low = 0;
         int high = SearchManager.shards.size() - 1;
         int mid = (low + high) / 2;
@@ -406,17 +407,18 @@ public class SearchManager {
             Shard shard = null;
             while (low <= high) {
                 shard = parentShard.subShards.get(mid);
-                if (qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) >= shard.getMinMetricValue()
-                        && qb.metrics.get(Util.METRICS_ORDER_IN_SHARDS.get(level)) <= shard.getMaxMetricValue()) {
+                if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) >= shard.getMinMetricValue()
+                        && qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) <= shard.getMaxMetricValue()) {
                     return SearchManager.getShardRecursive(qb, shard, level+1);
                 } else {
-                    if (qb.getNumUniqueTokens() < shard.getMinMetricValue()) {
+                    if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) < shard.getMinMetricValue()) {
                         high = mid - 1;
-                    } else if (qb.getNumUniqueTokens() > shard
+                    } else if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) > shard
                             .getMaxMetricValue()) {
                         low = mid + 1;
                     }
                     mid = (low + high) / 2;
+                    
                 }
             }
             return shard;
@@ -458,6 +460,17 @@ public class SearchManager {
                     .parseInt(properties.getProperty(
                             "LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", "1000"));
             theInstance = new SearchManager(params);
+            String shardsOrder = properties.getProperty("METRICS_ORDER_IN_SHARDS");
+            SearchManager.METRICS_ORDER_IN_SHARDS = new ArrayList<String>();
+            for (String metric : shardsOrder.split(",")){
+                SearchManager.METRICS_ORDER_IN_SHARDS.add(metric.trim());
+            }
+            if(!(SearchManager.METRICS_ORDER_IN_SHARDS.size()>0)){
+                logger.fatal("ERROR WHILE CREATING METRICS ORDER IN SHARDS, EXTING");
+                System.exit(1);
+            }else{
+                logger.info("METRICS_ORDER_IN_SHARDS created: "+ SearchManager.METRICS_ORDER_IN_SHARDS.size());
+            }
         } catch (IOException e) {
             logger.error("ERROR READING PROPERTIES FILE, " + e.getMessage());
             System.exit(1);
@@ -956,18 +969,8 @@ public class SearchManager {
     private void initSearchEnv() {
         SearchManager.fwdIndexSearcher = new HashMap<String, CodeSearcher>();
         SearchManager.invertedIndexsearcher = new HashMap<String, CodeSearcher>();
-        for (Shard l1Shard : SearchManager.shards) {
-            for (Shard l2Shard : l1Shard.subShards) {
-                SearchManager.fwdIndexSearcher.put(l2Shard.indexPath,
-                        new CodeSearcher(
-                                Util.FWD_INDEX_DIR + "/" + l2Shard.indexPath,
-                                "id"));
-                SearchManager.invertedIndexsearcher.put(l2Shard.indexPath,
-                        new CodeSearcher(
-                                Util.INDEX_DIR + "/" + l2Shard.indexPath,
-                                "tokens"));
-            }
-
+        for (Shard shard : SearchManager.shards) {
+            this.setupSearchers(shard);
         }
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");
@@ -979,6 +982,24 @@ public class SearchManager {
                         + "exists, deleting it.");
                 completedNodeFile.delete();
             }
+        }
+    }
+    
+    private void setupSearchers(Shard shard){
+        
+        if (shard.subShards.size()>0){
+            for (Shard subShard : shard.subShards){
+                this.setupSearchers(subShard);
+            }
+        }else{
+            SearchManager.fwdIndexSearcher.put(shard.indexPath,
+                    new CodeSearcher(
+                            Util.FWD_INDEX_DIR + "/" + shard.indexPath,
+                            "id"));
+            SearchManager.invertedIndexsearcher.put(shard.indexPath,
+                    new CodeSearcher(
+                            Util.INDEX_DIR + "/" + shard.indexPath,
+                            "tokens"));
         }
     }
 

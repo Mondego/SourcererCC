@@ -36,30 +36,39 @@ public class CandidateProcessor implements IListener, Runnable {
             // SearchManager.queryCandidatesQueue.size() + Util.debug_thread());
             this.processResultWithFilter();
         } catch (NoSuchElementException e) {
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InstantiationException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
+            logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
+        } catch (Exception e){
+            logger.error("EXCEPTION CAUGHT::", e);
         }
-
     }
 
     private void processResultWithFilter() throws InterruptedException,
@@ -79,7 +88,7 @@ public class CandidateProcessor implements IListener, Runnable {
         }
         logger.debug(SearchManager.NODE_PREFIX + ", num candidates: "
                 + codeBlockIds.entrySet().size() + ", query: "
-                + queryBlock.getFunctionId() + "," + queryBlock.getId());
+                + queryBlock);
         for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
             long startTime = System.nanoTime();
             Document doc = null;
