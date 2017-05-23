@@ -53,9 +53,14 @@ def copy_files(ids_set, folder_or_file, output_folder):
 
           if not os.path.isdir(os.path.dirname(os.path.join(output_folder,file_path))):
             os.makedirs(os.path.dirname(os.path.join(output_folder,file_path)))
-          with zipfile.ZipFile(zip_path) as z:
-            with open(os.path.join(output_folder,file_path), 'w') as f:
-              f.write(z.read(file_path))
+
+          try:
+            with zipfile.ZipFile(zip_path) as z:
+              with open(os.path.join(output_folder,file_path), 'w') as f:
+                f.write(z.read(file_path))
+          except Exception as e:
+            print 'ERROR reading',zip_path,e
+
 
           copy_count += 1
 
