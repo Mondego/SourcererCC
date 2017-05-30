@@ -75,6 +75,8 @@ while i < len(sorted_targets):
 	start_index = stop_index
 	# RULE #1
 	min_stop_index = start_index/SIMILARITY*100
+	if min_stop_index >= sorted_targets[i]:
+		break
 	# RULE #2
 	# check if the number of files exceeds INTERVAL_SIZE
 	while sorted_targets[i] <= min_stop_index:
