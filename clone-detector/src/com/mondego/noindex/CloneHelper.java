@@ -187,7 +187,7 @@ public class CloneHelper {
         return returnString;
     }
 
-    public Bag deserialise(String s) throws ParseException {
+    public Bag deserialise(String s, boolean parseCompleteLine) throws ParseException {
         try {
             if (null != s && s.trim().length() > 0) {
                 String[] bagAndTokens = s.split("@#@");
@@ -210,9 +210,13 @@ public class CloneHelper {
                     bag.metrics.put(Util.METRICS_ORDER_IN_INPUT_FILE.get(index),
                             Long.parseLong(bagMetadata[index + 2]));
                 }
-                String tokenString = bagAndTokens[1];
-                this.parseAndPopulateBag(bag, tokenString);
-                return bag;
+                if(parseCompleteLine){
+                    String tokenString = bagAndTokens[1];
+                    this.parseAndPopulateBag(bag, tokenString);
+                    return bag;
+                }else{
+                    return bag;
+                }
             } else {
                 throw new ParseException("parsing error at string: " + s, 0);
             }
@@ -307,8 +311,8 @@ public class CloneHelper {
                                 Long.parseLong(bagMetadata[index + 2]));
                     }
                     
-                    long startTime = System.nanoTime();
-                    Shard shard = SearchManager.getShard(queryBlock);
+                   /* long startTime = System.nanoTime();
+                    //Shard shard = SearchManager.getShard(queryBlock);
                     long estimatedTime = System.nanoTime() - startTime;
                     
                     if (shard == null) {
@@ -319,7 +323,7 @@ public class CloneHelper {
                     }
                     logger.debug(SearchManager.NODE_PREFIX + " found shard in "
                             + estimatedTime / 1000 + " micros + qb: "+queryBlock + ", shard: "+ shard);
-                    queryBlock.setShardPath(shard.indexPath);
+                    queryBlock.setShardPath(shard.indexPath);*/
 
                 } catch (NumberFormatException e) {
                     logger.error(SearchManager.NODE_PREFIX
@@ -443,7 +447,7 @@ public class CloneHelper {
             br = new BufferedReader(new FileReader(filename));
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                bagsSet.add(this.deserialise(line));
+                bagsSet.add(this.deserialise(line, true));
             }
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block

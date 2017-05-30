@@ -13,7 +13,7 @@ public class QueryFileProcessor implements ITokensFileProcessor {
     }
 
     @Override
-    public void processLine(String line) {
+    public void processLine(String line, boolean processCompleteLine ) {
         try {
             SearchManager.queryLineQueue.send(line);
         } catch (InstantiationException e) {

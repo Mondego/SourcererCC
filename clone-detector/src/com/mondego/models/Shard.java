@@ -2,6 +2,7 @@ package com.mondego.models;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import org.apache.lucene.util.Version;
 
 import com.mondego.indexbased.SearchManager;
 import com.mondego.utility.BlockInfo;
+import com.mondego.utility.Util;
 
 public class Shard {
     int id;
@@ -28,7 +30,9 @@ public class Shard {
     IndexWriter invertedIndexWriter;
     IndexWriter forwardIndexWriter;
     public List<Shard> subShards;
-    int size;
+    public int size;
+    public Writer candidateFileWriter;
+    public Writer queryFileWriter;
     private static final Logger logger = LogManager.getLogger(Shard.class);
 
     public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch,
@@ -46,8 +50,8 @@ public class Shard {
         if (forWriting) {
             logger.debug("setinverted index");
             this.setInvertedIndexWriter();
-            logger.debug("set forward index");
-            this.setForwardIndexWriter();
+            /*logger.debug("set forward index");
+            this.setForwardIndexWriter();*/
         }
         this.size =0;
         logger.info("shard " + this + " created");
@@ -86,32 +90,15 @@ public class Shard {
     }
 
     public void setInvertedIndexWriter() {
-        WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
-                Version.LUCENE_46);
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
-                Version.LUCENE_46, whitespaceAnalyzer);
-        indexWriterConfig.setRAMBufferSizeMB(SearchManager.ramBufferSizeMB);
-        indexWriterConfig.setOpenMode(OpenMode.CREATE);
-        // index
-        TieredMergePolicy mergePolicy = (TieredMergePolicy) indexWriterConfig
-                .getMergePolicy();
-
-        mergePolicy.setNoCFSRatio(0);// what was this for?
-        mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
-
+        String shardFolderPath = SearchManager.ROOT_DIR
+                + SearchManager.NODE_PREFIX + "/index/shards/" + this.indexPath;
+        Util.createDirs(shardFolderPath);
+        File candidateFile =  new File(shardFolderPath+"/candidates.file");
+        File queryFile = new File(shardFolderPath+"/query.file");
+        
         try {
-            FSDirectory dir = FSDirectory.open(new File(SearchManager.ROOT_DIR
-                    + SearchManager.NODE_PREFIX + "/index/shards/" + this.indexPath));
-            if (SearchManager.invertedIndexDirectoriesOfShard.containsKey(this.indexPath)) {
-                List<FSDirectory> dirs = SearchManager.invertedIndexDirectoriesOfShard
-                        .get(id);
-                dirs.add(dir);
-            } else {
-                List<FSDirectory> dirs = new ArrayList<FSDirectory>();
-                dirs.add(dir);
-                SearchManager.invertedIndexDirectoriesOfShard.put(this.indexPath, dirs);
-            }
-            this.invertedIndexWriter = new IndexWriter(dir, indexWriterConfig);
+            this.candidateFileWriter = Util.openFile(candidateFile, true);
+            this.queryFileWriter = Util.openFile(queryFile, true);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -121,7 +108,7 @@ public class Shard {
         return forwardIndexWriter;
     }
 
-    public void setForwardIndexWriter() {
+    /*public void setForwardIndexWriter() {
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
         IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
                 Version.LUCENE_46, keywordAnalyzer);
@@ -149,20 +136,17 @@ public class Shard {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     public void closeInvertedIndexWriter() {
-        try {
-            if (this.subShards.size()>0){
-                for (Shard shard : this.subShards){
-                    shard.closeInvertedIndexWriter();
-                }
-            }else{
-                this.invertedIndexWriter.close();
-                logger.info("Shard size: "+ this.size+", Shard Path: "+this.indexPath);
+        if (this.subShards.size()>0){
+            for (Shard shard : this.subShards){
+                shard.closeInvertedIndexWriter();
             }
-        } catch (IOException e) {
-            logger.error(e.getMessage());
+        }else{
+            Util.closeOutputFile(this.candidateFileWriter);
+            Util.closeOutputFile(this.queryFileWriter);
+            logger.info("Shard size: "+ this.size+", Shard Path: "+this.indexPath);
         }
     }
 

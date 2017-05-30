@@ -353,7 +353,7 @@ public class SearchManager {
     }
 
     // This query needs to be directed to the following shard
-    public static Shard getShard(QueryBlock qb) {
+    public static Shard getShardToSearch(Bag bag) {
         /*for (Shard l1Shard : SearchManager.shards)
             if (qb.getSize() >= l1Shard.getMinMetricValue()
                     && qb.getSize() <= l1Shard.getMaxMetricValue()) {
@@ -366,17 +366,17 @@ public class SearchManager {
                 }
 
             }*/
-         Shard shard = SearchManager.getRootShard(qb);
+         Shard shard = SearchManager.getRootShard(bag);
          int level=1;
          if (null!=shard){
-             return SearchManager.getShardRecursive(qb, shard,level); 
+             return SearchManager.getShardRecursive(bag, shard,level); 
          }else{
              return shard;
          }
 
     }
 
-    public static Shard getRootShard(QueryBlock qb) {
+    public static Shard getRootShard(Bag bag) {
         
         int low = 0;
         int high = SearchManager.shards.size() - 1;
@@ -384,13 +384,13 @@ public class SearchManager {
         Shard shard = null;
         while (low <= high) {
             shard = SearchManager.shards.get(mid);
-            if (qb.getSize() >= shard.getMinMetricValue()
-                    && qb.getSize() <= shard.getMaxMetricValue()) {
+            if (bag.getSize() >= shard.getMinMetricValue()
+                    && bag.getSize() <= shard.getMaxMetricValue()) {
                 break;
             } else {
-                if (qb.getSize() < shard.getMinMetricValue()) {
+                if (bag.getSize() < shard.getMinMetricValue()) {
                     high = mid - 1;
-                } else if (qb.getSize() > shard.getMaxMetricValue()) {
+                } else if (bag.getSize() > shard.getMaxMetricValue()) {
                     low = mid + 1;
                 }
                 mid = (low + high) / 2;
@@ -399,7 +399,7 @@ public class SearchManager {
         return shard;
     }
 
-    public static Shard getShardRecursive(QueryBlock qb, Shard parentShard, int level) {
+    public static Shard getShardRecursive(Bag bag, Shard parentShard, int level) {
         if (parentShard.subShards.size()>0){
             int low = 0;
             int high = parentShard.subShards.size() - 1;
@@ -407,13 +407,13 @@ public class SearchManager {
             Shard shard = null;
             while (low <= high) {
                 shard = parentShard.subShards.get(mid);
-                if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) >= shard.getMinMetricValue()
-                        && qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) <= shard.getMaxMetricValue()) {
-                    return SearchManager.getShardRecursive(qb, shard, level+1);
+                if (bag.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) >= shard.getMinMetricValue()
+                        && bag.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) <= shard.getMaxMetricValue()) {
+                    return SearchManager.getShardRecursive(bag, shard, level+1);
                 } else {
-                    if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) < shard.getMinMetricValue()) {
+                    if (bag.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) < shard.getMinMetricValue()) {
                         high = mid - 1;
-                    } else if (qb.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) > shard
+                    } else if (bag.metrics.get(SearchManager.METRICS_ORDER_IN_SHARDS.get(level)) > shard
                             .getMaxMetricValue()) {
                         low = mid + 1;
                     }
@@ -513,7 +513,7 @@ public class SearchManager {
 
             for (Shard shard : SearchManager.shards) {
                 shard.closeInvertedIndexWriter();
-                shard.closeForwardIndexWriter();
+                //shard.closeForwardIndexWriter();
             }
             /*
              * System.out.println("merging indexes");
@@ -845,10 +845,10 @@ public class SearchManager {
                             SearchManager.NODE_PREFIX, inputFile,
                             SearchManager.max_tokens,
                             new ITokensFileProcessor() {
-                                public void processLine(String line)
+                                public void processLine(String line,boolean processCompleteLine)
                                         throws ParseException {
                                     if (!SearchManager.FATAL_ERROR) {
-                                        Bag bag = cloneHelper.deserialise(line);
+                                        Bag bag = cloneHelper.deserialise(line,false);
                                         if (null == bag || bag
                                                 .getSize() < SearchManager.min_tokens) {
                                             if (null == bag) {
@@ -866,15 +866,14 @@ public class SearchManager {
                                             }
                                             return; // ignore this bag.
                                         }
-                                        try {
-                                            SearchManager.bagsToSortQueue
-                                                    .send(bag);
-                                        } catch (Exception e) {
-                                            logger.error(
-                                                    SearchManager.NODE_PREFIX
-                                                            + "Unable to send bag "
-                                                            + bag.getId()
-                                                            + " to queue" + e);
+                                        List<Shard> shards = SearchManager.getShards(bag);
+                                        for (Shard shard : shards) {
+                                                Util.writeToFile(shard.candidateFileWriter, line, true);
+                                                shard.size ++;
+                                        }
+                                        Shard shard = SearchManager.getShardToSearch(bag);
+                                        if(null!=shard){
+                                            Util.writeToFile(shard.queryFileWriter, line, true);
                                         }
                                     } else {
                                         logger.fatal(
