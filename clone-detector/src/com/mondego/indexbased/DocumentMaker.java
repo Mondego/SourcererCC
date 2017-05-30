@@ -18,6 +18,7 @@ import org.apache.lucene.index.Term;
 import com.mondego.models.Bag;
 import com.mondego.models.TokenFrequency;
 import com.mondego.utility.BlockInfo;
+import com.mondego.utility.Util;
 
 /**
  * @author vaibhavsaini
@@ -126,6 +127,13 @@ public class DocumentMaker {
         document.add(functionId);
         StoredField sizeField = new StoredField("size", bag.getSize() + "");
         document.add(sizeField);
+        
+        for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE
+                .size(); index++) {
+            String key =Util.METRICS_ORDER_IN_INPUT_FILE.get(index);
+            StoredField field = new StoredField(key, bag.metrics.get(key) + "");
+            document.add(field);
+        }
         StringBuilder tokenString = new StringBuilder();
         int ct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(),
                 SearchManager.th);

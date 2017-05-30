@@ -18,11 +18,12 @@ import org.apache.lucene.document.Document;
 import com.mondego.indexbased.CustomCollectorFwdIndex;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.indexbased.TermSearcher;
+import com.mondego.utility.BlockInfo;
+import com.mondego.utility.Util;
 
 public class CandidateProcessor implements IListener, Runnable {
     private QueryCandidates qc;
-    private static final Logger logger = LogManager
-            .getLogger(CandidateProcessor.class);
+    private static final Logger logger = LogManager.getLogger(CandidateProcessor.class);
 
     public CandidateProcessor(QueryCandidates qc) {
         // TODO Auto-generated constructor stub
@@ -66,7 +67,7 @@ public class CandidateProcessor implements IListener, Runnable {
             // TODO Auto-generated catch block
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("EXCEPTION CAUGHT::", e);
         }
     }
@@ -104,6 +105,21 @@ public class CandidateProcessor implements IListener, Runnable {
                 if (candidateSize < queryBlock.getComputedThreshold()
                         || candidateSize > queryBlock.getMaxCandidateSize()) {
                     continue; // ignore this candidate
+                }
+                boolean ignoreCandidate=false;
+                for (String key : Util.METRICS_FILTER){
+                    Long candidateMetric = Long.parseLong(doc.get(key));
+                    long queryMetric = queryBlock.metrics.get(key);
+                    long min = BlockInfo.getMinimumSimilarityThreshold(queryMetric, SearchManager.th);
+                    long max = BlockInfo.getMaximumSimilarityThreshold(queryMetric, SearchManager.th);
+                    if (candidateMetric < min || candidateMetric > max){
+                        ignoreCandidate=true;
+                        break;
+                    }
+                }
+                if (ignoreCandidate){
+                    //logger.info("Candidate filtered out based on metadata");
+                    continue;
                 }
                 if (candidateSize > queryBlock.getSize()) {
                     newCt = Integer.parseInt(doc.get("ct"));

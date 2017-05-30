@@ -43,5 +43,13 @@ public class BlockInfo {
 	public static int getPrefixSize(int size, int computedThreshold){
 		return (size + 1) - computedThreshold;
 	}
+
+    public static long getMinimumSimilarityThreshold(long queryMetric, float th) {
+        return (int) Math.ceil((th * queryMetric)/ (SearchManager.MUL_FACTOR*10));
+    }
+
+    public static long getMaximumSimilarityThreshold(long queryMetric, float th) {
+        return (int) Math.floor((queryMetric*SearchManager.MUL_FACTOR*10)/th);
+    }
 	
 }

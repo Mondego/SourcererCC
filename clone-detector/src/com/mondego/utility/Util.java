@@ -68,6 +68,7 @@ public class Util {
             + "run_metadata.scc";
     public static List<String> METRICS_ORDER_IN_INPUT_FILE = Arrays.asList("num_tokens", "num_unique_tokens", "num_separators"
             ,"num_assignments","num_statements","num_expressions");
+    public static List<String> METRICS_FILTER = Arrays.asList("num_unique_tokens");
     private static final Logger logger = LogManager.getLogger(Util.class);
 
     /**
