@@ -38,6 +38,7 @@ import com.google.gson.reflect.TypeToken;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.models.Bag;
 import com.mondego.models.TokenFrequency;
+import com.mondego.models.TokenInfo;
 
 /**
  * @author vaibhavsaini
@@ -300,7 +301,59 @@ public class Util {
             logger.error("NPE caught while sorting, ", e);
             SearchManager.FATAL_ERROR=true;
         }
-
+    }
+    
+    public static List<Entry<String, TokenInfo>> sortList(final List<Entry<String, TokenInfo>> listOfTokens) {
+        try {
+            Collections.sort(listOfTokens, new Comparator<Entry<String, TokenInfo>>() {
+                @Override
+                public int compare(Entry<String, TokenInfo> o1, Entry<String, TokenInfo> o2) {
+                    Long frequency1 = 0l;
+                    Long frequency2 = 0l;
+                    String k1 = o1.getKey();
+                    String k2 = o2.getKey();
+                    if (cache.containsKey(k1)) {
+                        frequency1 = cache.get(k1);
+                        if(null==frequency1){
+                            logger.warn("freq1 null from cache");
+                            frequency1 = SearchManager.gtpmSearcher
+                                    .getFrequency(k1);
+                            cache.put(k1, frequency1);
+                        }
+                    } else {
+                        frequency1 = SearchManager.gtpmSearcher
+                                .getFrequency(k1);
+                        cache.put(k1, frequency1);
+                    }
+                    if (cache.containsKey(k2)) {
+                        frequency2 = cache.get(k2);
+                        if(null==frequency2){
+                            logger.warn("freq2 null from cache");
+                            frequency2 = SearchManager.gtpmSearcher
+                                    .getFrequency(k2);
+                            cache.put(k2, frequency2);
+                        }
+                    } else {
+                        frequency2 = SearchManager.gtpmSearcher
+                                .getFrequency(k2);
+                        cache.put(k2, frequency2);
+                    }
+                    if(null==frequency1 || null==frequency2){
+                        logger.warn("k1:"+k1+ " frequency1: "+ frequency1 + ", k2: "+k2 + " frequency2: "+ frequency2) ;
+                    }
+                    int result = frequency1.compareTo(frequency2);
+                    if (result == 0) {
+                        return k1.compareTo(k2);
+                    } else {
+                        return result;
+                    }
+                }
+            });
+        } catch (NullPointerException e) {
+            logger.error("NPE caught while sorting, ", e);
+            SearchManager.FATAL_ERROR=true;
+        }
+        return listOfTokens;
     }
 
     /*

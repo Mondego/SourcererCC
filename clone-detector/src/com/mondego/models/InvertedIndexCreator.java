@@ -1,21 +1,18 @@
 package com.mondego.models;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.lucene.document.Document;
 
 import com.mondego.indexbased.DocumentMaker;
 import com.mondego.indexbased.SearchManager;
-import com.mondego.indexbased.WordFrequencyStore;
 
 public class InvertedIndexCreator implements IListener, Runnable {
     private DocumentMaker documentMaker;
-    private Document document;
     private Bag bag;
     private static final Logger logger = LogManager
             .getLogger(InvertedIndexCreator.class);
@@ -66,27 +63,31 @@ public class InvertedIndexCreator implements IListener, Runnable {
             InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
-        long startTime = System.nanoTime();
-        List<Shard> shards = SearchManager.getShards(bag);
-        StringBuilder sid = new StringBuilder();
-        this.document = this.documentMaker.prepareDocument(bag);
-        for (Shard shard : shards) {
-            sid.append(shard.indexPath + ": ");
-            try {
-                shard.getInvertedIndexWriter().addDocument(this.document);
-                shard.size ++;
-            } catch (IOException e) {
-                logger.error(SearchManager.NODE_PREFIX
-                        + ": error in indexing bag, " + bag);
-                e.printStackTrace();
+        DocumentForInvertedIndex documentForII = this.documentMaker.prepareDocumentForII(bag);
+        List<DocumentForInvertedIndex> docs = null;
+        int prefixLength = documentForII.prefixSize;
+        int pos = 0;
+        TermInfo termInfo = null;
+        for (TokenFrequency tf : bag) {
+            if (prefixLength > 0) {
+                String term = tf.getToken().getValue();
+                if (SearchManager.invertedIndex.containsKey(term)){
+                    docs= SearchManager.invertedIndex.get(term);
+                    
+                }else{
+                    docs = new ArrayList<DocumentForInvertedIndex>();
+                    SearchManager.invertedIndex.put(term, docs);
+                }
+                docs.add(documentForII);
+                termInfo = new TermInfo();
+                termInfo.frequency=tf.getFrequency();
+                termInfo.position = pos;
+                pos = pos + tf.getFrequency();
+                documentForII.termInfoMap.put(term, termInfo);
+                prefixLength -= tf.getFrequency();
             }
+            documentForII.tokenFrequencies.add(tf);
         }
-        long estimatedTime = System.nanoTime() - startTime;
-        logger.debug(SearchManager.NODE_PREFIX + " II, Bag " + bag
-                + " in shards " + sid.toString() + " in " + estimatedTime / 1000
-                + " micros");
-
-        SearchManager.bagsToForwardIndexQueue.send(bag);
     }
 
     public DocumentMaker getIndexer() {

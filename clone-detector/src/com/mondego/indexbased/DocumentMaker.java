@@ -16,6 +16,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 
 import com.mondego.models.Bag;
+import com.mondego.models.DocumentForInvertedIndex;
 import com.mondego.models.TokenFrequency;
 import com.mondego.utility.BlockInfo;
 
@@ -117,55 +118,15 @@ public class DocumentMaker {
         return document;
     }
 
-    public Document prepareDocument(Bag bag) {
-        Document document = new Document();
-        StoredField strField = new StoredField("id", bag.getId() + "");
-        document.add(strField);
-        StoredField functionId = new StoredField("functionId",
-                bag.getFunctionId() + "");
-        document.add(functionId);
-        StoredField sizeField = new StoredField("size", bag.getSize() + "");
-        document.add(sizeField);
-        StringBuilder tokenString = new StringBuilder();
-        int ct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(),
+    public DocumentForInvertedIndex prepareDocumentForII(Bag bag) {
+        DocumentForInvertedIndex document = new DocumentForInvertedIndex();
+        document.id = SearchManager.getNextId();
+        document.fId = bag.getId();
+        document.pId = bag.getFunctionId();
+        document.size = bag.getSize();
+        document.ct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(),
                 SearchManager.th);
-        StoredField computedThresholdField = new StoredField("ct", ct + "");
-        int lct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(),
-                (SearchManager.th - 0.5f));
-        StoredField lenientComputedThresholdField = new StoredField("lct", lct
-                + "");
-        document.add(sizeField);
-        document.add(computedThresholdField);
-        document.add(lenientComputedThresholdField);
-        int prefixLength = BlockInfo.getPrefixSize(bag.getSize(), ct);
-        for (TokenFrequency tf : bag) {
-            for (int i = 0; i < tf.getFrequency(); i++) {
-                tokenString.append(tf.getToken().getValue() + " ");
-                // System.out.println(tf.getToken().getValue());
-            }
-            prefixLength -= tf.getFrequency();
-            if (prefixLength <= 0) {
-                break;
-            }
-        }
-
-        @SuppressWarnings("deprecation")
-        //Field field = new Field("tokens", tokenString.trim(), Field.Store.NO,
-          //      Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS);
-        FieldType fieldType = new FieldType();
-        fieldType.setIndexed(true);
-        fieldType.setStoreTermVectorPositions(true);
-        fieldType.setStoreTermVectors(true);
-        fieldType.setTokenized(true);
-        fieldType.freeze();
-        Field field = new Field("tokens",tokenString.toString().trim(),fieldType);
-       /* TextField textField = new TextField("tokens", tokenString.trim(), Field.Store.NO);
-        textField.fieldType().setIndexed(true);
-        textField.fieldType().setStoreTermVectorPositions(true);
-        textField.fieldType().setStoreTermVectors(true);
-        textField.fieldType().freeze();*/
-        //field.fieldType().setIndexed(true);
-        document.add(field);
+        document.prefixSize = BlockInfo.getPrefixSize(bag.getSize(), document.ct);
         return document;
     }
 

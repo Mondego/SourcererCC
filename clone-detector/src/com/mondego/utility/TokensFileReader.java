@@ -66,8 +66,10 @@ public class TokensFileReader {
                             + estimatedTime / 1000 + " micros");
                     if (SearchManager.ACTION_INDEX.equals(SearchManager.ACTION)){
                         this.processor.processLine(prefix + line,false);
+                    }else{
+                        this.processor.processLine(prefix + line,true);
                     }
-                    this.processor.processLine(prefix + line,true);
+                    
                 }
             }
             lineNumber++;

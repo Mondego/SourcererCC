@@ -25,6 +25,7 @@ import org.apache.lucene.document.Document;
 import com.mondego.indexbased.CustomCollectorFwdIndex;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.models.Bag;
+import com.mondego.models.DocumentForInvertedIndex;
 import com.mondego.models.QueryBlock;
 import com.mondego.models.Shard;
 import com.mondego.models.Token;
@@ -51,8 +52,7 @@ public class CloneHelper {
     private float th;
     private final Integer MUL_FACTOR = 100;
     private Map<String, Integer> globalIdentifierMap;
-    private static final Logger logger = LogManager
-            .getLogger(CloneHelper.class);
+    private static final Logger logger = LogManager.getLogger(CloneHelper.class);
 
     /**
      * 
@@ -80,8 +80,7 @@ public class CloneHelper {
             // start a new line
             // System.out.println("different");
             Util.writeToFile(this.clonesWriter, "", true);
-            Util.writeToFile(this.clonesWriter, "Clones of Bag " + bagA.getId(),
-                    true);
+            Util.writeToFile(this.clonesWriter, "Clones of Bag " + bagA.getId(), true);
             Util.writeToFile(this.clonesWriter, bagB.getId() + "", false);
         }
     }
@@ -111,8 +110,7 @@ public class CloneHelper {
      * @param setB
      *            set of Bags
      */
-    public void detectClones(Set<Bag> setA, Set<Bag> setB,
-            boolean useJaccardSimilarity) {
+    public void detectClones(Set<Bag> setA, Set<Bag> setB, boolean useJaccardSimilarity) {
         // iterate on setA
         for (Bag bagInSetA : setA) {
             // compare this map with every map in setB and report clones
@@ -120,8 +118,7 @@ public class CloneHelper {
             for (Bag bagInSetB : setB) {
                 if (bagInSetA.getId() != bagInSetB.getId()) {
                     if (bagInSetA.getId() < bagInSetB.getId()) {
-                        this.detectClones(bagInSetA, bagInSetB,
-                                useJaccardSimilarity);
+                        this.detectClones(bagInSetA, bagInSetB, useJaccardSimilarity);
                     }
                 }
             }
@@ -140,13 +137,11 @@ public class CloneHelper {
         int computedThreshold = 0;
         if (useJaccardSimilarity) {
             int computedThreshold_jaccard = (int) Math
-                    .ceil((this.th * (bagA.getSize() + bagB.getSize()))
-                            / (10 * this.MUL_FACTOR + this.th));
+                    .ceil((this.th * (bagA.getSize() + bagB.getSize())) / (10 * this.MUL_FACTOR + this.th));
             computedThreshold = computedThreshold_jaccard;
         } else {
             int maxLength = Math.max(bagA.getSize(), bagB.getSize());
-            int computedThreshold_overlap = (int) Math
-                    .ceil((this.th * maxLength) / (10 * this.MUL_FACTOR));
+            int computedThreshold_overlap = (int) Math.ceil((this.th * maxLength) / (10 * this.MUL_FACTOR));
             computedThreshold = computedThreshold_overlap;
         }
         // threshold.
@@ -160,8 +155,7 @@ public class CloneHelper {
             this.comparisions += bagB.getComparisions();
             if (null != tokenFrequencyB) {
                 // token found.
-                count += Math.min(tokenFrequencyA.getFrequency(),
-                        tokenFrequencyB.getFrequency());
+                count += Math.min(tokenFrequencyA.getFrequency(), tokenFrequencyB.getFrequency());
                 if (count >= computedThreshold) {
                     // report clone.
                     this.reportClone(bagA, bagB, this.previousBag);
@@ -201,20 +195,18 @@ public class CloneHelper {
                 bag.setSize(bagSize);
                 int numUniqueTokens = Integer.parseInt(bagMetadata[3]);
                 bag.setNumUniqueTokens(numUniqueTokens);
-                if (bag.getSize() < SearchManager.min_tokens
-                        || bag.getSize() > SearchManager.max_tokens) {
+                if (bag.getSize() < SearchManager.min_tokens || bag.getSize() > SearchManager.max_tokens) {
                     return bag; // ignore this bag, do not process it further
                 }
-                for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE
-                        .size(); index++) {
+                for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE.size(); index++) {
                     bag.metrics.put(Util.METRICS_ORDER_IN_INPUT_FILE.get(index),
                             Long.parseLong(bagMetadata[index + 2]));
                 }
-                if(parseCompleteLine){
+                if (parseCompleteLine) {
                     String tokenString = bagAndTokens[1];
                     this.parseAndPopulateBag(bag, tokenString);
                     return bag;
-                }else{
+                } else {
                     return bag;
                 }
             } else {
@@ -222,8 +214,7 @@ public class CloneHelper {
             }
 
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.error(
-                    e.getMessage() + " possible parsing error at string: " + s);
+            logger.error(e.getMessage() + " possible parsing error at string: " + s);
             logger.error("ignoring this block");
         } catch (NumberFormatException e) {
             logger.error(e.getMessage() + ", ignoring this block");
@@ -243,8 +234,7 @@ public class CloneHelper {
                 TokenFrequency tokenFrequency = new TokenFrequency();
                 tokenFrequency.setToken(token);
                 try {
-                    tokenFrequency
-                            .setFrequency(Integer.parseInt(tokenAndFreq[1]));
+                    tokenFrequency.setFrequency(Integer.parseInt(tokenAndFreq[1]));
                     bag.add(tokenFrequency);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     logger.error("EXCEPTION CAUGHT, token: " + token);
@@ -252,8 +242,7 @@ public class CloneHelper {
                     // tokenAndFreq[1]);
                     logger.error("EXCEPTION CAUGHT: " + inputString);
                 } catch (NumberFormatException e) {
-                    logger.error("EXCEPTION CAUGHT: " + inputString + " "
-                            + e.getMessage());
+                    logger.error("EXCEPTION CAUGHT: " + inputString + " " + e.getMessage());
                 }
             }
         }
@@ -281,8 +270,7 @@ public class CloneHelper {
      * 0); }
      */
 
-    public QueryBlock getSortedQueryBlock(String s,
-            List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
+    public QueryBlock getSortedQueryBlock(String s, List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
         try {
             if (null != s && s.trim().length() > 0) {
                 String[] bagAndTokens = s.split("@#@");
@@ -293,84 +281,43 @@ public class CloneHelper {
                 try {
                     int bagSize = Integer.parseInt(bagMetadata[2]);
                     int numUniqueTokens = Integer.parseInt(bagMetadata[3]);
-                    if (bagSize < SearchManager.min_tokens
-                            || bagSize > SearchManager.max_tokens) {
+                    if (bagSize < SearchManager.min_tokens || bagSize > SearchManager.max_tokens) {
                         return null; // do not process it further. we need
                                      // to discard this query
                     }
-                    queryBlock = new QueryBlock(Long.parseLong((bagId)),
-                            bagSize);
+                    queryBlock = new QueryBlock(Long.parseLong((bagId)), bagSize);
                     queryBlock.setFunctionId(Long.parseLong(functionId));
                     queryBlock.setNumUniqueTokens(numUniqueTokens);
-                    //logger.debug("setting metrics data for "+ s.substring(0,40));
-                    
-                    for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE
-                            .size(); index++) {
-                        queryBlock.metrics.put(
-                                Util.METRICS_ORDER_IN_INPUT_FILE.get(index),
+                    // logger.debug("setting metrics data for "+
+                    // s.substring(0,40));
+
+                    for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE.size(); index++) {
+                        queryBlock.metrics.put(Util.METRICS_ORDER_IN_INPUT_FILE.get(index),
                                 Long.parseLong(bagMetadata[index + 2]));
                     }
-                    
-                   /* long startTime = System.nanoTime();
-                    //Shard shard = SearchManager.getShard(queryBlock);
-                    long estimatedTime = System.nanoTime() - startTime;
-                    
-                    if (shard == null) {
-                        logger.warn(SearchManager.NODE_PREFIX
-                                + " unable to find shard for query block "
-                                + queryBlock);
-                        return null;
-                    }
-                    logger.debug(SearchManager.NODE_PREFIX + " found shard in "
-                            + estimatedTime / 1000 + " micros + qb: "+queryBlock + ", shard: "+ shard);
-                    queryBlock.setShardPath(shard.indexPath);*/
 
                 } catch (NumberFormatException e) {
-                    logger.error(SearchManager.NODE_PREFIX
-                            + "NumberFormatException: " + e.getMessage());
+                    logger.error(SearchManager.NODE_PREFIX + "NumberFormatException: " + e.getMessage());
                     throw e;
-                }catch (Exception e){
+                } catch (Exception e) {
                     logger.error("EXCEPTION CAUGHT::", e);
                     System.exit(1);
                 }
-                String tokenString = null;// bagAndTokens[1];
-                CustomCollectorFwdIndex collector = SearchManager.fwdIndexSearcher
-                        .get(queryBlock.getShardPath()).search(bagId);
-                List<Integer> blocks = collector.getBlocks();
-                if (!blocks.isEmpty()) {
-                    if (blocks.size() == 1) {
-                        Document document = SearchManager.fwdIndexSearcher
-                                .get(queryBlock.getShardPath())
-                                .getDocument(blocks.get(0));
-                        tokenString = document.get("tokens");
-                        this.parseAndPopulateQueryBlock(listOfTokens,
-                                tokenString, "::", ":");
-                        return queryBlock;
-                    } else {
-                        logger.error(
-                                "blocks found in fwdIndex while parsing query: "
-                                        + blocks.size());
-                    }
-                } else {
-                    logger.warn("warning! " + queryBlock
-                            + " not in fwdindex, cant get query string, shardPath:"
-                            + queryBlock.getShardPath());
-                }
+                String tokenString = bagAndTokens[1];
+                this.parseAndPopulateQueryBlock(listOfTokens,tokenString, ",", "@@::@@");
+                Util.sortList(listOfTokens);
+                return queryBlock;
 
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             logger.error("EXCEPTION CAUGHT, string: " + s);
         } catch (NumberFormatException e) {
             logger.error(e.getMessage() + ", ignoring query: " + s);
-        } catch (IOException e) {
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
         }
         throw new ParseException("parsing error", 0);
     }
 
-    private void parseAndPopulateQueryBlock(
-            List<Entry<String, TokenInfo>> listOfTokens, String inputString,
+    private void parseAndPopulateQueryBlock(List<Entry<String, TokenInfo>> listOfTokens, String inputString,
             String delimeterTokenFreq, String delimeterTokenAndFreq) {
         // int queryBlockSize = 0;
         Scanner scanner = new Scanner(inputString);
@@ -384,23 +331,19 @@ public class CloneHelper {
             tokenStr = this.strip(tokenAndFreq[0]).trim();
             if (tokenStr.length() > 0) {
                 try {
-                    TokenInfo tokenInfo = new TokenInfo(
-                            Integer.parseInt(tokenAndFreq[1]));
-                    Entry<String, TokenInfo> entry = new AbstractMap.SimpleEntry<String, TokenInfo>(
-                            tokenStr, tokenInfo);
+                    TokenInfo tokenInfo = new TokenInfo(Integer.parseInt(tokenAndFreq[1]));
+                    Entry<String, TokenInfo> entry = new AbstractMap.SimpleEntry<String, TokenInfo>(tokenStr,
+                            tokenInfo);
                     listOfTokens.add(entry);
                     // queryBlockSize += tokenInfo.getFrequency();
 
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    logger.error("EXCEPTION CAUGHT, token: " + tokenStr + ","
-                            + e.getMessage());
+                    logger.error("EXCEPTION CAUGHT, token: " + tokenStr + "," + e.getMessage());
                     // System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
                     // tokenAndFreq[1]);
-                    logger.error("EXCEPTION CAUGHT, inputString : "
-                            + inputString + "," + e.getMessage());
+                    logger.error("EXCEPTION CAUGHT, inputString : " + inputString + "," + e.getMessage());
                 } catch (NumberFormatException e) {
-                    logger.error("EXCEPTION CAUGHT, inputString : "
-                            + inputString + "," + e.getMessage());
+                    logger.error("EXCEPTION CAUGHT, inputString : " + inputString + "," + e.getMessage());
                 }
             }
 
@@ -427,17 +370,13 @@ public class CloneHelper {
         this.clonesWriter = clonesWriter;
     }
 
-    public void bookKeepInputs(Set<Bag> setA, Set<Bag> setB,
-            PrintWriter inputSetsWriter) {
+    public void bookKeepInputs(Set<Bag> setA, Set<Bag> setB, PrintWriter inputSetsWriter) {
         String setAString = this.stringify(setA);
         String setBString = this.stringify(setB);
         Util.writeToFile(inputSetsWriter, setAString, true);
-        Util.writeToFile(inputSetsWriter, "********************************",
-                true);
-        Util.writeToFile(inputSetsWriter, "********************************",
-                true);
-        Util.writeToFile(inputSetsWriter, "********************************",
-                true);
+        Util.writeToFile(inputSetsWriter, "********************************", true);
+        Util.writeToFile(inputSetsWriter, "********************************", true);
+        Util.writeToFile(inputSetsWriter, "********************************", true);
         Util.writeToFile(inputSetsWriter, setBString, true);
     }
 

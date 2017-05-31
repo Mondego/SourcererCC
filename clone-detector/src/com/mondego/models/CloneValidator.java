@@ -1,6 +1,7 @@
 package com.mondego.models;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedHashSet;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -13,6 +14,7 @@ import com.mondego.utility.Util;
 public class CloneValidator implements IListener, Runnable {
     private CandidatePair candidatePair;
     private static final Logger logger = LogManager.getLogger(CloneValidator.class);
+
     public CloneValidator(CandidatePair candidatePair) {
         // TODO Auto-generated constructor stub
         this.candidatePair = candidatePair;
@@ -52,7 +54,7 @@ public class CloneValidator implements IListener, Runnable {
             // TODO Auto-generated catch block
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("EXCEPTION CAUGHT::", e);
         }
     }
@@ -69,12 +71,12 @@ public class CloneValidator implements IListener, Runnable {
 
         // long start_time = System.currentTimeMillis();
         long startTime = System.nanoTime();
-        if (candidatePair.candidateTokens != null && candidatePair.candidateTokens.trim().length() > 0) {
-            int similarity = this.updateSimilarity(candidatePair.queryBlock, candidatePair.candidateTokens,
+        if (candidatePair.candidateTokenFrequencies != null && candidatePair.candidateTokenFrequencies.size() > 0) {
+            int similarity = this.updateSimilarity(candidatePair.queryBlock, candidatePair.candidateTokenFrequencies,
                     candidatePair.computedThreshold, candidatePair.candidateSize, candidatePair.simInfo);
             if (similarity > 0) {
-                com.mondego.models.ClonePair cp = new ClonePair(candidatePair.queryBlock.getFunctionId(), candidatePair.queryBlock.getId(),
-                        candidatePair.functionIdCandidate, candidatePair.candidateId);
+                com.mondego.models.ClonePair cp = new ClonePair(candidatePair.queryBlock.getFunctionId(),
+                        candidatePair.queryBlock.getId(), candidatePair.functionIdCandidate, candidatePair.candidateId);
 
                 /*
                  * long end_time = System.currentTimeMillis(); Duration
@@ -87,11 +89,12 @@ public class CloneValidator implements IListener, Runnable {
                  * " time taken: %02dh:%02dm:%02ds", duration.getDays() 24 +
                  * duration.getHours(), duration.getMinutes(),
                  * duration.getSeconds()); start_time = end_time;
-                 * logger.debug(); } catch (DatatypeConfigurationException
-                 * e) { e.printStackTrace(); }
+                 * logger.debug(); } catch (DatatypeConfigurationException e) {
+                 * e.printStackTrace(); }
                  */
                 long estimatedTime = System.nanoTime() - startTime;
-                logger.debug(SearchManager.NODE_PREFIX + " CloneValidator, QueryBlock " + candidatePair + " in " + estimatedTime/1000 + " micros");
+                logger.debug(SearchManager.NODE_PREFIX + " CloneValidator, QueryBlock " + candidatePair + " in "
+                        + estimatedTime / 1000 + " micros");
                 SearchManager.reportCloneQueue.send(cp);
             }
             /*
@@ -104,57 +107,41 @@ public class CloneValidator implements IListener, Runnable {
         }
     }
 
-    private int updateSimilarity(QueryBlock queryBlock, String tokens, int computedThreshold, int candidateSize,
-            CandidateSimInfo simInfo) {
+    private int updateSimilarity(QueryBlock queryBlock, LinkedHashSet<TokenFrequency> candidateTokenFrequencies,
+            int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {
         int tokensSeenInCandidate = 0;
         int similarity = simInfo.similarity;
-        Scanner scanner = new Scanner(tokens);
-        try {
-            scanner.useDelimiter("::");
-            String tokenfreqFrame = null;
-            String[] tokenFreqInfo;
-            TokenInfo tokenInfo = null;
-            boolean matchFound = false;
-            int candidatesTokenFreq = -1;
-            while (scanner.hasNext()) {
-                tokenfreqFrame = scanner.next();
-                tokenFreqInfo = tokenfreqFrame.split(":");
-                if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(), simInfo.queryMatchPosition, candidateSize,
-                        simInfo.candidateMatchPosition, computedThreshold)) {
-                    // System.out.println("sim: "+ similarity);
-                    candidatesTokenFreq = Integer.parseInt(tokenFreqInfo[1]);
-                    tokensSeenInCandidate += candidatesTokenFreq;
-                    if (tokensSeenInCandidate > simInfo.candidateMatchPosition) {
-                        matchFound = false;
-                        if (simInfo.queryMatchPosition < queryBlock.getPrefixMapSize()) {
-                            // check in prefix
-                            if (queryBlock.getPrefixMap().containsKey(tokenFreqInfo[0])) {
-                                matchFound = true;
-                                tokenInfo = queryBlock.getPrefixMap().get(tokenFreqInfo[0]);
-                                similarity = updateSimilarityHelper(simInfo, tokenInfo, similarity,
-                                        candidatesTokenFreq);
-                            }
-                        }
-                        // check in suffix
-                        if (!matchFound && queryBlock.getSuffixMap().containsKey(tokenFreqInfo[0])) {
-                            tokenInfo = queryBlock.getSuffixMap().get(tokenFreqInfo[0]);
+        TokenInfo tokenInfo = null;
+        boolean matchFound = false;
+        int candidatesTokenFreq = -1;
+        for (TokenFrequency tf : candidateTokenFrequencies) {
+            if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(), simInfo.queryMatchPosition, candidateSize,
+                    simInfo.candidateMatchPosition, computedThreshold)) {
+                // System.out.println("sim: "+ similarity);
+                candidatesTokenFreq = tf.getFrequency();
+                tokensSeenInCandidate += candidatesTokenFreq;
+                if (tokensSeenInCandidate > simInfo.candidateMatchPosition) {
+                    matchFound = false;
+                    if (simInfo.queryMatchPosition < queryBlock.getPrefixMapSize()) {
+                        // check in prefix
+                        if (queryBlock.getPrefixMap().containsKey(tf.getToken().getValue())) {
+                            matchFound = true;
+                            tokenInfo = queryBlock.getPrefixMap().get(tf.getToken().getValue());
                             similarity = updateSimilarityHelper(simInfo, tokenInfo, similarity, candidatesTokenFreq);
                         }
-                        if (similarity >= computedThreshold) {
-                            return similarity;
-                        }
                     }
-                } else {
-                    break;
+                    // check in suffix
+                    if (!matchFound && queryBlock.getSuffixMap().containsKey(tf.getToken().getValue())) {
+                        tokenInfo = queryBlock.getSuffixMap().get(tf.getToken().getValue());
+                        similarity = updateSimilarityHelper(simInfo, tokenInfo, similarity, candidatesTokenFreq);
+                    }
+                    if (similarity >= computedThreshold) {
+                        return similarity;
+                    }
                 }
+            } else {
+                break;
             }
-
-        } catch (ArrayIndexOutOfBoundsException e) {
-            logger.error("possible error in the format. tokens: " + tokens);
-        } catch (NumberFormatException e) {
-            logger.error("possible error in the format. tokens: " + tokens);
-        } finally {
-            scanner.close();
         }
         return -1;
     }

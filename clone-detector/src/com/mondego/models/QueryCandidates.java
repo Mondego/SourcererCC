@@ -1,9 +1,9 @@
 package com.mondego.models;
 
-import com.mondego.indexbased.TermSearcher;
+import java.util.Map;
 
 public class QueryCandidates {
-    public TermSearcher termSearcher;
+    Map<Long, CandidateSimInfo> simMap;
     public QueryBlock queryBlock;
 
 }

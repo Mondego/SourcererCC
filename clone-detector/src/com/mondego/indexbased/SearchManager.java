@@ -7,11 +7,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -23,8 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import net.jmatrix.eproperties.EProperties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -40,6 +40,7 @@ import com.mondego.models.CandidateSearcher;
 import com.mondego.models.ClonePair;
 import com.mondego.models.CloneReporter;
 import com.mondego.models.CloneValidator;
+import com.mondego.models.DocumentForInvertedIndex;
 import com.mondego.models.ForwardIndexCreator;
 import com.mondego.models.ITokensFileProcessor;
 import com.mondego.models.InvertedIndexCreator;
@@ -54,14 +55,14 @@ import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 import com.mondego.validation.TestGson;
 
+import net.jmatrix.eproperties.EProperties;
+
 /**
  * @author vaibhavsaini
  * 
  */
 public class SearchManager {
     private static long clonePairsCount;
-    public static Map<String, CodeSearcher> invertedIndexsearcher;
-    public static Map<String, CodeSearcher> fwdIndexSearcher;
     public static CodeSearcher gtpmSearcher;
     public CloneHelper cloneHelper;
     public static String QUERY_DIR_PATH;
@@ -138,6 +139,8 @@ public class SearchManager {
             .getLogger(SearchManager.class);
     public static boolean FATAL_ERROR;
     public static List<String> METRICS_ORDER_IN_SHARDS;
+    public static Map<String,List<DocumentForInvertedIndex>> invertedIndex;
+    private static int docId;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -173,7 +176,7 @@ public class SearchManager {
             SearchManager.min_tokens = Integer.parseInt(
                     properties.getProperty("LEVEL_1_MIN_TOKENS", "65"));
             SearchManager.max_tokens = Integer.parseInt(
-                    properties.getProperty("LEVEL_2_MAX_TOKENS", "500000"));
+                    properties.getProperty("LEVEL_1_MAX_TOKENS", "500000"));
             this.threadsToProcessBagsToSortQueue = Integer
                     .parseInt(properties.getProperty("BTSQ_THREADS", "1"));
             this.threadToProcessIIQueue = Integer
@@ -212,11 +215,7 @@ public class SearchManager {
                     this.vcq_thread_count, CloneValidator.class);
             SearchManager.reportCloneQueue = new ThreadedChannel<ClonePair>(
                     this.rcq_thread_count, CloneReporter.class);
-        } else if (SearchManager.ACTION.equals(ACTION_INDEX)) {
-            indexerWriters = new ArrayList<IndexWriter>();
-            this.createShards(true);
-
-            logger.error("action: " + SearchManager.ACTION
+            logger.info("action: " + SearchManager.ACTION
                     + System.lineSeparator() + "threshold: " + args[1]
                     + System.lineSeparator() + " BQ_THREADS: "
                     + this.threadsToProcessBagsToSortQueue
@@ -231,16 +230,17 @@ public class SearchManager {
                     this.threadToProcessIIQueue, InvertedIndexCreator.class);
             SearchManager.bagsToForwardIndexQueue = new ThreadedChannel<Bag>(
                     this.threadsToProcessFIQueue, ForwardIndexCreator.class);
+            
+        } else if (SearchManager.ACTION.equals(ACTION_INDEX)) {
+            indexerWriters = new ArrayList<IndexWriter>();
+            this.createShards(true);
         }
-
     }
 
     private void createShards(boolean forWriting) {
         int l1MinTokens = SearchManager.min_tokens;
         int l1MaxTokens = SearchManager.max_tokens;
         int l1ShardId = 1;
-        SearchManager.invertedIndexDirectoriesOfShard = new HashMap<String, List<FSDirectory>>();
-        SearchManager.forwardIndexDirectoriesOfShard = new HashMap<String, List<FSDirectory>>();
         SearchManager.shards = new ArrayList<Shard>();
         if (this.isSharding) {
             String level1ShardSegmentString = properties
@@ -354,18 +354,6 @@ public class SearchManager {
 
     // This query needs to be directed to the following shard
     public static Shard getShardToSearch(Bag bag) {
-        /*for (Shard l1Shard : SearchManager.shards)
-            if (qb.getSize() >= l1Shard.getMinMetricValue()
-                    && qb.getSize() <= l1Shard.getMaxMetricValue()) {
-                for (Shard l2Shard : l1Shard.subShards) {
-                    if (qb.getNumUniqueTokens() >= l2Shard.getMinMetricValue()
-                            && qb.getNumUniqueTokens() <= l2Shard
-                                    .getMaxMetricValue()) {
-                        return l2Shard;
-                    }
-                }
-
-            }*/
          Shard shard = SearchManager.getRootShard(bag);
          int level=1;
          if (null!=shard){
@@ -373,7 +361,6 @@ public class SearchManager {
          }else{
              return shard;
          }
-
     }
 
     public static Shard getRootShard(Bag bag) {
@@ -498,21 +485,9 @@ public class SearchManager {
         if (SearchManager.ACTION.equalsIgnoreCase(ACTION_INDEX)) {
             theInstance.initIndexEnv();
             long begin_time = System.currentTimeMillis();
-            theInstance.doIndex();
-
-            logger.info("attempting to shutdown Qs");
-            logger.info(SearchManager.NODE_PREFIX + ", shutting down BTSQ, "
-                    + (System.currentTimeMillis()));
-            SearchManager.bagsToSortQueue.shutdown();
-            logger.info(SearchManager.NODE_PREFIX + "shutting down BTIIQ, "
-                    + System.currentTimeMillis());
-            SearchManager.bagsToInvertedIndexQueue.shutdown();
-            logger.info(SearchManager.NODE_PREFIX + "shutting down BTFIQ, "
-                    + System.currentTimeMillis());
-            SearchManager.bagsToForwardIndexQueue.shutdown();
-
+            theInstance.doPartitions();
             for (Shard shard : SearchManager.shards) {
-                shard.closeInvertedIndexWriter();
+                shard.closeWriters();
                 //shard.closeForwardIndexWriter();
             }
             /*
@@ -524,9 +499,9 @@ public class SearchManager {
         } else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_SEARCH)) {
             theInstance.initSearchEnv();
             long timeStartSearch = System.currentTimeMillis();
-            logger.info(NODE_PREFIX + " Starting to search");
-            theInstance.populateCompletedQueries();
-            theInstance.findCandidates();
+            //logger.info(NODE_PREFIX + " Starting to search");
+            //theInstance.populateCompletedQueries();
+            //theInstance.findCandidates();
 
             SearchManager.queryLineQueue.shutdown();
             logger.info("shutting down QLQ, " + System.currentTimeMillis());
@@ -834,7 +809,7 @@ public class SearchManager {
         Util.writeToFile(this.reportWriter, header, true);
     }
 
-    private void doIndex() throws InterruptedException, FileNotFoundException {
+    private void doPartitions() throws InterruptedException, FileNotFoundException {
         File datasetDir = new File(SearchManager.DATASET_DIR);
         if (datasetDir.isDirectory()) {
             logger.info("Directory: " + datasetDir.getAbsolutePath());
@@ -904,60 +879,57 @@ public class SearchManager {
         }
     }
 
-    private void findCandidates() throws InterruptedException {
+    private void findCandidates(Shard shard) throws InterruptedException {
         try {
-            File queryDirectory = this.getQueryDirectory();
-            File[] queryFiles = this.getQueryFiles(queryDirectory);
+            String shardFolderPath = SearchManager.ROOT_DIR+ "/index/" + shard.indexPath;
+            File queryFile = new File(shardFolderPath+"/query.file");
+            File candidateFile =  new File(shardFolderPath+"/candidates.file");
             QueryFileProcessor queryFileProcessor = new QueryFileProcessor();
-            for (File queryFile : queryFiles) {
-                if (queryFile.getName().startsWith(".git")) {
-                    // ignore this file
-                    continue;
+            logger.info("Query File: " + queryFile.getAbsolutePath());
+            String filename = queryFile.getName().replaceFirst("[.][^.]+$",
+                    "");
+            try {
+                String cloneReportFileName = SearchManager.OUTPUT_DIR
+                        + SearchManager.th / SearchManager.MUL_FACTOR + "/"
+                        + filename + "clones_index_WITH_FILTER.txt";
+                File cloneReportFile = new File(cloneReportFileName);
+                if (cloneReportFile.exists()) {
+                    this.appendToExistingFile = true;
+                } else {
+                    this.appendToExistingFile = false;
                 }
-                // System.out.println("Query File: " + queryFile);
-                logger.info("Query File: " + queryFile.getAbsolutePath());
-                String filename = queryFile.getName().replaceFirst("[.][^.]+$",
-                        "");
-                try {
-                    String cloneReportFileName = SearchManager.OUTPUT_DIR
-                            + SearchManager.th / SearchManager.MUL_FACTOR + "/"
-                            + filename + "clones_index_WITH_FILTER.txt";
-                    File cloneReportFile = new File(cloneReportFileName);
-                    if (cloneReportFile.exists()) {
-                        this.appendToExistingFile = true;
-                    } else {
-                        this.appendToExistingFile = false;
-                    }
-                    SearchManager.clonesWriter = Util.openFile(
-                            SearchManager.OUTPUT_DIR
-                                    + SearchManager.th
-                                            / SearchManager.MUL_FACTOR
-                                    + "/" + filename
-                                    + "clones_index_WITH_FILTER.txt",
-                            this.appendToExistingFile);
-                    // recoveryWriter
-                    SearchManager.recoveryWriter = Util
-                            .openFile(SearchManager.OUTPUT_DIR
-                                    + SearchManager.th
-                                            / SearchManager.MUL_FACTOR
-                                    + "/recovery.txt", false);
-                } catch (IOException e) {
-                    logger.error(e.getMessage() + " exiting");
-                    System.exit(1);
-                }
-                try {
-                    TokensFileReader tfr = new TokensFileReader(
-                            SearchManager.NODE_PREFIX, queryFile,
-                            SearchManager.max_tokens, queryFileProcessor);
-                    tfr.read();
-                } catch (IOException e) {
-                    logger.error(e.getMessage() + " skiping to next file");
-                } catch (ParseException e) {
-                    logger.error(SearchManager.NODE_PREFIX
-                            + "parseException caught. message: "
-                            + e.getMessage());
-                    e.printStackTrace();
-                }
+                SearchManager.clonesWriter = Util.openFile(
+                        SearchManager.OUTPUT_DIR
+                                + SearchManager.th
+                                        / SearchManager.MUL_FACTOR
+                                + "/" + filename
+                                + "clones_index_WITH_FILTER.txt",
+                        this.appendToExistingFile);
+                // recoveryWriter
+                SearchManager.recoveryWriter = Util
+                        .openFile(SearchManager.OUTPUT_DIR
+                                + SearchManager.th
+                                        / SearchManager.MUL_FACTOR
+                                + "/recovery.txt", false);
+            } catch (IOException e) {
+                logger.error(e.getMessage() + " exiting");
+                System.exit(1);
+            }
+            logger.info("creating indexes");
+            this.createIndexes(candidateFile);
+            logger.info("indexes created");
+            try {
+                TokensFileReader tfr = new TokensFileReader(
+                        SearchManager.NODE_PREFIX, queryFile,
+                        SearchManager.max_tokens, queryFileProcessor);
+                tfr.read();
+            } catch (IOException e) {
+                logger.error(e.getMessage() + " skiping to next file");
+            } catch (ParseException e) {
+                logger.error(SearchManager.NODE_PREFIX
+                        + "parseException caught. message: "
+                        + e.getMessage());
+                e.printStackTrace();
             }
         } catch (FileNotFoundException e) {
             logger.error(e.getMessage() + "exiting");
@@ -965,14 +937,50 @@ public class SearchManager {
         }
     }
 
+    private void createIndexes(File candidateFile) throws FileNotFoundException {
+        SearchManager.invertedIndex = new HashMap<String,List<DocumentForInvertedIndex>>();
+        
+        BufferedReader br = new BufferedReader(new FileReader(candidateFile));
+        String line="";
+        try {
+            while ((line = br.readLine()) != null && line.trim().length() > 0) {
+                Bag bag = theInstance.cloneHelper.deserialise(line, true);
+                SearchManager.bagsToSortQueue.send(bag);
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     private void initSearchEnv() {
-        SearchManager.fwdIndexSearcher = new HashMap<String, CodeSearcher>();
-        SearchManager.invertedIndexsearcher = new HashMap<String, CodeSearcher>();
+        SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
+                "key");
         for (Shard shard : SearchManager.shards) {
             this.setupSearchers(shard);
         }
-        SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
-                "key");
+        
         if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
             theInstance.readAndUpdateRunMetadata();
             File completedNodeFile = new File(SearchManager.completedNodes);
@@ -991,14 +999,11 @@ public class SearchManager {
                 this.setupSearchers(subShard);
             }
         }else{
-            SearchManager.fwdIndexSearcher.put(shard.indexPath,
-                    new CodeSearcher(
-                            Util.FWD_INDEX_DIR + "/" + shard.indexPath,
-                            "id"));
-            SearchManager.invertedIndexsearcher.put(shard.indexPath,
-                    new CodeSearcher(
-                            Util.INDEX_DIR + "/" + shard.indexPath,
-                            "tokens"));
+            try {
+                this.findCandidates(shard);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -1010,18 +1015,10 @@ public class SearchManager {
         SearchManager.clonePairsCount += num;
     }
 
-    private File getQueryDirectory() throws FileNotFoundException {
-        File queryDir = new File(QUERY_DIR_PATH);
-        if (!queryDir.isDirectory()) {
-            throw new FileNotFoundException("directory not found.");
-        } else {
-            logger.info("Directory: " + queryDir.getName());
-            return queryDir;
-        }
-    }
-
-    private File[] getQueryFiles(File queryDirectory) {
-        return queryDirectory.listFiles();
+    public static long getNextId() {
+        // TODO Auto-generated method stub
+        SearchManager.docId++;
+        return SearchManager.docId;
     }
 
 }

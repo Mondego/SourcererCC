@@ -27,8 +27,6 @@ public class Shard {
     int minMetricValueToIndex;
     int maxMetricValueToIndex;
     public String indexPath;
-    IndexWriter invertedIndexWriter;
-    IndexWriter forwardIndexWriter;
     public List<Shard> subShards;
     public int size;
     public Writer candidateFileWriter;
@@ -49,9 +47,7 @@ public class Shard {
         this.subShards = new ArrayList<Shard>();
         if (forWriting) {
             logger.debug("setinverted index");
-            this.setInvertedIndexWriter();
-            /*logger.debug("set forward index");
-            this.setForwardIndexWriter();*/
+            this.setWriters();
         }
         this.size =0;
         logger.info("shard " + this + " created");
@@ -85,11 +81,7 @@ public class Shard {
         this.maxMetricValueToIndex = maxMetricValueToIndex;
     }
 
-    public IndexWriter getInvertedIndexWriter() {
-        return invertedIndexWriter;
-    }
-
-    public void setInvertedIndexWriter() {
+    public void setWriters() {
         String shardFolderPath = SearchManager.ROOT_DIR
                 + SearchManager.NODE_PREFIX + "/index/shards/" + this.indexPath;
         Util.createDirs(shardFolderPath);
@@ -104,63 +96,15 @@ public class Shard {
         }
     }
 
-    public IndexWriter getForwardIndexWriter() {
-        return forwardIndexWriter;
-    }
-
-    /*public void setForwardIndexWriter() {
-        KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
-        IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
-                Version.LUCENE_46, keywordAnalyzer);
-        fwdIndexWriterConfig.setRAMBufferSizeMB(SearchManager.ramBufferSizeMB);
-        fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
-        TieredMergePolicy mergePolicy = (TieredMergePolicy) fwdIndexWriterConfig
-                .getMergePolicy();
-
-        mergePolicy.setNoCFSRatio(0);// what was this for?
-        mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
-        try {
-            FSDirectory dir = FSDirectory.open(new File(SearchManager.ROOT_DIR
-                    + SearchManager.NODE_PREFIX + "/fwdindex/shards/" + this.indexPath));
-            if (SearchManager.forwardIndexDirectoriesOfShard.containsKey(this.indexPath)) {
-                List<FSDirectory> dirs = SearchManager.forwardIndexDirectoriesOfShard
-                        .get(this.indexPath);
-                dirs.add(dir);
-            } else {
-                List<FSDirectory> dirs = new ArrayList<FSDirectory>();
-                dirs.add(dir);
-                SearchManager.forwardIndexDirectoriesOfShard.put(this.indexPath, dirs);
-            }
-            this.forwardIndexWriter = new IndexWriter(dir,
-                    fwdIndexWriterConfig);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
-
-    public void closeInvertedIndexWriter() {
+    public void closeWriters() {
         if (this.subShards.size()>0){
             for (Shard shard : this.subShards){
-                shard.closeInvertedIndexWriter();
+                shard.closeWriters();
             }
         }else{
             Util.closeOutputFile(this.candidateFileWriter);
             Util.closeOutputFile(this.queryFileWriter);
             logger.info("Shard size: "+ this.size+", Shard Path: "+this.indexPath);
-        }
-    }
-
-    public void closeForwardIndexWriter() {
-        try {
-            if (this.subShards.size()>0){
-                for (Shard shard : this.subShards){
-                    shard.closeForwardIndexWriter();
-                }
-            }else{
-                this.forwardIndexWriter.close();
-            }
-        } catch (IOException e) {
-            logger.error(e.getMessage());
         }
     }
 
