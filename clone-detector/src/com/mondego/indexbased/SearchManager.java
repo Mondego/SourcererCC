@@ -173,7 +173,7 @@ public class SearchManager {
             SearchManager.min_tokens = Integer.parseInt(
                     properties.getProperty("LEVEL_1_MIN_TOKENS", "65"));
             SearchManager.max_tokens = Integer.parseInt(
-                    properties.getProperty("LEVEL_2_MAX_TOKENS", "500000"));
+                    properties.getProperty("LEVEL_1_MAX_TOKENS", "500000"));
             this.threadsToProcessBagsToSortQueue = Integer
                     .parseInt(properties.getProperty("BTSQ_THREADS", "1"));
             this.threadToProcessIIQueue = Integer
