@@ -876,7 +876,7 @@ public class SearchManager {
                 logger.error(e.getMessage() + " exiting");
                 System.exit(1);
             }
-            logger.info("creating indexes");
+            logger.info("creating indexes for "+ candidateFile.getAbsolutePath());
             this.createIndexes(candidateFile);
             logger.info("indexes created");
             try {
