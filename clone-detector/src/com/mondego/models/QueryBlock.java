@@ -22,7 +22,6 @@ public class QueryBlock {
     private Map<String, TokenInfo> suffixMap;
     private int prefixSize;
     private int computedThreshold;
-    private int lenientCt;
     private int prefixMapSize;
     private int maxCandidateSize;
     private String shardPath;
@@ -44,8 +43,6 @@ public class QueryBlock {
                 .getMinimumSimilarityThreshold(this.size, SearchManager.th);
         this.setMaxCandidateSize(BlockInfo
                 .getMaximumSimilarityThreshold(this.size, SearchManager.th));
-        this.lenientCt = BlockInfo.getMinimumSimilarityThreshold(this.size,
-                (SearchManager.th - 0.5f));
         this.prefixSize = BlockInfo.getPrefixSize(this.size,
                 this.computedThreshold);
         this.numUniqueTokens = 0;
@@ -128,9 +125,6 @@ public class QueryBlock {
         this.prefixMapSize = prefixMapSize;
     }
 
-    public int getLenientCt() {
-        return lenientCt;
-    }
 
     public int getMaxCandidateSize() {
         return maxCandidateSize;

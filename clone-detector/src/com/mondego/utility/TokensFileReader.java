@@ -64,7 +64,7 @@ public class TokensFileReader {
                     logger.debug(this.nodeId + " RL " + lineNumber + ", file "
                             + prefix + " in "
                             + estimatedTime / 1000 + " micros");
-                    if (SearchManager.ACTION_INDEX.equals(SearchManager.ACTION)){
+                    if (SearchManager.ACTION_CREATE_SHARDS.equals(SearchManager.ACTION)){
                         this.processor.processLine(prefix + line,false);
                     }else{
                         this.processor.processLine(prefix + line,true);

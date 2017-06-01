@@ -30,7 +30,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.store.FSDirectory;
 
 import com.mondego.models.Bag;
 import com.mondego.models.BagSorter;
@@ -73,7 +72,7 @@ public class SearchManager {
                                          // search. for recovery purpose.
     public static float th; // args[2]
                             // search
-    public final static String ACTION_INDEX = "index";
+    public final static String ACTION_CREATE_SHARDS = "cshard";
     public final static String ACTION_SEARCH = "search";
 
     private long timeSpentInProcessResult;
@@ -102,10 +101,6 @@ public class SearchManager {
     public static ThreadedChannel<Bag> bagsToInvertedIndexQueue;
     public static ThreadedChannel<Bag> bagsToForwardIndexQueue;
     public static SearchManager theInstance;
-    public static Map<String, List<FSDirectory>> invertedIndexDirectoriesOfShard;
-    public static Map<String, List<FSDirectory>> forwardIndexDirectoriesOfShard;
-    // private List<FSDirectory> invertedIndexDirectories;
-    // private List<FSDirectory> forwardIndexDirectories;
     public static List<IndexWriter> indexerWriters;
     private static EProperties properties = new EProperties();
 
@@ -153,7 +148,6 @@ public class SearchManager {
         SearchManager.numCandidates = 0;
         this.timeTotal = 0;
         this.appendToExistingFile = true;
-        SearchManager.ramBufferSizeMB = 100 * 1;
         this.bagsSortTime = 0;
         SearchManager.ACTION = args[0];
         SearchManager.statusCounter = 0;
@@ -223,16 +217,8 @@ public class SearchManager {
                     + this.threadToProcessIIQueue + System.lineSeparator()
                     + " IIQ_THREADS: " + this.threadsToProcessFIQueue
                     + System.lineSeparator());
-
-            SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
-                    this.threadsToProcessBagsToSortQueue, BagSorter.class);
-            SearchManager.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(
-                    this.threadToProcessIIQueue, InvertedIndexCreator.class);
-            SearchManager.bagsToForwardIndexQueue = new ThreadedChannel<Bag>(
-                    this.threadsToProcessFIQueue, ForwardIndexCreator.class);
-            
-        } else if (SearchManager.ACTION.equals(ACTION_INDEX)) {
-            indexerWriters = new ArrayList<IndexWriter>();
+        } else if (SearchManager.ACTION.equals(ACTION_CREATE_SHARDS)) {
+            //indexerWriters = new ArrayList<IndexWriter>();
             this.createShards(true);
         }
     }
@@ -472,33 +458,18 @@ public class SearchManager {
 
         Util.createDirs(SearchManager.OUTPUT_DIR
                 + SearchManager.th / SearchManager.MUL_FACTOR);
-        String reportFileName = SearchManager.OUTPUT_DIR
-                + SearchManager.th / SearchManager.MUL_FACTOR + "/report.csv";
-        File reportFile = new File(reportFileName);
-        if (reportFile.exists()) {
-            theInstance.appendToExistingFile = true;
-        } else {
-            theInstance.appendToExistingFile = false;
-        }
-        theInstance.reportWriter = Util.openFile(reportFileName,
-                theInstance.appendToExistingFile);
-        if (SearchManager.ACTION.equalsIgnoreCase(ACTION_INDEX)) {
-            theInstance.initIndexEnv();
+        if (SearchManager.ACTION.equalsIgnoreCase(ACTION_CREATE_SHARDS)) {
             long begin_time = System.currentTimeMillis();
             theInstance.doPartitions();
             for (Shard shard : SearchManager.shards) {
                 shard.closeWriters();
-                //shard.closeForwardIndexWriter();
             }
-            /*
-             * System.out.println("merging indexes");
-             * theInstance.mergeindexes(); System.out.println("merge done");
-             */
             logger.info("indexing over!");
             theInstance.timeIndexing = System.currentTimeMillis() - begin_time;
         } else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_SEARCH)) {
-            theInstance.initSearchEnv();
             long timeStartSearch = System.currentTimeMillis();
+            theInstance.initSearchEnv();
+            
             //logger.info(NODE_PREFIX + " Starting to search");
             //theInstance.populateCompletedQueries();
             //theInstance.findCandidates();
@@ -539,7 +510,7 @@ public class SearchManager {
         logger.info("number of clone pairs detected: "
                 + SearchManager.clonePairsCount);
         theInstance.timeTotal = estimatedTime;
-        theInstance.genReport();
+        //theInstance.genReport();
         Util.closeOutputFile(theInstance.reportWriter);
         try {
             Util.closeOutputFile(SearchManager.clonesWriter);
@@ -773,16 +744,6 @@ public class SearchManager {
                 + SearchManager.QUERY_LINES_TO_IGNORE);
     }
 
-    private void initIndexEnv() throws IOException, ParseException {
-        // TermSorter termSorter = new TermSorter();
-
-        long timeGlobalPositionStart = System.currentTimeMillis();
-        SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
-                "key");
-        this.timeGlobalTokenPositionCreation = System.currentTimeMillis()
-                - timeGlobalPositionStart;
-    }
-
     private void genReport() {
         String header = "";
         if (!this.appendToExistingFile) {
@@ -943,6 +904,10 @@ public class SearchManager {
         BufferedReader br = new BufferedReader(new FileReader(candidateFile));
         String line="";
         try {
+            SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
+                    this.threadsToProcessBagsToSortQueue, BagSorter.class);
+            SearchManager.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(
+                    this.threadToProcessIIQueue, InvertedIndexCreator.class);
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 Bag bag = theInstance.cloneHelper.deserialise(line, true);
                 SearchManager.bagsToSortQueue.send(bag);
@@ -971,6 +936,9 @@ public class SearchManager {
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        }finally{
+            SearchManager.bagsToSortQueue.shutdown();
+            SearchManager.bagsToInvertedIndexQueue.shutdown();
         }
     }
 
@@ -1001,6 +969,7 @@ public class SearchManager {
         }else{
             try {
                 this.findCandidates(shard);
+                
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -84,10 +84,10 @@ class ScriptController(object):
                 if self.previous_run_state > ScriptController.STATE_INDEX:
                     returncode = ScriptController.EXIT_SUCCESS
                 else:
-                    command = self.full_script_path("runnodes.sh", "index 1")
+                    command = self.full_script_path("runnodes.sh", "cshard 1")
                     command_params = command.split()
                     returncode = self.run_command(
-                        command_params, self.full_file_path("Log_index.out"), self.full_file_path("Log_index.err"))
+                        command_params, self.full_file_path("Log_cshard.out"), self.full_file_path("Log_cshard.err"))
                 self.current_state += 1
                 if returncode == ScriptController.EXIT_SUCCESS:
                     self.flush_state()
