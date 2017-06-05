@@ -214,7 +214,7 @@ class DB:
     if len(self.clones) > 0:
       self.insert_projectClones(None, None, None, None, None, None, None, None, flush = True)
 
-  def insert_project(self, proj_id, projectPath, projectUrl, autoID = False):
+  def insert_project(self, proj_id, projectPath, projectUrl):
     self.check_connection()
     cursor = self.connection.cursor()
 
@@ -222,7 +222,7 @@ class DB:
       projectUrl = 'NULL' 
 
     try:
-      cursor.execute(add_projects_autoId, (self.sanitize_string(projectPath), self.sanitize_string(projectUrl)))
+      cursor.execute(add_projects, (proj_id, self.sanitize_string(projectPath), self.sanitize_string(projectUrl)))
       return cursor.lastrowid
     except Exception as err:
       self.logging.error('Failed to insert project %s' % (projectPath))

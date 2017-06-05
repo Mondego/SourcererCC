@@ -11,11 +11,6 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
   files_stats_path      = os.path.join(output_path,'files_stats')
   files_tokens_path     = os.path.join(output_path,'files_tokens')
 
-  # When projects and files are inserted with auto-increment, we save the
-  # id attributed by the tokenizer together with the id attributed by
-  # the DB, so that projectId's match when inserting files
-  projects_key_map = dict()
-
   try:
     logging.info('## Warming up token values')
     token_info = {}
@@ -45,8 +40,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
 
             if(len(entry_split) == 2):
               if flag == 'files-autoID':
-                ret = db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1],autoID=True)
-                projects_key_map[proj_id] = ret
+                ret = db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
               else:
                 db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
             else:
@@ -62,8 +56,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
                 #if flag == 'files-autoID':
                 #  proj_id = 'NULL'
                 if flag == 'files-autoID':
-                  ret = db.insert_project(proj_id,path,url,autoID=True)
-                  projects_key_map[proj_id] = ret
+                  ret = db.insert_project(proj_id,path,url)
                 else:
                   db.insert_project(proj_id,path,url)
 
@@ -106,7 +99,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
             file_hash = file_hash.strip('"')
 
             if flag == 'files-autoID':
-              db.insert_file(file_id, projects_key_map[proj_id], path, url, file_hash, autoID=True)
+              db.insert_file(file_id, proj_id, path, url, file_hash, autoID=True)
               db.insert_files_stats_ignore_repetition(file_hash, bytess, lines, loc, sloc, token_info[file_id][0], token_info[file_id][1], token_info[file_id][2])
             else:
               db.insert_file(file_id, proj_id, path, url, file_hash)
