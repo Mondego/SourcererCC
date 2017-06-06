@@ -9,7 +9,7 @@ import sys
 import hashlib
 import datetime as dt
 import zipfile
-import extractFunction
+import extractPythonFunction
 
 try:
   from configparser import ConfigParser
@@ -173,7 +173,7 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
 
-  (block_linenos, blocks) = extractFunction.getFunctions(file_string, logging, file_path)
+  (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
 
   if block_linenos is None:
 	return (None, None, None)
