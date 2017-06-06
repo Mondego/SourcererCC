@@ -10,6 +10,7 @@ import hashlib
 import datetime as dt
 import zipfile
 import extractPythonFunction
+import extractJavaFunction
 
 try:
   from configparser import ConfigParser
@@ -162,7 +163,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
-def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
+def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
   # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
 
   final_stats  = 'ERROR'
@@ -172,8 +173,12 @@ def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_clo
   lines     = 'ERROR'
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
+  
 
-  (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
+  if '.py' in file_extensions:
+    (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
+  if '.java' in file_extensions:
+    (block_linenos, blocks) = extractJavaFunction.getFunctions(file_string, logging, file_path)
 
   if block_linenos is None:
 	return (None, None, None)
@@ -302,7 +307,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   
   if project_format == 'zipblocks':
 
-    (final_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path, file_path))
+    (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path, file_path))
     if final_stats is None:
 	return [0, 0, 0, 0, 0]
     elif len(blocks_data) > 90000:
