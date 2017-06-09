@@ -494,12 +494,15 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
           logging.warning('Unable to open file (2) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
           break
 
-        f_time      = dt.datetime.now()
-        file_string = my_zip_file.read()
-        file_time   += (dt.datetime.now() - f_time).microseconds
+        try:
+          f_time      = dt.datetime.now()
+          file_string = my_zip_file.read().decode("utf-8")
+          file_time   += (dt.datetime.now() - f_time).microseconds
 
-        times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
-                        proj_url, FILE_tokens_file, FILE_stats_file, logging)
+          times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
+                          proj_url, FILE_tokens_file, FILE_stats_file, logging)
+        except Exception as e:
+          logging.warning('Unable to read contents of file %s' % (os.path.join(proj_path,file)))
 
         string_time += times[0]
         tokens_time += times[1]
