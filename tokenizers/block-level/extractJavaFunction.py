@@ -2,18 +2,19 @@ import sys, os
 import javalang
 import logging
 
-def getFunctions(filestring, logging, file_path):
+def getFunctions(filestring, logging, file_path, separators):
   logging.info("Starting block-level parsing on " + file_path)
 
   method_string = []
   method_pos    = []
+  new_experimental_values = []
   tree = None
   try:
     tree = javalang.parse.parse( filestring )
   except Exception as e:
     logging.warning("File " + file_path + " cannot be parsed. " + str(e))
     return (None, None)
-  
+
   file_string_split = filestring.split('\n')
 
   for path, node in tree.filter(javalang.tree.MethodDeclaration):
@@ -39,10 +40,42 @@ def getFunctions(filestring, logging, file_path):
     method_pos.append((init_line,end_line))
     method_string.append(method_body)
 
+    ## CODE BELOW is for experimental tokenization for meta CC
+    ## Set experimental = False to remove component
+    experimental = True
+    if experimental:
+      separators_count  = 0
+      assignments_count = 0 #(=)
+      statements_count = 0
+      expressions_count = 0
+      m_tree = None
+  
+      try:
+        m_tree = javalang.parser.Parser(javalang.tokenizer.tokenize(method_body)).parse_member_declaration()
+
+        for path, node in m_tree.filter(javalang.tree.Statement):
+          statements_count += 1
+
+        for path, node in m_tree.filter(javalang.tree.Expression):
+          expressions_count += 1
+
+        for line in method_body.split('\n'):
+          if ('=' in line) and ('==' not in line):
+            assignments_count += 1
+
+        for x in separators:
+          separators_count += method_body.count(x)
+
+        aux = '%s,%s,%s,%s' % (separators_count,assignments_count,statements_count,expressions_count) # String must go formatted to files_tokens
+        new_experimental_values.append(aux)
+      except Exception as e:
+        logging.warning('Error on experimental settings for file %s' % file_path)
+        logging.warning(e)
+
   if (len(method_pos) == 0) or (len(method_string) == 0):
-    return (None,None)
+    return (None,None,new_experimental_values)
   else:
-    return (method_pos,method_string)
+    return (method_pos,method_string,new_experimental_values)
 
 
 if __name__ == "__main__":
