@@ -181,14 +181,14 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     (block_linenos, blocks) = extractJavaFunction.getFunctions(file_string, logging, file_path)
 
   if block_linenos is None:
-	return (None, None, None)
+    return (None, None, None)
   else:
     h_time = dt.datetime.now()
     m = hashlib.md5()
     m.update(file_string)
     file_hash = m.hexdigest()
     hash_time = (dt.datetime.now() - h_time).microseconds
-    
+
     lines = file_string.count('\n')
     if not file_string.endswith('\n'):
       lines += 1
@@ -197,7 +197,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     LOC = file_string.count('\n')
     if not file_string.endswith('\n'):
       LOC += 1
-    
+
     r_time = dt.datetime.now()
     # Remove tagged comments
     file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
@@ -214,7 +214,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     final_stats = (file_hash,lines,LOC,SLOC)
    
     blocks_data = []
-   
+
     s_time = dt.datetime.now()
     se_time = (dt.datetime.now() - s_time).microseconds
     t_time = dt.datetime.now()
@@ -245,7 +245,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       block_LOC = block_string.count('\n')
       if not block_string.endswith('\n'):
         block_LOC += 1
-     
       r_time = dt.datetime.now()
       # Remove tagged comments
       block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)
@@ -284,18 +283,16 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       #SourcererCC formatting
       tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
       token_time += (dt.datetime.now() - t_time).microseconds
-     
       # MD5
       h_time = dt.datetime.now()
       m = hashlib.md5()
       m.update(tokens)
       hash_time += (dt.datetime.now() - h_time).microseconds
-     
       block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
       
       blocks_data.append((block_tokens, block_stats))
-    return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
-
+  
+  return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
 
 def process_file_contents(file_string, proj_id, file_id, container_path, 
               file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
@@ -305,14 +302,16 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   global file_count
   file_count += 1
   
-  if project_format == 'zipblocks':
-
+  if (project_format == 'zipblocks') or (project_format == 'folderblocks'):
     (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path, file_path))
+    
     if final_stats is None:
-	return [0, 0, 0, 0, 0]
+      return [0, 0, 0, 0, 0]
+      
     elif len(blocks_data) > 90000:
       logging.warning('File ' + os.path.join(container_path, file_path) + ' has ' + len(blocks_data) + ' blocks, more than 90000. Range MUST be increased.')
       return [0, 0, 0, 0, 0]
+      
     else:
       # write file stats
       (file_hash,lines,LOC,SLOC) = final_stats
@@ -321,22 +320,21 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
       # file stats start with a letter 'f'
       FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
-      
       blocks_data = zip(range(10000,99999),blocks_data)
-      
+
       ww_time = dt.datetime.now()
       for relative_id, block_data in blocks_data:
         (blocks_tokens, blocks_stats) = block_data
         block_id = str(relative_id)+str(file_id)
-	
-	(block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
+  
+        (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
 
         # Adjust the blocks stats written to the files, file stats start with a letter 'b'
         FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
         FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
       w_time = (dt.datetime.now() - ww_time).microseconds
-
+      
   else:
     (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
   
@@ -358,41 +356,58 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
   return file_parsing_times + [w_time] # [s_time, t_time, w_time, hash_time, re_time]
 
-def process_regular_folder(args, folder_path, files):
-  process_num, proj_id, proj_path, proj_url, base_file_id, \
-    FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times = args
+def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
+            FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
+  zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
-  file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-  all_files = files
+  logging.info('Attempting to process_regular_folder '+proj_path)
 
-  # Filter them by the correct extension
-  aux = []
-  for extension in file_extensions:
-    aux.extend([x for x in all_files if x.endswith(extension)])
-  all_files = aux
+  result = [f for dp, dn, filenames in os.walk(proj_path) for f in filenames if (os.path.splitext(f)[1] in file_extensions)]
 
-  # This is very strange, but I did find some paths with newlines,
-  # so I am simply eliminates them
-  all_files = [x for x in all_files if '\n' not in x]
+  for file_path in result:
+    # This is very strange, but I did find some paths with newlines,
+    # so I am simply ignoring them
+    if '\n' in file_path:
+      continue
 
-  for file_path in all_files:
     file_id = process_num*MULTIPLIER + base_file_id + file_count
-    print "<%s, %s, %s>" %(file_id, folder_path, file_path)
-    file_path = os.path.join(folder_path, file_path)
 
-    with open(file_path) as f:
-      f_time = dt.datetime.now()
-      file_string = f.read()
-      f_time = (dt.datetime.now() - f_time).microseconds
+    z_time = dt.datetime.now();
+    my_file    = None
+    file_bytes = None
+    try:
+      my_file    = open(os.path.join(proj_path,file_path),'r')
+      file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
+    except Exception as e:
+      logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')')
+      logging.warning(e)
+      break
+    zip_time += (dt.datetime.now() - z_time).microseconds
 
-      times_c = process_file_contents(file_string, proj_id, file_id, "", file_path, str(os.path.getsize(file_path)),
-                        proj_url, FILE_tokens_file, FILE_stats_file, logging)
-      times[0] += f_time
-      times[1] += times_c[0]
-      times[2] += times_c[1]
-      times[3] += times_c[4]
-      times[4] += times_c[2]
-      times[5] += times_c[3]
+    if my_file is None:
+      logging.warning('Unable to open file (2) <'+file_path+'> (process '+str(process_num)+')')
+      break
+
+    try:
+      f_time      = dt.datetime.now()
+      file_string = my_file.read().decode("utf-8")
+      file_time   += (dt.datetime.now() - f_time).microseconds
+
+      times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
+                      proj_url, FILE_tokens_file, FILE_stats_file, logging)
+    except Exception as e:
+      logging.warning('Unable to read contents of file %s' % (os.path.join(proj_path,file_path)))
+      logging.warning(e)
+
+    string_time += times[0]
+    tokens_time += times[1]
+    write_time  += times[4]
+    hash_time   += times[2]
+    regex_time  += times[3]
+
+  logging.info('Successfully ran process_regular_folder '+zip_file)
+  return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+
       
 
 def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, 
@@ -579,6 +594,27 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
 
     FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
 
+  if project_format in ['folderblocks']:
+    proj_url = 'NULL'
+    
+    proj_id = str(proj_id_flag) + proj_id
+
+    logging.info('Starting folder project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
+
+    if not os.path.exists(proj_path):
+      logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
+      return
+
+    zip_file = proj_path
+    times = process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
+                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+    if times is not None:
+      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
+    else:
+      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (-1,-1,-1,-1,-1,-1,-1)
+
+    FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
+
   p_elapsed = dt.datetime.now() - p_start
   logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
   logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
@@ -652,10 +688,10 @@ def active_process_count(processes):
 if __name__ == '__main__':
 
   global project_format
-  project_format = sys.argv[1] # 'zip' or 'leidos'  or 'zipblocks' (when want the blocks inside files)
+  project_format = sys.argv[1] # 'zip' or 'leidos'  or 'zipblocks' or 'folderblocks' (when want the blocks inside files)
 
-  if project_format not in ['zip','leidos','zipblocks']:
-    print "ERROR - Please insert archive format, 'zip', 'leidos' or 'zipblocks'!"
+  if project_format not in ['zip','leidos','zipblocks','folderblocks']:
+    print "ERROR - Please insert archive format, 'zip', 'leidos', 'zipblocks' or 'folderblocks'!"
     sys.exit()
 
   read_config()
@@ -683,7 +719,15 @@ if __name__ == '__main__':
         if not prio:
           proj_paths.append((line_split[0],line_split[4]))
     proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
+
   if project_format in ['zip','zipblocks']: # zipblocks will diverge the process flow on process_file()
+    print '\'',project_format,'\'','format'
+    with open(FILE_projects_list) as f:
+      for line in f:
+        proj_paths.append(line[:-1])
+    proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
+
+  if project_format in ['folderblocks']: # folderblocks will diverge the process flow on process_file()
     print '\'',project_format,'\'','format'
     with open(FILE_projects_list) as f:
       for line in f:

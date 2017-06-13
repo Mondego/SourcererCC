@@ -3,11 +3,10 @@ import javalang
 import logging
 
 def getFunctions(filestring, logging, file_path):
-  logging.warning("Starting block-level parsing on " + file_path)
+  logging.info("Starting block-level parsing on " + file_path)
 
   method_string = []
   method_pos    = []
-  
   tree = None
   try:
     tree = javalang.parse.parse( filestring )
@@ -16,7 +15,7 @@ def getFunctions(filestring, logging, file_path):
     return (None, None)
   
   file_string_split = filestring.split('\n')
-  
+
   for path, node in tree.filter(javalang.tree.MethodDeclaration):
     #print '### path',path
     #print '### node',node
@@ -39,7 +38,7 @@ def getFunctions(filestring, logging, file_path):
   
     method_pos.append((init_line,end_line))
     method_string.append(method_body)
-  
+
   if (len(method_pos) == 0) or (len(method_string) == 0):
     return (None,None)
   else:
