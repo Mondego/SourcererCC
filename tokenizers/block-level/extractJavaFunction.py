@@ -73,8 +73,10 @@ def getFunctions(filestring, logging, file_path, separators):
         logging.warning(e)
 
   if (len(method_pos) == 0) or (len(method_string) == 0):
+    logging.info("Finished block-level parsing on " + file_path)
     return (None,None,new_experimental_values)
   else:
+    logging.info("Finished block-level parsing on " + file_path)
     return (method_pos,method_string,new_experimental_values)
 
 

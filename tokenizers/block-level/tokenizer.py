@@ -11,6 +11,7 @@ import datetime as dt
 import zipfile
 import extractPythonFunction
 import extractJavaFunction
+import codecs
 
 try:
   from configparser import ConfigParser
@@ -173,7 +174,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
   lines     = 'ERROR'
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
-  
   experimental_values = ''
   if '.py' in file_extensions:
     (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
@@ -185,26 +185,22 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
   else:
     h_time = dt.datetime.now()
     m = hashlib.md5()
-    m.update(file_string)
+    m.update(file_string.encode('utf-8'))
     file_hash = m.hexdigest()
     hash_time = (dt.datetime.now() - h_time).microseconds
-
     lines = file_string.count('\n')
     if not file_string.endswith('\n'):
       lines += 1
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
-    
     LOC = file_string.count('\n')
     if not file_string.endswith('\n'):
       LOC += 1
-
     r_time = dt.datetime.now()
     # Remove tagged comments
     file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
     # Remove end of line comments
     file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
     re_time = (dt.datetime.now() - r_time).microseconds
-    
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
     
     SLOC = file_string.count('\n')
@@ -214,7 +210,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     final_stats = (file_hash,lines,LOC,SLOC)
    
     blocks_data = []
-
     s_time = dt.datetime.now()
     se_time = (dt.datetime.now() - s_time).microseconds
     t_time = dt.datetime.now()
@@ -304,7 +299,6 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
   
   if (project_format == 'zipblocks') or (project_format == 'folderblocks'):
     (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path, file_path))
-        
     if final_stats is None:
       return [0, 0, 0, 0, 0]
       
@@ -313,6 +307,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
       return [0, 0, 0, 0, 0]
       
     else:
+
       # write file stats
       (file_hash,lines,LOC,SLOC) = final_stats
       file_url = proj_url + '/' + file_path.replace(' ','%20')
@@ -333,6 +328,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
         # Adjust the blocks stats written to the files, file stats start with a letter 'b'
         FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
+        
         if len(experimental_values) == 0:
           FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
         else:
@@ -347,7 +343,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
     file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
     file_path = os.path.join(container_path, file_path)
-
+    
     ww_time = dt.datetime.now()
     FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
     w_time = (dt.datetime.now() - ww_time).microseconds
@@ -380,7 +376,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
     my_file    = None
     file_bytes = None
     try:
-      my_file    = open(os.path.join(proj_path,file_path),'r')
+      my_file    = codecs.open(os.path.join(proj_path,file_path), "r", "utf-8") #open(os.path.join(proj_path,file_path),'r')
       file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
     except Exception as e:
       logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')')
@@ -394,7 +390,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
 
     try:
       f_time      = dt.datetime.now()
-      file_string = my_file.read().decode("utf-8")
+      file_string = my_file.read()
       file_time   += (dt.datetime.now() - f_time).microseconds
 
       times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
