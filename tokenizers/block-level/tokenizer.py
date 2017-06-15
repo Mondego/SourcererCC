@@ -173,7 +173,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
   lines     = 'ERROR'
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
-  
   experimental_values = ''
   if '.py' in file_extensions:
     (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
@@ -185,7 +184,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
   else:
     h_time = dt.datetime.now()
     m = hashlib.md5()
-    m.update(file_string)
+    m.update(file_string.encode('utf-8'))
     file_hash = m.hexdigest()
     hash_time = (dt.datetime.now() - h_time).microseconds
     lines = file_string.count('\n')
@@ -334,7 +333,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
     file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
     file_path = os.path.join(container_path, file_path)
-
+    
     ww_time = dt.datetime.now()
     FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
     w_time = (dt.datetime.now() - ww_time).microseconds
