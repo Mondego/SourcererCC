@@ -11,6 +11,7 @@ import datetime as dt
 import zipfile
 import extractPythonFunction
 import extractJavaFunction
+import codecs
 
 try:
   from configparser import ConfigParser
@@ -165,7 +166,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
   # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
-
   final_stats  = 'ERROR'
   final_tokens = 'ERROR'
 
@@ -188,38 +188,31 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     m.update(file_string)
     file_hash = m.hexdigest()
     hash_time = (dt.datetime.now() - h_time).microseconds
-
     lines = file_string.count('\n')
     if not file_string.endswith('\n'):
       lines += 1
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
-    
     LOC = file_string.count('\n')
     if not file_string.endswith('\n'):
       LOC += 1
-
     r_time = dt.datetime.now()
     # Remove tagged comments
     file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
     # Remove end of line comments
     file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
     re_time = (dt.datetime.now() - r_time).microseconds
-    
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
     
     SLOC = file_string.count('\n')
     if file_string != '' and not file_string.endswith('\n'):
       SLOC += 1
-    
     final_stats = (file_hash,lines,LOC,SLOC)
    
     blocks_data = []
-
     s_time = dt.datetime.now()
     se_time = (dt.datetime.now() - s_time).microseconds
     t_time = dt.datetime.now()
     token_time = (dt.datetime.now() - t_time).microseconds
-   
     for i, block_string in enumerate(blocks):
       (start_line, end_line) = block_linenos[i]
       
@@ -236,7 +229,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       m.update(block_string)
       block_hash = m.hexdigest()
       hash_time = (dt.datetime.now() - h_time).microseconds
-      
       block_lines = block_string.count('\n')
       if not block_string.endswith('\n'):
         block_lines += 1
@@ -251,7 +243,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       # Remove end of line comments
       block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)
       re_time += (dt.datetime.now() - r_time).microseconds
-     
       block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
      
       block_SLOC = block_string.count('\n')
@@ -259,7 +250,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         block_SLOC += 1
      
       block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
-      
       # Rather a copy of the file string here for tokenization
       block_string_for_tokenization = block_string
      
@@ -278,7 +268,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       block_string_for_tokenization=dict(block_string_for_tokenization)
       ## Unique number of tokens
       tokens_count_unique = len(block_string_for_tokenization)
-      
       t_time = dt.datetime.now()
       #SourcererCC formatting
       tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
@@ -289,7 +278,6 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       m.update(tokens)
       hash_time += (dt.datetime.now() - h_time).microseconds
       block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
-      
       blocks_data.append((block_tokens, block_stats, experimental_values[i]))
   
   return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
@@ -301,43 +289,42 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
   global file_count
   file_count += 1
-  
+
   if (project_format == 'zipblocks') or (project_format == 'folderblocks'):
     (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path, file_path))
-        
     if final_stats is None:
+      logging.warning('Problems tokenizing file ' + os.path.join(container_path, file_path))
       return [0, 0, 0, 0, 0]
-      
-    elif len(blocks_data) > 90000:
+          
+    if len(blocks_data) > 90000:
       logging.warning('File ' + os.path.join(container_path, file_path) + ' has ' + len(blocks_data) + ' blocks, more than 90000. Range MUST be increased.')
       return [0, 0, 0, 0, 0]
-      
-    else:
-      # write file stats
-      (file_hash,lines,LOC,SLOC) = final_stats
-      file_url = proj_url + '/' + file_path.replace(' ','%20')
-      file_path = os.path.join(container_path, file_path)
+    
+    # write file stats
+    (file_hash,lines,LOC,SLOC) = final_stats
+    file_url = proj_url + '/' + file_path.replace(' ','%20')
+    file_path = os.path.join(container_path, file_path)
 
-      # file stats start with a letter 'f'
-      FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
-      blocks_data = zip(range(10000,99999),blocks_data)
+    # file stats start with a letter 'f'
+    FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
+    blocks_data = zip(range(10000,99999),blocks_data)
 
-      ww_time = dt.datetime.now()
-      for relative_id, block_data in blocks_data:
+    ww_time = dt.datetime.now()
+    for relative_id, block_data in blocks_data:
 
-        (blocks_tokens, blocks_stats, experimental_values) = block_data
-        block_id = str(relative_id)+str(file_id)
+      (blocks_tokens, blocks_stats, experimental_values) = block_data
+      block_id = str(relative_id)+str(file_id)
   
-        (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
-        (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
+      (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
+      (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
 
-        # Adjust the blocks stats written to the files, file stats start with a letter 'b'
-        FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
-        if len(experimental_values) == 0:
-          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-        else:
-          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),experimental_values,token_hash+tokens]) + '\n')
-      w_time = (dt.datetime.now() - ww_time).microseconds
+      # Adjust the blocks stats written to the files, file stats start with a letter 'b'
+      FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
+      if len(experimental_values) == 0:
+        FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+      else:
+        FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),experimental_values,token_hash+tokens]) + '\n')
+    w_time = (dt.datetime.now() - ww_time).microseconds
       
   else:
     (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
@@ -380,11 +367,10 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
     my_file    = None
     file_bytes = None
     try:
-      my_file    = open(os.path.join(proj_path,file_path),'r')
+      my_file    = codecs.open(os.path.join(proj_path,file_path),'r',encoding='utf-8', errors='ignore') #open(os.path.join(proj_path,file_path),'r')
       file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
     except Exception as e:
-      logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')')
-      logging.warning(e)
+      logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')' + str(e))
       break
     zip_time += (dt.datetime.now() - z_time).microseconds
 
@@ -394,14 +380,12 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
 
     try:
       f_time      = dt.datetime.now()
-      file_string = my_file.read().decode("utf-8")
+      file_string = my_file.read().encode('ascii', 'ignore')
       file_time   += (dt.datetime.now() - f_time).microseconds
-
       times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
                       proj_url, FILE_tokens_file, FILE_stats_file, logging)
     except Exception as e:
-      logging.warning('Unable to read contents of file %s' % (os.path.join(proj_path,file_path)))
-      logging.warning(e)
+      logging.warning('Unable to read contents of file %s. %s ' % (os.path.join(proj_path,file_path),e))
 
     string_time += times[0]
     tokens_time += times[1]

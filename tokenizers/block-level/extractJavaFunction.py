@@ -12,8 +12,8 @@ def getFunctions(filestring, logging, file_path, separators):
   try:
     tree = javalang.parse.parse( filestring )
   except Exception as e:
-    logging.warning("File " + file_path + " cannot be parsed. " + str(e))
-    return (None, None)
+    logging.warning("File " + file_path + " cannot be parsed. (1)" + str(e))
+    return (None, None, [])
 
   file_string_split = filestring.split('\n')
 
@@ -69,12 +69,15 @@ def getFunctions(filestring, logging, file_path, separators):
         aux = '%s,%s,%s,%s' % (separators_count,assignments_count,statements_count,expressions_count) # String must go formatted to files_tokens
         new_experimental_values.append(aux)
       except Exception as e:
-        logging.warning('Error on experimental settings for file %s' % file_path)
+        ("File " + file_path + " cannot be parsed. " + str(e))
         logging.warning(e)
+        return (None,None,[])
 
   if (len(method_pos) == 0) or (len(method_string) == 0):
+    logging.warning("File " + file_path + " cannot be parsed. (2)")
     return (None,None,new_experimental_values)
   else:
+    logging.warning("File " + file_path + " cannot be parsed. (3)")
     return (method_pos,method_string,new_experimental_values)
 
 
