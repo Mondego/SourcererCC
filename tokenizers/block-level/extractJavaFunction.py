@@ -74,17 +74,10 @@ def getFunctions(filestring, logging, file_path, separators):
         return (None,None,[])
 
   if (len(method_pos) == 0) or (len(method_string) == 0):
-<<<<<<< HEAD
     logging.warning("File " + file_path + " cannot be parsed. (2)")
     return (None,None,new_experimental_values)
   else:
     logging.warning("File " + file_path + " cannot be parsed. (3)")
-=======
-    logging.info("Finished block-level parsing on " + file_path)
-    return (None,None,new_experimental_values)
-  else:
-    logging.info("Finished block-level parsing on " + file_path)
->>>>>>> d493da4817dcd8d01b2821c14dd07019501f147e
     return (method_pos,method_string,new_experimental_values)
 
 
