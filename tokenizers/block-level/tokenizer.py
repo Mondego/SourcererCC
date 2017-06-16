@@ -12,6 +12,7 @@ import zipfile
 import extractPythonFunction
 import extractJavaFunction
 import codecs
+import traceback
 
 try:
   from configparser import ConfigParser

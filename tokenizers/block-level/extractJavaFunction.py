@@ -1,6 +1,8 @@
 import sys, os
 import javalang
 import logging
+import traceback
+import traceback
 
 def getFunctions(filestring, logging, file_path, separators):
   logging.info("Starting block-level parsing on " + file_path)
@@ -13,6 +15,7 @@ def getFunctions(filestring, logging, file_path, separators):
     tree = javalang.parse.parse( filestring )
   except Exception as e:
     logging.warning("File " + file_path + " cannot be parsed. (1)" + str(e))
+    loggint.warning('Traceback:' + traceback.print_exc())
     return (None, None, [])
 
   file_string_split = filestring.split('\n')
@@ -70,6 +73,7 @@ def getFunctions(filestring, logging, file_path, separators):
         new_experimental_values.append(aux)
       except Exception as e:
         logging.warning("File " + file_path + " cannot be parsed. (2)" + str(e))
+        loggint.warning('Traceback:' + traceback.print_exc())
         return (None,None,[])
 
   if (len(method_pos) != len(method_string)):
