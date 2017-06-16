@@ -379,7 +379,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
 
     try:
       f_time      = dt.datetime.now()
-      file_string = my_file.read().encode('ascii', 'ignore')
+      file_string = my_file.read() #.encode('ascii', 'ignore')
       file_time   += (dt.datetime.now() - f_time).microseconds
       times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
                       proj_url, FILE_tokens_file, FILE_stats_file, logging)

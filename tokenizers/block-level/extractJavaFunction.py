@@ -69,11 +69,10 @@ def getFunctions(filestring, logging, file_path, separators):
         aux = '%s,%s,%s,%s' % (separators_count,assignments_count,statements_count,expressions_count) # String must go formatted to files_tokens
         new_experimental_values.append(aux)
       except Exception as e:
-        ("File " + file_path + " cannot be parsed. (2)" + str(e))
-        logging.warning(e)
+        logging.warning("File " + file_path + " cannot be parsed. (2)" + str(e))
         return (None,None,[])
 
-  if (len(method_pos) == 0) or (len(method_string) == 0):
+  if (len(method_pos) != len(method_string)):
     logging.warning("File " + file_path + " cannot be parsed. (3)")
     return (None,None,new_experimental_values)
   else:
