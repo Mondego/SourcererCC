@@ -166,6 +166,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
+  logging.info('Starting tokenize_blocks of %s' % (file_path))
   # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
   final_stats  = 'ERROR'
   final_tokens = 'ERROR'
@@ -181,105 +182,109 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, logging, file_path, separators)
 
   if block_linenos is None:
+    logging.info('Returning None on tokenize_blocks for file %s.' % (file_path))
     return (None, None, None)
   else:
-    h_time = dt.datetime.now()
-    m = hashlib.md5()
-    m.update(file_string.encode('utf-8'))
-    file_hash = m.hexdigest()
-    hash_time = (dt.datetime.now() - h_time).microseconds
-    lines = file_string.count('\n')
-    if not file_string.endswith('\n'):
-      lines += 1
-    file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
-    LOC = file_string.count('\n')
-    if not file_string.endswith('\n'):
-      LOC += 1
-    r_time = dt.datetime.now()
-    # Remove tagged comments
-    file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
-    # Remove end of line comments
-    file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
-    re_time = (dt.datetime.now() - r_time).microseconds
-    file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
-    
-    SLOC = file_string.count('\n')
-    if file_string != '' and not file_string.endswith('\n'):
-      SLOC += 1
-    final_stats = (file_hash,lines,LOC,SLOC)
-   
-    blocks_data = []
-    s_time = dt.datetime.now()
-    se_time = (dt.datetime.now() - s_time).microseconds
-    t_time = dt.datetime.now()
-    token_time = (dt.datetime.now() - t_time).microseconds
-    for i, block_string in enumerate(blocks):
-      (start_line, end_line) = block_linenos[i]
-      
-      block_stats = 'ERROR'
-      block_tokens = 'ERROR'
-     
-      block_hash = 'ERROR'
-      block_lines = 'ERROR'
-      block_LOC = 'ERROR'
-      block_SLOC = 'ERROR'
-     
+    try:
       h_time = dt.datetime.now()
       m = hashlib.md5()
-      m.update(block_string)
-      block_hash = m.hexdigest()
+      m.update(file_string.encode('utf-8'))
+      file_hash = m.hexdigest()
       hash_time = (dt.datetime.now() - h_time).microseconds
-      block_lines = block_string.count('\n')
-      if not block_string.endswith('\n'):
-        block_lines += 1
-      block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
-      
-      block_LOC = block_string.count('\n')
-      if not block_string.endswith('\n'):
-        block_LOC += 1
+      lines = file_string.count('\n')
+      if not file_string.endswith('\n'):
+        lines += 1
+      file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
+      LOC = file_string.count('\n')
+      if not file_string.endswith('\n'):
+        LOC += 1
       r_time = dt.datetime.now()
       # Remove tagged comments
-      block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)
+      file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
       # Remove end of line comments
-      block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)
-      re_time += (dt.datetime.now() - r_time).microseconds
-      block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
-     
-      block_SLOC = block_string.count('\n')
-      if block_string != '' and not block_string.endswith('\n'):
-        block_SLOC += 1
-     
-      block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
-      # Rather a copy of the file string here for tokenization
-      block_string_for_tokenization = block_string
-     
-      #Transform separators into spaces (remove them)
+      file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
+      re_time = (dt.datetime.now() - r_time).microseconds
+      file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
+    
+      SLOC = file_string.count('\n')
+      if file_string != '' and not file_string.endswith('\n'):
+        SLOC += 1
+      final_stats = (file_hash,lines,LOC,SLOC)
+   
+      blocks_data = []
       s_time = dt.datetime.now()
-      for x in separators:
-        block_string_for_tokenization = block_string_for_tokenization.replace(x,' ')
-      se_time += (dt.datetime.now() - s_time).microseconds
-      ##Create a list of tokens
-      block_string_for_tokenization = block_string_for_tokenization.split()
-      ## Total number of tokens
-      tokens_count_total = len(block_string_for_tokenization)
-      ##Count occurrences
-      block_string_for_tokenization = collections.Counter(block_string_for_tokenization)
-      ##Converting Counter to dict because according to StackOverflow is better
-      block_string_for_tokenization=dict(block_string_for_tokenization)
-      ## Unique number of tokens
-      tokens_count_unique = len(block_string_for_tokenization)
+      se_time = (dt.datetime.now() - s_time).microseconds
       t_time = dt.datetime.now()
-      #SourcererCC formatting
-      tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
-      token_time += (dt.datetime.now() - t_time).microseconds
-      # MD5
-      h_time = dt.datetime.now()
-      m = hashlib.md5()
-      m.update(tokens)
-      hash_time += (dt.datetime.now() - h_time).microseconds
-      block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
-      blocks_data.append((block_tokens, block_stats, experimental_values[i]))
-  
+      token_time = (dt.datetime.now() - t_time).microseconds
+      for i, block_string in enumerate(blocks):
+        (start_line, end_line) = block_linenos[i]
+      
+        block_stats = 'ERROR'
+        block_tokens = 'ERROR'
+     
+        block_hash = 'ERROR'
+        block_lines = 'ERROR'
+        block_LOC = 'ERROR'
+        block_SLOC = 'ERROR'
+     
+        h_time = dt.datetime.now()
+        m = hashlib.md5()
+        m.update(block_string)
+        block_hash = m.hexdigest()
+        hash_time = (dt.datetime.now() - h_time).microseconds
+        block_lines = block_string.count('\n')
+        if not block_string.endswith('\n'):
+          block_lines += 1
+        block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
+      
+        block_LOC = block_string.count('\n')
+        if not block_string.endswith('\n'):
+          block_LOC += 1
+        r_time = dt.datetime.now()
+        # Remove tagged comments
+        block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)
+        # Remove end of line comments
+        block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)
+        re_time += (dt.datetime.now() - r_time).microseconds
+        block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
+     
+        block_SLOC = block_string.count('\n')
+        if block_string != '' and not block_string.endswith('\n'):
+          block_SLOC += 1
+     
+        block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
+        # Rather a copy of the file string here for tokenization
+        block_string_for_tokenization = block_string
+     
+        #Transform separators into spaces (remove them)
+        s_time = dt.datetime.now()
+        for x in separators:
+          block_string_for_tokenization = block_string_for_tokenization.replace(x,' ')
+        se_time += (dt.datetime.now() - s_time).microseconds
+        ##Create a list of tokens
+        block_string_for_tokenization = block_string_for_tokenization.split()
+        ## Total number of tokens
+        tokens_count_total = len(block_string_for_tokenization)
+        ##Count occurrences
+        block_string_for_tokenization = collections.Counter(block_string_for_tokenization)
+        ##Converting Counter to dict because according to StackOverflow is better
+        block_string_for_tokenization=dict(block_string_for_tokenization)
+        ## Unique number of tokens
+        tokens_count_unique = len(block_string_for_tokenization)
+        t_time = dt.datetime.now()
+        #SourcererCC formatting
+        tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
+        token_time += (dt.datetime.now() - t_time).microseconds
+        # MD5
+        h_time = dt.datetime.now()
+        m = hashlib.md5()
+        m.update(tokens)
+        hash_time += (dt.datetime.now() - h_time).microseconds
+        block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
+        blocks_data.append((block_tokens, block_stats, experimental_values[i]))
+    except Exception as e:
+      logging.warning('Some error on tokenize_blocks for file %s. %s' % (file_path, e))
+
   return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
 
 def process_file_contents(file_string, proj_id, file_id, container_path, 
@@ -292,7 +297,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
   if (project_format == 'zipblocks') or (project_format == 'folderblocks'):
     (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path, file_path))
-    if final_stats is None:
+    if (final_stats is None) or (blocks_data is None) or (file_parsing_times is None):
       logging.warning('Problems tokenizing file ' + os.path.join(container_path, file_path))
       return [0, 0, 0, 0, 0]
           
@@ -305,28 +310,39 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     file_url = proj_url + '/' + file_path.replace(' ','%20')
     file_path = os.path.join(container_path, file_path)
 
+    logging.warning('Finished step1 on process_file_contents');
+    
     # file stats start with a letter 'f'
     FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
     blocks_data = zip(range(10000,99999),blocks_data)
 
+    logging.warning('Finished step2 on process_file_contents');
+
     ww_time = dt.datetime.now()
-    for relative_id, block_data in blocks_data:
 
-      (blocks_tokens, blocks_stats, experimental_values) = block_data
-      block_id = str(relative_id)+str(file_id)
+    try:
+      for relative_id, block_data in blocks_data:
+
+        (blocks_tokens, blocks_stats, experimental_values) = block_data
+        block_id = str(relative_id)+str(file_id)
   
-      (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
-      (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
+        (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
+        (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
 
-      # Adjust the blocks stats written to the files, file stats start with a letter 'b'
-      FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
-      if len(experimental_values) == 0:
-        FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-      else:
-        FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),experimental_values,token_hash+tokens]) + '\n')
-    w_time = (dt.datetime.now() - ww_time).microseconds
-      
+        # Adjust the blocks stats written to the files, file stats start with a letter 'b'
+        FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
+        if len(experimental_values) == 0:
+          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+        else:
+          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),experimental_values,token_hash+tokens]) + '\n')
+      w_time = (dt.datetime.now() - ww_time).microseconds
+    except Exception as e:
+      logging.warning('Error on step3 of process_file_contents. '+str(e))
+
   else:
+
+    logging.warning('Should never be here.');
+
     (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
   
     (file_hash,lines,LOC,SLOC) = final_stats
@@ -371,21 +387,28 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
       file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
     except Exception as e:
       logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')' + str(e))
-      break
+      continue
+
     zip_time += (dt.datetime.now() - z_time).microseconds
 
     if my_file is None:
       logging.warning('Unable to open file (2) <'+file_path+'> (process '+str(process_num)+')')
-      break
+      continue
 
     try:
       f_time      = dt.datetime.now()
       file_string = my_file.read() #.encode('ascii', 'ignore')
       file_time   += (dt.datetime.now() - f_time).microseconds
-      times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
-                      proj_url, FILE_tokens_file, FILE_stats_file, logging)
     except Exception as e:
       logging.warning('Unable to read contents of file %s. %s ' % (os.path.join(proj_path,file_path),e))
+      continue
+
+    try:
+      times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
+                      proj_url, FILE_tokens_file, FILE_stats_file, logging)
+    except:
+      logging.warning('Unable to process file %s.' % (os.path.join(proj_path,file_path)))
+      continue
 
     string_time += times[0]
     tokens_time += times[1]
@@ -429,13 +452,13 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
         except:
           logging.warning('Unable to open file (1) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+
                   '> (process '+str(process_num)+')')
-          break
+          continue
         zip_time += (dt.datetime.now() - z_time).microseconds
 
         if myfile is None:
           logging.warning('Unable to open file (2) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+
                   '> (process '+str(process_num)+')')
-          break
+          continue
 
         f_time = dt.datetime.now()
         file_string = myfile.read()
@@ -490,12 +513,12 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
           my_zip_file = my_file.open(file.filename,'r')
         except:
           logging.warning('Unable to open file (1) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
-          break
+          continue
         zip_time += (dt.datetime.now() - z_time).microseconds
 
         if my_zip_file is None:
           logging.warning('Unable to open file (2) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
-          break
+          continue
 
         try:
           f_time      = dt.datetime.now()
@@ -762,4 +785,5 @@ if __name__ == '__main__':
 
   p_elapsed = dt.datetime.now() - p_start
   print "*** All done. %s files in %s" % (file_count, p_elapsed)
+
 
