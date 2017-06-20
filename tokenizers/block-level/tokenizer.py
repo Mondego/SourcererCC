@@ -11,8 +11,7 @@ import datetime as dt
 import zipfile
 import extractPythonFunction
 import extractJavaFunction
-import codecs
-import traceback
+import io
 
 try:
   from configparser import ConfigParser
@@ -188,7 +187,10 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     try:
       h_time = dt.datetime.now()
       m = hashlib.md5()
-      m.update(file_string.encode('utf-8'))
+      try:
+        m.update(file_string)
+      except Exception as e:
+        logging.info('Error on tokenize_blocks (1) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
       file_hash = m.hexdigest()
       hash_time = (dt.datetime.now() - h_time).microseconds
       lines = file_string.count('\n')
@@ -229,7 +231,10 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
      
         h_time = dt.datetime.now()
         m = hashlib.md5()
-        m.update(block_string)
+        try:
+          m.update(block_string)
+        except Exception as e:
+          logging.info('Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
         block_hash = m.hexdigest()
         hash_time = (dt.datetime.now() - h_time).microseconds
         block_lines = block_string.count('\n')
@@ -278,7 +283,10 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         # MD5
         h_time = dt.datetime.now()
         m = hashlib.md5()
-        m.update(tokens)
+        try:
+          m.update(tokens)
+        except Exception as e:
+          logging.info('Error on tokenize_blocks (3) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
         hash_time += (dt.datetime.now() - h_time).microseconds
         block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
         blocks_data.append((block_tokens, block_stats, experimental_values[i]))
@@ -341,8 +349,6 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
   else:
 
-    logging.warning('Should never be here.');
-
     (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
   
     (file_hash,lines,LOC,SLOC) = final_stats
@@ -383,7 +389,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
     my_file    = None
     file_bytes = None
     try:
-      my_file    = codecs.open(os.path.join(proj_path,file_path),'r',encoding='utf-8', errors='ignore') #open(os.path.join(proj_path,file_path),'r')
+      my_file    = io.open(os.path.join(proj_path,file_path),encoding='ascii',errors='ignore')
       file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
     except Exception as e:
       logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')' + str(e))
@@ -397,7 +403,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
 
     try:
       f_time      = dt.datetime.now()
-      file_string = my_file.read() #.encode('ascii', 'ignore')
+      file_string = my_file.read()
       file_time   += (dt.datetime.now() - f_time).microseconds
     except Exception as e:
       logging.warning('Unable to read contents of file %s. %s ' % (os.path.join(proj_path,file_path),e))
@@ -522,7 +528,7 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
 
         try:
           f_time      = dt.datetime.now()
-          file_string = my_zip_file.read().decode("utf-8")
+          file_string = my_zip_file.read().decode("utf-8",'ignore')
           file_time   += (dt.datetime.now() - f_time).microseconds
 
           times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
