@@ -954,11 +954,26 @@ public class SearchManager {
         }finally{
             SearchManager.bagsToSortQueue.shutdown();
             SearchManager.bagsToInvertedIndexQueue.shutdown();
+            try {
+                br.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return -1;
     }
 
     private void initSearchEnv() {
+        if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
+            theInstance.readAndUpdateRunMetadata();
+            File completedNodeFile = new File(SearchManager.completedNodes);
+            if (completedNodeFile.exists()) {
+                logger.debug(completedNodeFile.getAbsolutePath()
+                        + "exists, deleting it.");
+                completedNodeFile.delete();
+            }
+        }
+        
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");
         Set<Integer> searchShards = new HashSet<Integer>();
@@ -983,16 +998,6 @@ public class SearchManager {
                 this.setupSearchers(shard);
             }
             
-        }
-        
-        if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
-            theInstance.readAndUpdateRunMetadata();
-            File completedNodeFile = new File(SearchManager.completedNodes);
-            if (completedNodeFile.exists()) {
-                logger.debug(completedNodeFile.getAbsolutePath()
-                        + "exists, deleting it.");
-                completedNodeFile.delete();
-            }
         }
     }
     
