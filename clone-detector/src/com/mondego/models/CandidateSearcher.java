@@ -124,7 +124,7 @@ public class CandidateSearcher implements IListener, Runnable {
                     }
                 }
             } else {
-                logger.debug("no docs found for searchTerm: " + searchTerm);
+                //logger.debug("no docs found for searchTerm: " + searchTerm);
             }
         }
         return simMap;
