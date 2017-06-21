@@ -3,10 +3,10 @@ Created on Nov 8, 2016
 
 @author: saini
 '''
-from __future__ import absolute_import, division, print_function, unicode_literals
 import subprocess
 import sys
 import os
+import codecs
 
 class ScriptControllerException(Exception):
     pass
@@ -33,6 +33,7 @@ class ScriptController(object):
         self.script_meta_file_name = self.full_file_path("scriptinator_metadata.scc")
         self.current_state = ScriptController.STATE_EXECUTE_1  # default state
         self.previous_run_state = self.load_previous_state()
+        self.configFilename = self.full_file_path("sourcerer-cc.properties")
 
     def full_file_path(self,string):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)),string)
@@ -119,6 +120,7 @@ class ScriptController(object):
                             if self.previous_run_state > ScriptController.STATE_SEARCH:
                                 returncode = ScriptController.EXIT_SUCCESS
                             else:
+                                self.assignShardsToNodes()
                                 command = self.full_script_path("runnodes.sh", "search {nodes}".format(
                                     nodes=self.params["num_nodes_search"]))
                                 command_params = command.split()
@@ -191,6 +193,51 @@ class ScriptController(object):
         fo.close()
         fe.close()
         return returncode
+    
+    def assignShardsToNodes(self):
+        nodes=int(self.params["num_nodes_search"])
+        totalShards = 0
+        with codecs.open(self.configFilename, "r") as f:
+            for line in f:
+                line = line.strip()
+                if "LEVEL_1_SHARD_MAX_NUM_TOKENS" in line:
+                    shards = line.split(",")
+                    totalShards = len(shards)+1
+                    break
+        print("nodes are : {n}. total shards: {s}".format(n=nodes,s=totalShards))
+        if nodes <=totalShards:
+            nodesToShardIdMap = {}
+            nodeId=1
+            for shardId in range(1,totalShards+1):
+                if nodeId in nodesToShardIdMap:
+                    shards = nodesToShardIdMap[nodeId]
+                    shards.append("{sId}".format(sId=shardId))
+                    nodeId +=1
+                    if (nodeId%(nodes+1))==0:
+                        nodeId =1
+                else:
+                    shards = []
+                    shards.append("{sId}".format(sId=shardId))
+                    nodesToShardIdMap[nodeId]=shards
+            
+            for node, shards in nodesToShardIdMap.items():
+                print("{n}:{s}".format(n=node, s=",".join(shards)))
+                
+            for nodeId in range(1,nodes+1):
+                configFilePath = self.full_file_path("NODE_{id}/sourcerer-cc.properties".format(id=nodeId))
+                searchShardString = ",".join(nodesToShardIdMap[nodeId])
+                newSearchShardsString = "SEARCH_SHARDS={s}\n".format(s=searchShardString)
+                content = []
+                with codecs.open(configFilePath,"r") as f:
+                    for line in f:
+                        if "SEARCH_SHARDS=" in line:
+                            line = newSearchShardsString
+                        content.append(line)
+                with codecs.open(configFilePath,"w+") as f:
+                        for line in content:
+                            f.write(line)
+
+
 if __name__ == '__main__':
     numnodes = 2
     if len(sys.argv) > 1:

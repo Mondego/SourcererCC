@@ -876,21 +876,28 @@ public class SearchManager {
                 logger.error(e.getMessage() + " exiting");
                 System.exit(1);
             }
-            logger.info("creating indexes for "+ candidateFile.getAbsolutePath());
-            this.createIndexes(candidateFile);
-            logger.info("indexes created");
-            try {
-                TokensFileReader tfr = new TokensFileReader(
-                        SearchManager.NODE_PREFIX, queryFile,
-                        SearchManager.max_tokens, queryFileProcessor);
-                tfr.read();
-            } catch (IOException e) {
-                logger.error(e.getMessage() + " skiping to next file");
-            } catch (ParseException e) {
-                logger.error(SearchManager.NODE_PREFIX
-                        + "parseException caught. message: "
-                        + e.getMessage());
-                e.printStackTrace();
+            int completedLines = 0;
+            while(true){
+                logger.info("creating indexes for "+ candidateFile.getAbsolutePath());
+                completedLines = this.createIndexes(candidateFile,completedLines);
+                logger.info("indexes created");
+                try {
+                    TokensFileReader tfr = new TokensFileReader(
+                            SearchManager.NODE_PREFIX, queryFile,
+                            SearchManager.max_tokens, queryFileProcessor);
+                    tfr.read();
+                } catch (IOException e) {
+                    logger.error(e.getMessage() + " skiping to next file");
+                } catch (ParseException e) {
+                    logger.error(SearchManager.NODE_PREFIX
+                            + "parseException caught. message: "
+                            + e.getMessage());
+                    e.printStackTrace();
+                }
+                logger.debug("COMPLETED LINES: "+ completedLines);
+                if (completedLines==-1){
+                    break;
+                }
             }
         } catch (FileNotFoundException e) {
             logger.error(e.getMessage() + "exiting");
@@ -898,19 +905,27 @@ public class SearchManager {
         }
     }
 
-    private void createIndexes(File candidateFile) throws FileNotFoundException {
+    private int createIndexes(File candidateFile, int avoidLines) throws FileNotFoundException {
         SearchManager.invertedIndex = new HashMap<String,List<DocumentForInvertedIndex>>();
         
         BufferedReader br = new BufferedReader(new FileReader(candidateFile));
         String line="";
+        int completedLines=0;
         try {
             SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
                     this.threadsToProcessBagsToSortQueue, BagSorter.class);
             SearchManager.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(
                     this.threadToProcessIIQueue, InvertedIndexCreator.class);
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
+                completedLines++;
+                if (completedLines<=avoidLines){
+                    continue;
+                }
                 Bag bag = theInstance.cloneHelper.deserialise(line, true);
                 SearchManager.bagsToSortQueue.send(bag);
+                if (SearchManager.invertedIndex.size() >=50000){
+                    return completedLines+avoidLines;
+                }
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -940,13 +955,34 @@ public class SearchManager {
             SearchManager.bagsToSortQueue.shutdown();
             SearchManager.bagsToInvertedIndexQueue.shutdown();
         }
+        return -1;
     }
 
     private void initSearchEnv() {
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
                 "key");
+        Set<Integer> searchShards = new HashSet<Integer>();
+        String searchShardsString =  properties.getProperty("SEARCH_SHARDS","ALL");
+        if (searchShardsString.equalsIgnoreCase("ALL")){
+            searchShardsString = null;
+        }
+        if (null != searchShardsString){
+            String[] searchShardsArray =  searchShardsString.split(",");
+            for (String shardId : searchShardsArray){
+                searchShards.add(Integer.parseInt(shardId));
+            }
+        }
         for (Shard shard : SearchManager.shards) {
-            this.setupSearchers(shard);
+            if (searchShards.size()>0){
+                if (searchShards.contains(shard.getId())){
+                    this.setupSearchers(shard);
+                }
+            }
+            else{
+                // search on all shards.
+                this.setupSearchers(shard);
+            }
+            
         }
         
         if (SearchManager.NODE_PREFIX.equals("NODE_1")) {

@@ -243,7 +243,7 @@ public class Util {
     }
 
     // This cache is shared by all threads that call sortBag
-    final static Map<String, Long> cache = lruCache(500000*3);
+    final static Map<String, Long> cache = lruCache(500000);
 
     public static void sortBag(final Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
