@@ -305,7 +305,7 @@ public class CloneHelper {
                 }
                 String tokenString = bagAndTokens[1];
                 this.parseAndPopulateQueryBlock(listOfTokens,tokenString, ",", "@@::@@");
-                Util.sortList(listOfTokens);
+                //Util.sortList(listOfTokens);
                 return queryBlock;
 
             }

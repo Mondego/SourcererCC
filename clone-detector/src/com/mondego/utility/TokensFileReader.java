@@ -77,12 +77,12 @@ public class TokensFileReader {
                     && SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES > 0
                     && lineNumber
                             % SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES == 0) {
-                Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "",
-                        true);
+                //Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "",
+                 //       true);
             }
         }
         if(SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)){
-            Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "", true);
+           // Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "", true);
         }
         br.close();
     }

@@ -771,6 +771,8 @@ public class SearchManager {
     }
 
     private void doPartitions() throws InterruptedException, FileNotFoundException {
+        SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
+                "key");
         File datasetDir = new File(SearchManager.DATASET_DIR);
         if (datasetDir.isDirectory()) {
             logger.info("Directory: " + datasetDir.getAbsolutePath());
@@ -784,7 +786,7 @@ public class SearchManager {
                                 public void processLine(String line,boolean processCompleteLine)
                                         throws ParseException {
                                     if (!SearchManager.FATAL_ERROR) {
-                                        Bag bag = cloneHelper.deserialise(line,false);
+                                        Bag bag = cloneHelper.deserialise(line,true);
                                         if (null == bag || bag
                                                 .getSize() < SearchManager.min_tokens) {
                                             if (null == bag) {
@@ -802,14 +804,16 @@ public class SearchManager {
                                             }
                                             return; // ignore this bag.
                                         }
+                                        Util.sortBag(bag);
                                         List<Shard> shards = SearchManager.getShards(bag);
+                                        String bagString = bag.serialize();
                                         for (Shard shard : shards) {
-                                                Util.writeToFile(shard.candidateFileWriter, line, true);
+                                                Util.writeToFile(shard.candidateFileWriter, bagString, true);
                                                 shard.size ++;
                                         }
                                         Shard shard = SearchManager.getShardToSearch(bag);
                                         if(null!=shard){
-                                            Util.writeToFile(shard.queryFileWriter, line, true);
+                                            Util.writeToFile(shard.queryFileWriter, bagString, true);
                                         }
                                     } else {
                                         logger.fatal(
@@ -912,8 +916,8 @@ public class SearchManager {
         String line="";
         int completedLines=0;
         try {
-            SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
-                    this.threadsToProcessBagsToSortQueue, BagSorter.class);
+            //SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
+             //       this.threadsToProcessBagsToSortQueue, BagSorter.class);
             SearchManager.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(
                     this.threadToProcessIIQueue, InvertedIndexCreator.class);
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
@@ -922,7 +926,7 @@ public class SearchManager {
                     continue;
                 }
                 Bag bag = theInstance.cloneHelper.deserialise(line, true);
-                SearchManager.bagsToSortQueue.send(bag);
+                SearchManager.bagsToInvertedIndexQueue.send(bag);
                 if (SearchManager.invertedIndex.size() >=900000){
                     return completedLines+avoidLines;
                 }
@@ -952,7 +956,7 @@ public class SearchManager {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }finally{
-            SearchManager.bagsToSortQueue.shutdown();
+            //SearchManager.bagsToSortQueue.shutdown();
             SearchManager.bagsToInvertedIndexQueue.shutdown();
             try {
                 br.close();
@@ -974,8 +978,8 @@ public class SearchManager {
             }
         }
         
-        SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
-                "key");
+        //SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
+         //       "key");
         Set<Integer> searchShards = new HashSet<Integer>();
         String searchShardsString =  properties.getProperty("SEARCH_SHARDS","ALL");
         if (searchShardsString.equalsIgnoreCase("ALL")){

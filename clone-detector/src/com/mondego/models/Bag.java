@@ -3,6 +3,9 @@ package com.mondego.models;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import com.mondego.utility.Util;
 
 /**
  * 
@@ -146,6 +149,24 @@ public class Bag extends LinkedHashSet<TokenFrequency>  { // TODO: why is this
      */
     public void setNumUniqueTokens(int numUniqueTokens) {
         this.numUniqueTokens = numUniqueTokens;
+    }
+    
+    public String serialize(){
+        StringBuilder bagString = new StringBuilder();
+        StringBuilder metaData = new StringBuilder();
+        StringBuilder data = new StringBuilder();
+        String sep = "";
+        for (TokenFrequency tf : this){
+            data.append(sep).append(tf.getToken().getValue()).append("@@::@@").append(tf.getFrequency());
+            sep=",";
+        }
+        sep =",";
+        metaData.append(this.functionId).append(sep).append(this.id);
+        for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE.size(); index++) {
+            metaData.append(sep).append(this.metrics.get(Util.METRICS_ORDER_IN_INPUT_FILE.get(index)));
+        }
+        bagString.append(metaData.toString()).append("@#@").append(data.toString());
+        return bagString.toString();
     }
     
 }
