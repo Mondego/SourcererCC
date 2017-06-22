@@ -15,9 +15,6 @@ fi
 
 mkdir $rootPATH/index
 mv $rootPATH/NODE_1/index/shards/* $rootPATH/index
-mkdir $rootPATH/fwdindex
-mv $rootPATH/NODE_1/fwdindex/shards/* $rootPATH/fwdindex
-
 echo "Indexes installed"
 
 
