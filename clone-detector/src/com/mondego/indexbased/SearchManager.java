@@ -927,7 +927,7 @@ public class SearchManager {
                 }
                 Bag bag = theInstance.cloneHelper.deserialise(line, true);
                 SearchManager.bagsToInvertedIndexQueue.send(bag);
-                if (SearchManager.invertedIndex.size() >=900000){
+                if (SearchManager.invertedIndex.size() >=1000000){
                     return completedLines+avoidLines;
                 }
             }
