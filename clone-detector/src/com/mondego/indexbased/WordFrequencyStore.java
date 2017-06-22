@@ -114,7 +114,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
 
         File queryDir = new File(SearchManager.QUERY_DIR_PATH);
         if (queryDir.isDirectory()) {
-            logger.info("Directory: " + queryDir.getAbsolutePath());
+            logger.debug("Directory: " + queryDir.getAbsolutePath());
 
             this.prepareIndex();
 
@@ -155,6 +155,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
             wfmIndexWriter.commit();
             wfmIndexer = new DocumentMaker(wfmIndexWriter);
         } catch (IOException e) {
+            logger.error("error caught while gtpm indexing");
             e.printStackTrace();
         }
     }
@@ -167,9 +168,9 @@ public class WordFrequencyStore implements ITokensFileProcessor {
         for (Entry<String, Long> entry : this.wordFreq.entrySet()) {
 
             long oldfreq = wfmSearcher.getFrequency(entry.getKey());
-            if (oldfreq < 0)
+            if (oldfreq < 0){
                 oldfreq = 0;
-
+            }
             wfmIndexer.indexWFMEntry(entry.getKey(), oldfreq + entry.getValue());
             if (++count % 1000000 == 0)
                 logger.info("...flushed " + count);
