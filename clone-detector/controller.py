@@ -221,6 +221,7 @@ class ScriptController(object):
                     shards = []
                     shards.append("{sId}".format(sId=shardId))
                     nodesToShardIdMap[nodeId]=shards
+                    nodeId +=1
             
             for node, shards in nodesToShardIdMap.items():
                 print("{n}:{s}".format(n=node, s=",".join(shards)))
