@@ -120,11 +120,12 @@ class DB:
   # connection is a MySQLConnection object
   connection = None
 
-  def __init__(self, DB_user, DB_name, DB_pass, logging):
+  def __init__(self, DB_user, DB_name, DB_pass, logging, host='localhost'):
     self.DB_user = DB_user
     self.DB_name = DB_name
     self.DB_pass = DB_pass
     self.logging = logging
+    self.host    = host
 
     self.files = []
     self.files_stats = []
@@ -136,7 +137,7 @@ class DB:
 
     try:
       ## All cursors will be buffered by default
-      self.connection = mysql.connector.connect(user=self.DB_user,password=self.DB_pass,host='localhost')
+      self.connection = mysql.connector.connect(user=self.DB_user,password=self.DB_pass,host=self.host)
       
       #Causes a commit operation after each SQL statement.
       #Carefull setting autocommit to True, but it's appropriate for MyISAM, where transactions are not applicable.
