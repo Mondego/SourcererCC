@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -91,7 +92,7 @@ public class CandidateSearcher implements IListener, Runnable {
             String searchTerm = entry.getKey();
             int searchTermFreq = entry.getValue().getFrequency();
             termsSeenInQuery += searchTermFreq;
-            List<DocumentForInvertedIndex> docs = SearchManager.invertedIndex.get(searchTerm);
+            Queue<DocumentForInvertedIndex> docs = SearchManager.invertedIndex.get(searchTerm);
             if (null != docs) {
                 for (DocumentForInvertedIndex doc : docs) {
                     CandidateSimInfo simInfo = null;

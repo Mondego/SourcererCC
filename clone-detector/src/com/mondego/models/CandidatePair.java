@@ -1,16 +1,16 @@
 package com.mondego.models;
 
-import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class CandidatePair {
     QueryBlock queryBlock;
-    LinkedHashSet<TokenFrequency> candidateTokenFrequencies;
+    Set<TokenFrequency> candidateTokenFrequencies;
     CandidateSimInfo simInfo;
     int computedThreshold;
     int candidateSize;
     long candidateId;
     long functionIdCandidate;
-    public CandidatePair(QueryBlock queryBlock, LinkedHashSet<TokenFrequency> candidateTokenFrequencies,
+    public CandidatePair(QueryBlock queryBlock, Set<TokenFrequency> candidateTokenFrequencies,
             CandidateSimInfo simInfo, int computedThreshold, int candidateSize,
             long functionIdCandidate, long candidateId) {
         super();

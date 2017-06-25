@@ -24,7 +24,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -32,7 +34,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.lucene.index.IndexWriter;
 
 import com.mondego.models.Bag;
-import com.mondego.models.BagSorter;
 import com.mondego.models.CandidatePair;
 import com.mondego.models.CandidateProcessor;
 import com.mondego.models.CandidateSearcher;
@@ -40,7 +41,6 @@ import com.mondego.models.ClonePair;
 import com.mondego.models.CloneReporter;
 import com.mondego.models.CloneValidator;
 import com.mondego.models.DocumentForInvertedIndex;
-import com.mondego.models.ForwardIndexCreator;
 import com.mondego.models.ITokensFileProcessor;
 import com.mondego.models.InvertedIndexCreator;
 import com.mondego.models.QueryBlock;
@@ -134,7 +134,7 @@ public class SearchManager {
             .getLogger(SearchManager.class);
     public static boolean FATAL_ERROR;
     public static List<String> METRICS_ORDER_IN_SHARDS;
-    public static Map<String,List<DocumentForInvertedIndex>> invertedIndex;
+    public static Map<String,Queue<DocumentForInvertedIndex>> invertedIndex;
     private static int docId;
 
     public SearchManager(String[] args) throws IOException {
@@ -910,7 +910,7 @@ public class SearchManager {
     }
 
     private int createIndexes(File candidateFile, int avoidLines) throws FileNotFoundException {
-        SearchManager.invertedIndex = new HashMap<String,List<DocumentForInvertedIndex>>();
+        SearchManager.invertedIndex = new ConcurrentHashMap<String,Queue<DocumentForInvertedIndex>>();
         
         BufferedReader br = new BufferedReader(new FileReader(candidateFile));
         String line="";
@@ -928,7 +928,7 @@ public class SearchManager {
                 Bag bag = theInstance.cloneHelper.deserialise(line, true);
                 if(null!=bag){
                     SearchManager.bagsToInvertedIndexQueue.send(bag);
-                    if (SearchManager.invertedIndex.size() >=1500000){
+                    if ((completedLines % 1000000)==0){
                         return completedLines;
                     }
                 }
@@ -1031,7 +1031,7 @@ public class SearchManager {
         SearchManager.clonePairsCount += num;
     }
 
-    public static long getNextId() {
+    public static synchronized long getNextId() {
         // TODO Auto-generated method stub
         SearchManager.docId++;
         return SearchManager.docId;

@@ -1,8 +1,8 @@
 package com.mondego.models;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedHashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -103,7 +103,7 @@ public class CloneValidator implements IListener, Runnable {
         }
     }
 
-    private int updateSimilarity(QueryBlock queryBlock, LinkedHashSet<TokenFrequency> candidateTokenFrequencies,
+    private int updateSimilarity(QueryBlock queryBlock, Set<TokenFrequency> candidateTokenFrequencies,
             int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {
         int tokensSeenInCandidate = 0;
         int similarity = simInfo.similarity;

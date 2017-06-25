@@ -17,7 +17,7 @@ PIDS=""
 
 for i in $(seq 1 1 $num_nodes)
 do
-    java -Dproperties.rootDir="$rootPATH/" -Dproperties.location="$rootPATH/NODE_$i/sourcerer-cc.properties" -Dlog4j.configurationFile="$rootPATH/NODE_$i/log4j2.xml" -Xms10g -Xmx10g -XX:+UseCompressedOops -jar $rootPATH/dist/indexbased.SearchManager.jar $mode $threshold &
+    java -Dproperties.rootDir="$rootPATH/" -Dproperties.location="$rootPATH/NODE_$i/sourcerer-cc.properties" -Dlog4j.configurationFile="$rootPATH/NODE_$i/log4j2.xml" -Xms4g -Xmx4g -XX:+UseCompressedOops -jar $rootPATH/dist/indexbased.SearchManager.jar $mode $threshold &
     PIDS+="$! "
 done
 echo $PIDS

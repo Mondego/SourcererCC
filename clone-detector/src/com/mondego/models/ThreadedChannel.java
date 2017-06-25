@@ -20,7 +20,7 @@ public class ThreadedChannel<E> {
     public ThreadedChannel(int nThreads, Class clazz) {
         this.executor = Executors.newFixedThreadPool(nThreads);
         this.workerType = clazz;
-        this.semaphore = new Semaphore(nThreads + 2);
+        this.semaphore = new Semaphore(nThreads);
     }
 
     public void send(E e) throws InstantiationException, IllegalAccessException, IllegalArgumentException,
