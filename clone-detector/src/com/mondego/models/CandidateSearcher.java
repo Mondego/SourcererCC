@@ -4,11 +4,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -92,16 +90,17 @@ public class CandidateSearcher implements IListener, Runnable {
             String searchTerm = entry.getKey();
             int searchTermFreq = entry.getValue().getFrequency();
             termsSeenInQuery += searchTermFreq;
-            Queue<DocumentForInvertedIndex> docs = SearchManager.invertedIndex.get(searchTerm);
-            if (null != docs) {
-                for (DocumentForInvertedIndex doc : docs) {
+            Set<Long> docIds = SearchManager.invertedIndex.get(searchTerm);
+            if (null != docIds) {
+                for (Long docId : docIds) {
                     CandidateSimInfo simInfo = null;
-                    if (simMap.containsKey(doc.id)) {
-                        simInfo = simMap.get(doc.id);
+                    DocumentForInvertedIndex doc = SearchManager.documentsForII.get(docId);
+                    if (simMap.containsKey(docId)) {
+                        simInfo = simMap.get(docId);
                         simInfo.similarity = simInfo.similarity
                                 + Math.min(searchTermFreq, doc.termInfoMap.get(searchTerm).frequency);
                     } else {
-                        if (earlierDocs.contains(doc.id)) {
+                        if (earlierDocs.contains(docId)) {
                             continue;
                         }
                         if (doc.fId >= queryBlock.getId()) {

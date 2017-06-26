@@ -1,21 +1,12 @@
 package com.mondego.models;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.index.TieredMergePolicy;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 
 import com.mondego.indexbased.SearchManager;
 import com.mondego.utility.BlockInfo;

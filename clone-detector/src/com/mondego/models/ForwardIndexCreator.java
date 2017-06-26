@@ -1,7 +1,5 @@
 package com.mondego.models;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.apache.logging.log4j.LogManager;

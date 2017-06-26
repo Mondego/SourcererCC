@@ -9,8 +9,6 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,14 +18,10 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.lucene.document.Document;
 
-import com.mondego.indexbased.CustomCollectorFwdIndex;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.models.Bag;
-import com.mondego.models.DocumentForInvertedIndex;
 import com.mondego.models.QueryBlock;
-import com.mondego.models.Shard;
 import com.mondego.models.Token;
 import com.mondego.models.TokenFrequency;
 import com.mondego.models.TokenInfo;
@@ -181,7 +175,7 @@ public class CloneHelper {
         return returnString;
     }
 
-    public Bag deserialise(String s, boolean parseCompleteLine) throws ParseException {
+    public Bag deserialise(String s) {
         try {
             if (null != s && s.trim().length() > 0) {
                 String[] bagAndTokens = s.split("@#@");
@@ -202,15 +196,11 @@ public class CloneHelper {
                     bag.metrics.put(Util.METRICS_ORDER_IN_INPUT_FILE.get(index),
                             Long.parseLong(bagMetadata[index + 2]));
                 }
-                if (parseCompleteLine) {
-                    String tokenString = bagAndTokens[1];
-                    this.parseAndPopulateBag(bag, tokenString);
-                    return bag;
-                } else {
-                    return bag;
-                }
+                String tokenString = bagAndTokens[1];
+                this.parseAndPopulateBag(bag, tokenString);
+                return bag;
             } else {
-                throw new ParseException("parsing error at string: " + s, 0);
+                logger.warn("parsing error at string: " + s, 0);
             }
 
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -304,8 +294,8 @@ public class CloneHelper {
                     System.exit(1);
                 }
                 String tokenString = bagAndTokens[1];
-                this.parseAndPopulateQueryBlock(listOfTokens,tokenString, ",", "@@::@@");
-                //Util.sortList(listOfTokens);
+                this.parseAndPopulateQueryBlock(listOfTokens, tokenString, ",", "@@::@@");
+                // Util.sortList(listOfTokens);
                 return queryBlock;
 
             }
@@ -386,15 +376,12 @@ public class CloneHelper {
             br = new BufferedReader(new FileReader(filename));
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                bagsSet.add(this.deserialise(line, true));
+                bagsSet.add(this.deserialise(line));
             }
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
             try {

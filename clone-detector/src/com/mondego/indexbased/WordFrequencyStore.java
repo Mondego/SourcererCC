@@ -67,9 +67,9 @@ public class WordFrequencyStore implements ITokensFileProcessor {
         tfr.read();
     }
 
-    public void processLine(String line, boolean processCompleteLine) throws ParseException {
+    public void processLine(String line) throws ParseException {
 
-        Bag bag = cloneHelper.deserialise(line,processCompleteLine);
+        Bag bag = cloneHelper.deserialise(line);
 
         if (null != bag && bag.getSize() > SearchManager.min_tokens && bag.getSize() < SearchManager.max_tokens) {
             populateWordFreqMap(bag);

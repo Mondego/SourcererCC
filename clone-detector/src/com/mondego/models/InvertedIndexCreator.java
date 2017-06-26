@@ -1,10 +1,9 @@
 package com.mondego.models;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,7 +64,8 @@ public class InvertedIndexCreator implements IListener, Runnable {
             IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
         DocumentForInvertedIndex documentForII = this.documentMaker.prepareDocumentForII(bag);
-        Queue<DocumentForInvertedIndex> docs = null;
+        SearchManager.documentsForII.put(documentForII.id, documentForII);
+        Set<Long> docs = null;
         int prefixLength = documentForII.prefixSize;
         int pos = 0;
         TermInfo termInfo = null;
@@ -75,10 +75,10 @@ public class InvertedIndexCreator implements IListener, Runnable {
                 if (SearchManager.invertedIndex.containsKey(term)){
                     docs= SearchManager.invertedIndex.get(term);
                 }else{
-                    docs = new ConcurrentLinkedQueue<DocumentForInvertedIndex>();
+                    docs = new HashSet<Long>();
                     SearchManager.invertedIndex.put(term, docs);
                 }
-                docs.add(documentForII);
+                docs.add(documentForII.id);
                 termInfo = new TermInfo();
                 termInfo.frequency=tf.getFrequency();
                 termInfo.position = pos;
