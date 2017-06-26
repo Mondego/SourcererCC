@@ -835,6 +835,7 @@ public class SearchManager {
                     continue;
                 }
                 Bag bag = theInstance.cloneHelper.deserialise(line);
+                logger.debug("indexing "+ completedLines + " bag: "+ bag);
                 if (null != bag) {
                     SearchManager.bagsToInvertedIndexQueue.send(bag);
                     if ((completedLines % 1000000) == 0) {
