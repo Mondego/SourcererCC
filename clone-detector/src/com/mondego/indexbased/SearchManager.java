@@ -825,6 +825,7 @@ public class SearchManager {
         String line = "";
         long size = 0;
         long gig = 1000000000l;
+        long maxMemory = this.max_index_size*gig;
         int completedLines = 0;
         try {
             // SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
@@ -837,11 +838,11 @@ public class SearchManager {
                     continue;
                 }
                 Bag bag = theInstance.cloneHelper.deserialise(line);
-                size = size + (bag.getNumUniqueTokens() * 300); // approximate mem utilization. 1 key value pair = 300 bytes
-                logger.debug("indexing "+ completedLines + " bag: "+ bag);
                 if (null != bag) {
+                    size = size + (bag.getNumUniqueTokens() * 300); // approximate mem utilization. 1 key value pair = 300 bytes
+                    logger.debug("indexing "+ completedLines + " bag: "+ bag);
                     SearchManager.bagsToInvertedIndexQueue.send(bag);
-                    if (size >= (this.max_index_size*gig)) {
+                    if (size >= maxMemory) {
                         return completedLines;
                     }
                 }
