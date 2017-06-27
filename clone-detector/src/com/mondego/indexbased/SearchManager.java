@@ -124,6 +124,7 @@ public class SearchManager {
     public static List<Shard> shards;
     public Set<Long> completedQueries;
     private boolean isSharding;
+    private int max_index_size;
     public static String completedNodes;
     public static int totalNodes = -1;
     private static long RUN_COUNT;
@@ -820,9 +821,10 @@ public class SearchManager {
     private int createIndexes(File candidateFile, int avoidLines) throws FileNotFoundException {
         SearchManager.invertedIndex = new ConcurrentHashMap<String, Set<Long>>();
         SearchManager.documentsForII = new ConcurrentHashMap<Long, DocumentForInvertedIndex>();
-
         BufferedReader br = new BufferedReader(new FileReader(candidateFile));
         String line = "";
+        long size = 0;
+        long gig = 1000000000l;
         int completedLines = 0;
         try {
             // SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(
@@ -835,10 +837,11 @@ public class SearchManager {
                     continue;
                 }
                 Bag bag = theInstance.cloneHelper.deserialise(line);
+                size = size + (bag.getNumUniqueTokens() * 300); // approximate mem utilization. 1 key value pair = 300 bytes
                 logger.debug("indexing "+ completedLines + " bag: "+ bag);
                 if (null != bag) {
                     SearchManager.bagsToInvertedIndexQueue.send(bag);
-                    if ((completedLines % 1000000) == 0) {
+                    if (size >= (this.max_index_size*gig)) {
                         return completedLines;
                     }
                 }
@@ -913,7 +916,7 @@ public class SearchManager {
     }
 
     private void setupSearchers(Shard shard) {
-
+        this.max_index_size = Integer.parseInt(properties.getProperty("MAX_INDEX_SIZE", "12"));
         if (shard.subShards.size() > 0) {
             for (Shard subShard : shard.subShards) {
                 this.setupSearchers(subShard);

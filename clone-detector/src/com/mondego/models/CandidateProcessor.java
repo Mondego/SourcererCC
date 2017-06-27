@@ -86,10 +86,10 @@ public class CandidateProcessor implements IListener, Runnable {
             }
             CandidatePair candidatePair = null;
             if (newCt != -1) {
-                candidatePair = new CandidatePair(queryBlock, simInfo.doc.tokenFrequencies, simInfo, newCt, candidateSize,
+                candidatePair = new CandidatePair(queryBlock, simInfo, newCt, candidateSize,
                         functionIdCandidate, candidateId);
             } else {
-                candidatePair = new CandidatePair(queryBlock, simInfo.doc.tokenFrequencies, simInfo,
+                candidatePair = new CandidatePair(queryBlock, simInfo,
                         queryBlock.getComputedThreshold(), candidateSize, functionIdCandidate, candidateId);
             }
             long estimatedTime = System.nanoTime() - startTime;

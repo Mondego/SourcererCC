@@ -70,7 +70,7 @@ public class CloneValidator implements IListener, Runnable {
 
         // long start_time = System.currentTimeMillis();
         long startTime = System.nanoTime();
-        if (candidatePair.candidateTokenFrequencies != null && candidatePair.candidateTokenFrequencies.size() > 0) {
+        if (candidatePair.simInfo.doc.tokenFrequencies!= null && candidatePair.simInfo.doc.tokenFrequencies.size() > 0) {
             /*
              * if(candidatePair.queryBlock.getFunctionId()==1042 &&
              * candidatePair.queryBlock.getId()==494 &&
@@ -80,7 +80,7 @@ public class CloneValidator implements IListener, Runnable {
              * queryBlock.getId()); logger.debug("cid: "+
              * candidatePair.functionIdCandidate+","+candidatePair.candidateId);
              */
-            int similarity = this.updateSimilarity(candidatePair.queryBlock, candidatePair.candidateTokenFrequencies,
+            int similarity = this.updateSimilarity(candidatePair.queryBlock,
                     candidatePair.computedThreshold, candidatePair.candidateSize, candidatePair.simInfo);
             if (similarity > 0) {
                 ClonePair cp = new ClonePair(candidatePair.queryBlock.getFunctionId(), candidatePair.queryBlock.getId(),
@@ -103,7 +103,7 @@ public class CloneValidator implements IListener, Runnable {
         }
     }
 
-    private int updateSimilarity(QueryBlock queryBlock, Set<TokenFrequency> candidateTokenFrequencies,
+    private int updateSimilarity(QueryBlock queryBlock,
             int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {
         int tokensSeenInCandidate = 0;
         int similarity = simInfo.similarity;
@@ -116,7 +116,7 @@ public class CloneValidator implements IListener, Runnable {
          * simInfo.candidateMatchPosition); logger.debug("th: "+
          * computedThreshold); logger.debug("sim: "+ similarity);
          */
-        for (TokenFrequency tf : candidateTokenFrequencies) {
+        for (TokenFrequency tf : simInfo.doc.tokenFrequencies) {
             if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(), simInfo.queryMatchPosition, candidateSize,
                     simInfo.candidateMatchPosition, computedThreshold)) {
                 // System.out.println("sim: "+ similarity);
