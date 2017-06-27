@@ -840,7 +840,7 @@ public class SearchManager {
                 Bag bag = theInstance.cloneHelper.deserialise(line);
                 if (null != bag) {
                     size = size + (bag.getNumUniqueTokens() * 300); // approximate mem utilization. 1 key value pair = 300 bytes
-                    logger.debug("indexing "+ completedLines + " bag: "+ bag);
+                    logger.debug("indexing "+ completedLines + " bag: "+ bag + ", mem: "+size + " bytes");
                     SearchManager.bagsToInvertedIndexQueue.send(bag);
                     if (size >= maxMemory) {
                         return completedLines;
