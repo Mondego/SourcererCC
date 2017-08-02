@@ -2,86 +2,92 @@ import sys, os
 import javalang
 import logging
 import traceback
-import traceback
+import itertools
 
 def getFunctions(filestring, logging, file_path, separators):
   logging.info("Starting block-level parsing on " + file_path)
 
   method_string = []
   method_pos    = []
-  new_experimental_values = []
+  method_name = []
   tree = None
+
   try:
     tree = javalang.parse.parse( filestring )
+    package = tree.package
+    if package is None:
+      package = 'JHawkDefaultPackage'
+    else:
+      package = package.name
   except Exception as e:
     logging.warning("File " + file_path + " cannot be parsed. (1)" + str(e))
-    loggint.warning('Traceback:' + traceback.print_exc())
+    #logging.warning('Traceback:' + traceback.print_exc())
     return (None, None, [])
 
   file_string_split = filestring.split('\n')
 
-  for path, node in tree.filter(javalang.tree.MethodDeclaration):
-    #print '### path',path
-    #print '### node',node
-    (init_line,b) = node.position
-  
-    method_body = []
-    closed = 0
-    openned = 0
-    for line in file_string_split[init_line-1:]:
-      closed  += line.count('}')
-      openned += line.count('{')
-      if (closed - openned) == 0:
-        method_body.append(line)
-        break
-      else:
-        method_body.append(line)
-  
-    end_line = init_line + len(method_body) - 1
-    method_body = '\n'.join(method_body)
-  
-    method_pos.append((init_line,end_line))
-    method_string.append(method_body)
+  for path, node in tree.filter(javalang.tree.ClassDeclaration):
+    package = package+"."+node.name
 
-    ## CODE BELOW is for experimental tokenization for meta CC
-    ## Set experimental = False to remove component
-    experimental = True
-    if experimental:
-      separators_count  = 0
-      assignments_count = 0 #(=)
-      statements_count = 0
-      expressions_count = 0
-      m_tree = None
-  
-      try:
-        m_tree = javalang.parser.Parser(javalang.tokenizer.tokenize(method_body)).parse_member_declaration()
+    inner_classes = dict()
 
-        for path, node in m_tree.filter(javalang.tree.Statement):
-          statements_count += 1
+    #Methods and Class constructors
+    nodes = itertools.chain(node.filter(javalang.tree.ConstructorDeclaration), node.filter(javalang.tree.MethodDeclaration))
 
-        for path, node in m_tree.filter(javalang.tree.Expression):
-          expressions_count += 1
+    for path_m,node_m in nodes:
 
-        for line in method_body.split('\n'):
-          if ('=' in line) and ('==' not in line):
-            assignments_count += 1
+      #Handling FQN's for inner classes
+      parent_name = ''
+      if isinstance(node_m,javalang.tree.MethodDeclaration):
+        parent = path_m[:-1][-1]
+        if isinstance(parent, javalang.tree.ClassCreator):
+          if parent.type.name not in inner_classes:
+            parent_name = '$'+parent.type.name
+            inner_classes[parent.type.name] = 0
+          else:
+            parent_name = '$'+parent.type.name+'_'+str(inner_classes[parent.type.name])
+            inner_classes[parent.type.name] = inner_classes[parent.type.name]+1
 
-        for x in separators:
-          separators_count += method_body.count(x)
+      (init_line,b) = node_m.position
+      method_body = []
+      closed = 0
+      openned = 0
 
-        aux = '%s,%s,%s,%s' % (separators_count,assignments_count,statements_count,expressions_count) # String must go formatted to files_tokens
-        new_experimental_values.append(aux)
-      except Exception as e:
-        logging.warning("File " + file_path + " cannot be parsed. (2)" + str(e))
-        loggint.warning('Traceback:' + traceback.print_exc())
-        return (None,None,[])
+      args = []
+      for t in node_m.parameters:
+        dims = []
+        if len(t.type.dimensions) > 0:
+          for e in t.type.dimensions:
+            dims.append("[]")
+        dims = "".join(dims)
+        args.append(t.type.name+dims)
+      args = ",".join(args)
+
+      for line in file_string_split[init_line-1:]:
+        closed  += line.count('}')
+        openned += line.count('{')
+        if (closed - openned) == 0:
+          method_body.append(line)
+          break
+        else:
+          method_body.append(line)
+
+      end_line = init_line + len(method_body) - 1
+      method_body = '\n'.join(method_body)
+
+      method_pos.append((init_line,end_line))
+      method_string.append(method_body)
+
+      method_name.append(("%s%s.%s(%s)") % (package,parent_name,node_m.name,args))
+
+      print ("%s%s.%s(%s)") % (package,parent_name,node_m.name,args)
 
   if (len(method_pos) != len(method_string)):
     logging.warning("File " + file_path + " cannot be parsed. (3)")
-    return (None,None,new_experimental_values)
+    return (None,None,method_name)
   else:
     logging.warning("File " + file_path + " successfully parsed.")
-    return (method_pos,method_string,new_experimental_values)
+    return (method_pos,method_string,method_name)
 
 
 if __name__ == "__main__":
