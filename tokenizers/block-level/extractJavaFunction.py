@@ -25,7 +25,7 @@ def getFunctions(filestring, logging, file_path, separators):
       package = 'JHawkDefaultPackage'
     else:
       package = package.name
-      print package,'####'
+      #print package,'####'
   except Exception as e:
     logging.warning("File " + file_path + " cannot be parsed. (1)" + str(e))
     #logging.warning('Traceback:' + traceback.print_exc())
@@ -66,7 +66,7 @@ def getFunctions(filestring, logging, file_path, separators):
     args = ",".join(args)
 
     fqn = ("%s%s(%s)") % (package,name,args)
-    print "->",fqn
+    #print "->",fqn
 
     (init_line,b) = node.position
     method_body = []
