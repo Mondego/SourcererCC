@@ -1,11 +1,11 @@
 package com.mondego.models;
 
 public class QueryCandidates {
-    public QueryBlock queryBlock;
+    public Block queryBlock;
     int candidateLowerIndex;
     int candidateUpperIndex;
     
-    public QueryCandidates(QueryBlock queryBlock, int low, int high){
+    public QueryCandidates(Block queryBlock, int low, int high){
     	this.queryBlock=queryBlock;
     	this.candidateLowerIndex=low;
     	this.candidateUpperIndex=high;

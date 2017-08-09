@@ -3,13 +3,13 @@ package com.mondego.models;
 import java.util.Set;
 
 public class CandidatePair {
-    QueryBlock queryBlock;
+    Block queryBlock;
     CandidateSimInfo simInfo;
     int computedThreshold;
     int candidateSize;
     long candidateId;
     long functionIdCandidate;
-    public CandidatePair(QueryBlock queryBlock,
+    public CandidatePair(Block queryBlock,
             CandidateSimInfo simInfo, int computedThreshold, int candidateSize,
             long functionIdCandidate, long candidateId) {
         super();

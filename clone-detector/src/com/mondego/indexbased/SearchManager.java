@@ -13,7 +13,6 @@ import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -26,15 +25,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.layout.CsvParameterLayout;
 import org.apache.lucene.index.IndexWriter;
 
 import com.mondego.models.Bag;
+import com.mondego.models.Block;
 import com.mondego.models.CandidatePair;
 import com.mondego.models.CandidateProcessor;
 import com.mondego.models.CandidateSearcher;
@@ -42,15 +40,13 @@ import com.mondego.models.ClonePair;
 import com.mondego.models.CloneReporter;
 import com.mondego.models.CloneValidator;
 import com.mondego.models.DocumentForInvertedIndex;
-import com.mondego.models.ITokensFileProcessor;
-import com.mondego.models.InvertedIndexCreator;
-import com.mondego.models.QueryBlock;
 import com.mondego.models.QueryCandidates;
 import com.mondego.models.QueryFileProcessor;
 import com.mondego.models.QueryLineProcessor;
 import com.mondego.models.Shard;
 import com.mondego.models.ThreadedChannel;
 import com.mondego.noindex.CloneHelper;
+import com.mondego.utility.SocketWriter;
 import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 import com.mondego.validation.TestGson;
@@ -93,7 +89,7 @@ public class SearchManager {
 	public static double ramBufferSizeMB;
 	private long bagsSortTime;
 	public static ThreadedChannel<String> queryLineQueue;
-	public static ThreadedChannel<QueryBlock> queryBlockQueue;
+	public static ThreadedChannel<Block> queryBlockQueue;
 	public static ThreadedChannel<QueryCandidates> queryCandidatesQueue;
 	public static ThreadedChannel<CandidatePair> verifyCandidateQueue;
 	public static ThreadedChannel<ClonePair> reportCloneQueue;
@@ -136,10 +132,12 @@ public class SearchManager {
 	public static boolean FATAL_ERROR;
 	public static List<String> METRICS_ORDER_IN_SHARDS;
 	public static Map<String, Set<Long>> invertedIndex;
-	public static List<String[]> candidatesList;
+	public static List<Block> candidatesList;
 	private static int docId;
 	public static Map<Long, DocumentForInvertedIndex> documentsForII;
-	private HashMap<String,String> ijaMapping;
+	public static HashMap<String,String> ijaMapping;
+	public static Set<String> clonePairs;
+	public static SocketWriter socketWriter;
 
 	public SearchManager(String[] args) throws IOException {
 		SearchManager.clonePairsCount = 0;
@@ -157,6 +155,7 @@ public class SearchManager {
 		SearchManager.statusCounter = 0;
 		SearchManager.globalWordFreqMap = new HashMap<String, Long>();
 		this.ijaMapping=new HashMap<String,String>();
+		this.clonePairs = new HashSet<String>();
 		try {
 
 			SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
@@ -188,7 +187,7 @@ public class SearchManager {
 					+ this.qbq_thread_count + " QCQ_THREADS: " + this.qcq_thread_count + " VCQ_THREADS: "
 					+ this.vcq_thread_count + " RCQ_THREADS: " + this.rcq_thread_count + System.lineSeparator());
 			SearchManager.queryLineQueue = new ThreadedChannel<String>(this.qlq_thread_count, QueryLineProcessor.class);
-			SearchManager.queryBlockQueue = new ThreadedChannel<QueryBlock>(this.qbq_thread_count,
+			SearchManager.queryBlockQueue = new ThreadedChannel<Block>(this.qbq_thread_count,
 					CandidateSearcher.class);
 			SearchManager.queryCandidatesQueue = new ThreadedChannel<QueryCandidates>(this.qcq_thread_count,
 					CandidateProcessor.class);
@@ -435,7 +434,7 @@ public class SearchManager {
 
 			// logger.info(NODE_PREFIX + " Starting to search");
 			// theInstance.populateCompletedQueries();
-			// theInstance.findCandidates();
+			// theInstanceCandidates();
 
 			SearchManager.queryLineQueue.shutdown();
 			logger.info("shutting down QLQ, " + System.currentTimeMillis());
@@ -463,8 +462,8 @@ public class SearchManager {
 				}
 			}
 		} else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_INIT)) {
-			WordFrequencyStore wfs = new WordFrequencyStore();
-			wfs.populateLocalWordFreqMap();
+			//WordFrequencyStore wfs = new WordFrequencyStore();
+			//wfs.populateLocalWordFreqMap();
 		}
 		long estimatedTime = System.nanoTime() - start_time;
 		logger.info("Total run Time: " + (estimatedTime / 1000) + " micors");
@@ -486,7 +485,7 @@ public class SearchManager {
 
 	private void loadIjaMap() {
 		String inputIjaMappingPath = properties.getProperty("MAPPING_FILE");
-		BufferedReader bfIjaMapping;
+		BufferedReader bfIjaMapping = null;
 		try {
 			bfIjaMapping = new BufferedReader(new FileReader(Paths.get(inputIjaMappingPath).toString()));
 			String line = "";
@@ -498,13 +497,19 @@ public class SearchManager {
 					ijaMapping.put(lineSplitted[0], lineSplitted[1]);
 				}
 			}
-			logger.debug("ija mapping read complete");
+			logger.debug("ija mapping read complete, size: "+ SearchManager.ijaMapping.size());
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}finally{
+			try{
+				bfIjaMapping.close();
+			}catch(Exception e){
+				
+			}
 		}
 	}
 
@@ -889,7 +894,7 @@ public class SearchManager {
 	private int createIndexes(File candidateFile, int avoidLines) throws FileNotFoundException {
 		//SearchManager.invertedIndex = new ConcurrentHashMap<String, Set<Long>>();
 		//SearchManager.documentsForII = new ConcurrentHashMap<Long, DocumentForInvertedIndex>();
-		SearchManager.candidatesList = new ArrayList<String[]>();
+		SearchManager.candidatesList = new ArrayList<Block>();
 		BufferedReader br = new BufferedReader(new FileReader(candidateFile));
 		String line = "";
 		//long size = 0;
@@ -906,7 +911,7 @@ public class SearchManager {
 				if (completedLines <= avoidLines) {
 					continue;
 				}
-				SearchManager.candidatesList.add(line.split("~~"));
+				SearchManager.candidatesList.add(new Block(line));
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -928,6 +933,10 @@ public class SearchManager {
 	}
 
 	private void initSearchEnv() {
+		SearchManager.socketWriter = new SocketWriter(Integer.parseInt(properties.getProperty("PORT")), properties.getProperty("ADDRESS"));
+		SearchManager.socketWriter.openSocketForWriting();
+		theInstance.loadIjaMap();
+		theInstance.loadCloneLabels();
 		if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
 			theInstance.readAndUpdateRunMetadata();
 			File completedNodeFile = new File(SearchManager.completedNodes);
@@ -961,6 +970,29 @@ public class SearchManager {
 			}
 
 		}
+		SearchManager.socketWriter.closeSocket();
+	}
+
+	private void loadCloneLabels() {
+		String clonePairs = properties.getProperty("CLONE_PAIRS_FILE");
+		BufferedReader br;
+		try {
+			br = new BufferedReader(new FileReader(Paths.get(clonePairs).toString()));
+			String line = "";
+			while ((line = br.readLine()) != null) {// insert methods
+																// having more than
+																// 25 tokens
+				SearchManager.clonePairs.add(line);
+			}
+			logger.debug("clonepairs read complete, size: "+ SearchManager.clonePairs.size());
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	private void setupSearchers(Shard shard) {

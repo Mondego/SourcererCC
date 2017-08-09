@@ -103,7 +103,7 @@ public class CloneValidator implements IListener, Runnable {
         }
     }
 
-    private int updateSimilarity(QueryBlock queryBlock,
+    private int updateSimilarity(Block queryBlock,
             int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {
         int tokensSeenInCandidate = 0;
         int similarity = simInfo.similarity;
@@ -116,38 +116,7 @@ public class CloneValidator implements IListener, Runnable {
          * simInfo.candidateMatchPosition); logger.debug("th: "+
          * computedThreshold); logger.debug("sim: "+ similarity);
          */
-        for (TokenFrequency tf : simInfo.doc.tokenFrequencies) {
-            if (Util.isSatisfyPosFilter(similarity, queryBlock.getSize(), simInfo.queryMatchPosition, candidateSize,
-                    simInfo.candidateMatchPosition, computedThreshold)) {
-                // System.out.println("sim: "+ similarity);
-                tokensSeenInCandidate += tf.getFrequency();
-                // logger.debug("cttseen: "+ tokensSeenInCandidate);
-                if (tokensSeenInCandidate > simInfo.candidateMatchPosition) {
-                    simInfo.candidateMatchPosition = tokensSeenInCandidate;
-                    matchFound = false;
-                    if (simInfo.queryMatchPosition < queryBlock.getPrefixMapSize()) {
-                        // check in prefix
-                        if (queryBlock.getPrefixMap().containsKey(tf.getToken().getValue())) {
-                            matchFound = true;
-                            tokenInfo = queryBlock.getPrefixMap().get(tf.getToken().getValue());
-                            similarity = updateSimilarityHelper(simInfo, tokenInfo, similarity, tf.getFrequency(),
-                                    tf.getToken().getValue());
-                        }
-                    }
-                    // check in suffix
-                    if (!matchFound && queryBlock.getSuffixMap().containsKey(tf.getToken().getValue())) {
-                        tokenInfo = queryBlock.getSuffixMap().get(tf.getToken().getValue());
-                        similarity = updateSimilarityHelper(simInfo, tokenInfo, similarity, tf.getFrequency(),
-                                tf.getToken().getValue());
-                    }
-                    if (similarity >= computedThreshold) {
-                        return similarity;
-                    }
-                }
-            } else {
-                break;
-            }
-        }
+        
         return -1;
     }
 

@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
 import com.mondego.models.Bag;
-import com.mondego.models.QueryBlock;
+import com.mondego.models.Block;
 import com.mondego.models.Token;
 import com.mondego.models.TokenFrequency;
 import com.mondego.models.TokenInfo;

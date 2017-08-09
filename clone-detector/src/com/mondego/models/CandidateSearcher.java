@@ -16,10 +16,10 @@ import com.mondego.indexbased.SearchManager;
 import com.mondego.utility.Util;
 
 public class CandidateSearcher implements IListener, Runnable {
-	private QueryBlock queryBlock;
+	private Block queryBlock;
 	private static final Logger logger = LogManager.getLogger(CandidateSearcher.class);
 
-	public CandidateSearcher(QueryBlock queryBlock) {
+	public CandidateSearcher(Block queryBlock) {
 		// TODO Auto-generated constructor stub
 		this.queryBlock = queryBlock;
 	}
@@ -67,7 +67,7 @@ public class CandidateSearcher implements IListener, Runnable {
 		}
 	}
 
-	private void searchCandidates(QueryBlock queryBlock)
+	private void searchCandidates(Block queryBlock)
 			throws IOException, InterruptedException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		long startTime = System.nanoTime();
@@ -83,7 +83,7 @@ public class CandidateSearcher implements IListener, Runnable {
 
 	private int getLowerIndex() {
 		double lowerRange = this.queryBlock.getComputedThreshold();
-		Double uniqueTokens = Double.parseDouble(SearchManager.candidatesList.get(0)[7]);
+		int uniqueTokens = SearchManager.candidatesList.get(0).getNumUniqueTokens();
 		if (uniqueTokens < lowerRange) {
 			int low = 0;
 			int high = SearchManager.candidatesList.size() - 1;
@@ -91,7 +91,7 @@ public class CandidateSearcher implements IListener, Runnable {
 			int bestLow = -1;
 			while (low <= high) {
 				mid = (low + high) / 2;
-				uniqueTokens = Double.parseDouble(SearchManager.candidatesList.get(mid)[7]);
+				uniqueTokens = SearchManager.candidatesList.get(mid).getNumUniqueTokens();
 				if (uniqueTokens > lowerRange) {
 					high = mid - 1;
 				} else if (uniqueTokens <= lowerRange) {
@@ -103,9 +103,9 @@ public class CandidateSearcher implements IListener, Runnable {
 					break;
 				}
 			}
-			double tempUniqueTokens = Double.parseDouble(SearchManager.candidatesList.get(bestLow)[7]);
+			int tempUniqueTokens = SearchManager.candidatesList.get(bestLow).getNumUniqueTokens();
 			int index = --bestLow;
-			while (index > -1 && Double.parseDouble(SearchManager.candidatesList.get(index)[7]) == tempUniqueTokens) {
+			while (index > -1 && SearchManager.candidatesList.get(index).getNumUniqueTokens() == tempUniqueTokens) {
 				index--;
 			}
 			return ++index;
@@ -115,8 +115,7 @@ public class CandidateSearcher implements IListener, Runnable {
 
 	private int getHigherIndex() {
 		double higherRange = this.queryBlock.getMaxCandidateSize();
-		Double uniqueTokens = Double
-				.parseDouble(SearchManager.candidatesList.get(SearchManager.candidatesList.size() - 1)[7]);
+		int uniqueTokens = SearchManager.candidatesList.get(SearchManager.candidatesList.size() - 1).getNumUniqueTokens();
 		if (uniqueTokens > higherRange) {
 			int low = 0;
 			int high = SearchManager.candidatesList.size() - 1;
@@ -124,10 +123,10 @@ public class CandidateSearcher implements IListener, Runnable {
 			int bestHigh = -1;
 			while (low <= high) {
 				mid = (low + high) / 2;
-				if (Double.parseDouble(SearchManager.candidatesList.get(mid)[7]) >= higherRange) {
+				if (SearchManager.candidatesList.get(mid).getNumUniqueTokens() >= higherRange) {
 					bestHigh = mid;
 					high = mid - 1;
-				} else if (Double.parseDouble(SearchManager.candidatesList.get(mid)[7]) < higherRange) {
+				} else if (SearchManager.candidatesList.get(mid).getNumUniqueTokens() < higherRange) {
 					low = mid + 1;
 				} else {
 					// medians are equal
@@ -135,10 +134,10 @@ public class CandidateSearcher implements IListener, Runnable {
 					break;
 				}
 			}
-			double temp = Double.parseDouble(SearchManager.candidatesList.get(bestHigh)[7]);
+			double temp = SearchManager.candidatesList.get(bestHigh).getNumUniqueTokens();
 			int index = ++bestHigh;
 			while (index < SearchManager.candidatesList.size()
-					&& Double.parseDouble(SearchManager.candidatesList.get(index)[7]) == temp) {
+					&& SearchManager.candidatesList.get(index).getNumUniqueTokens() == temp) {
 				index++;
 			}
 			return --index;

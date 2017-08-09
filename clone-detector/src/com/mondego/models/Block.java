@@ -16,27 +16,27 @@ import com.mondego.utility.BlockInfo;
  * @author vaibhavsaini
  *
  */
-public class QueryBlock {
-    private long id; // file id
-    private int size;  // num tokens
-    private long functionId; // project id
-    private int prefixSize;
-    private int computedThreshold;
-    private int maxCandidateSize;
-    private int numUniqueTokens;
-    private String projectName;
-    private String fileName;
-    private int startLine;
-    private int endLine;
-    private List<Double> metrics;
-    private String fqmn;
-    private long rowId;
+public class Block {
+    public long id; // file id
+    public int size;  // num tokens
+    public long functionId; // project id
+    public int prefixSize;
+    public int computedThreshold;
+    public int maxCandidateSize;
+    public int numUniqueTokens;
+    public String projectName;
+    public String fileName;
+    public int startLine;
+    public int endLine;
+    public List<Double> metrics;
+    public String fqmn;
+    public long rowId;
 
     /**
      * @param id
      * @param size
      */
-    public QueryBlock(String rawQuery) {
+    public Block(String rawQuery) {
         this.populateMetrics(rawQuery);
         
     }
@@ -55,7 +55,7 @@ public class QueryBlock {
     	this.size = Integer.parseInt(columns[6]);
     	this.numUniqueTokens = Integer.parseInt(columns[7]);
     	this.functionId = Integer.parseInt(columns[8]);
-    	this.id = Integer.parseInt(columns[9]);
+    	this.id = Long.parseLong(columns[9]);
     	this.metrics = new ArrayList<Double>();
     	for (int i=10;i<columns.length;i++){
     		this.metrics.add(Double.parseDouble(columns[i]));
@@ -115,11 +115,15 @@ public class QueryBlock {
     }
 
     @Override
-    public String toString() {
-        return this.getFunctionId() + "," + this.getId() + "," + this.getSize() + ","+ this.getNumUniqueTokens();
-    }
+	public String toString() {
+		return "Block [id=" + id + ", size=" + size + ", functionId=" + functionId + ", prefixSize=" + prefixSize
+				+ ", computedThreshold=" + computedThreshold + ", maxCandidateSize=" + maxCandidateSize
+				+ ", numUniqueTokens=" + numUniqueTokens + ", projectName=" + projectName + ", fileName=" + fileName
+				+ ", startLine=" + startLine + ", endLine=" + endLine + ", metrics=" + metrics + ", fqmn=" + fqmn
+				+ ", rowId=" + rowId + "]";
+	}
 
-    private long getSize() {
+    public long getSize() {
 		return this.size;
 	}
 

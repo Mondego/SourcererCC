@@ -21,7 +21,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-import com.mondego.models.QueryBlock;
+import com.mondego.models.Block;
 import com.mondego.models.TokenInfo;
 import com.mondego.noindex.CloneHelper;
 
@@ -65,32 +65,10 @@ public class CodeSearcher {
                 analyzer);
     }
 
-    public void search(QueryBlock queryBlock, TermSearcher termSearcher)
+    public void search(Block queryBlock, TermSearcher termSearcher)
             throws IOException {
         // List<String> tfsToRemove = new ArrayList<String>();
-        termSearcher.setReader(this.reader);
-        // System.out.println("setting reader: "+this.reader +
-        // Util.debug_thread());
-        termSearcher.setQuerySize(queryBlock.getSize());
-        termSearcher.setComputedThreshold(queryBlock.getComputedThreshold());
-        int termsSeenInQuery = 0;
-        StringBuilder prefixTerms = new StringBuilder();
-        for (Entry<String, TokenInfo> entry : queryBlock.getPrefixMap()
-                .entrySet()) {
-	    Query query = null;
-            try {
-                prefixTerms.append(entry.getKey() + " ");
-                synchronized (this) {
-                    query = queryParser.parse("\"" + entry.getKey() + "\"");
-                }
-                termSearcher.setSearchTerm(query.toString(this.field));
-                termSearcher.setFreqTerm(entry.getValue().getFrequency());
-                termsSeenInQuery += entry.getValue().getFrequency();
-                termSearcher.searchWithPosition(termsSeenInQuery);
-            } catch (org.apache.lucene.queryparser.classic.ParseException e) {
-                logger.warn("cannot parse " + entry.getKey() );
-            }
-        }
+        
     }
 
     public CustomCollectorFwdIndex search(Document doc) throws IOException {

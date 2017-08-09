@@ -29,7 +29,7 @@ public class QueryLineProcessor implements Runnable {
         long startTime = System.nanoTime();
         try {
         	
-            QueryBlock queryBlock = new QueryBlock(line);
+            Block queryBlock = new Block(line);
             if (queryBlock == null)
                 return;
             
