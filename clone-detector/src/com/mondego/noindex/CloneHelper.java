@@ -260,7 +260,7 @@ public class CloneHelper {
      * 0); }
      */
 
-    public QueryBlock getSortedQueryBlock(String s, List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
+    /*public QueryBlock getSortedQueryBlock(String s, List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
         try {
             if (null != s && s.trim().length() > 0) {
                 String[] bagAndTokens = s.split("@#@");
@@ -305,7 +305,7 @@ public class CloneHelper {
             logger.error(e.getMessage() + ", ignoring query: " + s);
         }
         throw new ParseException("parsing error", 0);
-    }
+    }*/
 
     private void parseAndPopulateQueryBlock(List<Entry<String, TokenInfo>> listOfTokens, String inputString,
             String delimeterTokenFreq, String delimeterTokenAndFreq) {

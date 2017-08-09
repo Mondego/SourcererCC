@@ -1,8 +1,13 @@
 package com.mondego.models;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -97,6 +102,38 @@ public class Shard {
             Util.closeOutputFile(this.queryFileWriter);
             logger.info("Shard size: "+ this.size+", Shard Path: "+this.indexPath);
         }
+    }
+    
+    public void sort(){
+    	String shardFolderPath = SearchManager.ROOT_DIR
+                + SearchManager.NODE_PREFIX + "/index/shards/" + this.indexPath;
+    	File candidateFile =  new File(shardFolderPath+"/candidates.file");
+    	BufferedReader br = null;
+    	List<String> candidates = new ArrayList<String>();
+        try {
+			br = new BufferedReader(new FileReader(candidateFile));
+			String line=null;
+			while ((line = br.readLine()) != null) {
+				candidates.add(line);
+			}
+			candidates.sort(new Comparator<String>(){
+
+				@Override
+				public int compare(String arg0, String arg1) {
+					String[] columns0 = arg0.split("~~");
+					String[] columns1 = arg1.split("~~");
+					return Integer.valueOf(columns0[7])-Integer.valueOf(columns1[7]); // based on tokens
+				}
+			});
+			this.candidateFileWriter = Util.openFile(candidateFile, false);
+			for (String row : candidates){
+				Util.writeToFile(this.candidateFileWriter, row, true);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 
     /* (non-Javadoc)

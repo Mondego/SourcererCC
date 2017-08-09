@@ -1,9 +1,14 @@
 package com.mondego.models;
 
-import java.util.Map;
-
 public class QueryCandidates {
-    Map<Long, CandidateSimInfo> simMap;
     public QueryBlock queryBlock;
+    int candidateLowerIndex;
+    int candidateUpperIndex;
+    
+    public QueryCandidates(QueryBlock queryBlock, int low, int high){
+    	this.queryBlock=queryBlock;
+    	this.candidateLowerIndex=low;
+    	this.candidateUpperIndex=high;
+    }
 
 }

@@ -32,49 +32,15 @@ public class TokensFileReader {
         String line;
         long lineNumber = 0;
         char[] buf = new char[40];
-        while (br.read(buf, 0, 40) != -1) {
-            if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)
-                    && lineNumber < SearchManager.QUERY_LINES_TO_IGNORE) {
-                logger.debug("RECOVERY: ignoring this line, as it was covered in previous run");
-                while (((char) br.read()) != '\n') {
-                    ; // ignore the line
-                }
-                lineNumber++;
-                continue;
-            }
-            String prefix = new String(buf);
-            String[] parts = prefix.split(",");
-            int ntokens = Integer.parseInt(parts[2]);
-
-            if (ntokens > this.maxTokens) {
-                logger.debug(
-                        this.nodeId + " RL, file " + parts[1] + ", " + ntokens + " tokens is too big. Ignoring...");
-                while (((char) br.read()) != '\n')
-                    ;
-            } else {
-                long startTime = System.nanoTime();
-
-                if ((line = br.readLine()) != null && line.trim().length() > 0) {
-                    long estimatedTime = System.nanoTime() - startTime;
-                    logger.debug(this.nodeId + " RL " + lineNumber + ", file " + prefix + " in " + estimatedTime / 1000
-                            + " micros");
-                    this.processor.processLine(prefix + line);
-
-                }
-            }
-            lineNumber++;
-            if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)
-                    && SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES > 0
-                    && lineNumber % SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES == 0) {
-                // Util.writeToFile(SearchManager.recoveryWriter, lineNumber +
-                // "",
-                // true);
-            }
+        while ((line = br.readLine()) != null) {
+        	this.processor.processLine(line);
         }
-        if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)) {
-            // Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "",
-            // true);
+        lineNumber++;
+        try{
+        	br.close();
+        }catch(Exception e){
+        	logger.error(e.getMessage());
         }
-        br.close();
+        
     }
 }

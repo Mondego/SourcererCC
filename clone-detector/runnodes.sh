@@ -5,8 +5,8 @@ rootPATH=`dirname $scriptPATH`
 echo $rootPATH
 ant -buildfile $rootPATH/build.xml clean cdi
 mode="${1:-search}"
-num_nodes="${2:-50}"
-threshold="${3:-8}"
+num_nodes="${2:-1}"
+threshold="${3:-7}"
 echo "*****************************************************"
 echo "running this script in $mode mode"
 echo "*****************************************************"
