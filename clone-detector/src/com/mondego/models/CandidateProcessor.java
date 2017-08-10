@@ -64,15 +64,29 @@ public class CandidateProcessor implements IListener, Runnable {
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
     		//CandidatePair candidatePair = new CandidatePair(queryBlock, simInfo, computedThreshold, candidateSize, functionIdCandidate, candidateId)
     	logger.debug("num candidates before: "+ (this.qc.candidateUpperIndex-this.qc.candidateLowerIndex));
+    	
+    	
     	if (SearchManager.ijaMapping.containsKey(this.qc.queryBlock.fqmn)){
     		logger.debug("num candidates: "+ (this.qc.candidateUpperIndex-this.qc.candidateLowerIndex));
     		for (int i=this.qc.candidateLowerIndex;i<=this.qc.candidateUpperIndex;i++){
+    			long startTime = System.nanoTime();
     			Block candidateBlock = SearchManager.candidatesList.get(i);
     			if(candidateBlock.rowId < this.qc.queryBlock.rowId){
     				if(candidateBlock.size>=this.qc.queryBlock.computedThreshold && candidateBlock.size<=this.qc.queryBlock.maxCandidateSize){
     					if(SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)){ // check if candidate's fqmn is in the map
     						//SearchManager.reportCloneQueue.send(cp);
-    						this.writeToSocket(this.getLineToWrite(qc.queryBlock, candidateBlock));
+    						String [] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
+    						String line = this.getLineToSend(features);
+    						long estimatedTime = System.nanoTime() - startTime;
+    						logger.debug(SearchManager.NODE_PREFIX + " CloneProcessor, Processing time for Candidate " + candidateBlock + " in "
+    		                        + estimatedTime / 1000 + " micros");
+    						try{
+    				        	SearchManager.reportCloneQueue.send(new ClonePair(line));
+    				            //SearchManager.socketWriter.writeToSocket(line);
+    				        }
+    				        catch (Exception e){
+    				            e.printStackTrace();
+    				        }
         				}
         			}
     			}
@@ -113,19 +127,13 @@ public class CandidateProcessor implements IListener, Runnable {
     private Double roundTwoDecimal(double param){
         return Double.valueOf(Math.round(param*100.0)/100.0);
     }
-    private void writeToSocket(String[] lineParams){
+    private String getLineToSend(String[] lineParams){
         String line="";
         for (int i = 0; i <lineParams.length ; i++) {
             line+=lineParams[i]+"~~";
         }
         line=line.substring(0,line.length()-2);//changed to 2 becasue ~~ has to chars
-        try{
-        	SearchManager.reportCloneQueue.send(new ClonePair(line));
-            //SearchManager.socketWriter.writeToSocket(line);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+        return line;
     }
 
 }
