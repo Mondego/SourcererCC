@@ -34,9 +34,9 @@ public class TokensFileReader {
         char[] buf = new char[40];
         while ((line = br.readLine()) != null) {
         	this.processor.processLine(line);
+        	lineNumber++;
+            logger.debug("queries processed: "+ lineNumber);
         }
-        lineNumber++;
-        logger.debug("queries processed: "+ lineNumber);
         try{
         	br.close();
         }catch(Exception e){
