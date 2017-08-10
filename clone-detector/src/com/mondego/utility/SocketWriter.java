@@ -34,7 +34,7 @@ public class SocketWriter {
 			socket = new Socket(this.address,this.port);
 			System.out.println("connected.");
 			os = socket.getOutputStream();
-			pwrite = new BufferedWriter(new OutputStreamWriter(os,StandardCharsets.UTF_8), 1024*1000*1000*2);
+			pwrite = new BufferedWriter(new OutputStreamWriter(os,StandardCharsets.UTF_8), 1024*1000*1000*4);
 			//pwrite = new PrintWriter(new OutputStreamWriter(os,StandardCharsets.UTF_8), false);
 			
 		}catch(Exception e)

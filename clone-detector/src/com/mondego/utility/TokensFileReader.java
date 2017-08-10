@@ -36,6 +36,7 @@ public class TokensFileReader {
         	this.processor.processLine(line);
         }
         lineNumber++;
+        logger.debug("queries processed: "+ lineNumber);
         try{
         	br.close();
         }catch(Exception e){
