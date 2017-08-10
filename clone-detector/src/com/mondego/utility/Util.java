@@ -105,11 +105,11 @@ public class Util {
                 e.printStackTrace();
             }
         }
-        try {
+        /*try {
             pWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     /**
@@ -123,7 +123,7 @@ public class Util {
             throws IOException {
         try {
             Writer pWriter = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(filename, append), "UTF-8"));
+                    new FileOutputStream(filename, append), "UTF-8"),1024*1000*1000*2);
             return pWriter;
 
         } catch (IOException e) {

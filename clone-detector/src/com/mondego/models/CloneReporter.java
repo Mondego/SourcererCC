@@ -35,11 +35,11 @@ public class CloneReporter implements IListener, Runnable {
          * SearchManager.verifyCandidateQueue.size()+ ", RCQ: "+
          * SearchManager.reportCloneQueue.size() );
          */
-        long startTime = System.nanoTime();
+        //long startTime = System.nanoTime();
         SearchManager.updateClonePairsCount(1);
-        Util.writeToFile(SearchManager.clonesWriter, cp.toString(), true);
-        long estimatedTime = System.nanoTime() - startTime;
-        logger.debug(SearchManager.NODE_PREFIX + " CloneReporter, ClonePair " + cp + " in " + estimatedTime/1000 + " micros");
+        Util.writeToFile(SearchManager.clonesWriter, cp.outline, true);
+        //long estimatedTime = System.nanoTime() - startTime;
+        //logger.debug(SearchManager.NODE_PREFIX + " CloneReporter, ClonePair " + cp + " in " + estimatedTime/1000 + " micros");
         cp = null;
         
     }

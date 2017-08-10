@@ -69,12 +69,14 @@ public class CandidateProcessor implements IListener, Runnable {
     		for (int i=this.qc.candidateLowerIndex;i<=this.qc.candidateUpperIndex;i++){
     			Block candidateBlock = SearchManager.candidatesList.get(i);
     			if(candidateBlock.rowId < this.qc.queryBlock.rowId){
-    				if(SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)){ // check if candidate's fqmn is in the map
-    					this.writeToSocket(this.getLineToWrite(qc.queryBlock, candidateBlock));
-    				}
+    				if(candidateBlock.size>=this.qc.queryBlock.computedThreshold && candidateBlock.size<=this.qc.queryBlock.maxCandidateSize){
+    					if(SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)){ // check if candidate's fqmn is in the map
+    						//SearchManager.reportCloneQueue.send(cp);
+    						this.writeToSocket(this.getLineToWrite(qc.queryBlock, candidateBlock));
+        				}
+        			}
     			}
     		}
-    		
     	//SearchManager.verifyCandidateQueue.send(candidatePair);
         }
     }
@@ -118,8 +120,8 @@ public class CandidateProcessor implements IListener, Runnable {
         }
         line=line.substring(0,line.length()-2);//changed to 2 becasue ~~ has to chars
         try{
-        	
-            SearchManager.socketWriter.writeToSocket(line);
+        	SearchManager.reportCloneQueue.send(new ClonePair(line));
+            //SearchManager.socketWriter.writeToSocket(line);
         }
         catch (Exception e){
             e.printStackTrace();
