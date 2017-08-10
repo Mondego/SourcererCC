@@ -69,6 +69,7 @@ public class Block {
     	}catch (ArrayIndexOutOfBoundsException e){
     		
     		logger.error(e.getMessage()+", "+rawQuery);
+    		System.exit(1);
     	}
     	
     }
