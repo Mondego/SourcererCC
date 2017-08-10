@@ -76,21 +76,24 @@ public class CandidateProcessor implements IListener, Runnable {
     						candidateBlock.size<=this.qc.queryBlock.maxCandidateSize){
     					if(candidateBlock.metrics.get(2)>=this.qc.queryBlock.minNOS && 
     							candidateBlock.metrics.get(2)<=this.qc.queryBlock.maxNOS){
-    						if(SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)){ // check if candidate's fqmn is in the map
-        						//SearchManager.reportCloneQueue.send(cp);
-        						String [] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
-        						String line = this.getLineToSend(features);
-        						//long estimatedTime = System.nanoTime() - startTime;
-        						//logger.debug(SearchManager.NODE_PREFIX + " CloneProcessor, Processing time for Candidate " + candidateBlock + " in "
-        		                 //       + estimatedTime / 1000 + " micros");
-        						try{
-        				        	//SearchManager.reportCloneQueue.send(new ClonePair(line));
-        				            SearchManager.socketWriter.writeToSocket(line);
-        				        }
-        				        catch (Exception e){
-        				            e.printStackTrace();
-        				        }
-            				}
+    						if(candidateBlock.metrics.get(25)>=this.qc.queryBlock.minNEXP && 
+        							candidateBlock.metrics.get(25)<=this.qc.queryBlock.maxNEXP){
+    							if(SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)){ // check if candidate's fqmn is in the map
+            						//SearchManager.reportCloneQueue.send(cp);
+            						String [] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
+            						String line = this.getLineToSend(features);
+            						//long estimatedTime = System.nanoTime() - startTime;
+            						//logger.debug(SearchManager.NODE_PREFIX + " CloneProcessor, Processing time for Candidate " + candidateBlock + " in "
+            		                 //       + estimatedTime / 1000 + " micros");
+            						try{
+            				        	//SearchManager.reportCloneQueue.send(new ClonePair(line));
+            				            SearchManager.socketWriter.writeToSocket(line);
+            				        }
+            				        catch (Exception e){
+            				            e.printStackTrace();
+            				        }
+                				}
+    						}
     					}
         			}
     			}

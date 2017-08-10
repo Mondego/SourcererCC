@@ -33,6 +33,8 @@ public class Block {
     public long rowId;
     public int minNOS;
     public int maxNOS;
+    public int minNEXP;
+    public int maxNEXP;
     private static final Logger logger = LogManager.getLogger(Block.class);
     /**
      * @param id
@@ -68,6 +70,10 @@ public class Block {
                     .getMaximumSimilarityThreshold(this.numUniqueTokens, SearchManager.th));
             this.maxNOS = BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
             this.minNOS = BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
+            
+            this.maxNEXP = BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(25), SearchManager.th);
+            this.minNEXP = BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(25), SearchManager.th);
+            
     	}catch (ArrayIndexOutOfBoundsException e){
     		
     		logger.error(e.getMessage()+", "+rawQuery);
