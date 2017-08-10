@@ -933,8 +933,8 @@ public class SearchManager {
 	}
 
 	private void initSearchEnv() {
-		//SearchManager.socketWriter = new SocketWriter(Integer.parseInt(properties.getProperty("PORT")), properties.getProperty("ADDRESS"));
-		//SearchManager.socketWriter.openSocketForWriting();
+		SearchManager.socketWriter = new SocketWriter(Integer.parseInt(properties.getProperty("PORT")), properties.getProperty("ADDRESS"));
+		SearchManager.socketWriter.openSocketForWriting();
 		theInstance.loadIjaMap();
 		theInstance.loadCloneLabels();
 		if (SearchManager.NODE_PREFIX.equals("NODE_1")) {

@@ -69,7 +69,7 @@ public class CandidateProcessor implements IListener, Runnable {
     	if (SearchManager.ijaMapping.containsKey(this.qc.queryBlock.fqmn)){
     		logger.debug("num candidates: "+ (this.qc.candidateUpperIndex-this.qc.candidateLowerIndex));
     		for (int i=this.qc.candidateLowerIndex;i<=this.qc.candidateUpperIndex;i++){
-    			long startTime = System.nanoTime();
+    			//long startTime = System.nanoTime();
     			Block candidateBlock = SearchManager.candidatesList.get(i);
     			if(candidateBlock.rowId < this.qc.queryBlock.rowId){
     				if(candidateBlock.size>=this.qc.queryBlock.computedThreshold && candidateBlock.size<=this.qc.queryBlock.maxCandidateSize){
@@ -77,12 +77,12 @@ public class CandidateProcessor implements IListener, Runnable {
     						//SearchManager.reportCloneQueue.send(cp);
     						String [] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
     						String line = this.getLineToSend(features);
-    						long estimatedTime = System.nanoTime() - startTime;
-    						logger.debug(SearchManager.NODE_PREFIX + " CloneProcessor, Processing time for Candidate " + candidateBlock + " in "
-    		                        + estimatedTime / 1000 + " micros");
+    						//long estimatedTime = System.nanoTime() - startTime;
+    						//logger.debug(SearchManager.NODE_PREFIX + " CloneProcessor, Processing time for Candidate " + candidateBlock + " in "
+    		                 //       + estimatedTime / 1000 + " micros");
     						try{
-    				        	SearchManager.reportCloneQueue.send(new ClonePair(line));
-    				            //SearchManager.socketWriter.writeToSocket(line);
+    				        	//SearchManager.reportCloneQueue.send(new ClonePair(line));
+    				            SearchManager.socketWriter.writeToSocket(line);
     				        }
     				        catch (Exception e){
     				            e.printStackTrace();
