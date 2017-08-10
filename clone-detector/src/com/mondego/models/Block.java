@@ -31,6 +31,8 @@ public class Block {
     public List<Double> metrics;
     public String fqmn;
     public long rowId;
+    public int minNOS;
+    public int maxNOS;
     private static final Logger logger = LogManager.getLogger(Block.class);
     /**
      * @param id
@@ -64,8 +66,8 @@ public class Block {
                     .getMinimumSimilarityThreshold(this.numUniqueTokens, SearchManager.th);
             this.setMaxCandidateSize(BlockInfo
                     .getMaximumSimilarityThreshold(this.numUniqueTokens, SearchManager.th));
-            this.prefixSize = BlockInfo.getPrefixSize(this.numUniqueTokens,
-                    this.computedThreshold);
+            this.maxNOS = BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
+            this.minNOS = BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
     	}catch (ArrayIndexOutOfBoundsException e){
     		
     		logger.error(e.getMessage()+", "+rawQuery);
