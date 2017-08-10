@@ -105,11 +105,11 @@ public class Util {
                 e.printStackTrace();
             }
         }
-        /*try {
+        try {
             pWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
     /**
