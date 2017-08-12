@@ -65,9 +65,9 @@ public class Block {
         		this.metrics.add(Double.parseDouble(columns[i]));
         	}
         	this.computedThreshold = BlockInfo
-                    .getMinimumSimilarityThreshold(this.numUniqueTokens, SearchManager.th);
+                    .getMinimumSimilarityThreshold(this.numUniqueTokens, 600);
             this.setMaxCandidateSize(BlockInfo
-                    .getMaximumSimilarityThreshold(this.numUniqueTokens, SearchManager.th));
+                    .getMaximumSimilarityThreshold(this.numUniqueTokens, 600));
             this.maxNOS = BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
             this.minNOS = BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
             
