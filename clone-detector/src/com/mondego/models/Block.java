@@ -35,6 +35,7 @@ public class Block {
     public int maxNOS;
     public int minNEXP;
     public int maxNEXP;
+    public String uniqueChars;
     private static final Logger logger = LogManager.getLogger(Block.class);
     /**
      * @param id
@@ -42,6 +43,7 @@ public class Block {
      */
     public Block(String rawQuery) {
         this.populateMetrics(rawQuery);
+        this.uniqueChars = SearchManager.ijaMapping.get(this.fqmn).split(",")[8];
         
     }
 

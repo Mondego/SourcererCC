@@ -1,7 +1,10 @@
 package com.mondego.models;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,29 +89,32 @@ public class CandidateProcessor implements IListener, Runnable {
 						 */
 
 						if (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) {
-							// check
-							// if
-							// candidate's
-							// fqmn
-							// is
-							// in
-							// the
-							// map
-							// SearchManager.reportCloneQueue.send(cp);
-							String[] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
-							String line = this.getLineToSend(features);
-							// long estimatedTime = System.nanoTime() -
-							// startTime;
-							// logger.debug(SearchManager.NODE_PREFIX + "
-							// CloneProcessor, Processing time for Candidate " +
-							// candidateBlock + " in "
-							// + estimatedTime / 1000 + " micros");
-							try {
-								// SearchManager.reportCloneQueue.send(new
-								// ClonePair(line));
-								SearchManager.socketWriter.writeToSocket(line);
-							} catch (Exception e) {
-								e.printStackTrace();
+							if (this.getJaccard(candidateBlock.uniqueChars, this.qc.queryBlock.uniqueChars) > 0.5) {
+								// check
+								// if
+								// candidate's
+								// fqmn
+								// is
+								// in
+								// the
+								// map
+								// SearchManager.reportCloneQueue.send(cp);
+								String[] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
+								String line = this.getLineToSend(features);
+								// long estimatedTime = System.nanoTime() -
+								// startTime;
+								// logger.debug(SearchManager.NODE_PREFIX + "
+								// CloneProcessor, Processing time for Candidate
+								// " +
+								// candidateBlock + " in "
+								// + estimatedTime / 1000 + " micros");
+								try {
+									// SearchManager.reportCloneQueue.send(new
+									// ClonePair(line));
+									SearchManager.socketWriter.writeToSocket(line);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							}
 						}
 						// }
@@ -118,6 +124,40 @@ public class CandidateProcessor implements IListener, Runnable {
 			}
 			// SearchManager.verifyCandidateQueue.send(candidatePair);
 		}
+	}
+
+	private double getJaccard(String s1, String s2) {
+		if (s1 == null) {
+			throw new NullPointerException("s1 must not be null");
+		}
+
+		if (s2 == null) {
+			throw new NullPointerException("s2 must not be null");
+		}
+
+		if (s1.equals(s2)) {
+			return 1;
+		}
+
+		// Map<String, Integer> profile1 = getProfile(s1);
+		// Map<String, Integer> profile2 = getProfile(s2);
+
+		Set<Character> union = new HashSet<Character>();
+		for (int i = 0; i < s1.length(); i++) {
+			union.add(s1.charAt(i));
+		}
+		for (int i = 0; i < s2.length(); i++) {
+			union.add(s2.charAt(i));
+		}
+
+		// s1.chars().collect(java.util.stream.Collectors.toSet());
+		// Collectors.toSet()
+		// union.addAll();
+		// union.addAll(profile2.keySet());
+
+		int inter = s1.length() + s2.length() - union.size();
+
+		return 1.0 * inter / union.size();
 	}
 
 	private String[] getLineToWrite(Block queryBlock, Block candiadteBlock) {
