@@ -63,7 +63,7 @@ public class Block {
         	this.functionId = Integer.parseInt(columns[8]);
         	this.id = Long.parseLong(columns[9]);
         	this.metrics = new ArrayList<Double>();
-        	for (int i=10;i<columns.length;i++){
+        	for (int i=11;i<columns.length;i++){
         		this.metrics.add(Double.parseDouble(columns[i]));
         	}
         	this.computedThreshold = BlockInfo
