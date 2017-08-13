@@ -43,7 +43,7 @@ public class Block {
      */
     public Block(String rawQuery) {
         this.populateMetrics(rawQuery);
-        this.uniqueChars = SearchManager.ijaMapping.get(this.fqmn).split(",")[8];
+        //this.uniqueChars = SearchManager.ijaMapping.get(this.fqmn).split(",")[8];
         
     }
 
@@ -62,6 +62,7 @@ public class Block {
         	this.numUniqueTokens = Integer.parseInt(columns[7]);
         	this.functionId = Integer.parseInt(columns[8]);
         	this.id = Long.parseLong(columns[9]);
+        	this.uniqueChars = columns[10];
         	this.metrics = new ArrayList<Double>();
         	for (int i=11;i<columns.length;i++){
         		this.metrics.add(Double.parseDouble(columns[i]));
