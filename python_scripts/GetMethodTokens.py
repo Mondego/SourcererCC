@@ -5,7 +5,8 @@ dictmethods=dict()
 notokens=0
 with open('input/IjaMapping_new_uniquetokens.txt','r') as file_input:
     for line in file_input:
-        line_splitted=line.replace('\n','').replace('\r','').split(':')
+        line=line.replace('\n','').replace('\r','')
+        line_splitted=line.split(':')
         fqmn=line_splitted[0]
         file_info=line_splitted[1].split(',')
         dir_name=file_info[0]
@@ -60,7 +61,7 @@ with open('input/IjaMapping_new_uniquetokens.txt','r') as file_input:
                 dictmethods[fqmn] = tokens
             else:
                 notokens+=1
-                file_notokens.write(fqmn+'\n')
+                file_notokens.write(line+'\n')
             file.close()
 print('begin writing..')
 print('number of methods having no tokens: '+str(notokens))
