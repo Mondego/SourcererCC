@@ -84,9 +84,14 @@ def process(data):
     global array
     #start_process = time.time()
     if "FINISHED_JOB" in data:
+        print("last prediction started")
+        thread_counter += 1
+        # _thread.start_new_thread(predict(),array,thread_counter)
+        thread = predThread(thread_counter, array)
+        thread.start()
         print
         np.array(list(data))
-        print("EXITING NOW")
+        print("Reading Finished. Wait for last thread to finish...")
         return 0
     array.append(data.split('~~'))
     num_candidates+=1

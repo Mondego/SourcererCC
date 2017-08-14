@@ -27,6 +27,6 @@ with open('input/IjaMapping_new_uniquetokens.txt','r') as  file_input:
                     elif i > endline:
                         break
             uniquechars=''.join(uniquecharsset)
-            file_output.write(line_splitted[0]+':'+line_splitted[1]+','+uniquechars.replace('\n','').replace('\r','').replace(',','')+'\n')
+            file_output.write(line_splitted[0]+':'+line_splitted[1]+','+uniquechars.replace('\n','').replace('\r','').replace(',','').replace('~','')+'\n')
             file.close()
 file_output.close()
