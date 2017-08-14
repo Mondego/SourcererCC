@@ -1,0 +1,6 @@
+             precision    recall  f1-score   support
+
+      False       1.00      1.00      1.00         2
+
+avg / total       1.00      1.00      1.00         2
+Permissions_6,com.liferay.portlet.wiki.action.ExportPageAction.getFilefarima,farahani

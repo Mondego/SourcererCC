@@ -1,0 +1,16 @@
+org.jboss.shrinkwrap.descriptor.impl.ejbjar30.EntityBeanTypeImpl.getOrCreateEjbRef,org.jboss.shrinkwrap.descriptor.impl.ejbjar30.InterceptorTypeImpl.getOrCreateAroundInvoke,True
+org.apache.activemq.openwire.v6.ActiveMQDestinationMarshaller.tightMarshal2,org.apache.activemq.openwire.v6.ExceptionResponseMarshaller.tightUnmarshal,True
+org.jboss.shrinkwrap.descriptor.impl.j2eewebservicesclient11.ServiceRefHandlerTypeImpl.getAllInitParam,org.jboss.shrinkwrap.descriptor.impl.orm10.OneToOneImpl.getAllJoinColumn,True
+com.jgeppert.struts2.jquery.grid.components.Grid.setSortableOnReceiveTopics,com.jgeppert.struts2.jquery.grid.components.Grid.setDraggableDistance,True
+org.jboss.shrinkwrap.descriptor.impl.jsptaglibrary21.ValidatorTypeImpl.getOrCreateInitParam,org.jboss.shrinkwrap.descriptor.impl.ejbjar31.SessionBeanTypeImpl.getOrCreateEjbLocalRef,True
+com.amazonaws.services.ec2.model.NetworkAcl.setAssociations,com.amazonaws.services.ec2.model.DescribeInternetGatewaysRequest.setFilters,True
+org.jboss.shrinkwrap.descriptor.impl.ejbjar31.EntityBeanTypeImpl.getOrCreateSecurityRoleRef,org.jboss.shrinkwrap.descriptor.impl.webcommon30.ServletTypeImpl.getOrCreateInitParam,True
+com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsResult.setOptions,com.amazonaws.services.dynamodb.model.AttributeValue.setNS,True
+org.odftoolkit.odfdom.dom.element.style.StyleMasterPageElement.newDrawRegularPolygonElement,org.odftoolkit.odfdom.dom.element.draw.DrawPageElement.newAnimAnimateTransformElement,True
+org.odftoolkit.odfdom.dom.element.table.TableDatabaseRangeElement.getTableHasPersistentDataAttribute,org.odftoolkit.odfdom.dom.element.db.DbTableSettingElement.getDbIsFirstRowHeaderLineAttribute,True
+com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient.countClosedWorkflowExecutions,com.amazonaws.services.dynamodb.AmazonDynamoDBClient.updateItem,True
+org.jboss.shrinkwrap.descriptor.impl.webapp30.WebAppDescriptorImpl.getAllEjbLocalRef,org.jboss.shrinkwrap.descriptor.impl.facelettaglibrary20.WebFacelettaglibraryDescriptorImpl.getAllFunction,True
+org.python.compiler.CodeCompiler.visitExec,org.python.antlr.ast.NameDerived.__delslice__,True
+org.jboss.shrinkwrap.descriptor.impl.webcommon30.WebFragmentTypeImpl.getOrCreateEjbRef,org.jboss.shrinkwrap.descriptor.impl.facesconfig21.FacesConfigRedirectTypeImpl.getOrCreateRedirectParam,True
+com.amazonaws.services.elasticmapreduce.model.DescribeJobFlowsRequest.setJobFlowIds,com.amazonaws.services.ec2.model.DescribeInstanceStatusResult.setInstanceStatuses,True
+com.amazonaws.services.autoscaling.model.DescribeNotificationConfigurationsResult.setNotificationConfigurations,com.amazonaws.services.ec2.model.DescribeSpotPriceHistoryRequest.setProductDescriptions,True
