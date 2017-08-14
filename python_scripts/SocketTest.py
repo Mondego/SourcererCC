@@ -113,9 +113,11 @@ serversocket.listen(1) # maximum  1 connection
 connection, address = serversocket.accept()
 print("Connection accepted")
 data=""
+chunkcounter=0;
 while True:
+    chunkcounter+=1
     chunk = connection.recv(1024*1000*1000*2)
-    print("one chunk read")
+    print("chunk "+str(chunkcounter)+" read")
     chunk = chunk.decode('utf-8')
     if chunk and len(chunk) > 0:
         data = "{d}{c}".format(d=data,c=chunk)
