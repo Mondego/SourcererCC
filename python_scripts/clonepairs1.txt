@@ -1,2 +1,0 @@
-com.liferay.portal.lar.PermissionImporter.importPermissions_6,farahani
-com.liferay.portal.lar.PermissionImporter.importPermissions_6,com.liferay.portlet.wiki.action.ExportPageAction.getFile
