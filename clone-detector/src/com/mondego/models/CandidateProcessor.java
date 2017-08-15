@@ -2,9 +2,10 @@ package com.mondego.models;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,68 +64,34 @@ public class CandidateProcessor implements IListener, Runnable {
 		}
 	}
 
-	private void processCandidates() throws InterruptedException, InstantiationException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		// CandidatePair candidatePair = new CandidatePair(queryBlock, simInfo,
-		// computedThreshold, candidateSize, functionIdCandidate, candidateId)
-		logger.debug("num candidates before: " + (this.qc.candidateUpperIndex - this.qc.candidateLowerIndex));
-
-		if (SearchManager.ijaMapping.containsKey(this.qc.queryBlock.fqmn)) {
-			logger.debug("num candidates: " + (this.qc.candidateUpperIndex - this.qc.candidateLowerIndex));
-			for (int i = this.qc.candidateLowerIndex; i <= this.qc.candidateUpperIndex; i++) {
-				// long startTime = System.nanoTime();
-				Block candidateBlock = SearchManager.candidatesList.get(i);
-				if (candidateBlock.rowId < this.qc.queryBlock.rowId) {
-					if (candidateBlock.size >= this.qc.queryBlock.computedThreshold
-							&& candidateBlock.size <= this.qc.queryBlock.maxCandidateSize) {
-						/*
-						 * if(candidateBlock.metrics.get(2)>=this.qc.queryBlock.
-						 * minNOS &&
-						 * candidateBlock.metrics.get(2)<=this.qc.queryBlock.
-						 * maxNOS){
-						 * if(candidateBlock.metrics.get(25)>=this.qc.queryBlock
-						 * .minNEXP &&
-						 * candidateBlock.metrics.get(25)<=this.qc.queryBlock.
-						 * maxNEXP){
-						 */
-
-						if (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) {
-							if (this.getJaccard(candidateBlock.uniqueChars, this.qc.queryBlock.uniqueChars) > 0.5) {
-								// check
-								// if
-								// candidate's
-								// fqmn
-								// is
-								// in
-								// the
-								// map
-								// SearchManager.reportCloneQueue.send(cp);
-								String[] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
-								String line = this.getLineToSend(features);
-								// long estimatedTime = System.nanoTime() -
-								// startTime;
-								// logger.debug(SearchManager.NODE_PREFIX + "
-								// CloneProcessor, Processing time for Candidate
-								// " +
-								// candidateBlock + " in "
-								// + estimatedTime / 1000 + " micros");
-								try {
-									// SearchManager.reportCloneQueue.send(new
-									// ClonePair(line));
-									SearchManager.socketWriter.writeToSocket(line);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-						}
-						// }
-						// }
-					}
-				}
-			}
-			// SearchManager.verifyCandidateQueue.send(candidatePair);
-		}
-	}
+	/*
+	 * private void processCandidates() throws InterruptedException,
+	 * InstantiationException, IllegalAccessException, IllegalArgumentException,
+	 * InvocationTargetException, NoSuchMethodException, SecurityException { //
+	 * CandidatePair candidatePair = new CandidatePair(queryBlock, simInfo, //
+	 * computedThreshold, candidateSize, functionIdCandidate, candidateId)
+	 * logger.debug("num candidates before: " + (this.qc.candidateUpperIndex -
+	 * this.qc.candidateLowerIndex));
+	 * 
+	 * if (SearchManager.ijaMapping.containsKey(this.qc.queryBlock.fqmn)) {
+	 * logger.debug("num candidates: " + (this.qc.candidateUpperIndex -
+	 * this.qc.candidateLowerIndex)); for (int i = this.qc.candidateLowerIndex;
+	 * i <= this.qc.candidateUpperIndex; i++) { // long startTime =
+	 * System.nanoTime(); Block candidateBlock =
+	 * SearchManager.candidatesList.get(i); if (candidateBlock.rowId <
+	 * this.qc.queryBlock.rowId) { if (candidateBlock.size >=
+	 * this.qc.queryBlock.computedThreshold && candidateBlock.size <=
+	 * this.qc.queryBlock.maxCandidateSize) { if
+	 * (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) { if
+	 * (this.getJaccard(candidateBlock.uniqueChars,
+	 * this.qc.queryBlock.uniqueChars) > 0.5) { String[] features =
+	 * this.getLineToWrite(qc.queryBlock, candidateBlock); String line =
+	 * this.getLineToSend(features); try { //
+	 * SearchManager.reportCloneQueue.send(new // ClonePair(line));
+	 * SearchManager.socketWriter.writeToSocket(line); } catch (Exception e) {
+	 * e.printStackTrace(); } } } } } } //
+	 * SearchManager.verifyCandidateQueue.send(candidatePair); } }
+	 */
 
 	private double getJaccard(String s1, String s2) {
 		if (s1 == null) {
@@ -210,4 +177,34 @@ public class CandidateProcessor implements IListener, Runnable {
 		return line;
 	}
 
+	private void processCandidates() throws InterruptedException, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		// System.out.println("HERE, thread_id: " + Util.debug_thread() +
+		// ", query_id "+ queryBlock.getId());
+		if (SearchManager.ijaMapping.containsKey(this.qc.queryBlock.fqmn)) {
+			Map<Long, CandidateSimInfo> simMap = this.qc.simMap;
+			Block queryBlock = this.qc.queryBlock;
+			logger.debug(SearchManager.NODE_PREFIX + ", num candidates: " + simMap.entrySet().size() + ", query: "
+					+ queryBlock);
+			for (Entry<Long, CandidateSimInfo> entry : simMap.entrySet()) {
+				Block candidateBlock = entry.getValue().doc;
+				if (candidateBlock.size >= this.qc.queryBlock.computedThreshold
+						&& candidateBlock.size <= this.qc.queryBlock.maxCandidateSize) {
+					if (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) {
+						String[] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
+						String line = this.getLineToSend(features);
+						try {
+							// SearchManager.reportCloneQueue.send(new
+							// ClonePair(line));
+							SearchManager.socketWriter.writeToSocket(line);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+
+			}
+		}
+
+	}
 }

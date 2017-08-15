@@ -4,7 +4,9 @@
 package com.mondego.models;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,18 +38,20 @@ public class Block {
     public int minNEXP;
     public int maxNEXP;
     public String uniqueChars;
+    public Set<TokenFrequency> tokenFrequencySet;
     private static final Logger logger = LogManager.getLogger(Block.class);
     /**
      * @param id
      * @param size
      */
     public Block(String rawQuery) {
-        this.populateMetrics(rawQuery);
+    	this.tokenFrequencySet = new HashSet<TokenFrequency>();
+        this.populateFields(rawQuery);
         //this.uniqueChars = SearchManager.ijaMapping.get(this.fqmn).split(",")[8];
         
     }
 
-    public void populateMetrics(String rawQuery){
+    public void populateFields(String rawQuery){
     	// 465632~~selected_2351875.org.lnicholls.galleon.togo.ToGo.clean(String)~~selected~~2351875.java~~750~~763~~40~~6~~13~~10009103025115~~1~~0~~13~~109~~24~~6173.52~~0.17~~1~~1~~0~~14~~0~~1~~1~~12.35~~0~~0~~0~0~~0~~499.76~~60~~23~~49~~0~~22~~0
     	
     	try{
@@ -62,20 +66,29 @@ public class Block {
         	this.numUniqueTokens = Integer.parseInt(columns[7]);
         	this.functionId = Integer.parseInt(columns[8]);
         	this.id = Long.parseLong(columns[9]);
-        	this.uniqueChars = columns[10];
+        	//this.uniqueChars = columns[10];
         	this.metrics = new ArrayList<Double>();
-        	for (int i=11;i<columns.length;i++){
+        	for (int i=10;i<37;i++){
         		this.metrics.add(Double.parseDouble(columns[i]));
         	}
+        	String tf = null;
+        	TokenFrequency tokenFrequency = new TokenFrequency();
+        	for (int i=37;i<columns.length;i++){
+        		tf = columns[i];
+        		String[] tfparts = tf.split(":");
+        		tokenFrequency.setToken(new Token(tfparts[0]));
+        		tokenFrequency.setFrequency(Integer.parseInt(tfparts[1]));
+        		this.tokenFrequencySet.add(tokenFrequency);
+        	}
         	this.computedThreshold = BlockInfo
-                    .getMinimumSimilarityThreshold(this.numUniqueTokens, 600);
+                    .getMinimumSimilarityThreshold(this.size, SearchManager.th);
             this.setMaxCandidateSize(BlockInfo
-                    .getMaximumSimilarityThreshold(this.numUniqueTokens, 600));
-            this.maxNOS = BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
-            this.minNOS = BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
+                    .getMaximumSimilarityThreshold(this.size, SearchManager.th));
+            /*this.maxNOS = BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(2), SearchManager.th);
+            this.minNOS = BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(2), SearchManager.th);*/
             
-            this.maxNEXP = BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(25), SearchManager.th);
-            this.minNEXP = BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(25), SearchManager.th);
+            /*this.maxNEXP = BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(25), SearchManager.th);
+            this.minNEXP = BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(25), SearchManager.th);*/
             
     	}catch (ArrayIndexOutOfBoundsException e){
     		

@@ -15,6 +15,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 
 import com.mondego.models.Bag;
+import com.mondego.models.Block;
 import com.mondego.models.DocumentForInvertedIndex;
 import com.mondego.models.TokenFrequency;
 import com.mondego.utility.BlockInfo;
@@ -117,15 +118,15 @@ public class DocumentMaker {
         return document;
     }
 
-    public DocumentForInvertedIndex prepareDocumentForII(Bag bag) {
+    public DocumentForInvertedIndex prepareDocumentForII(Block block) {
         DocumentForInvertedIndex document = new DocumentForInvertedIndex();
         document.id = SearchManager.getNextId();
-        document.fId = bag.getId();
-        document.pId = bag.getFunctionId();
-        document.size = bag.getSize();
-        document.ct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(),
-                SearchManager.th);
-        document.prefixSize = BlockInfo.getPrefixSize(bag.getSize(), document.ct);
+        document.fId = block.getId();
+        document.pId = block.getFunctionId();
+        document.size = block.getSize();
+        //document.ct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(),
+         //       SearchManager.th);
+        //document.prefixSize = BlockInfo.getPrefixSize(bag.getSize(), document.ct);
         return document;
     }
 
