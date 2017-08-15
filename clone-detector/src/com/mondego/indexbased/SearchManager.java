@@ -495,7 +495,7 @@ public class SearchManager {
 																// having more
 																// than
 																// 25 tokens
-				if (Integer.parseInt(line.split(":")[1].split(",")[4]) > 25) {
+				if (Integer.parseInt(line.split(":")[1].split(",")[4]) > 50) {
 					String[] lineSplitted = line.split(":");
 					ijaMapping.put(lineSplitted[0], lineSplitted[1]);
 				}
