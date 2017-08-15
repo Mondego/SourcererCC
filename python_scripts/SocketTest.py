@@ -38,8 +38,10 @@ class predThread(threading.Thread):
         file_clonepair = open('clonepairs' + str(self.threadId) + '.txt', 'w')
         file_recall = open('recall' + str(self.threadId) + '.txt', 'w')
         file_falsepos=open('falsepos' + str(self.threadId) + '.txt', 'w')
+        file_falseneg = open('falseneg' + str(self.threadId) + '.txt', 'w')
         clone_pairs = ''
         falsepos=''
+        falseneg=''
         array_pred = np.array(self.array)
         # label = bool(int(array[2]))
         X_test = array_pred[:, [i for i in range(0, 30) if i not in [0, 1, 2, 4, 14]]]
@@ -59,10 +61,14 @@ class predThread(threading.Thread):
             if predictions[i]:
                 clone_pairs += (array_pred[i][0] + ',' + array_pred[i][1]+'\n')
                 if not Y_test[i]: falsepos+=(array_pred[i][0] + ',' + array_pred[i][1]+'\n')
+            if not predictions[i]:
+                if Y_test[i]: falseneg+=(array_pred[i][0] + ',' + array_pred[i][1]+'\n')
         file_clonepair.write(clone_pairs)
         file_clonepair.close()
         file_falsepos.write(falsepos)
         file_falsepos.close()
+        file_falseneg.write(falseneg)
+        file_falseneg.close()
         # if label:
         #     num_clones = num_clones + 1
         #     if label == prediction:
