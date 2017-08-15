@@ -66,8 +66,70 @@ public class CandidateSearcher implements IListener, Runnable {
 			logger.error("EXCEPTION CAUGHT::", e);
 		}
 	}
+	
 
-	private void searchCandidates(Block queryBlock)
+    private void searchCandidates(Block queryBlock)
+            throws IOException, InterruptedException, InstantiationException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+        long startTime = System.nanoTime();
+        QueryCandidates qc = new QueryCandidates();
+        qc.simMap = this.search(queryBlock);
+        if (qc.simMap.size() > 0) {
+            qc.queryBlock = queryBlock;
+            long estimatedTime = System.nanoTime() - startTime;
+            logger.debug(SearchManager.NODE_PREFIX + " CandidateSearcher, QueryBlock " + queryBlock + " in "
+                    + estimatedTime / 1000 + " micros");
+            SearchManager.queryCandidatesQueue.send(qc);
+        }
+    }
+
+    private Map<Long, CandidateSimInfo> search(Block queryBlock) {
+        Map<Long, CandidateSimInfo> simMap = new HashMap<Long, CandidateSimInfo>();
+        Set<Long> earlierDocs = new HashSet<Long>();
+        for (TokenFrequency tokenFrequency : queryBlock.tokenFrequencySet) {
+            String searchTerm = tokenFrequency.getToken().getValue();
+            int searchTermFreq = tokenFrequency.getFrequency();
+            Map<Long,Integer> candidateDocsandFreq = SearchManager.invertedIndex.get(searchTerm);
+            if (null != candidateDocsandFreq) {
+                for (Entry<Long,Integer> docAndTermFreq : candidateDocsandFreq.entrySet()) {
+                    CandidateSimInfo simInfo = null;
+                    Block candidateDoc = SearchManager.documentsForII.get(docAndTermFreq.getKey());
+                    if (simMap.containsKey(docAndTermFreq.getKey())) {
+                        simInfo = simMap.get(docAndTermFreq.getKey());
+                        simInfo.similarity = simInfo.similarity
+                                + Math.min(searchTermFreq, docAndTermFreq.getValue());
+                    } else {
+                        if (earlierDocs.contains(docAndTermFreq)) {
+                            continue;
+                        }
+                        if (candidateDoc.rowId >= queryBlock.rowId) {
+                            earlierDocs.add(candidateDoc.id);
+                            continue; // we reject the candidate
+                        }
+                        simInfo = new CandidateSimInfo();
+                        simInfo.doc = candidateDoc;
+                        //simInfo.candidateSize = doc.size;
+                        simInfo.similarity = Math.min(searchTermFreq, docAndTermFreq.getValue());
+                        // System.out.println("before putting in simmap "+
+                        // Util.debug_thread());
+                        simMap.put(docAndTermFreq.getKey(), simInfo);
+                    }
+                    //simInfo.queryMatchPosition = termsSeenInQuery;
+                    //int candidatePos = candidateDoc.termInfoMap.get(searchTerm).position;
+                    //simInfo.candidateMatchPosition = candidatePos + candidateDoc.termInfoMap.get(searchTerm).frequency;
+                    /*if (!Util.isSatisfyPosFilter(simMap.get(doc.id).similarity, queryBlock.getSize(), termsSeenInQuery,
+                            simInfo.candidateSize, simInfo.candidateMatchPosition, queryBlock.getComputedThreshold())) {
+                        simMap.remove(doc.id);
+                    }*/
+                }
+            } else {
+                //logger.debug("no docs found for searchTerm: " + searchTerm);
+            }
+        }
+        return simMap;
+    }
+
+	/*private void searchCandidates(Block queryBlock)
 			throws IOException, InterruptedException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		long startTime = System.nanoTime();
@@ -143,6 +205,6 @@ public class CandidateSearcher implements IListener, Runnable {
 			return --index;
 		} else
 			return SearchManager.candidatesList.size() - 1;
-	}
+	}*/
 
 }

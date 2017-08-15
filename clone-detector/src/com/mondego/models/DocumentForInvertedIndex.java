@@ -9,7 +9,7 @@ public class DocumentForInvertedIndex {
     public long id;
     public long fId;
     public long pId;
-    public int size;
+    public long size;
     public int ct;
     public int prefixSize;
     public Map<String,TermInfo> termInfoMap;

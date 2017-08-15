@@ -70,7 +70,7 @@ public class CloneValidator implements IListener, Runnable {
 
         // long start_time = System.currentTimeMillis();
         long startTime = System.nanoTime();
-        if (candidatePair.simInfo.doc.tokenFrequencies!= null && candidatePair.simInfo.doc.tokenFrequencies.size() > 0) {
+        //if (candidatePair.simInfo.doc.tokenFrequencies!= null && candidatePair.simInfo.doc.tokenFrequencies.size() > 0) {
             /*
              * if(candidatePair.queryBlock.getFunctionId()==1042 &&
              * candidatePair.queryBlock.getId()==494 &&
@@ -90,6 +90,7 @@ public class CloneValidator implements IListener, Runnable {
                         + estimatedTime / 1000 + " micros");
                 SearchManager.reportCloneQueue.send(cp);
             }
+    }
 
             // }
 
@@ -98,10 +99,10 @@ public class CloneValidator implements IListener, Runnable {
              * candidatePair = null;
              */
 
-        } else {
+        /*} else {
             logger.debug("tokens not found for document");
-        }
-    }
+        }*/
+   // }
 
     private int updateSimilarity(Block queryBlock,
             int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {

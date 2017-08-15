@@ -6,7 +6,7 @@ public class CandidateSimInfo {
     public int candidateMatchPosition;
     public int similarity;
     public int candidateSize;
-    public DocumentForInvertedIndex doc;
+    public Block doc;
 	
     public CandidateSimInfo(){
 	this.queryMatchPosition=0;
