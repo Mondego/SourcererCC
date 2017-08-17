@@ -128,7 +128,7 @@ public class CandidateProcessor implements IListener, Runnable {
 	}
 
 	private String[] getLineToWrite(Block queryBlock, Block candiadteBlock) {
-		String output[] = new String[30];
+		String output[] = new String[30+27];
 		// output[0]=firstLine[0]+"."+firstLine[1]+"."+firstLine[2]+"."+firstLine[27];
 		// output[1]=secondLine[0]+secondLine[1]+secondLine[2]+secondLine[27];
 		// output[2]=isClone?"1":"0";
@@ -151,10 +151,11 @@ public class CandidateProcessor implements IListener, Runnable {
 			}
 		}
 
-		for (int i = 3; i < output.length; i++) {
+		for (int i = 0; i < queryBlock.metrics.size(); i++) {
 
-			output[i] = roundTwoDecimal(
-					getPercentageDiff(queryBlock.metrics.get(i - 3), candiadteBlock.metrics.get(i - 3))).toString();
+			output[i+3] = roundTwoDecimal(
+					getPercentageDiff(queryBlock.metrics.get(i), candiadteBlock.metrics.get(i))).toString();
+			output[i+27]=  Math.abs(queryBlock.metrics.get(i)-candiadteBlock.metrics.get(i))+"";
 		}
 		return output;
 	}
