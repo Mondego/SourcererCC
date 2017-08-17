@@ -155,7 +155,7 @@ public class CandidateProcessor implements IListener, Runnable {
 
 			output[i+3] = roundTwoDecimal(
 					getPercentageDiff(queryBlock.metrics.get(i), candiadteBlock.metrics.get(i))).toString();
-			output[i+27]=  Math.abs(queryBlock.metrics.get(i)-candiadteBlock.metrics.get(i))+"";
+			output[i+30]=  roundTwoDecimal(Math.abs(queryBlock.metrics.get(i)-candiadteBlock.metrics.get(i)))+"";
 		}
 		return output;
 	}
@@ -197,7 +197,7 @@ public class CandidateProcessor implements IListener, Runnable {
 						try {
 							// SearchManager.reportCloneQueue.send(new
 							// ClonePair(line));
-							logger.debug("FEATURE ROW: "+ line);
+							//logger.debug("FEATURE ROW: "+ line);
 							SearchManager.socketWriter.writeToSocket(line);
 						} catch (Exception e) {
 							e.printStackTrace();
