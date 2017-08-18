@@ -178,7 +178,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
   if '.py' in file_extensions:
     (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
   if '.java' in file_extensions:
-    (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, logging, file_path, separators)
+    (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, logging, file_path, separators, comment_inline_pattern)
 
   if block_linenos is None:
     logging.info('Returning None on tokenize_blocks for file %s.' % (file_path))

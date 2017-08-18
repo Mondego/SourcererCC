@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, re
 import javalang
 import logging
 import traceback
@@ -6,7 +6,9 @@ import itertools
 
 global found_parent
 
-def getFunctions(filestring, logging, file_path, separators):
+re_string = re.escape("\"") + '.*?' + re.escape("\"")
+
+def getFunctions(filestring, logging, file_path, separators, comment_inline_pattern):
   logging.info("Starting block-level parsing on " + file_path)
 
   method_string = []
@@ -73,14 +75,32 @@ def getFunctions(filestring, logging, file_path, separators):
     closed = 0
     openned = 0
 
+    print '###################################################################################################'
+    #print (init_line,b)
+    #print 'INIT LINE -> ',file_string_split[init_line-1]
+    #print '---------------------'
+
     for line in file_string_split[init_line-1:]:
-      closed  += line.count('}')
-      openned += line.count('{')
+      if len(line) == 0:
+        continue
+      #print '+++++++++++++++++++++++++++++++++++++++++++++++++++'
+      #print line
+      #print comment_inline_pattern
+      line_re = re.sub(comment_inline_pattern, '', line, flags=re.MULTILINE)
+      line_re = re.sub(re_string, '', line_re, flags=re.DOTALL)
+
+      #print line
+      #print '+++++++++++++++++++++++++++++++++++++++++++++++++++'
+
+      closed  += line_re.count('}')
+      openned += line_re.count('{')
       if (closed - openned) == 0:
         method_body.append(line)
         break
       else:
         method_body.append(line)
+
+    print '\n'.join(method_body)
 
     end_line = init_line + len(method_body) - 1
     method_body = '\n'.join(method_body)
