@@ -175,19 +175,9 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
   experimental_values = ''
-  
-  r_time = dt.datetime.now()
-  # Remove tagged comments
-  file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
-  # Remove end of line comments
-  file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
-  re_time = (dt.datetime.now() - r_time).microseconds
-
   if '.py' in file_extensions:
     (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
   if '.java' in file_extensions:
-    (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, logging, file_path, separators)
-  if '.txt' in file_extensions:
     (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, logging, file_path, separators)
 
   if block_linenos is None:
@@ -210,6 +200,12 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       LOC = file_string.count('\n')
       if not file_string.endswith('\n'):
         LOC += 1
+      r_time = dt.datetime.now()
+      # Remove tagged comments
+      file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
+      # Remove end of line comments
+      file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
+      re_time = (dt.datetime.now() - r_time).microseconds
       file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
     
       SLOC = file_string.count('\n')
@@ -795,5 +791,4 @@ if __name__ == '__main__':
 
   p_elapsed = dt.datetime.now() - p_start
   print "*** All done. %s files in %s" % (file_count, p_elapsed)
-
 
