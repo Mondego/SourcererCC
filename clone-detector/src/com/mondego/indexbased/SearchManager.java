@@ -462,6 +462,7 @@ public class SearchManager {
 						Thread.sleep(4000);
 					}
 				}
+				SearchManager.socketWriter.closeSocket();
 			}
 		} else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_INIT)) {
 			// WordFrequencyStore wfs = new WordFrequencyStore();
