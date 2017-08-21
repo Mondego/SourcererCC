@@ -782,6 +782,7 @@ public class SearchManager {
 		File datasetDir = new File(SearchManager.DATASET_DIR);
 		if (datasetDir.isDirectory()) {
 			logger.info("Directory: " + datasetDir.getAbsolutePath());
+			int count =0;
 			for (File inputFile : Util.getAllFilesRecur(datasetDir)) {
 				logger.info("indexing file: " + inputFile.getAbsolutePath());
 				try {
@@ -793,33 +794,43 @@ public class SearchManager {
 						String[] columns = metricLine.split("~~");
 						String fqmn = columns[1] + "." + columns[2] + "." + columns[3] + "." + columns[28];
 						if (this.ijaMapping.containsKey(fqmn)) {
-							String metaInfo = ijaMapping.get(fqmn);
-							metaInfo = metaInfo.replaceAll(",", "~~");
-							String[] linesAtHand = metaInfo.split("~~");
-							int tokens = Integer.parseInt(linesAtHand[4]);
-							// directory,filename,start_line,end_line,#tokens,#unique_tokens,directoryid,fileid
-							StringBuilder row = new StringBuilder();
-							row.append(columns[0]).append("~~").append(fqmn).append("~~").append(metaInfo);
-							for (int i = 5; i < columns.length; i++) {
-								if (i != 19 && i != 28) {
-									row.append("~~").append(columns[i]);
-								}
-							}
 							if (SearchManager.tokensMapping.containsKey(fqmn)) {
+								String metaInfo = ijaMapping.get(fqmn);
+								metaInfo = metaInfo.replaceAll(",", "~~");
+								String[] linesAtHand = metaInfo.split("~~");
+								int tokens = Integer.parseInt(linesAtHand[4]);
+								// directory,filename,start_line,end_line,#tokens,#unique_tokens,directoryid,fileid
+								StringBuilder row = new StringBuilder();
+								row.append(columns[0]).append("~~").append(fqmn).append("~~").append(metaInfo);
+								count+=1;
+								for (int i = 5; i < columns.length; i++) {
+									if (i != 19 && i != 28) {
+										row.append("~~").append(columns[i]);
+									}
+								}
 								row.append("~~").append(SearchManager.tokensMapping.get(fqmn));
+								String rowToWrite = row.toString();
+								List<Shard> shardsToIndex = SearchManager.getShards(tokens);
+								for (Shard shard : shardsToIndex) {
+									Util.writeToFile(shard.candidateFileWriter, rowToWrite, true);
+									shard.size++;
+								}
+								Shard shardToSearch = SearchManager.getShardToSearch(tokens);
+								if (null != shardToSearch) {
+									Util.writeToFile(shardToSearch.queryFileWriter, rowToWrite, true);
+								}
+							}else{
+								logger.warn("fqmn not found in aciontokens, "+ fqmn);
+								logger.warn("metricLie missed is: , "+ metricLine);
+								
 							}
-							String rowToWrite = row.toString();
-							List<Shard> shardsToIndex = SearchManager.getShards(tokens);
-							for (Shard shard : shardsToIndex) {
-								Util.writeToFile(shard.candidateFileWriter, rowToWrite, true);
-								shard.size++;
-							}
-							Shard shardToSearch = SearchManager.getShardToSearch(tokens);
-							if (null != shardToSearch) {
-								Util.writeToFile(shardToSearch.queryFileWriter, rowToWrite, true);
-							}
+							
+						}else{
+							logger.warn("fqmn not found in IJA, "+fqmn );
+							logger.warn("metricLie missed is: , "+ metricLine);
 						}
 					}
+					logger.debug("total files partitioned: "+ count);
 
 					/*
 					 * TokensFileReader tfr = new
