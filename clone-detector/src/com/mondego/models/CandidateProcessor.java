@@ -207,6 +207,7 @@ public class CandidateProcessor implements IListener, Runnable {
 							try {
 								// SearchManager.reportCloneQueue.send(new
 								// ClonePair(line));
+								SearchManager.updateClonePairsCount(1);
 								SearchManager.socketWriter.writeToSocket(type+"#$#"+line);
 							} catch (Exception e) {
 								e.printStackTrace();

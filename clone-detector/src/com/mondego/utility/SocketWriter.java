@@ -55,6 +55,7 @@ public class SocketWriter {
 	public void closeSocket(){
 		try{
 			this.writeToSocket("FINISHED_JOB"+System.lineSeparator());
+			logger.debug("sleeping for 120 mins");
 			TimeUnit.MINUTES.sleep(120);
 			
 			this.socket.close();
