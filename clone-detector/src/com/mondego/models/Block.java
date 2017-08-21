@@ -39,6 +39,7 @@ public class Block {
     public int maxNEXP;
     public String uniqueChars;
     public Set<TokenFrequency> tokenFrequencySet;
+    public String thash;
     private static final Logger logger = LogManager.getLogger(Block.class);
     /**
      * @param id
@@ -66,14 +67,15 @@ public class Block {
         	this.numUniqueTokens = Integer.parseInt(columns[7]);
         	this.functionId = Integer.parseInt(columns[8]);
         	this.id = Long.parseLong(columns[9]);
+        	this.thash = columns[10];
         	//this.uniqueChars = columns[10];
         	this.metrics = new ArrayList<Double>();
-        	for (int i=10;i<37;i++){
+        	for (int i=11;i<38;i++){
         		this.metrics.add(Double.parseDouble(columns[i]));
         	}
         	String tf = null;
         	TokenFrequency tokenFrequency = new TokenFrequency();
-        	for (int i=37;i<columns.length;i++){
+        	for (int i=38;i<columns.length;i++){
         		tf = columns[i];
         		String[] tfparts = tf.split(":");
         		tokenFrequency.setToken(new Token(tfparts[0]));
