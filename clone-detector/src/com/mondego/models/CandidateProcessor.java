@@ -154,14 +154,14 @@ public class CandidateProcessor implements IListener, Runnable {
 		for (int i = 0; i < queryBlock.metrics.size(); i++) {
 
 			output[i+3] = roundTwoDecimal(
-					getPercentageDiff(queryBlock.metrics.get(i), candiadteBlock.metrics.get(i))).toString();
+					getPercentageDiff(queryBlock.metrics.get(i), candiadteBlock.metrics.get(i),10)).toString();
 			output[i+30]=  roundTwoDecimal(Math.abs(queryBlock.metrics.get(i)-candiadteBlock.metrics.get(i)))+"";
 		}
 		return output;
 	}
 
-	private Double getPercentageDiff(double firstValue, double secondValue) {
-		return (Math.abs(firstValue - secondValue) / Math.max(firstValue, secondValue)) * 100;
+	private Double getPercentageDiff(double firstValue, double secondValue,int padding) {
+		return (Math.abs(firstValue - secondValue) / (padding + Math.max(firstValue, secondValue))) * 100;
 	}
 
 	private Double roundTwoDecimal(double param) {
@@ -198,7 +198,7 @@ public class CandidateProcessor implements IListener, Runnable {
 							type = "1";
 						}else if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)){
 							type="2";
-						}else if (this.getPercentageDiff(candidateBlock.size, this.qc.queryBlock.size)<11){
+						}else if (this.getPercentageDiff(candidateBlock.size, this.qc.queryBlock.size,0)<11){
 							type="3.1";
 						}
 						if (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) {
@@ -208,6 +208,7 @@ public class CandidateProcessor implements IListener, Runnable {
 								// SearchManager.reportCloneQueue.send(new
 								// ClonePair(line));
 								SearchManager.updateClonePairsCount(1);
+								logger.debug(type+"#$#"+line);
 								SearchManager.socketWriter.writeToSocket(type+"#$#"+line);
 							} catch (Exception e) {
 								e.printStackTrace();
