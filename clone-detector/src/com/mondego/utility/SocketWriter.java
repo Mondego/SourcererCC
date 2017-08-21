@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,6 +55,8 @@ public class SocketWriter {
 	public void closeSocket(){
 		try{
 			this.writeToSocket("FINISHED_JOB"+System.lineSeparator());
+			TimeUnit.MINUTES.sleep(120);
+			
 			this.socket.close();
 		}catch(Exception e) {
 			System.out.println("error closing socket"+ e.getMessage());

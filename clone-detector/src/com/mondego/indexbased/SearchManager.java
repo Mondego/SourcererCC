@@ -1028,7 +1028,7 @@ public class SearchManager {
 			}
 
 		}
-		SearchManager.socketWriter.closeSocket();
+		
 	}
 
 	private void loadCloneLabels() {
