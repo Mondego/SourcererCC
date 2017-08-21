@@ -785,7 +785,7 @@ public class SearchManager {
 				logger.info("indexing file: " + inputFile.getAbsolutePath());
 				try {
 					BufferedReader bfMetrics = new BufferedReader(new FileReader(inputFile));
-					String metricLine = bfMetrics.readLine();// to ignore header
+					String metricLine = "";//bfMetrics.readLine();// to ignore header
 																// row
 					while ((metricLine = bfMetrics.readLine()) != null) {
 						metricLine = metricLine.replaceAll("\"", "");
