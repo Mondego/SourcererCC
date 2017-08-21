@@ -193,8 +193,6 @@ public class CandidateProcessor implements IListener, Runnable {
 						&& candidateBlock.size <= this.qc.queryBlock.maxCandidateSize) {
 					String type="3.2";
 					if(candidateBlock.thash.equals(this.qc.queryBlock.thash)){
-						logger.debug(candidateBlock.metriHash+"\n"+this.qc.queryBlock.metriHash);
-						
 						type = "1";
 					}else if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)){
 						type="2";
@@ -205,9 +203,7 @@ public class CandidateProcessor implements IListener, Runnable {
 						try {
 							// SearchManager.reportCloneQueue.send(new
 							// ClonePair(line));
-							logger.debug("FEATURE ROW: "+ line);
 							SearchManager.socketWriter.writeToSocket(type+"#$#"+line);
-							System.exit(1);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
