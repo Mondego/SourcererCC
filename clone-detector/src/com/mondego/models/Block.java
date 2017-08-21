@@ -3,6 +3,9 @@
  */
 package com.mondego.models;
 
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +43,10 @@ public class Block {
     public String uniqueChars;
     public Set<TokenFrequency> tokenFrequencySet;
     public String thash;
+    public String metriHash;
+    MessageDigest messageDigest;
     private static final Logger logger = LogManager.getLogger(Block.class);
+    
     /**
      * @param id
      * @param size
@@ -69,10 +75,22 @@ public class Block {
         	this.id = Long.parseLong(columns[9]);
         	this.thash = columns[10];
         	//this.uniqueChars = columns[10];
+        	StringBuilder sb = new StringBuilder();
         	this.metrics = new ArrayList<Double>();
         	for (int i=11;i<38;i++){
         		this.metrics.add(Double.parseDouble(columns[i]));
+        		sb.append(columns[i]);
         	}
+        	try {
+				messageDigest = MessageDigest.getInstance("MD5");
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	messageDigest.reset();
+        	messageDigest.update(sb.toString().getBytes(Charset.forName("UTF8")));
+        	this.metriHash = new String(messageDigest.digest());
+        	
         	String tf = null;
         	TokenFrequency tokenFrequency = new TokenFrequency();
         	for (int i=38;i<columns.length;i++){

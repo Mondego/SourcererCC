@@ -194,6 +194,8 @@ public class CandidateProcessor implements IListener, Runnable {
 					String type="3.2";
 					if(candidateBlock.thash.equals(this.qc.queryBlock.thash)){
 						type = "1";
+					}else if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)){
+						type="2";
 					}
 					if (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) {
 						String[] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
