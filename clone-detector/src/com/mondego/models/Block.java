@@ -45,6 +45,9 @@ public class Block {
     public String thash;
     public String metriHash;
     MessageDigest messageDigest;
+    public int numActionTokens;
+    public int minCandidateActionTokens;
+    public int maxCandidateActionTokens;
     private static final Logger logger = LogManager.getLogger(Block.class);
     
     /**
@@ -54,6 +57,8 @@ public class Block {
     public Block(String rawQuery) {
     	this.tokenFrequencySet = new HashSet<TokenFrequency>();
         this.populateFields(rawQuery);
+        this.minCandidateActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numActionTokens, SearchManager.th);
+        this.maxCandidateActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numActionTokens, SearchManager.th);
         //this.uniqueChars = SearchManager.ijaMapping.get(this.fqmn).split(",")[8];
         
     }
@@ -99,6 +104,7 @@ public class Block {
         		tokenFrequency.setToken(new Token(tfparts[0]));
         		tokenFrequency.setFrequency(Integer.parseInt(tfparts[1]));
         		this.tokenFrequencySet.add(tokenFrequency);
+        		this.numActionTokens+=tokenFrequency.getFrequency();
         	}
         	this.computedThreshold = BlockInfo
                     .getMinimumSimilarityThreshold(this.size, SearchManager.th);

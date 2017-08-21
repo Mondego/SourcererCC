@@ -188,28 +188,32 @@ public class CandidateProcessor implements IListener, Runnable {
 			logger.debug(SearchManager.NODE_PREFIX + ", num candidates: " + simMap.entrySet().size() + ", query: "
 					+ queryBlock);
 			for (Entry<Long, CandidateSimInfo> entry : simMap.entrySet()) {
-				Block candidateBlock = entry.getValue().doc;
+				CandidateSimInfo simInfo = entry.getValue();
+				Block candidateBlock = simInfo.doc;
 				if (candidateBlock.size >= this.qc.queryBlock.computedThreshold
 						&& candidateBlock.size <= this.qc.queryBlock.maxCandidateSize) {
-					String type="3.2";
-					if(candidateBlock.thash.equals(this.qc.queryBlock.thash)){
-						type = "1";
-					}else if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)){
-						type="2";
-					}else if (this.getPercentageDiff(candidateBlock.size, this.qc.queryBlock.size)<11){
-						type="3.1";
-					}
-					if (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) {
-						String[] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
-						String line = this.getLineToSend(features);
-						try {
-							// SearchManager.reportCloneQueue.send(new
-							// ClonePair(line));
-							SearchManager.socketWriter.writeToSocket(type+"#$#"+line);
-						} catch (Exception e) {
-							e.printStackTrace();
+					if(simInfo.similarity>=this.qc.queryBlock.minCandidateActionTokens){
+						String type="3.2";
+						if(candidateBlock.thash.equals(this.qc.queryBlock.thash)){
+							type = "1";
+						}else if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)){
+							type="2";
+						}else if (this.getPercentageDiff(candidateBlock.size, this.qc.queryBlock.size)<11){
+							type="3.1";
+						}
+						if (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) {
+							String[] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
+							String line = this.getLineToSend(features);
+							try {
+								// SearchManager.reportCloneQueue.send(new
+								// ClonePair(line));
+								SearchManager.socketWriter.writeToSocket(type+"#$#"+line);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 					}
+					
 				}
 
 			}
