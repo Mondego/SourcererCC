@@ -196,6 +196,8 @@ public class CandidateProcessor implements IListener, Runnable {
 						type = "1";
 					}else if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)){
 						type="2";
+					}else if (this.getPercentageDiff(candidateBlock.size, this.qc.queryBlock.size)<11){
+						type="3.1";
 					}
 					if (SearchManager.ijaMapping.containsKey(candidateBlock.fqmn)) {
 						String[] features = this.getLineToWrite(qc.queryBlock, candidateBlock);
