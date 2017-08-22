@@ -172,11 +172,14 @@ public class Block {
 
     @Override
 	public String toString() {
-		return "Block [id=" + id + ", size=" + size + ", functionId=" + functionId + ", prefixSize=" + prefixSize
-				+ ", computedThreshold=" + computedThreshold + ", maxCandidateSize=" + maxCandidateSize
-				+ ", numUniqueTokens=" + numUniqueTokens + ", projectName=" + projectName + ", fileName=" + fileName
-				+ ", startLine=" + startLine + ", endLine=" + endLine + ", metrics=" + metrics + ", fqmn=" + fqmn
-				+ ", rowId=" + rowId + "]";
+		return "Block [id=" + id + ", size=" + size + ", functionId=" + functionId + ", computedThreshold="
+				+ computedThreshold + ", maxCandidateSize=" + maxCandidateSize + ", numUniqueTokens=" + numUniqueTokens
+				+ ", projectName=" + projectName + ", fileName=" + fileName + ", startLine=" + startLine + ", endLine="
+				+ endLine + ", metrics=" + metrics + ", fqmn=" + fqmn + ", rowId=" + rowId + ", minNOS=" + minNOS
+				+ ", maxNOS=" + maxNOS + ", minNEXP=" + minNEXP + ", maxNEXP=" + maxNEXP + ", uniqueChars="
+				+ uniqueChars + ", tokenFrequencySet=" + tokenFrequencySet + ", thash=" + thash + ", metriHash="
+				+ metriHash + ", numActionTokens=" + numActionTokens + ", minCandidateActionTokens="
+				+ minCandidateActionTokens + ", maxCandidateActionTokens=" + maxCandidateActionTokens + "]";
 	}
 
     public long getSize() {
