@@ -165,8 +165,11 @@ public class CandidateProcessor implements IListener, Runnable {
 				Block candidateBlock = simInfo.doc;
 				if (candidateBlock.size >= this.qc.queryBlock.computedThreshold
 						&& candidateBlock.size <= this.qc.queryBlock.maxCandidateSize) {
-					if(this.getJaccard(simInfo.similarity, 
-							candidateBlock.numActionTokens, this.qc.queryBlock.numActionTokens)>70){
+					int minPosibleSimilarity = this.qc.queryBlock.minCandidateActionTokens;
+					if (candidateBlock.numActionTokens>this.qc.queryBlock.numActionTokens){
+						minPosibleSimilarity = candidateBlock.minCandidateActionTokens;
+					}
+					if(simInfo.similarity>= minPosibleSimilarity){
 						logger.debug("similarity is: "+ simInfo.similarity);
 						String type="3.2";
 						if(candidateBlock.thash.equals(this.qc.queryBlock.thash)){
