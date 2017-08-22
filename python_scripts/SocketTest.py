@@ -18,6 +18,11 @@ loaded_model = pickle.load(open(modelfilename, 'rb'))
 print("model loaded")
 # data='com.liferay.portal.lar.PermissionImporter.importPermissions_6,com.liferay.portlet.wiki.action.ExportPageAction.getFile,0,33.33,0.0,22.22,21.6,13.59,9.89,24.0,9.52,8.7,100.0,17.24,0.0,11.11,0.0,31.58,0.0,0.0,0.0,0.0,42.86,24.07,22.22,27.42,20.89,33.33,36.36,100.0'
 # data=data.replace(',','~~')
+
+file_type1 = open('clonepairs_type1.txt', 'w')
+file_type2 = open('clonepairs_type2.txt', 'w')
+
+
 num_candidates=0
 class predThread(threading.Thread):
     def __init__(self):
@@ -60,9 +65,19 @@ class predThread(threading.Thread):
         for i in range(predictions.shape[0]):
             if predictions[i]:
                 clone_pairs += (array_pred[i][0] + ',' + array_pred[i][1]+'\n')
-                if not Y_test[i]: falsepos+=(array_pred[i][0] + ',' + array_pred[i][1]+'\n')
+                if not Y_test[i]:
+                    falsepos+=(array_pred[i][0] + ',' + array_pred[i][1])
+                    for j in range(0, 30):
+                        if j not in [0, 1, 2, 4, 14]:
+                            falsepos+=','+array_pred[i][j]
+                    falsepos=falsepos[:-1]+'\n'
             if not predictions[i]:
-                if Y_test[i]: falseneg+=(array_pred[i][0] + ',' + array_pred[i][1]+'\n')
+                if Y_test[i]:
+                    falseneg+=(array_pred[i][0] + ',' + array_pred[i][1])
+                    for j in range(0, 30):
+                        if j not in [0, 1, 2, 4, 14]:
+                            falseneg+=','+array_pred[i][j]
+                    falseneg=falseneg[:-1]+'\n'
         file_clonepair.write(clone_pairs)
         file_clonepair.close()
         file_falsepos.write(falsepos)
@@ -99,15 +114,22 @@ def process(data):
         np.array(list(data))
         print("Reading Finished. Wait for last thread to finish...")
         return 0
-    array.append(data.split('~~'))
-    num_candidates+=1
-    if len(array)==10*1000*1000:
-        print("prediction started")
-        thread_counter+=1
-        #_thread.start_new_thread(predict(),array,thread_counter)
-        thread=predThread(thread_counter,array)
-        thread.start()
-        array=[]
+    data_splitted=data.split('#$#')
+    clone_pairs=data_splitted[1].split('~~')
+    if data_splitted[0]=='1':
+        file_type1.write(clone_pairs[0]+','+clone_pairs[1])
+    elif data_splitted[0]=='2':
+        file_type2.write(clone_pairs[0] + ',' + clone_pairs[1])
+    elif data_splitted[0]=='3.1':
+        array.append(clone_pairs)
+        num_candidates+=1
+        if len(array)==5*1000*1000:
+            print("prediction started")
+            thread_counter+=1
+            #_thread.start_new_thread(predict(),array,thread_counter)
+            thread=predThread(thread_counter,array)
+            thread.start()
+            array=[]
     #end_process = time.time()
     #print("process time: " + str(end_process - start_process))
     return 1
@@ -120,7 +142,10 @@ connection, address = serversocket.accept()
 print("Connection accepted")
 data=""
 chunkcounter=0;
+breakOuterLoop=False
 while True:
+    if breakOuterLoop:
+        break
     chunkcounter+=1
     chunk = connection.recv(1024*1000*1000*2)
     print("chunk "+str(chunkcounter)+" read")
@@ -131,11 +156,14 @@ while True:
             lines = data.split("\n")
             for index in range(0,len(lines)-1):
                 if process(lines[index])==0:
+                    breakOuterLoop=True
                     break
             data = lines[index+1]
     else:
         break
 
 end_time = time.time()
+file_type1.close()
+file_type2.close()
 print("whole process took: "+str(end_time-start_time))
 print("finished at: "+str(end_time))
