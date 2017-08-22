@@ -95,8 +95,8 @@ public class Block {
         	messageDigest.reset();
         	messageDigest.update(sb.toString().getBytes(Charset.forName("UTF8")));
         	this.metriHash = new String(messageDigest.digest());
-        	TokenFrequency tokenFrequency = new TokenFrequency();
         	for (int i=38;i<columns.length;i++){
+        		TokenFrequency tokenFrequency = new TokenFrequency();
         		String tf = null;
         		tf = columns[i];
         		String[] tfparts = tf.split(":");
