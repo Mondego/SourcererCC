@@ -13,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
-import com.mondego.utility.Util;
 
 public class CandidateSearcher implements IListener, Runnable {
 	private Block queryBlock;
