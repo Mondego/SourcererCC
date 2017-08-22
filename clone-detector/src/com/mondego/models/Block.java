@@ -57,8 +57,8 @@ public class Block {
     public Block(String rawQuery) {
     	this.tokenFrequencySet = new HashSet<TokenFrequency>();
         this.populateFields(rawQuery);
-        this.minCandidateActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numActionTokens, SearchManager.th);
-        this.maxCandidateActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numActionTokens, SearchManager.th);
+        this.minCandidateActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numActionTokens, 500);
+        this.maxCandidateActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numActionTokens, 500);
         //this.uniqueChars = SearchManager.ijaMapping.get(this.fqmn).split(",")[8];
         
     }
