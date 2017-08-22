@@ -153,19 +153,22 @@ public class CandidateProcessor implements IListener, Runnable {
 
 		for (int i = 0; i < queryBlock.metrics.size(); i++) {
 
-			output[i+3] = roundTwoDecimal(
+			output[i+3] = roundThreeDecimal(
 					getPercentageDiff(queryBlock.metrics.get(i), candiadteBlock.metrics.get(i),10)).toString();
-			output[i+30]=  roundTwoDecimal(Math.abs(queryBlock.metrics.get(i)-candiadteBlock.metrics.get(i)))+"";
+			output[i+30]=  roundThreeDecimal(Math.abs(queryBlock.metrics.get(i)-candiadteBlock.metrics.get(i)))+"";
 		}
 		return output;
 	}
 
 	private Double getPercentageDiff(double firstValue, double secondValue,int padding) {
+		if(padding>0){
+			return (Math.abs(firstValue - secondValue) / (padding + Math.max(firstValue+1, secondValue+1)));
+		}
 		return (Math.abs(firstValue - secondValue) / (padding + Math.max(firstValue, secondValue))) * 100;
 	}
 
-	private Double roundTwoDecimal(double param) {
-		return Double.valueOf(Math.round(param * 100.0) / 100.0);
+	private Double roundThreeDecimal(double param) {
+		return Double.valueOf(Math.round(param * 1000.0) / 1000.0);
 	}
 
 	private String getLineToSend(String[] lineParams) {
