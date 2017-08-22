@@ -93,38 +93,8 @@ public class CandidateProcessor implements IListener, Runnable {
 	 * SearchManager.verifyCandidateQueue.send(candidatePair); } }
 	 */
 
-	private double getJaccard(String s1, String s2) {
-		if (s1 == null) {
-			throw new NullPointerException("s1 must not be null");
-		}
-
-		if (s2 == null) {
-			throw new NullPointerException("s2 must not be null");
-		}
-
-		if (s1.equals(s2)) {
-			return 1;
-		}
-
-		// Map<String, Integer> profile1 = getProfile(s1);
-		// Map<String, Integer> profile2 = getProfile(s2);
-
-		Set<Character> union = new HashSet<Character>();
-		for (int i = 0; i < s1.length(); i++) {
-			union.add(s1.charAt(i));
-		}
-		for (int i = 0; i < s2.length(); i++) {
-			union.add(s2.charAt(i));
-		}
-
-		// s1.chars().collect(java.util.stream.Collectors.toSet());
-		// Collectors.toSet()
-		// union.addAll();
-		// union.addAll(profile2.keySet());
-
-		int inter = s1.length() + s2.length() - union.size();
-
-		return 1.0 * inter / union.size();
+	private double getJaccard(int sim, int numtokens1, int numtokens2) {
+		return sim*100/(numtokens1+numtokens2-sim);
 	}
 
 	private String[] getLineToWrite(Block queryBlock, Block candiadteBlock) {
@@ -195,7 +165,8 @@ public class CandidateProcessor implements IListener, Runnable {
 				Block candidateBlock = simInfo.doc;
 				if (candidateBlock.size >= this.qc.queryBlock.computedThreshold
 						&& candidateBlock.size <= this.qc.queryBlock.maxCandidateSize) {
-					if(simInfo.similarity>=this.qc.queryBlock.minCandidateActionTokens){
+					if(this.getJaccard(simInfo.similarity, 
+							candidateBlock.numActionTokens, this.qc.queryBlock.numActionTokens)>70){
 						logger.debug("similarity is: "+ simInfo.similarity);
 						String type="3.2";
 						if(candidateBlock.thash.equals(this.qc.queryBlock.thash)){
