@@ -56,7 +56,7 @@ public class SocketWriter {
 		try{
 			this.writeToSocket("FINISHED_JOB"+System.lineSeparator());
 			this.pwrite.flush();
-			logger.debug("sleeping for 10 mins");
+			logger.debug("sleeping for 60 mins");
 			TimeUnit.MINUTES.sleep(10);
 			
 			this.socket.close();
