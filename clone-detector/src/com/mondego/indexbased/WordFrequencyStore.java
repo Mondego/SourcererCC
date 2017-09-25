@@ -288,7 +288,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
         } finally {
             // close files.
             try {
-                Util.closeOutputFile(sortedFileWriter);
+                Util.closeFile(sortedFileWriter);
                 aBr.close();
                 bBr.close();
             } catch (IOException e) {

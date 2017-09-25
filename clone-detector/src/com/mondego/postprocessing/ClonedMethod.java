@@ -55,7 +55,7 @@ public class ClonedMethod {
 		for (String methodName : ClonedMethod.clonedMethods){
 			Util.writeToFile(writer, methodName, true);
 		}
-		Util.closeOutputFile(writer);
+		Util.closeFile(writer);
 	}
 	
 	public static void generateOutput(Set<String> methods, String filename) throws IOException{
@@ -69,7 +69,7 @@ public class ClonedMethod {
 				Util.writeToFile(writer, method+",0", true);
 			}
 		}
-		Util.closeOutputFile(writer);
+		Util.closeFile(writer);
 	}
 	
 	private static void populateSet(String line) {

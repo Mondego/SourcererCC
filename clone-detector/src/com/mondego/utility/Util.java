@@ -136,7 +136,7 @@ public class Util {
     /**
      * closes the outputfile
      */
-    public static void closeOutputFile(Writer pWriter) {
+    public static void closeFile(Writer pWriter) {
         if (null != pWriter) {
             try {
                 pWriter.flush();

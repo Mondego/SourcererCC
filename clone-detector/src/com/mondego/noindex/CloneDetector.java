@@ -84,7 +84,7 @@ public class CloneDetector {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
-			Util.closeOutputFile(cd.analysisWriter);
+			Util.closeFile(cd.analysisWriter);
 		}
 	}
 
@@ -132,7 +132,7 @@ public class CloneDetector {
 			e.printStackTrace();
 		} finally {
 			try {
-				Util.closeOutputFile(this.cloneHelper.getClonesWriter());
+				Util.closeFile(this.cloneHelper.getClonesWriter());
 			} catch (Exception e) {
 				System.err.println(e.getMessage());
 			}

@@ -397,8 +397,8 @@ public class FileParser {
         try {
             FileParser fp = new FileParser(args[0]);
             fp.traverseProjectPath(projectsFilePath);
-            Util.closeOutputFile(fp.idFileWriter);
-            Util.closeOutputFile(fp.parsedFileWriter);
+            Util.closeFile(fp.idFileWriter);
+            Util.closeFile(fp.parsedFileWriter);
             System.out.println("Done for process, "+ args[0]);
         } catch (IOException e) {
             e.printStackTrace();

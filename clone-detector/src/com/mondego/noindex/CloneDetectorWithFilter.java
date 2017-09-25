@@ -137,7 +137,7 @@ public class CloneDetectorWithFilter {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
-            Util.closeOutputFile(cd.analysisWriter);
+            Util.closeFile(cd.analysisWriter);
             // Util.closeOutputFile(cd.prefixWriter);
         }
     }
@@ -209,7 +209,7 @@ public class CloneDetectorWithFilter {
             e.printStackTrace();
         } finally {
             try {
-                Util.closeOutputFile(this.cloneHelper.getClonesWriter());
+                Util.closeFile(this.cloneHelper.getClonesWriter());
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }

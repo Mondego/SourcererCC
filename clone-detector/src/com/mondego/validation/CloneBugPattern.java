@@ -47,7 +47,7 @@ public class CloneBugPattern {
                 .println("error in file creation, exiting");
                 System.exit(1);
             }finally{
-                Util.closeOutputFile(bugPattern.outputWriter);
+                Util.closeFile(bugPattern.outputWriter);
             }
             
         } else {

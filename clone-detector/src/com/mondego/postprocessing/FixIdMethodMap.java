@@ -30,7 +30,7 @@ public class FixIdMethodMap {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}finally{
-			Util.closeOutputFile(writer);
+			Util.closeFile(writer);
 		}
 	}
 

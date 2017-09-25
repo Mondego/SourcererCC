@@ -93,8 +93,8 @@ public class Shard {
                 shard.closeWriters();
             }
         }else{
-            Util.closeOutputFile(this.candidateFileWriter);
-            Util.closeOutputFile(this.queryFileWriter);
+            Util.closeFile(this.candidateFileWriter);
+            Util.closeFile(this.queryFileWriter);
             logger.info("Shard size: "+ this.size+", Shard Path: "+this.indexPath);
         }
     }

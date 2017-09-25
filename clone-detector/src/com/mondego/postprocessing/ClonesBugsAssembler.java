@@ -136,7 +136,7 @@ public class ClonesBugsAssembler {
             }
             this.appendSummary(rows);
         }finally{
-            Util.closeOutputFile(this.outputWriter);
+            Util.closeFile(this.outputWriter);
         }
     }
     private void appendSummary(int rows){

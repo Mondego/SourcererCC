@@ -95,7 +95,7 @@ public class SummaryProcessor {
             Util.writeToFile(this.processedSummryWriter_time, sb.toString(),
                     true);
         }
-        Util.closeOutputFile(this.processedSummryWriter_time);
+        Util.closeFile(this.processedSummryWriter_time);
 
         // comparisions
         Util.writeToFile(this.processedSummryWriter_comparisions, header, true);
@@ -124,7 +124,7 @@ public class SummaryProcessor {
                     sb.toString(), true);
 
         }
-        Util.closeOutputFile(this.processedSummryWriter_comparisions);
+        Util.closeFile(this.processedSummryWriter_comparisions);
         // clones
 
         
@@ -155,7 +155,7 @@ public class SummaryProcessor {
                     true);
 
         }
-        Util.closeOutputFile(this.processedSummryWriter_clones);
+        Util.closeFile(this.processedSummryWriter_clones);
     }
 
     private void processFile(String filename, String threshold) {

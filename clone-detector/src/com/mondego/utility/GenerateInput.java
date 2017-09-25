@@ -47,12 +47,12 @@ public class GenerateInput {
             e.printStackTrace();
         } finally {
             try {
-                Util.closeOutputFile(projectBWriter);
+                Util.closeFile(projectBWriter);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
             try {
-                Util.closeOutputFile(projectAWriter);
+                Util.closeFile(projectAWriter);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }

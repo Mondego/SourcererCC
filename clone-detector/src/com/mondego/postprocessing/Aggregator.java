@@ -90,7 +90,7 @@ public class Aggregator {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
-            Util.closeOutputFile(aggregator.summryWriter);
+            Util.closeFile(aggregator.summryWriter);
         }
     }
 

@@ -459,10 +459,10 @@ public class SearchManager {
         logger.info("number of clone pairs detected: " + SearchManager.clonePairsCount);
         theInstance.timeTotal = estimatedTime;
         // theInstance.genReport();
-        Util.closeOutputFile(theInstance.reportWriter);
+        Util.closeFile(theInstance.reportWriter);
         try {
-            Util.closeOutputFile(SearchManager.clonesWriter);
-            Util.closeOutputFile(SearchManager.recoveryWriter);
+            Util.closeFile(SearchManager.clonesWriter);
+            Util.closeFile(SearchManager.recoveryWriter);
             if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
                 theInstance.backupOutput();
             }
@@ -521,7 +521,7 @@ public class SearchManager {
         try {
             Writer writer = Util.openFile(f, false);
             Util.writeToFile(writer, text, true);
-            Util.closeOutputFile(writer);
+            Util.closeFile(writer);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

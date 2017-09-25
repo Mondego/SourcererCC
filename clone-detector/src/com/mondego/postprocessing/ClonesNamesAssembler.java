@@ -120,7 +120,7 @@ public class ClonesNamesAssembler {
                 }
             }
         } finally {
-            Util.closeOutputFile(this.outputWriter);
+            Util.closeFile(this.outputWriter);
         }
     }
 }
