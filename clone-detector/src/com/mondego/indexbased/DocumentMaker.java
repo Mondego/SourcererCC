@@ -14,6 +14,8 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 
+import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.services.RuntimeStateService;
 import com.mondego.models.Bag;
 import com.mondego.models.DocumentForInvertedIndex;
 import com.mondego.models.TokenFrequency;
@@ -25,6 +27,7 @@ import com.mondego.utility.BlockInfo;
  */
 public class DocumentMaker {
     private IndexWriter indexWriter;
+    private RuntimeStateService runtimeStateService;
 
     /**
      * @param indexDir
@@ -37,10 +40,12 @@ public class DocumentMaker {
     public DocumentMaker(IndexWriter indexWriter) {
         super();
         this.indexWriter = indexWriter;
+        this.runtimeStateService = RuntimeStateService.getInstance();
     }
     
     public DocumentMaker(){
         super();
+        this.runtimeStateService = RuntimeStateService.getInstance();
     }
 
     /**
@@ -119,12 +124,12 @@ public class DocumentMaker {
 
     public DocumentForInvertedIndex prepareDocumentForII(Bag bag) {
         DocumentForInvertedIndex document = new DocumentForInvertedIndex();
-        document.id = SearchManager.getNextId();
+        document.id = this.runtimeStateService.getNextId();
         document.fId = bag.getId();
         document.pId = bag.getFunctionId();
         document.size = bag.getSize();
         document.ct = BlockInfo.getMinimumSimilarityThreshold(bag.getSize(),
-                SearchManager.th);
+                MainController.th);
         document.prefixSize = BlockInfo.getPrefixSize(bag.getSize(), document.ct);
         return document;
     }

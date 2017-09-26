@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger;
 import com.mondego.framework.controllers.MainController;
 
 public class RecoveryService {
-    private Set<Long> completedQueries;
+    public Set<Long> completedQueries;
     private static RecoveryService instance;
     private static final Logger logger = LogManager
             .getLogger(RecoveryService.class);

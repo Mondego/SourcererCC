@@ -20,6 +20,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+import com.mondego.framework.controllers.MainController;
 import com.mondego.models.Bag;
 import com.mondego.models.ITokensFileProcessor;
 import com.mondego.models.TokenFrequency;
@@ -63,7 +64,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
      * @throws ParseException
      */
     private void readTokensFile(File file) throws IOException, ParseException {
-        TokensFileReader tfr = new TokensFileReader(SearchManager.NODE_PREFIX, file, SearchManager.max_tokens, this);
+        TokensFileReader tfr = new TokensFileReader(MainController.NODE_PREFIX, file, MainController.max_tokens, this);
         tfr.read();
     }
 
@@ -71,14 +72,14 @@ public class WordFrequencyStore implements ITokensFileProcessor {
 
         Bag bag = cloneHelper.deserialise(line);
 
-        if (null != bag && bag.getSize() > SearchManager.min_tokens && bag.getSize() < SearchManager.max_tokens) {
+        if (null != bag && bag.getSize() > MainController.min_tokens && bag.getSize() < MainController.max_tokens) {
             populateWordFreqMap(bag);
         } else {
             if (null == bag) {
                 logger.debug("empty block, ignoring");
             } else {
                 logger.debug("not adding tokens of line to WFM, REASON: " + bag.getFunctionId() + ", " + bag.getId()
-                                + ", size: " + bag.getSize() + " (max tokens is " + SearchManager.max_tokens + ")");
+                                + ", size: " + bag.getSize() + " (max tokens is " + MainController.max_tokens + ")");
             }
         }
         this.lineNumber++;
@@ -112,7 +113,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
 
     public void populateLocalWordFreqMap() throws IOException, ParseException {
 
-        File queryDir = new File(SearchManager.QUERY_DIR_PATH);
+        File queryDir = new File(MainController.QUERY_DIR_PATH);
         if (queryDir.isDirectory()) {
             logger.debug("Directory: " + queryDir.getAbsolutePath());
 
@@ -180,7 +181,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
             this.wfmIndexWriter.forceMerge(1);
             this.wfmIndexWriter.commit();
         } catch (Exception e) {
-            logger.error(SearchManager.NODE_PREFIX + ", exception on commit",e);
+            logger.error(MainController.NODE_PREFIX + ", exception on commit",e);
             e.printStackTrace();
         }
         long elapsed = System.currentTimeMillis() - start;

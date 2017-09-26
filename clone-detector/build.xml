@@ -13,7 +13,7 @@
     <property name="aggregatorClones"  value="postprocessing.Aggregator"/>
 	<property name="clonedMethod"  value="postprocessing.ClonedMethod"/>
 	<property name="fixIdMethodMap"  value="postprocessing.FixIdMethodMap"/>
-    <property name="cdIndex"  value="indexbased.SearchManager"/>
+    <property name="cdIndex"  value="controllers.MainController"/>
 	<property name="indexMerge"  value="indexbased.IndexMerger"/>
 	
 	<property name="lib"  value="lib"/>
@@ -57,7 +57,7 @@
         <mkdir dir="${jar.dir}"/>
         <jar destfile="${jar.dir}/${cdIndex}.jar" basedir="${classes.dir}">
             <manifest>
-                <attribute name="Main-Class" value="com.mondego.${cdIndex}"/>
+                <attribute name="Main-Class" value="com.mondego.framework.${cdIndex}"/>
             </manifest>
             <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
         </jar>

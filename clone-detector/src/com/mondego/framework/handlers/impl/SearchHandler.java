@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -53,14 +54,16 @@ public class SearchHandler implements IActionHandler {
     private int vcq_thread_count;
     private int rcq_thread_count;
     
-    public ThreadedChannel<String> queryLineQueue;
-    public ThreadedChannel<QueryBlock> queryBlockQueue;
-    public ThreadedChannel<QueryCandidates> queryCandidatesQueue;
-    public ThreadedChannel<CandidatePair> verifyCandidateQueue;
-    public ThreadedChannel<ClonePair> reportCloneQueue;
-    public ThreadedChannel<Bag> bagsToInvertedIndexQueue;
+    public static ThreadedChannel<String> queryLineQueue;
+    public static ThreadedChannel<QueryBlock> queryBlockQueue;
+    public static ThreadedChannel<QueryCandidates> queryCandidatesQueue;
+    public static ThreadedChannel<CandidatePair> verifyCandidateQueue;
+    public static ThreadedChannel<ClonePair> reportCloneQueue;
+    public static ThreadedChannel<Bag> bagsToInvertedIndexQueue;
     private int threadToProcessIIQueue;
     
+    public static Map<String, Set<Long>> invertedIndex;
+    public static Map<Long, DocumentForInvertedIndex> documentsForII;
 
     
     public SearchHandler() {
@@ -69,6 +72,7 @@ public class SearchHandler implements IActionHandler {
         this.cloneHelper = new CloneHelper();
     }
     @Override
+    
     public void handle(String action) {
         long timeStartSearch = System.currentTimeMillis();
         this.initSearchEnv();
@@ -292,8 +296,8 @@ public class SearchHandler implements IActionHandler {
     
     private int createIndexes(File candidateFile, int avoidLines)
             throws FileNotFoundException {
-        MainController.invertedIndex = new ConcurrentHashMap<String, Set<Long>>();
-        MainController.documentsForII = new ConcurrentHashMap<Long, DocumentForInvertedIndex>();
+        SearchHandler.invertedIndex = new ConcurrentHashMap<String, Set<Long>>();
+        SearchHandler.documentsForII = new ConcurrentHashMap<Long, DocumentForInvertedIndex>();
         BufferedReader br = new BufferedReader(new FileReader(candidateFile));
         String line = "";
         long size = 0;

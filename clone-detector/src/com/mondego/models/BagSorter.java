@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
 import com.mondego.utility.Util;
 
 public class BagSorter implements IListener, Runnable {
@@ -57,7 +57,7 @@ public class BagSorter implements IListener, Runnable {
 	long startTime = System.nanoTime(); 
         Util.sortBag(bag);
 	long estimatedTime = System.nanoTime() - startTime;
-	logger.info(SearchManager.NODE_PREFIX + " SB, Bag " + bag+ " in " + estimatedTime/1000 + " micros");
-        SearchManager.bagsToInvertedIndexQueue.send(bag);
+	logger.info(MainController.NODE_PREFIX + " SB, Bag " + bag+ " in " + estimatedTime/1000 + " micros");
+        //SearchManager.bagsToInvertedIndexQueue.send(bag);
     }
 }

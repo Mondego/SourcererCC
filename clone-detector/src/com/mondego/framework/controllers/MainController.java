@@ -22,7 +22,6 @@ import com.mondego.framework.handlers.impl.SearchHandler;
 import com.mondego.framework.handlers.impl.ShardsHandler;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
 import com.mondego.indexbased.CodeSearcher;
-import com.mondego.models.DocumentForInvertedIndex;
 import com.mondego.models.Shard;
 import com.mondego.noindex.CloneHelper;
 import com.mondego.utility.Util;
@@ -52,7 +51,7 @@ public class MainController {
     public static long timeSpentInSearchingCandidates;
     public static Writer reportWriter;
     public static String ACTION;
-    public boolean appendToExistingFile;
+    public static boolean appendToExistingFile;
     TestGson testGson;
     public static final Integer MUL_FACTOR = 100;
     private static final String ACTION_INIT = "init";
@@ -81,8 +80,7 @@ public class MainController {
     private static final Logger logger = LogManager
             .getLogger(MainController.class);
     public static boolean FATAL_ERROR;
-    public static Map<String, Set<Long>> invertedIndex;
-    public static Map<Long, DocumentForInvertedIndex> documentsForII;
+    
     private IActionHandler shardsHandler;
     private IActionHandler searchHandler;
     private IActionHandler initHandler;

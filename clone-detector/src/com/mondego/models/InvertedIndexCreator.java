@@ -8,8 +8,8 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.framework.handlers.impl.SearchHandler;
 import com.mondego.indexbased.DocumentMaker;
-import com.mondego.indexbased.SearchManager;
 
 public class InvertedIndexCreator implements IListener, Runnable {
     private DocumentMaker documentMaker;
@@ -64,7 +64,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
             IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
         DocumentForInvertedIndex documentForII = this.documentMaker.prepareDocumentForII(bag);
-        SearchManager.documentsForII.put(documentForII.id, documentForII);
+        SearchHandler.documentsForII.put(documentForII.id, documentForII);
         Set<Long> docs = null;
         int prefixLength = documentForII.prefixSize;
         int pos = 0;
@@ -72,11 +72,11 @@ public class InvertedIndexCreator implements IListener, Runnable {
         for (TokenFrequency tf : bag) {
             if (prefixLength > 0) {
                 String term = tf.getToken().getValue();
-                if (SearchManager.invertedIndex.containsKey(term)){
-                    docs= SearchManager.invertedIndex.get(term);
+                if (SearchHandler.invertedIndex.containsKey(term)){
+                    docs= SearchHandler.invertedIndex.get(term);
                 }else{
                     docs = new HashSet<Long>();
-                    SearchManager.invertedIndex.put(term, docs);
+                    SearchHandler.invertedIndex.put(term, docs);
                 }
                 docs.add(documentForII.id);
                 termInfo = new TermInfo();

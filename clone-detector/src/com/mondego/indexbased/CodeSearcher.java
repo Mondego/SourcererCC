@@ -21,6 +21,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+import com.mondego.framework.controllers.MainController;
 import com.mondego.models.QueryBlock;
 import com.mondego.models.TokenInfo;
 import com.mondego.noindex.CloneHelper;
@@ -178,7 +179,7 @@ public class CodeSearcher {
 	try {
 	    return this.searcher.doc((int) docId);
 	} catch (IllegalArgumentException e) {
-	    logger.warn(SearchManager.NODE_PREFIX + ", CodeSearcher on " + indexDir + ": invalid docId " + docId);
+	    logger.warn(MainController.NODE_PREFIX + ", CodeSearcher on " + indexDir + ": invalid docId " + docId);
 	    return null;
 	}
     }

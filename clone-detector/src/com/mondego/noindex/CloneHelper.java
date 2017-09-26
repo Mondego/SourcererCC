@@ -19,7 +19,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
 import com.mondego.models.Bag;
 import com.mondego.models.QueryBlock;
 import com.mondego.models.Token;
@@ -189,7 +189,7 @@ public class CloneHelper {
                 bag.setSize(bagSize);
                 int numUniqueTokens = Integer.parseInt(bagMetadata[3]);
                 bag.setNumUniqueTokens(numUniqueTokens);
-                if (bag.getSize() < SearchManager.min_tokens || bag.getSize() > SearchManager.max_tokens) {
+                if (bag.getSize() < MainController.min_tokens || bag.getSize() > MainController.max_tokens) {
                     return bag; // ignore this bag, do not process it further
                 }
                 for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE.size(); index++) {
@@ -271,7 +271,7 @@ public class CloneHelper {
                 try {
                     int bagSize = Integer.parseInt(bagMetadata[2]);
                     int numUniqueTokens = Integer.parseInt(bagMetadata[3]);
-                    if (bagSize < SearchManager.min_tokens || bagSize > SearchManager.max_tokens) {
+                    if (bagSize < MainController.min_tokens || bagSize > MainController.max_tokens) {
                         return null; // do not process it further. we need
                                      // to discard this query
                     }
@@ -287,7 +287,7 @@ public class CloneHelper {
                     }
 
                 } catch (NumberFormatException e) {
-                    logger.error(SearchManager.NODE_PREFIX + "NumberFormatException: " + e.getMessage());
+                    logger.error(MainController.NODE_PREFIX + "NumberFormatException: " + e.getMessage());
                     throw e;
                 } catch (Exception e) {
                     logger.error("EXCEPTION CAUGHT::", e);

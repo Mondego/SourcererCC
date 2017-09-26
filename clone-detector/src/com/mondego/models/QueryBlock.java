@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
 import com.mondego.utility.BlockInfo;
 
 /**
@@ -40,9 +40,9 @@ public class QueryBlock {
         this.prefixMap = new LinkedHashMap<String, TokenInfo>();
         this.suffixMap = new HashMap<String, TokenInfo>();
         this.computedThreshold = BlockInfo
-                .getMinimumSimilarityThreshold(this.size, SearchManager.th);
+                .getMinimumSimilarityThreshold(this.size, MainController.th);
         this.setMaxCandidateSize(BlockInfo
-                .getMaximumSimilarityThreshold(this.size, SearchManager.th));
+                .getMaximumSimilarityThreshold(this.size, MainController.th));
         this.prefixSize = BlockInfo.getPrefixSize(this.size,
                 this.computedThreshold);
         this.numUniqueTokens = 0;

@@ -10,7 +10,8 @@ import java.text.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.services.RecoveryService;
 import com.mondego.models.ITokensFileProcessor;
 
 public class TokensFileReader {
@@ -18,6 +19,7 @@ public class TokensFileReader {
     private File file;
     private ITokensFileProcessor processor;
     private int maxTokens;
+    private RecoveryService recoveryService;
     private static final Logger logger = LogManager.getLogger(TokensFileReader.class);
 
     public TokensFileReader(String node_id, File f, int max_tokens, ITokensFileProcessor p) throws IOException {
@@ -25,6 +27,7 @@ public class TokensFileReader {
         this.file = f;
         this.processor = p;
         this.maxTokens = max_tokens;
+        this.recoveryService = RecoveryService.getInstance();
     }
 
     public void read() throws FileNotFoundException, IOException, ParseException {
@@ -33,8 +36,8 @@ public class TokensFileReader {
         long lineNumber = 0;
         char[] buf = new char[40];
         while (br.read(buf, 0, 40) != -1) {
-            if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)
-                    && lineNumber < SearchManager.QUERY_LINES_TO_IGNORE) {
+            if (MainController.ACTION_SEARCH.equals(MainController.ACTION)
+                    && lineNumber < this.recoveryService.QUERY_LINES_TO_IGNORE) {
                 logger.debug("RECOVERY: ignoring this line, as it was covered in previous run");
                 while (((char) br.read()) != '\n') {
                     ; // ignore the line
@@ -63,15 +66,15 @@ public class TokensFileReader {
                 }
             }
             lineNumber++;
-            if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)
-                    && SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES > 0
-                    && lineNumber % SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES == 0) {
+            if (MainController.ACTION_SEARCH.equals(MainController.ACTION)
+                    && MainController.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES > 0
+                    && lineNumber % MainController.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES == 0) {
                 // Util.writeToFile(SearchManager.recoveryWriter, lineNumber +
                 // "",
                 // true);
             }
         }
-        if (SearchManager.ACTION_SEARCH.equals(SearchManager.ACTION)) {
+        if (MainController.ACTION_SEARCH.equals(MainController.ACTION)) {
             // Util.writeToFile(SearchManager.recoveryWriter, lineNumber + "",
             // true);
         }

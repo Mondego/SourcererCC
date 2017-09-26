@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
 import com.mondego.utility.BlockInfo;
 import com.mondego.utility.Util;
 
@@ -31,10 +31,10 @@ public class Shard {
         this.minMetricValue = minBagSizeToSearch;
         this.maxMetricValue = maxBagSizeToSearch;
         this.minMetricValueToIndex = BlockInfo.getMinimumSimilarityThreshold(
-                minBagSizeToSearch, SearchManager.th);
+                minBagSizeToSearch, MainController.th);
         ; // minBagSizeToSearch;
         this.maxMetricValueToIndex = BlockInfo.getMaximumSimilarityThreshold(
-                maxBagSizeToSearch, SearchManager.th);
+                maxBagSizeToSearch, MainController.th);
         this.subShards = new ArrayList<Shard>();
         if (forWriting) {
             logger.debug("setinverted index");
@@ -73,8 +73,8 @@ public class Shard {
     }
 
     public void setWriters() {
-        String shardFolderPath = SearchManager.ROOT_DIR
-                + SearchManager.NODE_PREFIX + "/index/shards/" + this.indexPath;
+        String shardFolderPath = MainController.ROOT_DIR
+                + MainController.NODE_PREFIX + "/index/shards/" + this.indexPath;
         Util.createDirs(shardFolderPath);
         File candidateFile =  new File(shardFolderPath+"/candidates.file");
         File queryFile = new File(shardFolderPath+"/query.file");

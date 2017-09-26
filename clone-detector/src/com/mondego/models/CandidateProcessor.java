@@ -8,12 +8,14 @@ import java.util.NoSuchElementException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.handlers.impl.SearchHandler;
 
 public class CandidateProcessor implements IListener, Runnable {
     private QueryCandidates qc;
     private static final Logger logger = LogManager.getLogger(CandidateProcessor.class);
 
+    
     public CandidateProcessor(QueryCandidates qc) {
         // TODO Auto-generated constructor stub
         this.qc = qc;
@@ -70,7 +72,7 @@ public class CandidateProcessor implements IListener, Runnable {
         QueryBlock queryBlock = this.qc.queryBlock;
         long sstart_time = System.currentTimeMillis();
         logger.debug(
-                SearchManager.NODE_PREFIX + ", num candidates: " + simMap.entrySet().size() + ", query: " + queryBlock);
+                MainController.NODE_PREFIX + ", num candidates: " + simMap.entrySet().size() + ", query: " + queryBlock);
         for (Entry<Long, CandidateSimInfo> entry : simMap.entrySet()) {
             long startTime = System.nanoTime();
             CandidateSimInfo simInfo = entry.getValue();
@@ -96,7 +98,7 @@ public class CandidateProcessor implements IListener, Runnable {
             // System.out.println(SearchManager.NODE_PREFIX + "
             // CandidateProcessor, " + candidatePair + " in " +
             // estimatedTime/1000 + " micros");
-            SearchManager.verifyCandidateQueue.send(candidatePair);
+            SearchHandler.verifyCandidateQueue.send(candidatePair);
             entry = null;
         }
     }

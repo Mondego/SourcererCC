@@ -2,12 +2,12 @@ package com.mondego.models;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.handlers.impl.SearchHandler;
 import com.mondego.utility.Util;
 
 public class CloneValidator implements IListener, Runnable {
@@ -86,9 +86,9 @@ public class CloneValidator implements IListener, Runnable {
                 ClonePair cp = new ClonePair(candidatePair.queryBlock.getFunctionId(), candidatePair.queryBlock.getId(),
                         candidatePair.functionIdCandidate, candidatePair.candidateId);
                 long estimatedTime = System.nanoTime() - startTime;
-                logger.debug(SearchManager.NODE_PREFIX + " CloneValidator, QueryBlock " + candidatePair + " in "
+                logger.debug(MainController.NODE_PREFIX + " CloneValidator, QueryBlock " + candidatePair + " in "
                         + estimatedTime / 1000 + " micros");
-                SearchManager.reportCloneQueue.send(cp);
+                SearchHandler.reportCloneQueue.send(cp);
             }
 
             // }

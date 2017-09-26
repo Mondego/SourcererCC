@@ -9,16 +9,25 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.handlers.impl.SearchHandler;
+import com.mondego.framework.services.RecoveryService;
+import com.mondego.framework.services.RuntimeStateService;
+import com.mondego.noindex.CloneHelper;
 
 public class QueryLineProcessor implements Runnable {
     private String line;
-    private SearchManager searchManager;
+    private RuntimeStateService runtimeStateService;
+    private RecoveryService recoveryService;
+    private CloneHelper cloneHelper;
     private static final Logger logger = LogManager.getLogger(QueryLineProcessor.class);
 
     public QueryLineProcessor(String line) {
         this.line = line;
-        this.searchManager = SearchManager.theInstance;
+        this.runtimeStateService = RuntimeStateService.getInstance();
+        this.recoveryService = RecoveryService.getInstance();
+        this.cloneHelper = new CloneHelper();
+        
     }
 
     public void run() {
@@ -37,18 +46,18 @@ public class QueryLineProcessor implements Runnable {
             QueryBlock queryBlock = this.getNextQueryBlock(line);
             if (queryBlock == null)
                 return;
-            if (searchManager.appendToExistingFile && searchManager.completedQueries.contains(queryBlock.getId())) {
+            if (MainController.appendToExistingFile && this.recoveryService.completedQueries.contains(queryBlock.getId())) {
                 logger.debug("ignoring query, REASON: completed in previous run, " + queryBlock);
                 return;
             }
 
-            if (SearchManager.isStatusCounterOn) {
-                SearchManager.statusCounter += 1;
+            if (MainController.isStatusCounterOn) {
+                MainController.statusCounter += 1;
             }
             long estimatedTime = System.nanoTime() - startTime;
-            logger.debug(SearchManager.NODE_PREFIX + " QLP processed QueryBlock " + queryBlock + " in "
+            logger.debug(MainController.NODE_PREFIX + " QLP processed QueryBlock " + queryBlock + " in "
                     + estimatedTime / 1000 + " micros");
-            SearchManager.queryBlockQueue.send(queryBlock);
+            SearchHandler.queryBlockQueue.send(queryBlock);
             // System.out.println(SearchManager.NODE_PREFIX +
             // ", line number: "+ count);
         } catch (InstantiationException e) {
@@ -82,9 +91,9 @@ public class QueryLineProcessor implements Runnable {
 
     public QueryBlock getNextQueryBlock(String line) throws ParseException, IllegalArgumentException {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
-        QueryBlock queryBlock = searchManager.cloneHelper.getSortedQueryBlock(line, listOfTokens);
+        QueryBlock queryBlock = this.cloneHelper.getSortedQueryBlock(line, listOfTokens);
         if (queryBlock == null) {
-            logger.debug(SearchManager.NODE_PREFIX + " QLP, Invalid QueryBlock " + line.substring(0, 40));
+            logger.debug(MainController.NODE_PREFIX + " QLP, Invalid QueryBlock " + line.substring(0, 40));
             return null;
         }
 

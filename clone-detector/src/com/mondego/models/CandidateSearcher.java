@@ -12,7 +12,8 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.handlers.impl.SearchHandler;
 import com.mondego.utility.Util;
 
 public class CandidateSearcher implements IListener, Runnable {
@@ -76,9 +77,9 @@ public class CandidateSearcher implements IListener, Runnable {
         if (qc.simMap.size() > 0) {
             qc.queryBlock = queryBlock;
             long estimatedTime = System.nanoTime() - startTime;
-            logger.debug(SearchManager.NODE_PREFIX + " CandidateSearcher, QueryBlock " + queryBlock + " in "
+            logger.debug(MainController.NODE_PREFIX + " CandidateSearcher, QueryBlock " + queryBlock + " in "
                     + estimatedTime / 1000 + " micros");
-            SearchManager.queryCandidatesQueue.send(qc);
+            SearchHandler.queryCandidatesQueue.send(qc);
         }
     }
 
@@ -90,11 +91,11 @@ public class CandidateSearcher implements IListener, Runnable {
             String searchTerm = entry.getKey();
             int searchTermFreq = entry.getValue().getFrequency();
             termsSeenInQuery += searchTermFreq;
-            Set<Long> docIds = SearchManager.invertedIndex.get(searchTerm);
+            Set<Long> docIds = SearchHandler.invertedIndex.get(searchTerm);
             if (null != docIds) {
                 for (Long docId : docIds) {
                     CandidateSimInfo simInfo = null;
-                    DocumentForInvertedIndex doc = SearchManager.documentsForII.get(docId);
+                    DocumentForInvertedIndex doc = SearchHandler.documentsForII.get(docId);
                     if (simMap.containsKey(docId)) {
                         simInfo = simMap.get(docId);
                         simInfo.similarity = simInfo.similarity

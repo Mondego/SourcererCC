@@ -35,7 +35,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
 import com.mondego.models.Bag;
 import com.mondego.models.TokenFrequency;
 import com.mondego.models.TokenInfo;
@@ -47,25 +47,25 @@ import com.mondego.models.TokenInfo;
 public class Util {
     static Random rand = new Random(5);
     public static final String CSV_DELIMITER = "~";
-    public static final String INDEX_DIR = SearchManager.ROOT_DIR + "index";
-    public static final String INDEX_DIR_TEMP = SearchManager.ROOT_DIR
+    public static final String INDEX_DIR = MainController.ROOT_DIR + "index";
+    public static final String INDEX_DIR_TEMP = MainController.ROOT_DIR
             + "index_temp";
-    public static final String GTPM_DIR = SearchManager.ROOT_DIR + "gtpm";
-    public static final String GLOBAL_WFM_DIR = SearchManager.ROOT_DIR + "wfm";
-    public static final String FWD_INDEX_DIR = SearchManager.ROOT_DIR
+    public static final String GTPM_DIR = MainController.ROOT_DIR + "gtpm";
+    public static final String GLOBAL_WFM_DIR = MainController.ROOT_DIR + "wfm";
+    public static final String FWD_INDEX_DIR = MainController.ROOT_DIR
             + "fwdindex";
-    public static final String FWD_INDEX_DIR_TEMP = SearchManager.ROOT_DIR
+    public static final String FWD_INDEX_DIR_TEMP = MainController.ROOT_DIR
             + "fwdindex_temp";
-    public static final String GTPM_INDEX_DIR = SearchManager.ROOT_DIR
+    public static final String GTPM_INDEX_DIR = MainController.ROOT_DIR
             + "gtpmindex";
-    public static final String INDEX_DIR_NO_FILTER = SearchManager.ROOT_DIR
+    public static final String INDEX_DIR_NO_FILTER = MainController.ROOT_DIR
             + "index_nofilter";
     public static final String QUERY_FILE_NAME = "blocks.file";
-    public static final String OUTPUT_BACKUP_DIR = SearchManager.ROOT_DIR
+    public static final String OUTPUT_BACKUP_DIR = MainController.ROOT_DIR
             + "backup_output";
-    public static final String SEARCH_METADATA = SearchManager.ROOT_DIR
+    public static final String SEARCH_METADATA = MainController.ROOT_DIR
             + "search_metadata.txt";
-    public static final String RUN_METADATA = SearchManager.ROOT_DIR
+    public static final String RUN_METADATA = MainController.ROOT_DIR
             + "run_metadata.scc";
     public static List<String> METRICS_ORDER_IN_INPUT_FILE = Arrays.asList("num_tokens", "num_unique_tokens");
             //, "num_separators","num_assignments","num_statements","num_expressions");
@@ -260,12 +260,12 @@ public class Util {
                         frequency1 = cache.get(k1);
                         if(null==frequency1){
                             logger.warn("freq1 null from cache");
-                            frequency1 = SearchManager.gtpmSearcher
+                            frequency1 = MainController.gtpmSearcher
                                     .getFrequency(k1);
                             cache.put(k1, frequency1);
                         }
                     } else {
-                        frequency1 = SearchManager.gtpmSearcher
+                        frequency1 = MainController.gtpmSearcher
                                 .getFrequency(k1);
                         cache.put(k1, frequency1);
                     }
@@ -273,12 +273,12 @@ public class Util {
                         frequency2 = cache.get(k2);
                         if(null==frequency2){
                             logger.warn("freq2 null from cache");
-                            frequency2 = SearchManager.gtpmSearcher
+                            frequency2 = MainController.gtpmSearcher
                                     .getFrequency(k2);
                             cache.put(k2, frequency2);
                         }
                     } else {
-                        frequency2 = SearchManager.gtpmSearcher
+                        frequency2 = MainController.gtpmSearcher
                                 .getFrequency(k2);
                         cache.put(k2, frequency2);
                     }
@@ -299,7 +299,7 @@ public class Util {
             }
         } catch (NullPointerException e) {
             logger.error("NPE caught while sorting, ", e);
-            SearchManager.FATAL_ERROR=true;
+            MainController.FATAL_ERROR=true;
         }
     }
     
@@ -316,12 +316,12 @@ public class Util {
                         frequency1 = cache.get(k1);
                         if(null==frequency1){
                             logger.warn("freq1 null from cache");
-                            frequency1 = SearchManager.gtpmSearcher
+                            frequency1 = MainController.gtpmSearcher
                                     .getFrequency(k1);
                             cache.put(k1, frequency1);
                         }
                     } else {
-                        frequency1 = SearchManager.gtpmSearcher
+                        frequency1 = MainController.gtpmSearcher
                                 .getFrequency(k1);
                         cache.put(k1, frequency1);
                     }
@@ -329,12 +329,12 @@ public class Util {
                         frequency2 = cache.get(k2);
                         if(null==frequency2){
                             logger.warn("freq2 null from cache");
-                            frequency2 = SearchManager.gtpmSearcher
+                            frequency2 = MainController.gtpmSearcher
                                     .getFrequency(k2);
                             cache.put(k2, frequency2);
                         }
                     } else {
-                        frequency2 = SearchManager.gtpmSearcher
+                        frequency2 = MainController.gtpmSearcher
                                 .getFrequency(k2);
                         cache.put(k2, frequency2);
                     }
@@ -351,7 +351,7 @@ public class Util {
             });
         } catch (NullPointerException e) {
             logger.error("NPE caught while sorting, ", e);
-            SearchManager.FATAL_ERROR=true;
+            MainController.FATAL_ERROR=true;
         }
         return listOfTokens;
     }

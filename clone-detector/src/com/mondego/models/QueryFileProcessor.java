@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.handlers.impl.SearchHandler;
 
 public class QueryFileProcessor implements ITokensFileProcessor {
     private static final Logger logger = LogManager.getLogger(QueryFileProcessor.class);
@@ -15,7 +15,7 @@ public class QueryFileProcessor implements ITokensFileProcessor {
     @Override
     public void processLine(String line) {
         try {
-            SearchManager.queryLineQueue.send(line);
+            SearchHandler.queryLineQueue.send(line);
         } catch (InstantiationException e) {
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();

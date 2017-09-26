@@ -1,6 +1,6 @@
 package com.mondego.utility;
 
-import com.mondego.indexbased.SearchManager;
+import com.mondego.framework.controllers.MainController;
 import com.mondego.models.Bag;
 import com.mondego.models.QueryBlock;
 
@@ -27,17 +27,17 @@ public class BlockInfo {
 	}
 
 	private int getMinimumSimilarityThreshold(QueryBlock queryBlock,float threshold) {
-        return (int) Math.ceil((threshold * queryBlock.getSize())/ (SearchManager.MUL_FACTOR*10));
+        return (int) Math.ceil((threshold * queryBlock.getSize())/ (MainController.MUL_FACTOR*10));
     }
 	private int getMinimumSimilarityThreshold(Bag bag,float threshold) {
-        return (int) Math.ceil((threshold * bag.getSize())/ (SearchManager.MUL_FACTOR*10));
+        return (int) Math.ceil((threshold * bag.getSize())/ (MainController.MUL_FACTOR*10));
     }
 	
 	public static int getMinimumSimilarityThreshold(int size,float threshold) {
-        return (int) Math.ceil((threshold * size)/ (SearchManager.MUL_FACTOR*10));
+        return (int) Math.ceil((threshold * size)/ (MainController.MUL_FACTOR*10));
     }
 	public static int getMaximumSimilarityThreshold(int size,float threshold) {
-        return (int) Math.floor((size*SearchManager.MUL_FACTOR*10)/threshold);
+        return (int) Math.floor((size*MainController.MUL_FACTOR*10)/threshold);
     }
 	
 	public static int getPrefixSize(int size, int computedThreshold){
