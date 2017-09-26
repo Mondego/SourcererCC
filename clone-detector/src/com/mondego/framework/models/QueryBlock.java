@@ -1,14 +1,13 @@
 /**
  * 
  */
-package com.mondego.models;
+package com.mondego.framework.models;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.mondego.framework.controllers.MainController;
-import com.mondego.utility.BlockInfo;
 
 /**
  * @author vaibhavsaini

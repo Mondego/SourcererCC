@@ -17,24 +17,23 @@ import org.apache.logging.log4j.Logger;
 
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
+import com.mondego.framework.models.Bag;
+import com.mondego.framework.models.CandidatePair;
+import com.mondego.framework.models.CandidateProcessor;
+import com.mondego.framework.models.CandidateSearcher;
+import com.mondego.framework.models.ClonePair;
+import com.mondego.framework.models.CloneReporter;
+import com.mondego.framework.models.CloneValidator;
+import com.mondego.framework.models.DocumentForInvertedIndex;
+import com.mondego.framework.models.InvertedIndexCreator;
+import com.mondego.framework.models.QueryBlock;
+import com.mondego.framework.models.QueryCandidates;
+import com.mondego.framework.models.QueryFileProcessor;
+import com.mondego.framework.models.QueryLineProcessor;
+import com.mondego.framework.models.Shard;
+import com.mondego.framework.models.ThreadedChannel;
 import com.mondego.framework.services.RuntimeStateService;
 import com.mondego.framework.services.ShardService;
-import com.mondego.models.Bag;
-import com.mondego.models.CandidatePair;
-import com.mondego.models.CandidateProcessor;
-import com.mondego.models.CandidateSearcher;
-import com.mondego.models.ClonePair;
-import com.mondego.models.CloneReporter;
-import com.mondego.models.CloneValidator;
-import com.mondego.models.DocumentForInvertedIndex;
-import com.mondego.models.InvertedIndexCreator;
-import com.mondego.models.QueryBlock;
-import com.mondego.models.QueryCandidates;
-import com.mondego.models.QueryFileProcessor;
-import com.mondego.models.QueryLineProcessor;
-import com.mondego.models.Shard;
-import com.mondego.models.ThreadedChannel;
-import com.mondego.noindex.CloneHelper;
 import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 
@@ -47,7 +46,6 @@ public class SearchHandler implements IActionHandler {
     
     private int max_index_size;
     private boolean appendToExistingFile;
-    private CloneHelper cloneHelper;
     private int qlq_thread_count;
     private int qbq_thread_count;
     private int qcq_thread_count;
@@ -69,7 +67,6 @@ public class SearchHandler implements IActionHandler {
     public SearchHandler() {
         this.runtimeStateService = RuntimeStateService.getInstance();
         this.shardService = ShardService.getInstance();
-        this.cloneHelper = new CloneHelper();
     }
     @Override
     
@@ -314,7 +311,7 @@ public class SearchHandler implements IActionHandler {
                 if (completedLines <= avoidLines) {
                     continue;
                 }
-                Bag bag = this.cloneHelper.deserialise(line);
+                Bag bag = TokensFileReader.deserialise(line);
                 if (null != bag) {
                     size = size + (bag.getNumUniqueTokens() * 300); // approximate
                                                                     // mem

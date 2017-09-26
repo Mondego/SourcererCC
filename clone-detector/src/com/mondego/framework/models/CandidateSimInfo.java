@@ -1,4 +1,4 @@
-package com.mondego.models;
+package com.mondego.framework.models;
 
 
 public class CandidateSimInfo {

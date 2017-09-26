@@ -21,10 +21,9 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
 import com.mondego.framework.controllers.MainController;
-import com.mondego.models.Bag;
-import com.mondego.models.ITokensFileProcessor;
-import com.mondego.models.TokenFrequency;
-import com.mondego.noindex.CloneHelper;
+import com.mondego.framework.models.Bag;
+import com.mondego.framework.models.ITokensFileProcessor;
+import com.mondego.framework.models.TokenFrequency;
 import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 
@@ -37,7 +36,6 @@ import com.mondego.utility.Util;
  * 
  */
 public class WordFrequencyStore implements ITokensFileProcessor {
-    private CloneHelper cloneHelper;
     private Map<String, Long> wordFreq;
     private int wfm_file_count = 0;
     private int lineNumber = 0;
@@ -47,7 +45,6 @@ public class WordFrequencyStore implements ITokensFileProcessor {
     private static final Logger logger = LogManager.getLogger(WordFrequencyStore.class);
     public WordFrequencyStore() {
         this.wordFreq = new TreeMap<String, Long>();
-        this.cloneHelper = new CloneHelper();
     }
 
     public static void main(String[] args) throws IOException, ParseException {
@@ -70,7 +67,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
 
     public void processLine(String line) throws ParseException {
 
-        Bag bag = cloneHelper.deserialise(line);
+        Bag bag = TokensFileReader.deserialise(line);
 
         if (null != bag && bag.getSize() > MainController.min_tokens && bag.getSize() < MainController.max_tokens) {
             populateWordFreqMap(bag);

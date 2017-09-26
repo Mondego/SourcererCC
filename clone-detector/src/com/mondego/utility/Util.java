@@ -36,9 +36,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.models.Bag;
-import com.mondego.models.TokenFrequency;
-import com.mondego.models.TokenInfo;
+import com.mondego.framework.models.Bag;
+import com.mondego.framework.models.TokenFrequency;
+import com.mondego.framework.models.TokenInfo;
 
 /**
  * @author vaibhavsaini

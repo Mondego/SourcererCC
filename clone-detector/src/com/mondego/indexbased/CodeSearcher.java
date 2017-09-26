@@ -22,9 +22,8 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
 import com.mondego.framework.controllers.MainController;
-import com.mondego.models.QueryBlock;
-import com.mondego.models.TokenInfo;
-import com.mondego.noindex.CloneHelper;
+import com.mondego.framework.models.QueryBlock;
+import com.mondego.framework.models.TokenInfo;
 
 /**
  * @author vaibhavsaini
@@ -61,7 +60,6 @@ public class CodeSearcher {
                                                                    // argument
                                                                    // to
                                                                    // constructor
-        new CloneHelper(); // i don't remember why we are making this object?
         this.queryParser = new QueryParser(Version.LUCENE_46, this.field,
                 analyzer);
     }

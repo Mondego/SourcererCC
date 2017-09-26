@@ -1,4 +1,4 @@
-package com.mondego.models;
+package com.mondego.framework.models;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
@@ -13,20 +13,18 @@ import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.handlers.impl.SearchHandler;
 import com.mondego.framework.services.RecoveryService;
 import com.mondego.framework.services.RuntimeStateService;
-import com.mondego.noindex.CloneHelper;
+import com.mondego.utility.TokensFileReader;
 
 public class QueryLineProcessor implements Runnable {
     private String line;
     private RuntimeStateService runtimeStateService;
     private RecoveryService recoveryService;
-    private CloneHelper cloneHelper;
     private static final Logger logger = LogManager.getLogger(QueryLineProcessor.class);
 
     public QueryLineProcessor(String line) {
         this.line = line;
         this.runtimeStateService = RuntimeStateService.getInstance();
         this.recoveryService = RecoveryService.getInstance();
-        this.cloneHelper = new CloneHelper();
         
     }
 
@@ -91,7 +89,7 @@ public class QueryLineProcessor implements Runnable {
 
     public QueryBlock getNextQueryBlock(String line) throws ParseException, IllegalArgumentException {
         List<Entry<String, TokenInfo>> listOfTokens = new ArrayList<Entry<String, TokenInfo>>();
-        QueryBlock queryBlock = this.cloneHelper.getSortedQueryBlock(line, listOfTokens);
+        QueryBlock queryBlock = TokensFileReader.getSortedQueryBlock(line, listOfTokens);
         if (queryBlock == null) {
             logger.debug(MainController.NODE_PREFIX + " QLP, Invalid QueryBlock " + line.substring(0, 40));
             return null;

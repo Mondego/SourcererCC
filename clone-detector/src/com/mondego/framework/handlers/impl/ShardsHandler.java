@@ -12,25 +12,22 @@ import org.apache.logging.log4j.Logger;
 
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
+import com.mondego.framework.models.Bag;
+import com.mondego.framework.models.ITokensFileProcessor;
+import com.mondego.framework.models.Shard;
 import com.mondego.framework.services.ShardService;
 import com.mondego.indexbased.CodeSearcher;
-import com.mondego.models.Bag;
-import com.mondego.models.ITokensFileProcessor;
-import com.mondego.models.Shard;
-import com.mondego.noindex.CloneHelper;
 import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 
 public class ShardsHandler implements IActionHandler {
     private static final Logger logger = LogManager
             .getLogger(ShardsHandler.class);
-    private CloneHelper cloneHelper;
     private ShardService shardService;
     private int threadsToProcessBagsToSortQueue;
     public static List<String> METRICS_ORDER_IN_SHARDS;
 
     public ShardsHandler() {
-        this.cloneHelper = new CloneHelper();
         this.shardService = ShardService.getInstance();
     }
 
@@ -85,7 +82,7 @@ public class ShardsHandler implements IActionHandler {
                                 public void processLine(String line)
                                         throws ParseException {
                                     if (!MainController.FATAL_ERROR) {
-                                        Bag bag = cloneHelper.deserialise(line);
+                                        Bag bag = TokensFileReader.deserialise(line);
                                         if (null == bag || bag
                                                 .getSize() < MainController.min_tokens) {
                                             if (null == bag) {

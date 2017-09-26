@@ -21,9 +21,8 @@ import com.mondego.framework.handlers.impl.InitHandler;
 import com.mondego.framework.handlers.impl.SearchHandler;
 import com.mondego.framework.handlers.impl.ShardsHandler;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
+import com.mondego.framework.models.Shard;
 import com.mondego.indexbased.CodeSearcher;
-import com.mondego.models.Shard;
-import com.mondego.noindex.CloneHelper;
 import com.mondego.utility.Util;
 import com.mondego.validation.TestGson;
 
@@ -36,7 +35,6 @@ import net.jmatrix.eproperties.EProperties;
 public class MainController {
 
     public static CodeSearcher gtpmSearcher;
-    public CloneHelper cloneHelper;
     public static String QUERY_DIR_PATH;
     public static String DATASET_DIR;
     public static String WFM_DIR_PATH;
@@ -120,8 +118,7 @@ public class MainController {
                 + properties.getProperty("DATASET_DIR_PATH");
         MainController.isGenCandidateStats = Boolean.parseBoolean(
                 properties.getProperty("IS_GEN_CANDIDATE_STATISTICS"));
-        MainController.isStatusCounterOn = Boolean
-                .parseBoolean(properties.getProperty("IS_STATUS_REPORTER_ON"));
+        MainController.isStatusCounterOn = properties.getBoolean("IS_STATUS_REPORTER_ON");
         MainController.NODE_PREFIX = properties.getProperty("NODE_PREFIX")
                 .toUpperCase();
         MainController.OUTPUT_DIR = MainController.ROOT_DIR
@@ -129,21 +126,16 @@ public class MainController {
         MainController.QUERY_DIR_PATH = MainController.ROOT_DIR
                 + properties.getProperty("QUERY_DIR_PATH");
         logger.debug("Query path:" + MainController.QUERY_DIR_PATH);
-        MainController.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES = Integer
-                .parseInt(properties.getProperty(
-                        "LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", "1000"));
-        MainController.min_tokens = Integer.parseInt(
-                properties.getProperty("LEVEL_1_MIN_TOKENS", "65"));
-        MainController.max_tokens = Integer.parseInt(
-                properties.getProperty("LEVEL_1_MAX_TOKENS", "500000"));
+        MainController.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES = properties.getInt("LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", 1000);
+        MainController.min_tokens = properties.getInt("LEVEL_1_MIN_TOKENS", 65);
+        MainController.max_tokens = properties.getInt("LEVEL_1_MAX_TOKENS", 500000);
         
         logger.debug(MainController.NODE_PREFIX + " MAX_TOKENS=" + max_tokens
                 + " MIN_TOKENS=" + min_tokens);
     }
 
     public MainController(String[] args) throws IOException {
-        this.cloneHelper = new CloneHelper();
-        this.appendToExistingFile = true;
+        MainController.appendToExistingFile = true;
         MainController.ACTION = args[0];
         MainController.statusCounter = 0;
         MainController.globalWordFreqMap = new HashMap<String, Long>();

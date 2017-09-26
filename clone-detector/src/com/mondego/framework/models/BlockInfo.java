@@ -1,8 +1,6 @@
-package com.mondego.utility;
+package com.mondego.framework.models;
 
 import com.mondego.framework.controllers.MainController;
-import com.mondego.models.Bag;
-import com.mondego.models.QueryBlock;
 
 public class BlockInfo {
 	private int prefixSize;

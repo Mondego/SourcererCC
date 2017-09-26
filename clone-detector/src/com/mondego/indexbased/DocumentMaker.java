@@ -15,11 +15,11 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 
 import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.models.Bag;
+import com.mondego.framework.models.BlockInfo;
+import com.mondego.framework.models.DocumentForInvertedIndex;
+import com.mondego.framework.models.TokenFrequency;
 import com.mondego.framework.services.RuntimeStateService;
-import com.mondego.models.Bag;
-import com.mondego.models.DocumentForInvertedIndex;
-import com.mondego.models.TokenFrequency;
-import com.mondego.utility.BlockInfo;
 
 /**
  * @author vaibhavsaini

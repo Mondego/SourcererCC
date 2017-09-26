@@ -1,4 +1,4 @@
-package com.mondego.models;
+package com.mondego.framework.models;
 
 import java.io.File;
 import java.io.Writer;
@@ -9,7 +9,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.framework.controllers.MainController;
-import com.mondego.utility.BlockInfo;
 import com.mondego.utility.Util;
 
 public class Shard {

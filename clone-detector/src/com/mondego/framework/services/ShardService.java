@@ -9,8 +9,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.handlers.impl.ShardsHandler;
-import com.mondego.models.Bag;
-import com.mondego.models.Shard;
+import com.mondego.framework.models.Bag;
+import com.mondego.framework.models.Shard;
 
 public class ShardService {
     private static ShardService instance;
