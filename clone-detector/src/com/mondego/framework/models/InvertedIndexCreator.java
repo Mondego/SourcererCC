@@ -8,7 +8,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.framework.handlers.impl.SearchHandler;
+import com.mondego.application.handlers.SearchHandler;
 import com.mondego.indexbased.DocumentMaker;
 
 public class InvertedIndexCreator implements IListener, Runnable {

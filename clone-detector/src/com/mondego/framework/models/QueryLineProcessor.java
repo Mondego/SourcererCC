@@ -9,35 +9,32 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.handlers.SearchHandler;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.handlers.impl.SearchHandler;
 import com.mondego.framework.services.RecoveryService;
-import com.mondego.framework.services.RuntimeStateService;
 import com.mondego.utility.TokensFileReader;
 
 public class QueryLineProcessor implements Runnable {
     private String line;
-    private RuntimeStateService runtimeStateService;
     private RecoveryService recoveryService;
     private static final Logger logger = LogManager.getLogger(QueryLineProcessor.class);
 
     public QueryLineProcessor(String line) {
         this.line = line;
-        this.runtimeStateService = RuntimeStateService.getInstance();
         this.recoveryService = RecoveryService.getInstance();
         
     }
 
     public void run() {
         try {
-            processLine();
+            process();
         } catch (Exception e) {
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         }
     }
 
-    public void processLine() {
+    public void process() {
         // TODO Auto-generated method stub
         long startTime = System.nanoTime();
         try {

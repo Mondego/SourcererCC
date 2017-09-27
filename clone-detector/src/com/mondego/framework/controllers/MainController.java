@@ -17,9 +17,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.index.IndexWriter;
 
-import com.mondego.framework.handlers.impl.InitHandler;
-import com.mondego.framework.handlers.impl.SearchHandler;
-import com.mondego.framework.handlers.impl.ShardsHandler;
+import com.mondego.application.handlers.InitHandler;
+import com.mondego.application.handlers.SearchHandler;
+import com.mondego.application.handlers.ShardsHandler;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
 import com.mondego.framework.models.Shard;
 import com.mondego.indexbased.CodeSearcher;

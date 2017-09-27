@@ -21,7 +21,7 @@ public class CloneReporter implements IListener, Runnable {
     @Override
     public void run() {
         try {
-            this.reportClone(this.cp);
+            this.reportClone();
         } catch (NoSuchElementException e) {
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
@@ -31,7 +31,7 @@ public class CloneReporter implements IListener, Runnable {
         }
     }
 
-    private void reportClone(ClonePair cp) {
+    private void reportClone() {
         /*
          * System.out.println("QBQ: "+ SearchManager.queryBlockQueue.size()+
          * ", QCQ: "+ SearchManager.queryCandidatesQueue.size()+ ", VCQ: "+

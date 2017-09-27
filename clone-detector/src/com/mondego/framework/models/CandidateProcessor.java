@@ -8,10 +8,10 @@ import java.util.NoSuchElementException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.handlers.SearchHandler;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.handlers.impl.SearchHandler;
 
-public class CandidateProcessor implements IListener, Runnable {
+public class CandidateProcessor implements Runnable {
     private QueryCandidates qc;
     private static final Logger logger = LogManager.getLogger(CandidateProcessor.class);
 
@@ -26,7 +26,7 @@ public class CandidateProcessor implements IListener, Runnable {
         try {
             // System.out.println( "QCQ size: "+
             // SearchManager.queryCandidatesQueue.size() + Util.debug_thread());
-            this.processResultWithFilter();
+            this.process();
         } catch (NoSuchElementException e) {
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
@@ -64,17 +64,15 @@ public class CandidateProcessor implements IListener, Runnable {
         }
     }
 
-    private void processResultWithFilter() throws InterruptedException, InstantiationException, IllegalAccessException,
+    private void process() throws InterruptedException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         // System.out.println("HERE, thread_id: " + Util.debug_thread() +
         // ", query_id "+ queryBlock.getId());
         Map<Long, CandidateSimInfo> simMap = this.qc.simMap;
         QueryBlock queryBlock = this.qc.queryBlock;
-        long sstart_time = System.currentTimeMillis();
         logger.debug(
                 MainController.NODE_PREFIX + ", num candidates: " + simMap.entrySet().size() + ", query: " + queryBlock);
         for (Entry<Long, CandidateSimInfo> entry : simMap.entrySet()) {
-            long startTime = System.nanoTime();
             CandidateSimInfo simInfo = entry.getValue();
             long candidateId = simInfo.doc.fId;
             long functionIdCandidate = simInfo.doc.pId;
@@ -94,10 +92,6 @@ public class CandidateProcessor implements IListener, Runnable {
                 candidatePair = new CandidatePair(queryBlock, simInfo,
                         queryBlock.getComputedThreshold(), candidateSize, functionIdCandidate, candidateId);
             }
-            long estimatedTime = System.nanoTime() - startTime;
-            // System.out.println(SearchManager.NODE_PREFIX + "
-            // CandidateProcessor, " + candidatePair + " in " +
-            // estimatedTime/1000 + " micros");
             SearchHandler.verifyCandidateQueue.send(candidatePair);
             entry = null;
         }

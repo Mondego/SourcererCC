@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.framework.handlers.impl.SearchHandler;
+import com.mondego.application.handlers.SearchHandler;
 
 public class QueryFileProcessor implements ITokensFileProcessor {
     private static final Logger logger = LogManager.getLogger(QueryFileProcessor.class);

@@ -1,77 +1,57 @@
-package com.mondego.framework.models;
+package com.mondego.application.workers;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.NoSuchElementException;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import com.mondego.application.handlers.SearchHandler;
 import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.models.CandidatePair;
+import com.mondego.framework.models.CandidateSimInfo;
+import com.mondego.framework.models.ClonePair;
+import com.mondego.framework.models.QueryBlock;
+import com.mondego.framework.models.TokenFrequency;
+import com.mondego.framework.models.TokenInfo;
+import com.mondego.framework.workers.Worker;
 import com.mondego.utility.Util;
 
-public class CloneValidator implements Runnable {
-    private CandidatePair candidatePair;
-    private static final Logger logger = LogManager.getLogger(CloneValidator.class);
+public class CandidateValidatorWorker extends Worker<CandidatePair> {
 
-    public CloneValidator(CandidatePair candidatePair) {
-        // TODO Auto-generated constructor stub
-        this.candidatePair = candidatePair;
+    public CandidateValidatorWorker(CandidatePair t) {
+        super(t);
     }
 
     @Override
-    public void run() {
-        try {
-            this.process();
-        } catch (NoSuchElementException e) {
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            // TODO Auto-generated catch block
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            // TODO Auto-generated catch block
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            // TODO Auto-generated catch block
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            // TODO Auto-generated catch block
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            // TODO Auto-generated catch block
-            logger.error("EXCEPTION CAUGHT::", e);
-            e.printStackTrace();
-        } catch (Exception e) {
-            logger.error("EXCEPTION CAUGHT::", e);
-        }
-    }
-
-    private void process()
-            throws InterruptedException, InstantiationException, IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException, NoSuchMethodException, SecurityException {
+    public void process() {
         long startTime = System.nanoTime();
-        if (this.candidatePair.simInfo.doc.tokenFrequencies!= null && this.candidatePair.simInfo.doc.tokenFrequencies.size() > 0) {
-            int similarity = this.updateSimilarity(this.candidatePair.queryBlock,
-                    this.candidatePair.computedThreshold, this.candidatePair.candidateSize, this.candidatePair.simInfo);
+        if (this.dataObject.simInfo.doc.tokenFrequencies!= null && this.dataObject.simInfo.doc.tokenFrequencies.size() > 0) {
+            int similarity = this.updateSimilarity(this.dataObject.queryBlock,
+                    this.dataObject.computedThreshold, this.dataObject.candidateSize, this.dataObject.simInfo);
             if (similarity > 0) {
-                ClonePair cp = new ClonePair(this.candidatePair.queryBlock.getFunctionId(), this.candidatePair.queryBlock.getId(),
-                        this.candidatePair.functionIdCandidate, this.candidatePair.candidateId);
+                ClonePair cp = new ClonePair(this.dataObject.queryBlock.getFunctionId(), this.dataObject.queryBlock.getId(),
+                        this.dataObject.functionIdCandidate, this.dataObject.candidateId);
                 long estimatedTime = System.nanoTime() - startTime;
-                logger.debug(MainController.NODE_PREFIX + " CloneValidator, QueryBlock " + this.candidatePair + " in "
+                logger.debug(MainController.NODE_PREFIX + " CloneValidator, QueryBlock " + this.dataObject + " in "
                         + estimatedTime / 1000 + " micros");
-                SearchHandler.reportCloneQueue.send(cp);
+                try {
+                    SearchHandler.reportCloneQueue.send(cp);
+                } catch (InstantiationException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IllegalArgumentException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (NoSuchMethodException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (SecurityException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         } else {
             logger.debug("tokens not found for document");
@@ -125,4 +105,5 @@ public class CloneValidator implements Runnable {
         similarity += Math.min(tokenInfo.getFrequency(), candidatesTokenFreq);
         return similarity;
     }
+
 }

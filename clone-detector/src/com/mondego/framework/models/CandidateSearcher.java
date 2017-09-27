@@ -12,11 +12,11 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.handlers.SearchHandler;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.handlers.impl.SearchHandler;
 import com.mondego.utility.Util;
 
-public class CandidateSearcher implements IListener, Runnable {
+public class CandidateSearcher implements Runnable {
     private QueryBlock queryBlock;
     private static final Logger logger = LogManager.getLogger(CandidateSearcher.class);
 
@@ -28,7 +28,7 @@ public class CandidateSearcher implements IListener, Runnable {
     @Override
     public void run() {
         try {
-            this.searchCandidates(queryBlock);
+            this.process();
 
         } catch (NoSuchElementException e) {
             logger.error("EXCEPTION CAUGHT::", e);
@@ -68,26 +68,26 @@ public class CandidateSearcher implements IListener, Runnable {
         }
     }
 
-    private void searchCandidates(QueryBlock queryBlock)
+    private void process()
             throws IOException, InterruptedException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         long startTime = System.nanoTime();
         QueryCandidates qc = new QueryCandidates();
-        qc.simMap = this.search(queryBlock);
+        qc.simMap = this.search();
         if (qc.simMap.size() > 0) {
-            qc.queryBlock = queryBlock;
+            qc.queryBlock = this.queryBlock;
             long estimatedTime = System.nanoTime() - startTime;
-            logger.debug(MainController.NODE_PREFIX + " CandidateSearcher, QueryBlock " + queryBlock + " in "
+            logger.debug(MainController.NODE_PREFIX + " CandidateSearcher, QueryBlock " + this.queryBlock + " in "
                     + estimatedTime / 1000 + " micros");
             SearchHandler.queryCandidatesQueue.send(qc);
         }
     }
 
-    private Map<Long, CandidateSimInfo> search(QueryBlock queryBlock) {
+    private Map<Long, CandidateSimInfo> search() {
         Map<Long, CandidateSimInfo> simMap = new HashMap<Long, CandidateSimInfo>();
         Set<Long> earlierDocs = new HashSet<Long>();
         int termsSeenInQuery = 0;
-        for (Entry<String, TokenInfo> entry : queryBlock.getPrefixMap().entrySet()) {
+        for (Entry<String, TokenInfo> entry : this.queryBlock.getPrefixMap().entrySet()) {
             String searchTerm = entry.getKey();
             int searchTermFreq = entry.getValue().getFrequency();
             termsSeenInQuery += searchTermFreq;
@@ -104,7 +104,7 @@ public class CandidateSearcher implements IListener, Runnable {
                         if (earlierDocs.contains(docId)) {
                             continue;
                         }
-                        if (doc.fId >= queryBlock.getId()) {
+                        if (doc.fId >= this.queryBlock.getId()) {
                             earlierDocs.add(doc.id);
                             continue; // we reject the candidate
                         }
@@ -119,8 +119,8 @@ public class CandidateSearcher implements IListener, Runnable {
                     simInfo.queryMatchPosition = termsSeenInQuery;
                     int candidatePos = doc.termInfoMap.get(searchTerm).position;
                     simInfo.candidateMatchPosition = candidatePos + doc.termInfoMap.get(searchTerm).frequency;
-                    if (!Util.isSatisfyPosFilter(simMap.get(doc.id).similarity, queryBlock.getSize(), termsSeenInQuery,
-                            simInfo.candidateSize, simInfo.candidateMatchPosition, queryBlock.getComputedThreshold())) {
+                    if (!Util.isSatisfyPosFilter(simMap.get(doc.id).similarity, this.queryBlock.getSize(), termsSeenInQuery,
+                            simInfo.candidateSize, simInfo.candidateMatchPosition, this.queryBlock.getComputedThreshold())) {
                         simMap.remove(doc.id);
                     }
                 }
