@@ -35,10 +35,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import com.mondego.application.models.Bag;
+import com.mondego.application.models.TokenFrequency;
+import com.mondego.application.models.TokenInfo;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.models.Bag;
-import com.mondego.framework.models.TokenFrequency;
-import com.mondego.framework.models.TokenInfo;
 
 /**
  * @author vaibhavsaini

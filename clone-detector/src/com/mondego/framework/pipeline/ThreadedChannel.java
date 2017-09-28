@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.mondego.framework.workers.Worker;
 
-public class ThreadedChannel<U, T extends Worker<U>> implements IChannle{
+public class ThreadedChannel<U, T extends Worker<U>> implements IChannel{
 
     private ExecutorService executor;
     private Class<T> workerType;

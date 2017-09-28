@@ -4,11 +4,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.mondego.application.models.CandidatePair;
+import com.mondego.application.models.CandidateSimInfo;
+import com.mondego.application.models.QueryBlock;
+import com.mondego.application.models.QueryCandidates;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.models.CandidatePair;
-import com.mondego.framework.models.CandidateSimInfo;
-import com.mondego.framework.models.QueryBlock;
-import com.mondego.framework.models.QueryCandidates;
 import com.mondego.framework.workers.Worker;
 
 public class CandidateProcessorWorker extends Worker<QueryCandidates> {

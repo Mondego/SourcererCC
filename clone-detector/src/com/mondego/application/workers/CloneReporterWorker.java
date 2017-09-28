@@ -1,7 +1,7 @@
 package com.mondego.application.workers;
 
+import com.mondego.application.models.ClonePair;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.models.ClonePair;
 import com.mondego.framework.services.RuntimeStateService;
 import com.mondego.framework.workers.Worker;
 import com.mondego.utility.Util;

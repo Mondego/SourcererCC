@@ -4,10 +4,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.mondego.application.handlers.SearchActionHandler;
-import com.mondego.framework.models.Bag;
-import com.mondego.framework.models.DocumentForInvertedIndex;
-import com.mondego.framework.models.TermInfo;
-import com.mondego.framework.models.TokenFrequency;
+import com.mondego.application.models.Bag;
+import com.mondego.application.models.DocumentForInvertedIndex;
+import com.mondego.application.models.TermInfo;
+import com.mondego.application.models.TokenFrequency;
 import com.mondego.framework.workers.Worker;
 import com.mondego.indexbased.DocumentMaker;
 

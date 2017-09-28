@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.mondego.framework.models.Bag;
-import com.mondego.framework.models.TokenFrequency;
+import com.mondego.application.models.Bag;
+import com.mondego.application.models.TokenFrequency;
 
 public class JhawkTest {
 

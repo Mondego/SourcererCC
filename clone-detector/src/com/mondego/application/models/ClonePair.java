@@ -1,4 +1,4 @@
-package com.mondego.framework.models;
+package com.mondego.application.models;
 
 public class ClonePair {
     long qid;

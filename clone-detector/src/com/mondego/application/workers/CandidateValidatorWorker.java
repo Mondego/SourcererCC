@@ -2,13 +2,13 @@ package com.mondego.application.workers;
 
 import java.lang.reflect.InvocationTargetException;
 
+import com.mondego.application.models.CandidatePair;
+import com.mondego.application.models.CandidateSimInfo;
+import com.mondego.application.models.ClonePair;
+import com.mondego.application.models.QueryBlock;
+import com.mondego.application.models.TokenFrequency;
+import com.mondego.application.models.TokenInfo;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.models.CandidatePair;
-import com.mondego.framework.models.CandidateSimInfo;
-import com.mondego.framework.models.ClonePair;
-import com.mondego.framework.models.QueryBlock;
-import com.mondego.framework.models.TokenFrequency;
-import com.mondego.framework.models.TokenInfo;
 import com.mondego.framework.workers.Worker;
 import com.mondego.utility.Util;
 

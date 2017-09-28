@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.mondego.application.models.QueryBlock;
+import com.mondego.application.models.TokenInfo;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.models.QueryBlock;
-import com.mondego.framework.models.TokenInfo;
 import com.mondego.framework.services.RecoveryService;
 import com.mondego.framework.workers.Worker;
 import com.mondego.utility.TokensFileReader;

@@ -1,5 +1,4 @@
-package com.mondego.framework.models;
-
+package com.mondego.application.models;
 
 public class CandidateSimInfo {
     public int queryMatchPosition;

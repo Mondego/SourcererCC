@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.models.Bag;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.utility.Util;
 

@@ -15,13 +15,13 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.models.Bag;
+import com.mondego.application.models.QueryBlock;
+import com.mondego.application.models.Token;
+import com.mondego.application.models.TokenFrequency;
+import com.mondego.application.models.TokenInfo;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.models.Bag;
 import com.mondego.framework.models.ITokensFileProcessor;
-import com.mondego.framework.models.QueryBlock;
-import com.mondego.framework.models.Token;
-import com.mondego.framework.models.TokenFrequency;
-import com.mondego.framework.models.TokenInfo;
 import com.mondego.framework.services.RecoveryService;
 
 public class TokensFileReader {

@@ -8,12 +8,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.mondego.application.handlers.SearchActionHandler;
+import com.mondego.application.models.CandidateSimInfo;
+import com.mondego.application.models.DocumentForInvertedIndex;
+import com.mondego.application.models.QueryBlock;
+import com.mondego.application.models.QueryCandidates;
+import com.mondego.application.models.TokenInfo;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.models.CandidateSimInfo;
-import com.mondego.framework.models.DocumentForInvertedIndex;
-import com.mondego.framework.models.QueryBlock;
-import com.mondego.framework.models.QueryCandidates;
-import com.mondego.framework.models.TokenInfo;
 import com.mondego.framework.workers.Worker;
 import com.mondego.utility.Util;
 

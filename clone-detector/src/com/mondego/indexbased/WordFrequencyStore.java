@@ -20,10 +20,10 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+import com.mondego.application.models.Bag;
+import com.mondego.application.models.TokenFrequency;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.framework.models.Bag;
 import com.mondego.framework.models.ITokensFileProcessor;
-import com.mondego.framework.models.TokenFrequency;
 import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 

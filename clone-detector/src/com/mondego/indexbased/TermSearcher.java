@@ -13,7 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 
-import com.mondego.framework.models.CandidateSimInfo;
+import com.mondego.application.models.CandidateSimInfo;
 
 /**
  * @author vaibhavsaini

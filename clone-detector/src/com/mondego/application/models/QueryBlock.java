@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mondego.framework.models;
+package com.mondego.application.models;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
