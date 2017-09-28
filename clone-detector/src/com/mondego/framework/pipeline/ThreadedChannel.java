@@ -1,4 +1,4 @@
-package com.mondego.framework.models;
+package com.mondego.framework.pipeline;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutorService;
@@ -10,22 +10,24 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ThreadedChannel<E> {
+import com.mondego.framework.workers.Worker;
+
+public class ThreadedChannel<U, T extends Worker<U>> implements IChannle{
 
     private ExecutorService executor;
-    private Class<Runnable> workerType;
+    private Class<T> workerType;
     private Semaphore semaphore;
     private static final Logger logger = LogManager.getLogger(ThreadedChannel.class);
 
-    public ThreadedChannel(int nThreads, Class clazz) {
+    public ThreadedChannel(int nThreads, Class<T> clazz) {
         this.executor = Executors.newFixedThreadPool(nThreads);
         this.workerType = clazz;
         this.semaphore = new Semaphore(nThreads);
     }
 
-    public void send(E e) throws InstantiationException, IllegalAccessException, IllegalArgumentException,
+    public <U> void send(U u) throws InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
-        final Runnable o = this.workerType.getDeclaredConstructor(e.getClass()).newInstance(e);
+        final Runnable o = this.workerType.getDeclaredConstructor(u.getClass()).newInstance(u);
         try {
             semaphore.acquire();
         } catch (InterruptedException ex) {

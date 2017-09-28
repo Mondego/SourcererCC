@@ -2,7 +2,6 @@ package com.mondego.application.workers;
 
 import java.lang.reflect.InvocationTargetException;
 
-import com.mondego.application.handlers.SearchHandler;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.models.CandidatePair;
 import com.mondego.framework.models.CandidateSimInfo;
@@ -32,7 +31,7 @@ public class CandidateValidatorWorker extends Worker<CandidatePair> {
                 logger.debug(MainController.NODE_PREFIX + " CloneValidator, QueryBlock " + this.dataObject + " in "
                         + estimatedTime / 1000 + " micros");
                 try {
-                    SearchHandler.reportCloneQueue.send(cp);
+                    this.pipe.getChannel("REPORT_CLONE").send(cp);
                 } catch (InstantiationException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();

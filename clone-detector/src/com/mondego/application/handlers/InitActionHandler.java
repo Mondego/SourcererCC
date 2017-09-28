@@ -9,9 +9,9 @@ import org.apache.logging.log4j.Logger;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
 import com.mondego.indexbased.WordFrequencyStore;
 
-public class InitHandler implements IActionHandler {
+public class InitActionHandler implements IActionHandler {
     private static final Logger logger = LogManager
-            .getLogger(InitHandler.class);
+            .getLogger(InitActionHandler.class);
 
     @Override
     public void handle(String action) {

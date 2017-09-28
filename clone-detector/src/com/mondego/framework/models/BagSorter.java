@@ -9,9 +9,10 @@ import org.apache.logging.log4j.Logger;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.utility.Util;
 
-public class BagSorter implements IListener, Runnable {
+public class BagSorter implements Runnable {
     private Bag bag;
     private static final Logger logger = LogManager.getLogger(BagSorter.class);
+
     public BagSorter(Bag bag) {
         // TODO Auto-generated constructor stub
         this.bag = bag;
@@ -52,12 +53,15 @@ public class BagSorter implements IListener, Runnable {
         }
     }
 
-    private void sortBag(Bag bag) throws InterruptedException, InstantiationException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-	long startTime = System.nanoTime(); 
+    private void sortBag(Bag bag) throws InterruptedException,
+            InstantiationException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException,
+            NoSuchMethodException, SecurityException {
+        long startTime = System.nanoTime();
         Util.sortBag(bag);
-	long estimatedTime = System.nanoTime() - startTime;
-	logger.info(MainController.NODE_PREFIX + " SB, Bag " + bag+ " in " + estimatedTime/1000 + " micros");
-        //SearchManager.bagsToInvertedIndexQueue.send(bag);
+        long estimatedTime = System.nanoTime() - startTime;
+        logger.info(MainController.NODE_PREFIX + " SB, Bag " + bag + " in "
+                + estimatedTime / 1000 + " micros");
+        // SearchManager.bagsToInvertedIndexQueue.send(bag);
     }
 }

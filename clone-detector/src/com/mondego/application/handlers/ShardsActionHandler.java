@@ -20,14 +20,14 @@ import com.mondego.indexbased.CodeSearcher;
 import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 
-public class ShardsHandler implements IActionHandler {
+public class ShardsActionHandler implements IActionHandler {
     private static final Logger logger = LogManager
-            .getLogger(ShardsHandler.class);
+            .getLogger(ShardsActionHandler.class);
     private ShardService shardService;
     private int threadsToProcessBagsToSortQueue;
     public static List<String> METRICS_ORDER_IN_SHARDS;
 
-    public ShardsHandler() {
+    public ShardsActionHandler() {
         this.shardService = ShardService.getInstance();
     }
 
@@ -52,17 +52,17 @@ public class ShardsHandler implements IActionHandler {
                 .parseInt(MainController.properties.getProperty("BTSQ_THREADS", "1"));
      // read and set metrics order in shards
         String shardsOrder = MainController.properties.getProperty("METRICS_ORDER_IN_SHARDS");
-        ShardsHandler.METRICS_ORDER_IN_SHARDS = new ArrayList<String>();
+        ShardsActionHandler.METRICS_ORDER_IN_SHARDS = new ArrayList<String>();
         for (String metric : shardsOrder.split(",")) {
-            ShardsHandler.METRICS_ORDER_IN_SHARDS.add(metric.trim());
+            ShardsActionHandler.METRICS_ORDER_IN_SHARDS.add(metric.trim());
         }
-        if (!(ShardsHandler.METRICS_ORDER_IN_SHARDS.size() > 0)) {
+        if (!(ShardsActionHandler.METRICS_ORDER_IN_SHARDS.size() > 0)) {
             logger.fatal(
                     "ERROR WHILE CREATING METRICS ORDER IN SHARDS, EXTING");
             System.exit(1);
         } else {
             logger.info("METRICS_ORDER_IN_SHARDS created: "
-                    + ShardsHandler.METRICS_ORDER_IN_SHARDS.size());
+                    + ShardsActionHandler.METRICS_ORDER_IN_SHARDS.size());
         }
     }
 
@@ -125,7 +125,6 @@ public class ShardsHandler implements IActionHandler {
                     tfr.read();
                 } catch (FileNotFoundException e) {
                     logger.fatal("fatal error detected", e);
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (ParseException e) {

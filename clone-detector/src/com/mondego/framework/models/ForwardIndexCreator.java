@@ -9,7 +9,7 @@ import org.apache.lucene.document.Document;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.indexbased.DocumentMaker;
 
-public class ForwardIndexCreator implements IListener, Runnable {
+public class ForwardIndexCreator implements Runnable {
     private Bag bag;
     private static final Logger logger = LogManager
             .getLogger(ForwardIndexCreator.class);

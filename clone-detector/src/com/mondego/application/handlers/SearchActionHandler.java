@@ -15,33 +15,35 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.workers.CandidateProcessorWorker;
+import com.mondego.application.workers.CandidateSearchWorker;
+import com.mondego.application.workers.CandidateValidatorWorker;
+import com.mondego.application.workers.CloneReporterWorker;
+import com.mondego.application.workers.InvertedIndexCreatorWorker;
+import com.mondego.application.workers.QueryLineProcessorWorker;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
 import com.mondego.framework.models.Bag;
 import com.mondego.framework.models.CandidatePair;
-import com.mondego.framework.models.CandidateProcessor;
-import com.mondego.framework.models.CandidateSearcher;
 import com.mondego.framework.models.ClonePair;
-import com.mondego.framework.models.CloneReporter;
-import com.mondego.framework.models.CloneValidator;
 import com.mondego.framework.models.DocumentForInvertedIndex;
-import com.mondego.framework.models.InvertedIndexCreator;
 import com.mondego.framework.models.QueryBlock;
 import com.mondego.framework.models.QueryCandidates;
 import com.mondego.framework.models.QueryFileProcessor;
-import com.mondego.framework.models.QueryLineProcessor;
 import com.mondego.framework.models.Shard;
-import com.mondego.framework.models.ThreadedChannel;
+import com.mondego.framework.pipeline.Pipe;
+import com.mondego.framework.pipeline.ThreadedChannel;
 import com.mondego.framework.services.RuntimeStateService;
 import com.mondego.framework.services.ShardService;
 import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 
-public class SearchHandler implements IActionHandler {
+public class SearchActionHandler implements IActionHandler {
     private static final Logger logger = LogManager
-            .getLogger(SearchHandler.class);
+            .getLogger(SearchActionHandler.class);
     private RuntimeStateService runtimeStateService;
     private ShardService shardService;
+    private Pipe pipe;
     
     
     private int max_index_size;
@@ -52,21 +54,17 @@ public class SearchHandler implements IActionHandler {
     private int vcq_thread_count;
     private int rcq_thread_count;
     
-    public static ThreadedChannel<String> queryLineQueue;
-    public static ThreadedChannel<QueryBlock> queryBlockQueue;
-    public static ThreadedChannel<QueryCandidates> queryCandidatesQueue;
-    public static ThreadedChannel<CandidatePair> verifyCandidateQueue;
-    public static ThreadedChannel<ClonePair> reportCloneQueue;
-    public static ThreadedChannel<Bag> bagsToInvertedIndexQueue;
+    //public static ThreadedChannel<String> queryLineQueue;
     private int threadToProcessIIQueue;
     
     public static Map<String, Set<Long>> invertedIndex;
     public static Map<Long, DocumentForInvertedIndex> documentsForII;
 
     
-    public SearchHandler() {
+    public SearchActionHandler() {
         this.runtimeStateService = RuntimeStateService.getInstance();
         this.shardService = ShardService.getInstance();
+        this.pipe = Pipe.getInstance();
     }
     @Override
     
@@ -77,17 +75,16 @@ public class SearchHandler implements IActionHandler {
         // logger.info(NODE_PREFIX + " Starting to search");
         // theInstance.populateCompletedQueries();
         // theInstance.findCandidates();
-
-        this.queryLineQueue.shutdown();
         logger.info("shutting down QLQ, " + System.currentTimeMillis());
+        this.pipe.getChannel("READ_LINE").shutdown();
         logger.info("shutting down QBQ, " + (System.currentTimeMillis()));
-        this.queryBlockQueue.shutdown();
+        this.pipe.getChannel("FIND_CANDIDATES").shutdown();
         logger.info("shutting down QCQ, " + System.currentTimeMillis());
-        this.queryCandidatesQueue.shutdown();
+        this.pipe.getChannel("PROCESS_CANDIDATES").shutdown();
         logger.info("shutting down VCQ, " + System.currentTimeMillis());
-        this.verifyCandidateQueue.shutdown();
+        this.pipe.getChannel("VALIDATE_CANDIDATE").shutdown();
         logger.info("shutting down RCQ, " + System.currentTimeMillis());
-        this.reportCloneQueue.shutdown();
+        this.pipe.getChannel("REPORT_CLONE").shutdown();
         this.runtimeStateService.timeSearch = System.currentTimeMillis()
                 - timeStartSearch;
         this.runtimeStateService.signOffNode();
@@ -144,17 +141,17 @@ public class SearchHandler implements IActionHandler {
                 + this.vcq_thread_count + " RCQ_THREADS: "
                 + this.rcq_thread_count + System.lineSeparator());
         
-        this.queryLineQueue = new ThreadedChannel<String>(
-                this.qlq_thread_count, QueryLineProcessor.class);
-        this.queryBlockQueue = new ThreadedChannel<QueryBlock>(
-                this.qbq_thread_count, CandidateSearcher.class);
-        this.queryCandidatesQueue = new ThreadedChannel<QueryCandidates>(
-                this.qcq_thread_count, CandidateProcessor.class);
-        this.verifyCandidateQueue = new ThreadedChannel<CandidatePair>(
-                this.vcq_thread_count, CloneValidator.class);
-        this.reportCloneQueue = new ThreadedChannel<ClonePair>(
-                this.rcq_thread_count, CloneReporter.class);
-        
+        this.pipe.registerChannel("READ_LINE",new ThreadedChannel<String,QueryLineProcessorWorker>(
+                this.qlq_thread_count, QueryLineProcessorWorker.class));
+        this.pipe.registerChannel("FIND_CANDIDATES",new ThreadedChannel<QueryBlock,CandidateSearchWorker>(
+                this.qbq_thread_count, CandidateSearchWorker.class));
+        this.pipe.registerChannel("PROCESS_CANDIDATES",new ThreadedChannel<QueryCandidates,CandidateProcessorWorker>(
+                this.qcq_thread_count, CandidateProcessorWorker.class));
+        this.pipe.registerChannel("VALIDATE_CANDIDATE",new ThreadedChannel<CandidatePair,CandidateValidatorWorker>(
+                this.vcq_thread_count, CandidateValidatorWorker.class));
+        this.pipe.registerChannel("REPORT_CLONE",new ThreadedChannel<ClonePair,CloneReporterWorker>(
+                this.rcq_thread_count, CloneReporterWorker.class));
+
         if (MainController.NODE_PREFIX.equals("NODE_1")) {
             this.runtimeStateService.readAndUpdateRunMetadata();
             File completedNodeFile = new File(MainController.completedNodes);
@@ -293,8 +290,8 @@ public class SearchHandler implements IActionHandler {
     
     private int createIndexes(File candidateFile, int avoidLines)
             throws FileNotFoundException {
-        SearchHandler.invertedIndex = new ConcurrentHashMap<String, Set<Long>>();
-        SearchHandler.documentsForII = new ConcurrentHashMap<Long, DocumentForInvertedIndex>();
+        SearchActionHandler.invertedIndex = new ConcurrentHashMap<String, Set<Long>>();
+        SearchActionHandler.documentsForII = new ConcurrentHashMap<Long, DocumentForInvertedIndex>();
         BufferedReader br = new BufferedReader(new FileReader(candidateFile));
         String line = "";
         long size = 0;
@@ -304,8 +301,8 @@ public class SearchHandler implements IActionHandler {
         try {
             // MainController.bagsToSortQueue = new ThreadedChannel<Bag>(
             // this.threadsToProcessBagsToSortQueue, BagSorter.class);
-            this.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(
-                    this.threadToProcessIIQueue, InvertedIndexCreator.class);
+            this.pipe.registerChannel("INDEX", new ThreadedChannel<Bag,InvertedIndexCreatorWorker>(
+                    this.threadToProcessIIQueue, InvertedIndexCreatorWorker.class));
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 completedLines++;
                 if (completedLines <= avoidLines) {
@@ -322,7 +319,7 @@ public class SearchHandler implements IActionHandler {
                                                                     // 300 bytes
                     logger.debug("indexing " + completedLines + " bag: " + bag
                             + ", mem: " + size + " bytes");
-                    this.bagsToInvertedIndexQueue.send(bag);
+                    this.pipe.getChannel("INDEX").send(bag);
                     if (size >= maxMemory) {
                         return completedLines;
                     }
@@ -351,7 +348,7 @@ public class SearchHandler implements IActionHandler {
             e.printStackTrace();
         } finally {
             // MainController.bagsToSortQueue.shutdown();
-            this.bagsToInvertedIndexQueue.shutdown();
+            this.pipe.getChannel("INDEX").shutdown();
             try {
                 br.close();
             } catch (IOException e) {

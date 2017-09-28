@@ -17,9 +17,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.index.IndexWriter;
 
-import com.mondego.application.handlers.InitHandler;
-import com.mondego.application.handlers.SearchHandler;
-import com.mondego.application.handlers.ShardsHandler;
+import com.mondego.application.handlers.InitActionHandler;
+import com.mondego.application.handlers.SearchActionHandler;
+import com.mondego.application.handlers.ShardsActionHandler;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
 import com.mondego.framework.models.Shard;
 import com.mondego.indexbased.CodeSearcher;
@@ -139,9 +139,9 @@ public class MainController {
         MainController.ACTION = args[0];
         MainController.statusCounter = 0;
         MainController.globalWordFreqMap = new HashMap<String, Long>();
-        this.initHandler = new InitHandler();
-        this.shardsHandler = new ShardsHandler();
-        this.searchHandler = new SearchHandler();
+        this.initHandler = new InitActionHandler();
+        this.shardsHandler = new ShardsActionHandler();
+        this.searchHandler = new SearchActionHandler();
         try {
             MainController.th = (Float.parseFloat(args[1])
                     * MainController.MUL_FACTOR);

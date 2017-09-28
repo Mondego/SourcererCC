@@ -5,17 +5,20 @@ import java.lang.reflect.InvocationTargetException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.application.handlers.SearchHandler;
+import com.mondego.application.handlers.SearchActionHandler;
+import com.mondego.framework.pipeline.Pipe;
 
 public class QueryFileProcessor implements ITokensFileProcessor {
+    private Pipe pipe;
     private static final Logger logger = LogManager.getLogger(QueryFileProcessor.class);
     public QueryFileProcessor() {
+        this.pipe = Pipe.getInstance();
     }
 
     @Override
     public void processLine(String line) {
         try {
-            SearchHandler.queryLineQueue.send(line);
+            this.pipe.getChannel("READ_LINE").send(line);
         } catch (InstantiationException e) {
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();

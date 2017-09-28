@@ -9,7 +9,7 @@ import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.services.RuntimeStateService;
 import com.mondego.utility.Util;
 
-public class CloneReporter implements IListener, Runnable {
+public class CloneReporter implements Runnable {
     private ClonePair cp;
     private RuntimeStateService runtimeStateService;
     private static final Logger logger = LogManager.getLogger(CloneReporter.class);

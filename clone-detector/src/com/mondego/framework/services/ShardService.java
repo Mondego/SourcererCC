@@ -7,7 +7,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.application.handlers.ShardsHandler;
+import com.mondego.application.handlers.ShardsActionHandler;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.models.Bag;
 import com.mondego.framework.models.Shard;
@@ -117,9 +117,9 @@ public class ShardService {
         int level = 0;
         for (Shard shard : MainController.shards)
             if (bag.metrics.get(
-                    ShardsHandler.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
+                    ShardsActionHandler.METRICS_ORDER_IN_SHARDS.get(level)) >= shard
                             .getMinMetricValueToIndex()
-                    && bag.metrics.get(ShardsHandler.METRICS_ORDER_IN_SHARDS
+                    && bag.metrics.get(ShardsActionHandler.METRICS_ORDER_IN_SHARDS
                             .get(level)) <= shard.getMaxMetricValueToIndex()) {
                 this.getSubShards(bag, shard, level + 1,
                         shardsToReturn);
@@ -131,10 +131,10 @@ public class ShardService {
             List<Shard> shardsToReturn) {
         if (parentShard.subShards.size() > 0) {
             for (Shard shard : parentShard.subShards) {
-                if (bag.metrics.get(ShardsHandler.METRICS_ORDER_IN_SHARDS
+                if (bag.metrics.get(ShardsActionHandler.METRICS_ORDER_IN_SHARDS
                         .get(level)) >= shard.getMinMetricValueToIndex()
                         && bag.metrics
-                                .get(ShardsHandler.METRICS_ORDER_IN_SHARDS
+                                .get(ShardsActionHandler.METRICS_ORDER_IN_SHARDS
                                         .get(level)) <= shard
                                                 .getMaxMetricValueToIndex()) {
                     this.getSubShards(bag, shard, level + 1,
@@ -189,19 +189,19 @@ public class ShardService {
             Shard shard = null;
             while (low <= high) {
                 shard = parentShard.subShards.get(mid);
-                if (bag.metrics.get(ShardsHandler.METRICS_ORDER_IN_SHARDS
+                if (bag.metrics.get(ShardsActionHandler.METRICS_ORDER_IN_SHARDS
                         .get(level)) >= shard.getMinMetricValue()
                         && bag.metrics
-                                .get(ShardsHandler.METRICS_ORDER_IN_SHARDS.get(
+                                .get(ShardsActionHandler.METRICS_ORDER_IN_SHARDS.get(
                                         level)) <= shard.getMaxMetricValue()) {
                     return this.getShardRecursive(bag, shard,
                             level + 1);
                 } else {
-                    if (bag.metrics.get(ShardsHandler.METRICS_ORDER_IN_SHARDS
+                    if (bag.metrics.get(ShardsActionHandler.METRICS_ORDER_IN_SHARDS
                             .get(level)) < shard.getMinMetricValue()) {
                         high = mid - 1;
                     } else if (bag.metrics
-                            .get(ShardsHandler.METRICS_ORDER_IN_SHARDS
+                            .get(ShardsActionHandler.METRICS_ORDER_IN_SHARDS
                                     .get(level)) > shard.getMaxMetricValue()) {
                         low = mid + 1;
                     }

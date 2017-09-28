@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.mondego.application.handlers.SearchHandler;
+import com.mondego.application.handlers.SearchActionHandler;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.models.CandidateSimInfo;
 import com.mondego.framework.models.DocumentForInvertedIndex;
@@ -34,7 +34,7 @@ public class CandidateSearchWorker extends Worker<QueryBlock> {
             logger.debug(MainController.NODE_PREFIX + " CandidateSearcher, QueryBlock " + this.dataObject + " in "
                     + estimatedTime / 1000 + " micros");
             try {
-                SearchHandler.queryCandidatesQueue.send(qc);
+                this.pipe.getChannel("PROCESS_CANDIDATES").send(qc);
             } catch (InstantiationException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -65,11 +65,11 @@ public class CandidateSearchWorker extends Worker<QueryBlock> {
             String searchTerm = entry.getKey();
             int searchTermFreq = entry.getValue().getFrequency();
             termsSeenInQuery += searchTermFreq;
-            Set<Long> docIds = SearchHandler.invertedIndex.get(searchTerm);
+            Set<Long> docIds = SearchActionHandler.invertedIndex.get(searchTerm);
             if (null != docIds) {
                 for (Long docId : docIds) {
                     CandidateSimInfo simInfo = null;
-                    DocumentForInvertedIndex doc = SearchHandler.documentsForII.get(docId);
+                    DocumentForInvertedIndex doc = SearchActionHandler.documentsForII.get(docId);
                     if (simMap.containsKey(docId)) {
                         simInfo = simMap.get(docId);
                         simInfo.similarity = simInfo.similarity

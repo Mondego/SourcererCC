@@ -8,10 +8,10 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.application.handlers.SearchHandler;
+import com.mondego.application.handlers.SearchActionHandler;
 import com.mondego.indexbased.DocumentMaker;
 
-public class InvertedIndexCreator implements IListener, Runnable {
+public class InvertedIndexCreator implements Runnable {
     private DocumentMaker documentMaker;
     private Bag bag;
     private static final Logger logger = LogManager
@@ -31,7 +31,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
              * ", size of bagsToInvertedIndexQueue " +
              * SearchManager.bagsToInvertedIndexQueue.size());
              */
-            this.index(this.bag);
+            this.process();
         } catch (NoSuchElementException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -59,24 +59,24 @@ public class InvertedIndexCreator implements IListener, Runnable {
 
     }
 
-    private void index(Bag bag) throws InterruptedException,
+    private void process() throws InterruptedException,
             InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
-        DocumentForInvertedIndex documentForII = this.documentMaker.prepareDocumentForII(bag);
-        SearchHandler.documentsForII.put(documentForII.id, documentForII);
+        DocumentForInvertedIndex documentForII = this.documentMaker.prepareDocumentForII(this.bag);
+        SearchActionHandler.documentsForII.put(documentForII.id, documentForII);
         Set<Long> docs = null;
         int prefixLength = documentForII.prefixSize;
         int pos = 0;
         TermInfo termInfo = null;
-        for (TokenFrequency tf : bag) {
+        for (TokenFrequency tf : this.bag) {
             if (prefixLength > 0) {
                 String term = tf.getToken().getValue();
-                if (SearchHandler.invertedIndex.containsKey(term)){
-                    docs= SearchHandler.invertedIndex.get(term);
+                if (SearchActionHandler.invertedIndex.containsKey(term)){
+                    docs= SearchActionHandler.invertedIndex.get(term);
                 }else{
                     docs = new HashSet<Long>();
-                    SearchHandler.invertedIndex.put(term, docs);
+                    SearchActionHandler.invertedIndex.put(term, docs);
                 }
                 docs.add(documentForII.id);
                 termInfo = new TermInfo();
