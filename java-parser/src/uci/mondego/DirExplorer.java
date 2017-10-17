@@ -1,10 +1,22 @@
+package uci.mondego;
+
 import java.io.File;
 import java.util.Vector;
 
 public class DirExplorer {
 
-    public Vector<File>finder(String dirName){
-        Vector<File> results = new Vector();
+    public static void main(String[] args) {
+        String path = "java_samples";
+        System.out.println("Searching on "+path+" ...");
+
+        Vector<File> d = new DirExplorer().finder(path);
+
+        for (File f : d)
+            System.out.println("   "+f.getName());
+    }
+
+    public Vector<File> finder(String dirName) {
+        Vector<File> results = new Vector<File>();
 
         File dir = new File(dirName);
 
@@ -22,12 +34,6 @@ public class DirExplorer {
         return results;
     }
 
-    public static void main(String[] args) {
-        Vector<File> d = new DirExplorer().finder(".");
-
-        for (File f : d)
-            System.out.println(f.getName());
-    }
-
 }
+
 
