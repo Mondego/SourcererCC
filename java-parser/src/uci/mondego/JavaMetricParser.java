@@ -1,27 +1,28 @@
 package uci.mondego;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Vector;
 
+import static com.github.javaparser.JavaParser.parse;
+import static uci.mondego.DirExplorer.finder;
+
 public class JavaMetricParser {
 
     public static void main(String[] args) throws FileNotFoundException {
-        JavaMetricParser mParser = new JavaMetricParser();
-        Vector<File> files = new DirExplorer().finder("java_samples");
+        Vector<File> files = finder("java_samples");
 
         for (File f : files) {
-            mParser.metricalize(f);
+            metricalize(f);
         }
     }
 
-    public void metricalize(File file) throws FileNotFoundException {
+    public static void metricalize(File file) throws FileNotFoundException {
         System.out.println("Metricalizing " + file.getName());
 
-        CompilationUnit cUnit = new JavaParser().parse(file);
+        CompilationUnit cUnit = parse(file);
 
         //for (MethodDeclaration method : cUnit.getMethods()) {
         // Make the visitor go through everything inside the method.

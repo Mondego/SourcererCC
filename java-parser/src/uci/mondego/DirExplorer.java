@@ -9,13 +9,13 @@ public class DirExplorer {
         String path = "java_samples";
         System.out.println("Searching on "+path+" ...");
 
-        Vector<File> d = new DirExplorer().finder(path);
+        Vector<File> d = finder(path);
 
         for (File f : d)
             System.out.println("   "+f.getName());
     }
 
-    public Vector<File> finder(String dirName) {
+    public static Vector<File> finder(String dirName) {
         Vector<File> results = new Vector<File>();
 
         File dir = new File(dirName);
@@ -27,7 +27,7 @@ public class DirExplorer {
                 }
             }
             if (file.isDirectory()) {
-                results.addAll(this.finder(file.getName()));
+                results.addAll(finder(file.getName()));
             }
         }
 
