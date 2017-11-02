@@ -7,6 +7,7 @@ import java.util.List;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.TreeVisitor;
 
@@ -16,8 +17,9 @@ public class JavaMetricParser {
         List<File> files = DirExplorer.finder("java_samples");
 
         for (File f : files) {
-
-            metricalize(f);
+            if (f.getName().equals("JhawkTest.java")) {
+                metricalize(f);
+            }
         }
     }
 
@@ -27,12 +29,11 @@ public class JavaMetricParser {
         TreeVisitor astVisitor = new TreeVisitor() {
             @Override
             public void process(Node node) {
-                if (node instanceof MethodDeclaration) {
+                if (node instanceof MethodDeclaration || node instanceof ConstructorDeclaration) {
                     MetricCollector collector = new MetricCollector();
                     collector.startLine = node.getBegin().get().line;
                     collector.endLine = node.getEnd().get().line;
-                    collector.methodName = ((MethodDeclaration) node).getName()
-                            .asString();
+                    collector.methodName = ((MethodDeclaration) node).getName().asString();
                     node.accept(new MethodVisitor(), collector);
                     System.out.println(collector);
                 }
