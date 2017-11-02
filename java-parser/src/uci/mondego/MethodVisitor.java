@@ -208,6 +208,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        arg.LOOP++;
     }
     
     @Override
@@ -663,6 +664,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        arg.LOOP++;
     }
 
     @Override
