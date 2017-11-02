@@ -2,6 +2,7 @@ package com.mondego.application.workers;
 
 import java.lang.reflect.InvocationTargetException;
 
+import com.mondego.application.handlers.SearchActionHandler;
 import com.mondego.application.models.CandidatePair;
 import com.mondego.application.models.CandidateSimInfo;
 import com.mondego.application.models.ClonePair;
@@ -9,8 +10,8 @@ import com.mondego.application.models.QueryBlock;
 import com.mondego.application.models.TokenFrequency;
 import com.mondego.application.models.TokenInfo;
 import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.utility.Util;
 import com.mondego.framework.workers.Worker;
-import com.mondego.utility.Util;
 
 public class CandidateValidatorWorker extends Worker<CandidatePair> {
 
@@ -31,7 +32,7 @@ public class CandidateValidatorWorker extends Worker<CandidatePair> {
                 logger.debug(MainController.NODE_PREFIX + " CloneValidator, QueryBlock " + this.dataObject + " in "
                         + estimatedTime / 1000 + " micros");
                 try {
-                    this.pipe.getChannel("REPORT_CLONE").send(cp);
+                    SearchActionHandler.searchPipeline.getChannel("REPORT_CLONE").send(cp);
                 } catch (InstantiationException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();

@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.mondego.application.models.Bag;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.utility.Util;
+import com.mondego.framework.utility.Util;
 
 public class BagSorter implements Runnable {
     private Bag bag;

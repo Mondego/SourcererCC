@@ -6,12 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.mondego.application.handlers.SearchActionHandler;
 import com.mondego.application.models.QueryBlock;
 import com.mondego.application.models.TokenInfo;
+import com.mondego.application.models.TokensFileReader;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.services.RecoveryService;
 import com.mondego.framework.workers.Worker;
-import com.mondego.utility.TokensFileReader;
 
 public class QueryLineProcessorWorker extends Worker<String> {
     private RecoveryService recoveryService;
@@ -33,14 +34,10 @@ public class QueryLineProcessorWorker extends Worker<String> {
                 logger.debug("ignoring query, REASON: completed in previous run, " + queryBlock);
                 return;
             }
-
-            if (MainController.isStatusCounterOn) {
-                MainController.statusCounter += 1;
-            }
             long estimatedTime = System.nanoTime() - startTime;
             logger.debug(MainController.NODE_PREFIX + " QLP processed QueryBlock " + queryBlock + " in "
                     + estimatedTime / 1000 + " micros");
-            this.pipe.getChannel("FIND_CANDIDATES").send(queryBlock);
+            SearchActionHandler.searchPipeline.getChannel("FIND_CANDIDATES").send(queryBlock);
             // System.out.println(SearchManager.NODE_PREFIX +
             // ", line number: "+ count);
         } catch (InstantiationException e) {

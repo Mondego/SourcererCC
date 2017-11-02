@@ -1,4 +1,4 @@
-package com.mondego.utility;
+package com.mondego.application.models;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,21 +8,18 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.application.models.Bag;
-import com.mondego.application.models.QueryBlock;
-import com.mondego.application.models.Token;
-import com.mondego.application.models.TokenFrequency;
-import com.mondego.application.models.TokenInfo;
+import com.mondego.application.config.ApplicationProperties;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.models.ITokensFileProcessor;
 import com.mondego.framework.services.RecoveryService;
+import com.mondego.framework.utility.Util;
 
 public class TokensFileReader {
     private String nodeId;
@@ -107,8 +104,8 @@ public class TokensFileReader {
                 if (bag.getSize() < MainController.min_tokens || bag.getSize() > MainController.max_tokens) {
                     return bag; // ignore this bag, do not process it further
                 }
-                for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE.size(); index++) {
-                    bag.metrics.put(Util.METRICS_ORDER_IN_INPUT_FILE.get(index),
+                for (int index = 0; index < ApplicationProperties.METRICS_ORDER_IN_INPUT_FILE.size(); index++) {
+                    bag.metrics.put(ApplicationProperties.METRICS_ORDER_IN_INPUT_FILE.get(index),
                             Long.parseLong(bagMetadata[index + 2]));
                 }
                 String tokenString = bagAndTokens[1];
@@ -196,8 +193,8 @@ public class TokensFileReader {
                     // logger.debug("setting metrics data for "+
                     // s.substring(0,40));
 
-                    for (int index = 0; index < Util.METRICS_ORDER_IN_INPUT_FILE.size(); index++) {
-                        queryBlock.metrics.put(Util.METRICS_ORDER_IN_INPUT_FILE.get(index),
+                    for (int index = 0; index < ApplicationProperties.METRICS_ORDER_IN_INPUT_FILE.size(); index++) {
+                        queryBlock.metrics.put(ApplicationProperties.METRICS_ORDER_IN_INPUT_FILE.get(index),
                                 Long.parseLong(bagMetadata[index + 2]));
                     }
 

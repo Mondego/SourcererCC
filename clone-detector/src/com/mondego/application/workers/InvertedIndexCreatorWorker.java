@@ -6,10 +6,10 @@ import java.util.Set;
 import com.mondego.application.handlers.SearchActionHandler;
 import com.mondego.application.models.Bag;
 import com.mondego.application.models.DocumentForInvertedIndex;
+import com.mondego.application.models.DocumentMaker;
 import com.mondego.application.models.TermInfo;
 import com.mondego.application.models.TokenFrequency;
 import com.mondego.framework.workers.Worker;
-import com.mondego.indexbased.DocumentMaker;
 
 public class InvertedIndexCreatorWorker extends Worker<Bag> {
     private DocumentMaker documentMaker;

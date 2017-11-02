@@ -9,16 +9,14 @@ import com.mondego.application.handlers.SearchActionHandler;
 import com.mondego.framework.pipeline.Pipe;
 
 public class QueryFileProcessor implements ITokensFileProcessor {
-    private Pipe pipe;
     private static final Logger logger = LogManager.getLogger(QueryFileProcessor.class);
     public QueryFileProcessor() {
-        this.pipe = Pipe.getInstance();
     }
 
     @Override
     public void processLine(String line) {
         try {
-            this.pipe.getChannel("READ_LINE").send(line);
+            SearchActionHandler.searchPipeline.getChannel("READ_LINE").send(line);
         } catch (InstantiationException e) {
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();

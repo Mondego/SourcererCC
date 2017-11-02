@@ -6,8 +6,8 @@ import java.text.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.models.WordFrequencyStore;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
-import com.mondego.indexbased.WordFrequencyStore;
 
 public class InitActionHandler implements IActionHandler {
     private static final Logger logger = LogManager

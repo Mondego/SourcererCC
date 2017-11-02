@@ -3,8 +3,8 @@ package com.mondego.application.workers;
 import com.mondego.application.models.ClonePair;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.services.RuntimeStateService;
+import com.mondego.framework.utility.Util;
 import com.mondego.framework.workers.Worker;
-import com.mondego.utility.Util;
 
 public class CloneReporterWorker extends Worker<ClonePair> {
     private RuntimeStateService runtimeStateService;

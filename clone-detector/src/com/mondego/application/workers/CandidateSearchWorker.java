@@ -14,8 +14,8 @@ import com.mondego.application.models.QueryBlock;
 import com.mondego.application.models.QueryCandidates;
 import com.mondego.application.models.TokenInfo;
 import com.mondego.framework.controllers.MainController;
+import com.mondego.framework.utility.Util;
 import com.mondego.framework.workers.Worker;
-import com.mondego.utility.Util;
 
 public class CandidateSearchWorker extends Worker<QueryBlock> {
 
@@ -34,7 +34,7 @@ public class CandidateSearchWorker extends Worker<QueryBlock> {
             logger.debug(MainController.NODE_PREFIX + " CandidateSearcher, QueryBlock " + this.dataObject + " in "
                     + estimatedTime / 1000 + " micros");
             try {
-                this.pipe.getChannel("PROCESS_CANDIDATES").send(qc);
+                SearchActionHandler.searchPipeline.getChannel("PROCESS_CANDIDATES").send(qc);
             } catch (InstantiationException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

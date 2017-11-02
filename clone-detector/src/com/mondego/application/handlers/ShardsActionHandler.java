@@ -10,15 +10,16 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.config.ApplicationProperties;
 import com.mondego.application.models.Bag;
+import com.mondego.application.models.CodeSearcher;
 import com.mondego.application.models.Shard;
+import com.mondego.application.models.TokensFileReader;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
 import com.mondego.framework.models.ITokensFileProcessor;
 import com.mondego.framework.services.ShardService;
-import com.mondego.indexbased.CodeSearcher;
-import com.mondego.utility.TokensFileReader;
-import com.mondego.utility.Util;
+import com.mondego.framework.utility.Util;
 
 public class ShardsActionHandler implements IActionHandler {
     private static final Logger logger = LogManager
@@ -67,7 +68,7 @@ public class ShardsActionHandler implements IActionHandler {
     }
 
     private void doPartitions() {
-        MainController.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
+        MainController.gtpmSearcher = new CodeSearcher(ApplicationProperties.GTPM_INDEX_DIR,
                 "key");
         File datasetDir = new File(MainController.DATASET_DIR);
         if (datasetDir.isDirectory()) {

@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.mondego.application.handlers.SearchActionHandler;
 import com.mondego.application.models.CandidatePair;
 import com.mondego.application.models.CandidateSimInfo;
 import com.mondego.application.models.QueryBlock;
@@ -45,7 +46,7 @@ public class CandidateProcessorWorker extends Worker<QueryCandidates> {
                         queryBlock.getComputedThreshold(), candidateSize, functionIdCandidate, candidateId);
             }
             try {
-                this.pipe.getChannel("VALIDATE_CANDIDATE").send(candidatePair);
+                SearchActionHandler.searchPipeline.getChannel("VALIDATE_CANDIDATE").send(candidatePair);
             } catch (InstantiationException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

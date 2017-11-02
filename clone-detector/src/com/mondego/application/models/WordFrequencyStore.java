@@ -1,4 +1,4 @@
-package com.mondego.indexbased;
+package com.mondego.application.models;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,12 +20,10 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-import com.mondego.application.models.Bag;
-import com.mondego.application.models.TokenFrequency;
+import com.mondego.application.config.ApplicationProperties;
 import com.mondego.framework.controllers.MainController;
 import com.mondego.framework.models.ITokensFileProcessor;
-import com.mondego.utility.TokensFileReader;
-import com.mondego.utility.Util;
+import com.mondego.framework.utility.Util;
 
 /**
  * for every project's input file (one file is one project) read all lines for
@@ -42,7 +40,9 @@ public class WordFrequencyStore implements ITokensFileProcessor {
     private CodeSearcher wfmSearcher = null;
     private IndexWriter wfmIndexWriter = null;
     private DocumentMaker wfmIndexer = null;
-    private static final Logger logger = LogManager.getLogger(WordFrequencyStore.class);
+    private static final Logger logger = LogManager
+            .getLogger(WordFrequencyStore.class);
+
     public WordFrequencyStore() {
         this.wordFreq = new TreeMap<String, Long>();
     }
@@ -61,7 +61,8 @@ public class WordFrequencyStore implements ITokensFileProcessor {
      * @throws ParseException
      */
     private void readTokensFile(File file) throws IOException, ParseException {
-        TokensFileReader tfr = new TokensFileReader(MainController.NODE_PREFIX, file, MainController.max_tokens, this);
+        TokensFileReader tfr = new TokensFileReader(MainController.NODE_PREFIX,
+                file, MainController.max_tokens, this);
         tfr.read();
     }
 
@@ -69,14 +70,17 @@ public class WordFrequencyStore implements ITokensFileProcessor {
 
         Bag bag = TokensFileReader.deserialise(line);
 
-        if (null != bag && bag.getSize() > MainController.min_tokens && bag.getSize() < MainController.max_tokens) {
+        if (null != bag && bag.getSize() > MainController.min_tokens
+                && bag.getSize() < MainController.max_tokens) {
             populateWordFreqMap(bag);
         } else {
             if (null == bag) {
                 logger.debug("empty block, ignoring");
             } else {
-                logger.debug("not adding tokens of line to WFM, REASON: " + bag.getFunctionId() + ", " + bag.getId()
-                                + ", size: " + bag.getSize() + " (max tokens is " + MainController.max_tokens + ")");
+                logger.debug("not adding tokens of line to WFM, REASON: "
+                        + bag.getFunctionId() + ", " + bag.getId() + ", size: "
+                        + bag.getSize() + " (max tokens is "
+                        + MainController.max_tokens + ")");
             }
         }
         this.lineNumber++;
@@ -132,24 +136,28 @@ public class WordFrequencyStore implements ITokensFileProcessor {
             // shutdown
             shutdown();
         } else {
-            logger.error("File: " + queryDir.getName() + " is not a directory. Exiting now");
+            logger.error("File: " + queryDir.getName()
+                    + " is not a directory. Exiting now");
             System.exit(1);
         }
     }
 
     public void prepareIndex() throws IOException {
-        File globalWFMDIr = new File(Util.GTPM_INDEX_DIR);
+        File globalWFMDIr = new File(ApplicationProperties.GTPM_INDEX_DIR);
         if (!globalWFMDIr.exists()) {
-            Util.createDirs(Util.GTPM_INDEX_DIR);
+            Util.createDirs(ApplicationProperties.GTPM_INDEX_DIR);
         }
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
-        IndexWriterConfig wfmIndexWriterConfig = new IndexWriterConfig(Version.LUCENE_46, keywordAnalyzer);
+        IndexWriterConfig wfmIndexWriterConfig = new IndexWriterConfig(
+                Version.LUCENE_46, keywordAnalyzer);
         wfmIndexWriterConfig.setOpenMode(OpenMode.CREATE_OR_APPEND);
         wfmIndexWriterConfig.setRAMBufferSizeMB(1024);
 
         logger.info("PREPARE INDEX");
         try {
-            wfmIndexWriter = new IndexWriter(FSDirectory.open(new File(Util.GTPM_INDEX_DIR)), wfmIndexWriterConfig);
+            wfmIndexWriter = new IndexWriter(
+                    FSDirectory.open(new File(ApplicationProperties.GTPM_INDEX_DIR)),
+                    wfmIndexWriterConfig);
             wfmIndexWriter.commit();
             wfmIndexer = new DocumentMaker(wfmIndexWriter);
         } catch (IOException e) {
@@ -161,15 +169,16 @@ public class WordFrequencyStore implements ITokensFileProcessor {
     private void flushToIndex() {
         logger.info("*** FLUSHING WFM TO INDEX *** " + this.wordFreq.size());
         long start = System.currentTimeMillis();
-        this.wfmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR, "key");
+        this.wfmSearcher = new CodeSearcher(ApplicationProperties.GTPM_INDEX_DIR, "key");
         int count = 0;
         for (Entry<String, Long> entry : this.wordFreq.entrySet()) {
 
             long oldfreq = wfmSearcher.getFrequency(entry.getKey());
-            if (oldfreq < 0){
+            if (oldfreq < 0) {
                 oldfreq = 0;
             }
-            wfmIndexer.indexWFMEntry(entry.getKey(), oldfreq + entry.getValue());
+            wfmIndexer.indexWFMEntry(entry.getKey(),
+                    oldfreq + entry.getValue());
             if (++count % 1000000 == 0)
                 logger.info("...flushed " + count);
         }
@@ -178,11 +187,13 @@ public class WordFrequencyStore implements ITokensFileProcessor {
             this.wfmIndexWriter.forceMerge(1);
             this.wfmIndexWriter.commit();
         } catch (Exception e) {
-            logger.error(MainController.NODE_PREFIX + ", exception on commit",e);
+            logger.error(MainController.NODE_PREFIX + ", exception on commit",
+                    e);
             e.printStackTrace();
         }
         long elapsed = System.currentTimeMillis() - start;
-        logger.info("*** FLUSHING END *** " + count + " in " + elapsed / 1000 + "s");
+        logger.info("*** FLUSHING END *** " + count + " in " + elapsed / 1000
+                + "s");
     }
 
     private void shutdown() {
@@ -194,11 +205,12 @@ public class WordFrequencyStore implements ITokensFileProcessor {
         }
     }
 
-    public void mergeWfms(String inputWfmDirectoryPath, String outputWfmDirectoryPath,
+    public void mergeWfms(String inputWfmDirectoryPath,
+            String outputWfmDirectoryPath,
             boolean deleteInputfilesAfterProcessing) throws IOException {
         // Iterate on wfm fies in the input directory
-        List<File> wfmFiles = (List<File>) FileUtils.listFiles(new File(inputWfmDirectoryPath), new String[] { "wfm" },
-                true);
+        List<File> wfmFiles = (List<File>) FileUtils.listFiles(
+                new File(inputWfmDirectoryPath), new String[] { "wfm" }, true);
         // File inputFolder = new File(inputWfmDirectoryPath);
         /*
          * File[] wfmFiles = inputFolder.listFiles(new FilenameFilter() {
@@ -213,12 +225,14 @@ public class WordFrequencyStore implements ITokensFileProcessor {
             logger.debug("wfm files: " + f.getAbsolutePath());
         }
         File resultFile = null;
-        File previousResultFile = new File(outputWfmDirectoryPath + "/sorted_0.wfm");
+        File previousResultFile = new File(
+                outputWfmDirectoryPath + "/sorted_0.wfm");
         boolean created = previousResultFile.createNewFile();
         logger.debug("temp wfm file created, status: " + created);
         int i = 1;
         for (File wfmFile : wfmFiles) {
-            resultFile = new File(outputWfmDirectoryPath + "/sorted_" + i + ".wfm");
+            resultFile = new File(
+                    outputWfmDirectoryPath + "/sorted_" + i + ".wfm");
             this.externalMerge(wfmFile, previousResultFile, resultFile);
             previousResultFile.delete();
             if (deleteInputfilesAfterProcessing) {
@@ -246,8 +260,10 @@ public class WordFrequencyStore implements ITokensFileProcessor {
                 if (result == 0) {
                     // add frequency
                     // System.out.println("adding frequency");
-                    long freq = Long.parseLong(aKeyValuePair[1]) + Long.parseLong(bKeyValuePair[1]);
-                    Util.writeToFile(sortedFileWriter, aKeyValuePair[0] + ":" + freq, true);
+                    long freq = Long.parseLong(aKeyValuePair[1])
+                            + Long.parseLong(bKeyValuePair[1]);
+                    Util.writeToFile(sortedFileWriter,
+                            aKeyValuePair[0] + ":" + freq, true);
                     // increment readers for both files.
                     // System.out.println("incrementing both file pointers");
                     aLine = aBr.readLine();

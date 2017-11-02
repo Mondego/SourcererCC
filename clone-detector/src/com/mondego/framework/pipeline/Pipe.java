@@ -1,6 +1,6 @@
 package com.mondego.framework.pipeline;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -13,18 +13,12 @@ public class Pipe {
     private static final Logger logger = LogManager
             .getLogger(Pipe.class);
     int size;
-    private static Pipe instance;
     public Map<String,IChannel> channels;
-    private Pipe(){
-        this.channels = new HashMap<>();
+    
+    public Pipe(){
+        this.channels = new LinkedHashMap<>();
     }
     
-    public static synchronized Pipe getInstance(){
-        if (null==instance){
-            instance = new Pipe();
-        }
-        return instance;
-    }
     public <U,T extends Worker<U>> void registerChannel(String key, ThreadedChannel<U,T> channel){
         this.channels.put(key,channel);
         this.size+=1;

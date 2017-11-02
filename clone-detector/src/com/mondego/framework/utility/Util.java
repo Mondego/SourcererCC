@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mondego.utility;
+package com.mondego.framework.utility;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -45,40 +45,7 @@ import com.mondego.framework.controllers.MainController;
  * 
  */
 public class Util {
-    static Random rand = new Random(5);
-    public static final String CSV_DELIMITER = "~";
-    public static final String INDEX_DIR = MainController.ROOT_DIR + "index";
-    public static final String INDEX_DIR_TEMP = MainController.ROOT_DIR
-            + "index_temp";
-    public static final String GTPM_DIR = MainController.ROOT_DIR + "gtpm";
-    public static final String GLOBAL_WFM_DIR = MainController.ROOT_DIR + "wfm";
-    public static final String FWD_INDEX_DIR = MainController.ROOT_DIR
-            + "fwdindex";
-    public static final String FWD_INDEX_DIR_TEMP = MainController.ROOT_DIR
-            + "fwdindex_temp";
-    public static final String GTPM_INDEX_DIR = MainController.ROOT_DIR
-            + "gtpmindex";
-    public static final String INDEX_DIR_NO_FILTER = MainController.ROOT_DIR
-            + "index_nofilter";
-    public static final String QUERY_FILE_NAME = "blocks.file";
-    public static final String OUTPUT_BACKUP_DIR = MainController.ROOT_DIR
-            + "backup_output";
-    public static final String SEARCH_METADATA = MainController.ROOT_DIR
-            + "search_metadata.txt";
-    public static final String RUN_METADATA = MainController.ROOT_DIR
-            + "run_metadata.scc";
-    public static List<String> METRICS_ORDER_IN_INPUT_FILE = Arrays.asList("num_tokens", "num_unique_tokens");
-            //, "num_separators","num_assignments","num_statements","num_expressions");
     private static final Logger logger = LogManager.getLogger(Util.class);
-
-    /**
-     * generates a random integer
-     * 
-     * @return
-     */
-    public static int getRandomNumber(int max, int min) {
-        return rand.nextInt((max - min) + 1) + min;
-    }
 
     /**
      * writes the given text to a file pointed by pWriter
@@ -234,6 +201,11 @@ public class Util {
     public static <K, V> Map<K, V> lruCache(final int maxSize) {
         return Collections.synchronizedMap(
                 new LinkedHashMap<K, V>(maxSize * 4 / 3, 0.75f, true) {
+                    /**
+                     * 
+                     */
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     protected boolean removeEldestEntry(
                             Map.Entry<K, V> eldest) {
@@ -356,14 +328,6 @@ public class Util {
         return listOfTokens;
     }
 
-    /*
-     * public static int getMinimumSimilarityThreshold(QueryBlock
-     * queryBlock,float threshold) { return (int) Math.ceil((threshold *
-     * queryBlock.getSize())/ (SearchManager.MUL_FACTOR*10)); } public static
-     * int getMinimumSimilarityThreshold(Bag bag,float threshold) { return (int)
-     * Math.ceil((threshold * bag.getSize())/ (SearchManager.MUL_FACTOR*10)); }
-     */
-
     public static void writeMapToFile(String filename, Map<String, Long> map) {
         // TODO Auto-generated method stub
         Writer writer = null;
@@ -391,7 +355,6 @@ public class Util {
         BufferedReader br = null;
         Map<String, Long> gtpm = new HashMap<String, Long>();
         try {
-            logger.debug("here " + filename);
             File f = new File(filename);
             logger.debug("file is " + f);
             FileInputStream fis = new FileInputStream(f);
@@ -400,11 +363,6 @@ public class Util {
             logger.debug(ir);
             br = new BufferedReader(ir);
             logger.debug(br);
-            // br = new BufferedReader(new InputStreamReader(new
-            // FileInputStream(
-            // new File(filename)), "UTF-8"), 1024 * 1024 * 512);
-
-            logger.debug("hi");
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 String[] keyValPair = line.split(":");
@@ -457,7 +415,6 @@ public class Util {
 
     public static Writer openFile(File output, boolean append)
             throws IOException {
-        // TODO Auto-generated method stub
         Writer pWriter = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(output, append), "UTF-8"));
         return pWriter;
@@ -475,15 +432,4 @@ public class Util {
         return listToReturn;
 
     }
-    /*
-     * public static int getPrefixSize(QueryBlock queryBlock, float threshold) {
-     * int prefixSize = (queryBlock.getSize() + 1) - computedThreshold;//
-     * this.computePrefixSize(maxLength); return prefixSize; }
-     */
-    /*
-     * public static int getPrefixSize(Bag bag, float threshold) { int
-     * computedThreshold = getMinimumSimilarityThreshold(bag, threshold); int
-     * prefixSize = (bag.getSize() + 1) - computedThreshold;//
-     * this.computePrefixSize(maxLength); return prefixSize; }
-     */
 }

@@ -20,11 +20,10 @@ import org.apache.lucene.index.IndexWriter;
 import com.mondego.application.handlers.InitActionHandler;
 import com.mondego.application.handlers.SearchActionHandler;
 import com.mondego.application.handlers.ShardsActionHandler;
+import com.mondego.application.models.CodeSearcher;
 import com.mondego.application.models.Shard;
 import com.mondego.framework.handlers.interfaces.IActionHandler;
-import com.mondego.indexbased.CodeSearcher;
-import com.mondego.utility.Util;
-import com.mondego.validation.TestGson;
+import com.mondego.framework.utility.Util;
 
 import net.jmatrix.eproperties.EProperties;
 
@@ -50,7 +49,6 @@ public class MainController {
     public static Writer reportWriter;
     public static String ACTION;
     public static boolean appendToExistingFile;
-    TestGson testGson;
     public static final Integer MUL_FACTOR = 100;
     private static final String ACTION_INIT = "init";
     int deletemeCounter = 0;
@@ -116,9 +114,6 @@ public class MainController {
         MainController.ROOT_DIR = System.getProperty("properties.rootDir");
         MainController.DATASET_DIR = MainController.ROOT_DIR
                 + properties.getProperty("DATASET_DIR_PATH");
-        MainController.isGenCandidateStats = Boolean.parseBoolean(
-                properties.getProperty("IS_GEN_CANDIDATE_STATISTICS"));
-        MainController.isStatusCounterOn = properties.getBoolean("IS_STATUS_REPORTER_ON");
         MainController.NODE_PREFIX = properties.getProperty("NODE_PREFIX")
                 .toUpperCase();
         MainController.OUTPUT_DIR = MainController.ROOT_DIR

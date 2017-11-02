@@ -14,8 +14,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.application.config.ApplicationProperties;
+import com.mondego.framework.config.FrameworkProperties;
 import com.mondego.framework.controllers.MainController;
-import com.mondego.utility.Util;
+import com.mondego.framework.utility.Util;
 
 public class RuntimeStateService {
     private static RuntimeStateService instance;
@@ -108,7 +110,7 @@ public class RuntimeStateService {
 
     public int getNodes() {
         if (-1 == MainController.totalNodes) {
-            File searchMertadaFile = new File(Util.SEARCH_METADATA);
+            File searchMertadaFile = new File(FrameworkProperties.SEARCH_METADATA);
             try {
                 BufferedReader br = Util.getReader(searchMertadaFile);
                 String line = br.readLine();
@@ -135,9 +137,9 @@ public class RuntimeStateService {
         String previousDataFolder = MainController.DATASET_DIR + "/oldData/";
         Util.createDirs(previousDataFolder);
         File sourceDataFile = new File(
-                MainController.DATASET_DIR + "/" + Util.QUERY_FILE_NAME);
+                MainController.DATASET_DIR + "/" + ApplicationProperties.QUERY_FILE_NAME);
         String targetFileName = previousDataFolder + System.currentTimeMillis()
-                + "_" + Util.QUERY_FILE_NAME;
+                + "_" + ApplicationProperties.QUERY_FILE_NAME;
         sourceDataFile.renameTo(new File(targetFileName));
         File completedNodesFile = new File(MainController.completedNodes);
         completedNodesFile.delete();// delete the completedNodes file
@@ -152,10 +154,10 @@ public class RuntimeStateService {
     }
 
     private void readRunMetadata() {
-        File f = new File(Util.RUN_METADATA);
+        File f = new File(FrameworkProperties.RUN_METADATA);
         BufferedReader br = null;
         if (f.exists()) {
-            logger.debug(Util.RUN_METADATA
+            logger.debug(FrameworkProperties.RUN_METADATA
                     + " file exists, reading it to get the run metadata");
             try {
                 br = Util.getReader(f);
@@ -189,7 +191,7 @@ public class RuntimeStateService {
     }
 
     private void updateRunMetadata(String text) {
-        File f = new File(Util.RUN_METADATA);
+        File f = new File(FrameworkProperties.RUN_METADATA);
         try {
             Writer writer = Util.openFile(f, false);
             Util.writeToFile(writer, text, true);
@@ -202,7 +204,7 @@ public class RuntimeStateService {
 
     public void backupOutput() throws IOException {
         this.readRunMetadata();
-        String destDir = Util.OUTPUT_BACKUP_DIR + "/" + this.RUN_COUNT + "/"
+        String destDir = ApplicationProperties.OUTPUT_BACKUP_DIR + "/" + this.RUN_COUNT + "/"
                 + MainController.NODE_PREFIX;
         Util.createDirs(destDir); // creates if it doesn't exist
         String sourceDir = MainController.OUTPUT_DIR

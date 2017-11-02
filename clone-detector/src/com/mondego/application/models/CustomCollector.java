@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mondego.indexbased;
+package com.mondego.application.models;
 
 import java.io.IOException;
 import java.util.HashMap;
