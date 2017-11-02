@@ -31,6 +31,8 @@ public class JavaMetricParser {
             public void process(Node node) {
                 if (node instanceof MethodDeclaration || node instanceof ConstructorDeclaration) {
                     MetricCollector collector = new MetricCollector();
+                    collector.file = file;
+                    collector.NOA = ((MethodDeclaration) node).getParameters().size();
                     collector.startLine = node.getBegin().get().line;
                     collector.endLine = node.getEnd().get().line;
                     collector.methodName = ((MethodDeclaration) node).getName().asString();
