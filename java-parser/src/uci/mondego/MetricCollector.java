@@ -1,24 +1,44 @@
 package uci.mondego;
 
 import java.io.File;
+import java.util.List;
 
 public class MetricCollector {
+    public List<String> actionTokens;
+    public int CAST; // number of class casts (Integer)x
+    public int COMP; // McCabes cyclomatic complexity
+    public int CREF; // Number of classes referenced
+    public int END_LINE; // end line of this method
+    public int EXCR; // Number of exceptions referenced
+    public int EXCT; // Number of exceptions thrown
     public File file; // file object
-    public String methodName; // method name
-    public int startLine; // start line of this method
-    public int endLine; // end line of this method
-    public int NOS; // number of statements
+    public int HDIF; // Halstead difficulty to implement a method
+    public int HEFF; // Halstead effort to implement a method
+    public int HVOC; // Halstead vocabulary of a method
+    public int LMET; // local methods called by method
     public int LOOP; // number of loops
-    public int numIf; // number of if statements
+    public int MDN; // Maximum depth of nesting in a method
+    public String methodName; // method name
+    public int NAND; // number of operands
+    
     public int NEXP; // number of expressions
     public int NOA; // number of arguments
-    public int CAST; // number of class casts (Integer)x
     public int NOPR; // number of operators
-    public int NAND; // number of operands
+    public int NOS; // number of statements
+    public int NTOKENS; // number of tokens
+    public int numIf; // number of if statements
+    public int START_LINE; // start line of this method
+    public int VDEC; // Number of variables declared
+    public int VREF; // number of variables referenced
+    public int XMET; // number of external methods called by the method
+
     @Override
     public String toString() {
-        return "MetricCollector [file=" + file.getName() + ", methodName=" + methodName + ", startLine=" + startLine
-                + ", endLine=" + endLine + ", NOS=" + NOS + ", LOOP=" + LOOP + ", numIf=" + numIf + ", NEXP=" + NEXP
-                + ", NOA=" + NOA + ", CAST=" + CAST + ", NOPR=" + NOPR + ", NAND=" + NAND + "]";
+        return "MetricCollector [methodName=" + methodName + ", actionTokens=" + actionTokens + ", CAST=" + CAST + ", COMP=" + COMP + ", CREF=" + CREF
+                + ", END_LINE=" + END_LINE + ", EXCR=" + EXCR + ", EXCT=" + EXCT + ", file=" + file.getName() + ", HDIF=" + HDIF
+                + ", HEFF=" + HEFF + ", HVOC=" + HVOC + ", LMET=" + LMET + ", LOOP=" + LOOP + ", MDN=" + MDN
+                + ", NAND=" + NAND + ", NEXP=" + NEXP + ", NOA=" + NOA + ", NOPR=" + NOPR
+                + ", NOS=" + NOS + ", NTOKENS=" + NTOKENS + ", numIf=" + numIf + ", START_LINE=" + START_LINE
+                + ", VDEC=" + VDEC + ", VREF=" + VREF + ", XMET=" + XMET + "]";
     }
 }

@@ -31,10 +31,11 @@ public class JavaMetricParser {
             public void process(Node node) {
                 if (node instanceof MethodDeclaration || node instanceof ConstructorDeclaration) {
                     MetricCollector collector = new MetricCollector();
+                    //((MethodDeclaration) node).getPa
                     collector.file = file;
                     collector.NOA = ((MethodDeclaration) node).getParameters().size();
-                    collector.startLine = node.getBegin().get().line;
-                    collector.endLine = node.getEnd().get().line;
+                    collector.START_LINE = node.getBegin().get().line;
+                    collector.END_LINE = node.getEnd().get().line;
                     collector.methodName = ((MethodDeclaration) node).getName().asString();
                     node.accept(new MethodVisitor(), collector);
                     System.out.println(collector);

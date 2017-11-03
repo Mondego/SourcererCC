@@ -8,6 +8,8 @@ class TestAnonymousInner{
                 for (int i = 0; i <5 ; i++) {
                     System.out.println("test if number of loops is captured");
                 }
+                double a = 2d;
+                int c = (int) a;
                 System.out.println("nice fruits");}
         };
         p.eat();
@@ -17,5 +19,7 @@ class TestAnonymousInner{
         for (int i = 0; i <5 ; i++) {
             System.out.println("test if number of loops is captured");
         }
+        double a = 2d;
+        int c = (int) a;
         System.out.println("nice fruits");}
 }

@@ -12,6 +12,7 @@ import com.mondego.models.TokenFrequency;
 
 public class JhawkTest {
 
+    int test =0;
     public static void sortBag(final Bag bag) {
         final Map<String, Long> cache = new HashMap<String, Long>();
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
@@ -108,6 +109,19 @@ public class JhawkTest {
             for(i=j;i<100;i++){
                 System.out.println(i+j);
             }
+        }
+        this.test3();
+    }
+    
+    public void test3() throws Exception{
+        try{
+            this.test++;
+            int a = 5, d=10;
+            int b =0;
+            
+            return a/b+d;
+        }catch(Exception err ){
+            throw err;
         }
     }
 
