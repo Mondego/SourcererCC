@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.JavaToken;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -31,7 +32,6 @@ public class JavaMetricParser {
             public void process(Node node) {
                 if (node instanceof MethodDeclaration || node instanceof ConstructorDeclaration) {
                     MetricCollector collector = new MetricCollector();
-                    //((MethodDeclaration) node).getPa
                     collector.file = file;
                     collector.NOA = ((MethodDeclaration) node).getParameters().size();
                     collector.START_LINE = node.getBegin().get().line;
