@@ -24,13 +24,16 @@ public class JavaMetricParser {
         }
     }
 
-    public static void metricalize(File file) throws FileNotFoundException {
+    public static void metricalize(final File file) throws FileNotFoundException {
         System.out.println("Metricalizing " + file.getName());
         CompilationUnit cu = JavaParser.parse(file);
         TreeVisitor astVisitor = new TreeVisitor() {
             @Override
             public void process(Node node) {
                 if (node instanceof MethodDeclaration || node instanceof ConstructorDeclaration) {
+                   // JavaParser.parse(((MethodDeclaration) node).getBody().get().toString()).get;
+                    //System.out.println(((MethodDeclaration) node).getBody().get().getTokenRange().get().getBegin());
+                    
                     MetricCollector collector = new MetricCollector();
                     collector.file = file;
                     collector.NOA = ((MethodDeclaration) node).getParameters().size();
