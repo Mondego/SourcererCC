@@ -41,7 +41,7 @@ public class JavaMetricParser {
                     if (exceptionsThrown.size()>0){
                         collector.addToken("throws");
                     }
-                    collector.EXCT = exceptionsThrown.size();
+                    //collector.EXCT = exceptionsThrown.size();
                     collector.NOA = ((MethodDeclaration) node).getParameters().size();
                     collector.START_LINE = node.getBegin().get().line;
                     collector.END_LINE = node.getEnd().get().line;

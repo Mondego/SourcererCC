@@ -43,7 +43,7 @@ public class MetricCollector {
     public int NOPR; // number of operators
     public int NOS; // number of statements
     public int NTOKENS; // number of tokens
-    public int numIf; // number of if statements
+    public int NIF; // number of if statements
     public List<String> operands = new ArrayList<String>();
     public List<String> operators = new ArrayList<String>();
     public List<String> removeFromOperands = new ArrayList<String>();
@@ -136,7 +136,7 @@ public class MetricCollector {
                 + ", methodCallActionTokens=" + methodCallActionTokens
                 + ", NAND=" + NAND + ", NEXP=" + NEXP + ", NOA=" + NOA
                 + ", NOPR=" + NOPR + ", NOS=" + NOS + ", NTOKENS=" + NTOKENS
-                + ", numIf=" + numIf + ", operands=" + operands + ", operators="
+                + ", numIf=" + NIF + ", operands=" + operands + ", operators="
                 + operators + ", removeFromOperands=" + removeFromOperands
                 + ", START_LINE=" + START_LINE + ", tokens=" + tokens
                 + ", UNAND=" + UNAND + ", UNPOR=" + UNPOR + ", VDEC=" + VDEC

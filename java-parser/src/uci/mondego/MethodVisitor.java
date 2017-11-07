@@ -96,7 +96,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
     @Override
     public void visit(IfStmt n, MetricCollector arg) {
         super.visit(n, arg);
-        arg.numIf++;
+        arg.NIF++;
         arg.NOS++;
     }
     
@@ -290,16 +290,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.CREF++;
-        
-        try {
-            if( Class.forName(n.toString()).isAssignableFrom(Exception.class)){
-                arg.EXCR++;
-            }
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            //e.printStackTrace();
-        }
-        
+        //this.inspect(n);
     }
 
     @Override
@@ -348,7 +339,6 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
-        //this.debug(n);
         arg.addFieldAccessActionTokens(n.toString());
         
     }
@@ -451,10 +441,20 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
 
     @Override
     public void visit(MethodCallExpr n, MetricCollector arg) {
-        // TODO Auto-generated method stub
+        // local method heuristc: starts with this or plain method call. ex: this.printHello(). or printHello().
+        // need to incoroporate Static method calls. Classname.printHello(). 
         super.visit(n, arg);
         arg.NEXP++;
-       // this.inspect(n);
+        String s = n.toString();
+        String[] parts = s.split("\\.");
+        if(parts.length==1){
+            arg.LMET++;
+        }
+        else if(parts[0].equals("this")){
+            arg.LMET++;
+        }else{
+            arg.XMET++;
+        }
         for (Node c : n.getChildNodes()){
             if(c instanceof SimpleName){
                 arg.addMethodCallActionToken(c.toString());
