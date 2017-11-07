@@ -552,7 +552,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
     public void visit(ObjectCreationExpr n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
-        arg.tokens.add("new");
+        arg.addToken("new");
         arg.NEXP++;
     }
 
