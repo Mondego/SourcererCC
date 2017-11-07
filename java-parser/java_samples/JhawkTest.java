@@ -110,20 +110,6 @@ public class JhawkTest {
                 System.out.println(i+j);
             }
         }
-        this.test3();
-    }
-    
-    public void test3() throws Exception{
-        try{
-            this.test++;
-            int a = 5, d=10;
-            int b =0;
-            b+=2;
-            d = a>b?(b<d?2:3):5;
-            return a/b+d;
-        }catch(Exception err ){
-            throw err;
-        }
     }
 
 }

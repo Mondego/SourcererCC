@@ -129,8 +129,9 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
-        this.debug(n);
         arg.NOPR++;
+        arg.operators.add(n.getOperator().asString());
+        //this.inspect(n);
     }
     @Override
     public void visit(ArrayAccessExpr n, MetricCollector arg) {
@@ -151,8 +152,8 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
-        this.debug(n);
         arg.NOPR++;
+        arg.operators.add(n.getOperator().asString());
     }
     
     @Override
@@ -167,6 +168,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
+        arg.addToken(n.toString());
     }
     @Override
     public void visit(BreakStmt n, MetricCollector arg) {
@@ -188,6 +190,9 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
+        
+        arg.addToken(n.toString());
+        
     }
     @Override
     public void visit(ClassExpr n, MetricCollector arg) {
@@ -201,8 +206,8 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
-        this.debug(n);
         arg.NOPR++;
+        arg.operators.add("?:");
     }
     @Override
     public void visit(ContinueStmt n, MetricCollector arg) {
@@ -223,6 +228,8 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
+        
+        arg.addToken(n.toString());
     }
 
     @Override
@@ -266,7 +273,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
     public void visit(CatchClause n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
-        
+        arg.addToken("catch");
     }
 
     @Override
@@ -281,6 +288,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.CREF++;
+        
         try {
             if( Class.forName(n.toString()).isAssignableFrom(Exception.class)){
                 arg.EXCR++;
@@ -323,6 +331,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        this.inspect(n);
     }
 
     @Override
@@ -331,16 +340,14 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         super.visit(n, arg);
         arg.NOS++;
     }
-    public void visit(PrimitiveType n, MethodCallExpr arg){
-        this.debug(n);
-        
-    }
 
     @Override
     public void visit(FieldAccessExpr n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
+        //this.debug(n);
+        arg.addFieldAccessActionTokens(n.toString());
         
     }
 
@@ -374,6 +381,8 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
+        
+        arg.addToken(n.toString());
     }
 
     @Override
@@ -421,6 +430,8 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
+        
+        arg.addToken(n.toString());
     }
 
     @Override
@@ -441,14 +452,19 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
-        String[] tokens = n.toString().split(".");
-        
+       // this.inspect(n);
+        for (Node c : n.getChildNodes()){
+            if(c instanceof SimpleName){
+                arg.addMethodCallActionToken(c.toString());
+            }
+        }
     }
 
     @Override
     public void visit(MethodReferenceExpr n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
+        //this.inspect(n);
         arg.NEXP++;
         
     }
@@ -507,6 +523,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         super.visit(n, arg);
         arg.NEXP++;
         
+        
     }
 
     @Override
@@ -528,12 +545,14 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
+        arg.addToken(n.toString());
     }
 
     @Override
     public void visit(ObjectCreationExpr n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
+        arg.tokens.add("new");
         arg.NEXP++;
     }
 
@@ -554,6 +573,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
     public void visit(PrimitiveType n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
+        arg.addToken(n.toString());
     }
 
     @Override
@@ -561,6 +581,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        arg.addToken("return");
     }
 
     @Override
@@ -568,7 +589,9 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         //arg.simpleNames.add(n.asString());
-        
+        //this.debug(n);
+        arg.addToken(n.toString());
+        //this.debug(n);
     }
 
     @Override
@@ -583,7 +606,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
-        
+        arg.addToken(n.toString());
     }
 
     @Override
@@ -619,6 +642,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
+        arg.addToken(n.toString());
     }
 
     @Override
@@ -627,7 +651,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         super.visit(n, arg);
         arg.NOS++;
         arg.EXCT++;
-        
+        arg.addToken("throw");
         
     }
 
@@ -636,6 +660,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        arg.addToken("try");
     }
 
     @Override
@@ -650,6 +675,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
     public void visit(TypeParameter n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
+        
     }
 
     @Override
@@ -657,8 +683,8 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
-        this.debug(n);
         arg.NOPR++;
+        arg.operators.add(n.getOperator().asString());
     }
 
     @Override
@@ -686,14 +712,13 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NEXP++;
-        
     }
 
     @Override
     public void visit(VariableDeclarator n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
-        
+        //this.inspect(n);
         arg.VDEC++;
     }
 
@@ -724,6 +749,15 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
             System.out.println(n.getClass().getSimpleName()+"::"+n);
         }
     }
+    private void debug(Node n, boolean padding){
+        if (this.isDebugOn){
+            if(padding){
+                System.out.println("    "+n.getClass().getSimpleName()+"::"+n);
+            }
+            
+        }
+    }
+    
     
     private void debug(NodeList<Node> n){
         System.out.println("NODELIST START");
@@ -731,6 +765,14 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
             this.debug(i);
         }
         System.out.println("NODELIST END");
+    }
+    private void inspect(Node n){
+        System.out.println("INSPECTION START: "+ n.getClass().getSimpleName()+"::"+n);
+        for(Node c : n.getChildNodes()){
+            this.debug(c,true);
+        }
+        System.out.println("INSPECTION END:: "+ n);
+        System.out.println("---------------------------------------");
     }
     
 }
