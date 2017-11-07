@@ -39,7 +39,7 @@ public class JavaMetricParser {
                     collector.NTOKENS = ((MethodDeclaration) node).getModifiers().size();
                     NodeList<ReferenceType> exceptionsThrown = ((MethodDeclaration) node).getThrownExceptions();
                     if (exceptionsThrown.size()>0){
-                        collector.NTOKENS++;
+                        collector.addToken("throws");
                     }
                     collector.EXCT = exceptionsThrown.size();
                     collector.NOA = ((MethodDeclaration) node).getParameters().size();
