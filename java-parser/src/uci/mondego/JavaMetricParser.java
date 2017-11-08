@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -36,7 +37,11 @@ public class JavaMetricParser {
                     //System.out.println(((MethodDeclaration) node).getBody().get().getTokenRange().get().getBegin());
                     MetricCollector collector = new MetricCollector();
                     collector._file = file;
-                    collector.NTOKENS = ((MethodDeclaration) node).getModifiers().size();
+                    //collector.NTOKENS = ((MethodDeclaration) node).getModifiers().size();
+                    for (Modifier c : ((MethodDeclaration) node).getModifiers()){
+                        collector.addToken(c.toString());
+                    }
+                    
                     NodeList<ReferenceType> exceptionsThrown = ((MethodDeclaration) node).getThrownExceptions();
                     if (exceptionsThrown.size()>0){
                         collector.addToken("throws");
@@ -49,12 +54,18 @@ public class JavaMetricParser {
                     node.accept(new MethodVisitor(), collector);
                     collector.computeHalsteadMetrics();
                     collector.COMP++; // add 1 for the default path.
+                    this.writeToCsv(collector);
                     System.out.println(collector._methodName+", MDN: "+collector.MDN +", TDN: "+ collector.TDN);
                     System.out.println(collector);
                 }
             }
+            public void writeToCsv(MetricCollector collector){
+                
+            }
+            
         };
         astVisitor.visitPreOrder(cu);
 
     }
+    
 }

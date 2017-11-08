@@ -101,6 +101,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
     public void visit(IfStmt n, MetricCollector arg) {
         super.visit(n, arg);
         arg.incNIFCount();
+        arg.addToken("if");
         arg.NOS++;
     }
 
@@ -303,7 +304,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.CREF++;
-        // this.inspect(n);
+         //this.inspect(n);
     }
 
     @Override
@@ -785,13 +786,14 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         }
     }
 
-    private void debug(NodeList<Node> n) {
+    /*private void debug(NodeList<Node> n) {
+        super.visit(n, arg);
         System.out.println("NODELIST START");
         for (Node i : n) {
             this.debug(i);
         }
         System.out.println("NODELIST END");
-    }
+    }*/
 
     private void inspect(Node n) {
         System.out.println(

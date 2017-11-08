@@ -102,7 +102,7 @@ public class JhawkTest {
         }
     }
     
-    public void test2(){
+    public static void test2(){
         int i = 0;
         int j=0;
         if (j<1){
