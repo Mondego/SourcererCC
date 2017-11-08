@@ -142,5 +142,16 @@ public class MetricCollector {
                 + ", UNAND=" + UNAND + ", UNPOR=" + UNPOR + ", VDEC=" + VDEC
                 + ", VREF=" + VREF + ", XMET=" + XMET + "]";
     }
+    public void incLoopCount(){
+        this.LOOP++;
+        this.incCOMPCount();
+    }
+    public void incCOMPCount(){
+        this.COMP++;
+    }
+    public void incNIFCount(){
+        this.NIF++;
+        this.incCOMPCount();
+    }
 
 }

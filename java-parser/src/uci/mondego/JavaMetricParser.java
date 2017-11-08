@@ -48,6 +48,7 @@ public class JavaMetricParser {
                     collector._methodName = ((MethodDeclaration) node).getName().asString();
                     node.accept(new MethodVisitor(), collector);
                     collector.computeHalsteadMetrics();
+                    collector.COMP++; // add 1 for the default path.
                     System.out.println(collector);
                 }
             }

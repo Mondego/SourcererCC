@@ -96,7 +96,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
     @Override
     public void visit(IfStmt n, MetricCollector arg) {
         super.visit(n, arg);
-        arg.NIF++;
+        arg.incNIFCount();
         arg.NOS++;
     }
     
@@ -104,7 +104,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
     public void visit(ForStmt n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
-        arg.LOOP++;
+        arg.incLoopCount();
         arg.NOS++;
         arg.addToken("for");
         //
@@ -114,7 +114,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
     public void visit(ForeachStmt n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
-        arg.LOOP++;
+        arg.incLoopCount();
         arg.NOS++;
         arg.addToken("for");
     }
@@ -177,6 +177,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        arg.addToken("break");
     }
     
     @Override
@@ -216,13 +217,16 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        arg.addToken("continue");
     }
     @Override
     public void visit(DoStmt n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
-        arg.LOOP++;
+        arg.addToken("do");
+        arg.addToken("while");
+        arg.incLoopCount();
     }
     
     @Override
@@ -623,12 +627,21 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        //this.inspect(n);
+        
+        if (n.toString().startsWith("case")){ // default is not added to COMP
+            arg.addToken("case");
+            arg.incCOMPCount();
+        }else{
+            arg.addToken("default");
+        }
     }
 
     @Override
     public void visit(SwitchStmt n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
+        arg.addToken("switch");
         arg.NOS++;
     }
 
@@ -736,7 +749,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
-        arg.LOOP++;
+        arg.incLoopCount();
         arg.addToken("while");
     }
 
