@@ -1,5 +1,9 @@
 package uci.mondego;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.github.javaparser.ast.ArrayCreationLevel;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
@@ -8,10 +12,12 @@ import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.InitializerDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.comments.BlockComment;
@@ -163,6 +169,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.NOS++;
+        //this.inspect(n);
     }
     
     @Override
@@ -791,4 +798,16 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector>  {
         System.out.println("---------------------------------------");
     }
     
+    @Override
+    public void visit(MethodDeclaration n, MetricCollector arg) {
+        // TODO Auto-generated method stub
+        super.visit(n, arg);
+        arg.TDN++;
+    }
+    @Override
+    public void visit(ConstructorDeclaration n, MetricCollector arg) {
+        // TODO Auto-generated method stub
+        super.visit(n, arg);
+        arg.TDN++;
+    }
 }

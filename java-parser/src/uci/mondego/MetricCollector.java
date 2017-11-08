@@ -26,7 +26,7 @@ public class MetricCollector {
     private double HVOL; // halstead volumn. not part of features
     public int LMET; // local methods called by method
     public int LOOP; // number of loops
-    public int MDN; // Maximum depth of nesting in a method
+    public int MDN; // Maximum depth of nesting in a method. Maximum depth of number of methods defined inside this method.
     public List<String> methodCallActionTokens = new ArrayList<String>();
     public int NAND; // number of operands
     // http://www.verifysoft.com/en_halstead_metrics.html
@@ -39,15 +39,16 @@ public class MetricCollector {
      * Character, numeric or string constants.
      */
     public int NEXP; // number of expressions
+    public int NIF; // number of if statements
     public int NOA; // number of arguments
     public int NOPR; // number of operators
     public int NOS; // number of statements
     public int NTOKENS; // number of tokens
-    public int NIF; // number of if statements
     public List<String> operands = new ArrayList<String>();
     public List<String> operators = new ArrayList<String>();
     public List<String> removeFromOperands = new ArrayList<String>();
     public int START_LINE; // start line of this method
+    public int TDN; // total depth of nesting. Total number of methods defined inside this method
     public List<String> tokens = new ArrayList<String>();
     public int UNAND; // unique number of operands
     public int UNPOR; // unique number of operators
@@ -105,6 +106,17 @@ public class MetricCollector {
         this.setHVOL();
         this.setHEFF();
     }
+    public void incCOMPCount(){
+        this.COMP++;
+    }
+    public void incLoopCount(){
+        this.LOOP++;
+        this.incCOMPCount();
+    }
+    public void incNIFCount(){
+        this.NIF++;
+        this.incCOMPCount();
+    }
     private void setHDIF(){
         this.HDIF = (this.UNPOR/2) * this.NAND/this.UNAND;
     }
@@ -134,24 +146,14 @@ public class MetricCollector {
                 + ", HVOC=" + HVOC + ", HVOL=" + HVOL + ", LMET=" + LMET
                 + ", LOOP=" + LOOP + ", MDN=" + MDN
                 + ", methodCallActionTokens=" + methodCallActionTokens
-                + ", NAND=" + NAND + ", NEXP=" + NEXP + ", NOA=" + NOA
-                + ", NOPR=" + NOPR + ", NOS=" + NOS + ", NTOKENS=" + NTOKENS
-                + ", numIf=" + NIF + ", operands=" + operands + ", operators="
-                + operators + ", removeFromOperands=" + removeFromOperands
-                + ", START_LINE=" + START_LINE + ", tokens=" + tokens
-                + ", UNAND=" + UNAND + ", UNPOR=" + UNPOR + ", VDEC=" + VDEC
-                + ", VREF=" + VREF + ", XMET=" + XMET + "]";
-    }
-    public void incLoopCount(){
-        this.LOOP++;
-        this.incCOMPCount();
-    }
-    public void incCOMPCount(){
-        this.COMP++;
-    }
-    public void incNIFCount(){
-        this.NIF++;
-        this.incCOMPCount();
+                + ", NAND=" + NAND + ", NEXP=" + NEXP + ", NIF=" + NIF
+                + ", NOA=" + NOA + ", NOPR=" + NOPR + ", NOS=" + NOS
+                + ", NTOKENS=" + NTOKENS + ", operands=" + operands
+                + ", operators=" + operators + ", removeFromOperands="
+                + removeFromOperands + ", START_LINE=" + START_LINE + ", TDN="
+                + TDN + ", tokens=" + tokens + ", UNAND=" + UNAND + ", UNPOR="
+                + UNPOR + ", VDEC=" + VDEC + ", VREF=" + VREF + ", XMET=" + XMET
+                + "]";
     }
 
 }

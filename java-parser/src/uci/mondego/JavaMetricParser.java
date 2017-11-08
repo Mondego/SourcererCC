@@ -19,7 +19,7 @@ public class JavaMetricParser {
         List<File> files = DirExplorer.finder("java_samples");
 
         for (File f : files) {
-            if (f.getName().equals("Test.java")) {
+            if (f.getName().equals("JhawkTest.java")) {
                 metricalize(f);
             }
         }
@@ -49,6 +49,7 @@ public class JavaMetricParser {
                     node.accept(new MethodVisitor(), collector);
                     collector.computeHalsteadMetrics();
                     collector.COMP++; // add 1 for the default path.
+                    System.out.println(collector._methodName+", MDN: "+collector.MDN +", TDN: "+ collector.TDN);
                     System.out.println(collector);
                 }
             }
