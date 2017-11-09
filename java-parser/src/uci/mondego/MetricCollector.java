@@ -21,9 +21,9 @@ public class MetricCollector {
     public List<String> fieldAccessActionTokens = new ArrayList<String>();
     public int HDIF; // Halstead difficulty to implement a method
     public double HEFF; // Halstead effort to implement a method
-    private int HLTH; // halstead length. not part of features
+    public int HLTH; // halstead length. not part of features
     public int HVOC; // Halstead vocabulary of a method
-    private double HVOL; // halstead volumn. not part of features
+    public double HVOL; // halstead volumn. not part of features
     public int LMET; // local methods called by method
     public int LOOP; // number of loops
     public int MDN; // Maximum depth of nesting in a method. Maximum depth of number of methods defined inside this method.
@@ -55,6 +55,14 @@ public class MetricCollector {
     public int VDEC; // Number of variables declared
     public int VREF; // number of variables referenced
     public int XMET; // number of external methods called by the method
+    public int NOCL=0;//number of comment lines
+    public int HBUG=0;//Halstead prediction of number of bugs
+    public int NLOC=0;//Number of lines code
+    public int NOC=0;//Number of comments
+    public int MOD=0;//Number of modifiers
+    String uniqueName="uniqueName";
+    String simpleUniqueName="simpleUniqueName";
+
 
     public void addFieldAccessActionTokens(String fieldAccessString) {
         String[] tokens = fieldAccessString.split("\\.");
