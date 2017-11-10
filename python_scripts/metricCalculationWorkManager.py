@@ -49,6 +49,9 @@ subdirs = [os.path.basename(os.path.normpath(f.path)) for f in os.scandir(main_d
 num_dir_per_process=len(subdirs)//num_process
 num_last_file=num_dir_per_process+(len(subdirs)%num_process)
 
+if not os.path.exists("output"):
+    os.makedirs("output")
+
 for i in range(num_process):
     file = open("output/file" + str(i + 1) + ".txt", "w")
     numWritten=0
