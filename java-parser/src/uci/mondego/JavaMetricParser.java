@@ -3,8 +3,10 @@ package uci.mondego;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Exchanger;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -13,6 +15,8 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.visitor.TreeVisitor;
 
@@ -45,6 +49,8 @@ public class JavaMetricParser {
                     //collector.NTOKENS = ((MethodDeclaration) node).getModifiers().size();
                     for (Modifier c : ((MethodDeclaration) node).getModifiers()){
                         collector.addToken(c.toString());
+                        collector.removeFromOperands.add(c.toString());
+                        collector.MOD++;
                     }
                     
                     NodeList<ReferenceType> exceptionsThrown = ((MethodDeclaration) node).getThrownExceptions();
@@ -52,13 +58,32 @@ public class JavaMetricParser {
                         collector.addToken("throws");
                     }
                     //collector.EXCT = exceptionsThrown.size();
-                    collector.NOA = ((MethodDeclaration) node).getParameters().size();
+                    NodeList<Parameter> nl = ((MethodDeclaration) node).getParameters();
+                    for(Parameter p : nl){
+                        
+                        for(Node c: p.getChildNodes()){
+                            if(c instanceof SimpleName)
+                                collector.parameterList.add(c.toString());
+                        }
+                    }
+                    collector.NOA = nl.size();
                     collector.START_LINE = node.getBegin().get().line;
                     collector.END_LINE = node.getEnd().get().line;
                     collector._methodName = ((MethodDeclaration) node).getName().asString();
+                    collector.removeFromOperands.add(collector._methodName);
                     node.accept(new MethodVisitor(), collector);
                     collector.computeHalsteadMetrics();
                     collector.COMP++; // add 1 for the default path.
+                    collector.NOS++; // accounting for method declaration
+                    collector.innerMethods.remove(collector._methodName);
+                    collector.innerMethodParameters = (List<String>) CollectionUtils.subtract(collector.innerMethodParameters , collector.parameterList);
+                    collector.populateVariableRefList();
+                    Collections.sort(collector.variablesRefList);
+                    Collections.sort(collector.variableDeclaredList);
+                    Collections.sort(collector.operands);
+                    Collections.sort(collector.typeList);
+                    Collections.sort(collector.operators);
+                    Collections.sort(collector.tokens);
                     this.writeToCsv(collector);
                     System.out.println(collector._methodName+", MDN: "+collector.MDN +", TDN: "+ collector.TDN);
                     System.out.println(collector);
@@ -66,9 +91,9 @@ public class JavaMetricParser {
             }
             public void writeToCsv(MetricCollector collector){
                 try {
-                    if (pw==null) pw = new PrintWriter("output\\metrics.csv");
+                    if (pw==null) pw = new PrintWriter("output/metrics.csv");
                     StringBuilder line=new StringBuilder("");
-                    line.append(collector.START_LINE).append(",").append(collector.END_LINE).append("~~").append(collector._file).append("~~").
+                    line.append(collector.START_LINE).append("~~").append(collector.END_LINE).append("~~").append(collector._file).append("~~").
                             append(collector._methodName).append("~~").append(collector.COMP).append("~~").append(collector.NOCL).append("~~").
                             append(collector.NOS).append("~~").append(collector.HLTH).append("~~").append(collector.HVOC).append("~~").
                             append(collector.HEFF).append("~~").append(collector.HBUG).append("~~").append(collector.CREF).append("~~").
@@ -80,6 +105,7 @@ public class JavaMetricParser {
                             append(collector.simpleUniqueName).append("~~").append(collector.VREF).append("~~").append(collector.NOPR).append("~~").
                             append(collector.MDN).append("~~").append(collector.NEXP).append("~~").append(collector.LOOP).append(System.lineSeparator());
                     pw.append(line);
+                    pw.append(System.lineSeparator());
                 }
                 catch (Exception e){
                     e.printStackTrace();

@@ -143,7 +143,7 @@ public class ArrayExamples
 			ascending = (list[index - 1] <= list[index]);
 			index++;
 		}
-
+        a[b[i]];
 		return ascending;
 	}
 }

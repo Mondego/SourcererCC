@@ -1,5 +1,6 @@
 package com.mondego.utility;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,24 +13,41 @@ import com.mondego.models.TokenFrequency;
 
 public class JhawkTest {
 
-    int test =0;
+    int test = 0;
+
     public static void sortBag(final Bag bag) {
         final Map<String, Long> cache = new HashMap<String, Long>();
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
         try {
             Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
-                public void test1(){
+                public void test1() {
                     int i = 0;
-                    int j=0;
-                    if (j<1){
-                        for(i=j;i<100;i++){
-                            System.out.println(i+j);
+                    int j = 0;
+                    if (j < 1) {
+                        for (i = j; ; ) {
+                            System.out.println(i + j);
+                            i++;
+                            if (i>100){
+                                break;
+                            }
                         }
                     }
                 }
-                
-                public int compare(TokenFrequency tfFirst,
-                        TokenFrequency tfSecond) {
+                public void test4() {
+                    int i = 0;
+                    int j = 0;
+                    if (j < 1) {
+                        for (Student s: students){
+                            System.out.println(i + j);
+                            i++;
+                            if (i>100){
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
                     Long frequency1 = 0l;
                     Long frequency2 = 0l;
                     String k1 = tfFirst.getToken().getValue();
@@ -101,13 +119,42 @@ public class JhawkTest {
             return result;
         }
     }
-    
-    public static void test2(){
+
+    public static void test2() {
         int i = 0;
-        int j=0;
-        if (j<1){
-            for(i=j;i<100;i++){
-                System.out.println(i+j);
+        int j = 0;
+        try {
+            if (j < 1) {
+                for (i = j; i < 100; i++) {
+                    System.out.println(i + j);
+                }
+            }
+        } catch (NullPointerException | IOException                  e) {
+
+        }catch(Exception    e){
+            
+        }
+        finally{
+            f.clonse();
+        }
+        if (null == frequency1 || null == frequency2) {
+        }
+    }
+    public void test3() {
+        int a=0,b=0,d=0;
+        
+        int i = 0;
+        int j = 0;
+        Class c = Student.class;
+        Class d = school.section.Student.class;
+        if (j < 1) {
+            for (Student s: students){
+                Professor p = (Professor)s;
+                System.out.println(i + j);
+                i++;
+                if (i>100){
+                    break;
+                }
             }
         }
     }
