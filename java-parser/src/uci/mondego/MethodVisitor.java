@@ -131,7 +131,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         this.incNOS(n, arg);
-        arg.operators.add("assert");
+        MapUtils.addOrUpdateMap(arg.operatorsMap, "assert");
         arg.addToken("assert");
         this.incNOPR(n, arg);
     }
@@ -142,7 +142,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         super.visit(n, arg);
         this.incNEXP(n, arg);
         this.incNOPR(n, arg);
-        arg.operators.add(n.getOperator().asString());
+        MapUtils.addOrUpdateMap(arg.operatorsMap, n.getOperator().asString());
         // 
     }
 
@@ -158,11 +158,11 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
             }
         }
         if(hasBinaryExp){
-            arg.arrayBinaryAccessActionTokens.add("arrayBinaryAccess[]");
+            MapUtils.addOrUpdateMap(arg.arrayBinaryAccessActionTokensMap, "arrayBinaryAccess[]");
         }else{
-            arg.arrayAccessActionTokens.add("arrayAccess[]");
+            MapUtils.addOrUpdateMap(arg.arrayAccessActionTokensMap, "arrayAccess[]");
         }
-        arg.operators.add("[]");
+        MapUtils.addOrUpdateMap(arg.operatorsMap, "[]");
         this.incNOPR(n, arg);
     }
 
@@ -180,7 +180,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         super.visit(n, arg);
         this.incNEXP(n, arg);
         this.incNOPR(n, arg);
-        arg.operators.add(n.getOperator().asString());
+        MapUtils.addOrUpdateMap(arg.operatorsMap, n.getOperator().asString());
     }
 
     @Override
@@ -219,7 +219,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         super.visit(n, arg);
         this.incNEXP(n, arg);
         arg.addToken(n.toString());
-        arg.literals.add(n.toString());
+        MapUtils.addOrUpdateMap(arg.literalsMap, n.toString());
     }
 
     @Override
@@ -244,7 +244,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         super.visit(n, arg);
         this.incNEXP(n, arg);
         arg.addToken(n.toString());
-        arg.literals.add(n.toString());
+        MapUtils.addOrUpdateMap(arg.literalsMap, n.toString());
     }
 
     @Override
@@ -263,7 +263,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         super.visit(n, arg);
         this.incNEXP(n, arg);
         this.incNOPR(n, arg);
-        arg.operators.add("?:");
+        MapUtils.addOrUpdateMap(arg.operatorsMap, "?:");
     }
 
     @Override
@@ -289,8 +289,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         this.incNEXP(n, arg);
-        arg.literals.add(n.toString());
-        
+        MapUtils.addOrUpdateMap(arg.literalsMap, n.toString());
         arg.addToken(n.toString());
     }
 
@@ -347,7 +346,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         for(Node c : n.getChildNodes()){
             if (c instanceof Parameter){
                 String[] tokens = c.toString().split("\\s+");
-                arg.variableDeclaredList.add(tokens[tokens.length-1].trim());
+                MapUtils.addOrUpdateMap(arg.variableDeclaredMap, tokens[tokens.length-1].trim());
             }
         }
     }
@@ -367,7 +366,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
       //  this.inspect(n);
         for (Node c : n.getChildNodes()){
             if (c instanceof SimpleName){
-                arg.typeList.add(c.toString());
+                MapUtils.addOrUpdateMap(arg.typeMap, c.toString());
                 if (Character.isUpperCase(c.toString().charAt(0))){ // heuristic Class name starts with a Capital letter
                     arg.CREF++;
                 }
@@ -459,7 +458,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         this.incNEXP(n, arg);
-        arg.literals.add(n.toString());
+        MapUtils.addOrUpdateMap(arg.literalsMap, n.toString());
         arg.addToken(n.toString());
     }
 
@@ -508,7 +507,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         this.incNEXP(n, arg);
-        arg.literals.add(n.toString());
+        MapUtils.addOrUpdateMap(arg.literalsMap, n.toString());
         arg.addToken(n.toString());
     }
 
@@ -554,7 +553,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         if(!hasFieldAccessExp){
             if (Character.isUpperCase(parts[0].charAt(0))){
                 arg.CREF++;
-                arg.typeList.add(parts[0]);
+                MapUtils.addOrUpdateMap(arg.typeMap, parts[0]);
                 System.out.println(parts[0]);
             }
         }
@@ -644,7 +643,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         this.incNEXP(n, arg);
-        arg.literals.add(n.toString());
+        MapUtils.addOrUpdateMap(arg.literalsMap, n.toString());
         arg.addToken(n.toString());
     }
 
@@ -675,7 +674,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         arg.addToken(n.toString());
-        arg.typeList.add(n.toString());
+        MapUtils.addOrUpdateMap(arg.typeMap, n.toString());
     }
 
     @Override
@@ -708,7 +707,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         this.incNEXP(n, arg);
-        arg.literals.add(n.toString());
+        MapUtils.addOrUpdateMap(arg.typeMap, n.toString());
         arg.addToken(n.toString());
     }
 
@@ -800,7 +799,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         super.visit(n, arg);
         this.incNEXP(n, arg);
         this.incNOPR(n, arg);
-        arg.operators.add(n.getOperator().asString());
+        MapUtils.addOrUpdateMap(arg.operatorsMap, n.getOperator().asString());
     }
 
     @Override
@@ -831,7 +830,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         int countEq = StringUtils.countMatches(n.toString(), "=");
         for(int j=0;j<countEq;j++){
             this.incNOPR(n, arg);
-            arg.operators.add("=");
+            MapUtils.addOrUpdateMap(arg.operatorsMap, "=");
         }
         //this.debug(n);
     }
@@ -842,7 +841,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         super.visit(n, arg);
         arg.VDEC++;
         String[] tokens = n.toString().split("=");
-        arg.variableDeclaredList.add(tokens[0].trim());
+        MapUtils.addOrUpdateMap(arg.variableDeclaredMap, tokens[0].trim());
     }
 
     @Override
@@ -907,13 +906,14 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
     public void visit(MethodDeclaration n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
-        arg.innerMethods.add(n.getName().toString());
+        MapUtils.addOrUpdateMap(arg.innerMethodsMap, n.getName().toString());
         NodeList<Parameter> nl = n.getParameters();
         for(Parameter p : nl){
             
             for(Node c: p.getChildNodes()){
-                if(c instanceof SimpleName)
-                    arg.innerMethodParameters.add(c.toString());
+                if(c instanceof SimpleName){
+                    MapUtils.addOrUpdateMap(arg.innerMethodParametersMap, c.toString());
+                }
             }
         }
     }
@@ -922,19 +922,6 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
     public void visit(ConstructorDeclaration n, MetricCollector arg) {
         // TODO Auto-generated method stub
         super.visit(n, arg);
-        /*arg.TDN++;
-        int mdn=0;
-        Node p = n;
-        while(n.getParentNode().isPresent()){
-            Optional<Node> parent = p.getParentNode();
-            if(parent.get() instanceof MethodDeclaration || parent.get() instanceof ConstructorDeclaration){
-                mdn++;
-            }
-            p = parent.get();
-        }
-        if (mdn>arg.MDN){
-            arg.MDN=mdn;
-        }*/
     }
     
     private void incNOS(Node n, MetricCollector arg){

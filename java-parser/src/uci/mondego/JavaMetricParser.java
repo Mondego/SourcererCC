@@ -1,14 +1,18 @@
 package uci.mondego;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.Collections;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
+import java.util.Map.Entry;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
@@ -21,101 +25,163 @@ import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.visitor.TreeVisitor;
 
 public class JavaMetricParser {
-    public PrintWriter pw=null;
-    public static void main(String[] args) throws FileNotFoundException {
-        JavaMetricParser javaMetricParser=new JavaMetricParser();
-        List<File> files = DirExplorer.finder("java_samples");
+    public PrintWriter pw = null;
+    public PrintWriter errorPw = null;
 
-        for (File f : files) {
-            if (f.getName().equals("JhawkTest.java")) {
-                javaMetricParser.metricalize(f);
+    public static void main(String[] args) throws FileNotFoundException {
+        JavaMetricParser javaMetricParser = new JavaMetricParser();
+        if(args.length>0){
+            String filename = args[0];
+            BufferedReader br;
+            try {
+                br = new BufferedReader(new InputStreamReader(
+                        new FileInputStream(filename), "UTF-8"));
+                String line;
+                while ((line = br.readLine()) != null && line.trim().length() > 0) {
+                    System.out.println("processing: "+ line);
+                    javaMetricParser.calculateMetrics(filename+File.pathSeparator+line.trim());
+                }
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        }else{
+            System.out.println("FATAL: please specify the file with list of directories!");
+        }
+        
+    }
+
+    public void calculateMetrics(String filename) throws FileNotFoundException {
+        List<File> files = DirExplorer.finder(filename);
+        if (null == this.pw) {
+            this.pw = new PrintWriter("output/metrics.csv");
+            this.errorPw = new PrintWriter("output/error.file");
+        }
+        for (File f : files) {
+            if (f.getName().equals("ArrayExamples.java")) {
+                try {
+                    this.metricalize(f);
+                } catch (FileNotFoundException e) {
+                    System.out.println("WARN: File not found, skipping file: " + f.getAbsolutePath());
+                    this.errorPw.write(f.getAbsolutePath());
+                } catch (ParseProblemException e) {
+                    System.out.println("WARN: parse problem exception, skippig file: " + f.getAbsolutePath());
+                    this.errorPw.write(f.getAbsolutePath());
+                    e.printStackTrace();
+                } catch (Exception e) {
+                }
+            }
+        }
+        try {
+            this.pw.close();
+            this.errorPw.close();
+        } catch (Exception e) {
+            System.out.println("Unexpected error while closing the output/error file");
         }
     }
 
-    public  void metricalize(final File file) throws FileNotFoundException {
+    public void metricalize(final File file) throws FileNotFoundException {
         System.out.println("Metricalizing " + file.getName());
+
         CompilationUnit cu = JavaParser.parse(file);
         TreeVisitor astVisitor = new TreeVisitor() {
-
 
             @Override
             public void process(Node node) {
                 if (node instanceof MethodDeclaration || node instanceof ConstructorDeclaration) {
-                   // JavaParser.parse(((MethodDeclaration) node).getBody().get().toString()).get;
-                    //System.out.println(((MethodDeclaration) node).getBody().get().getTokenRange().get().getBegin());
+                    // JavaParser.parse(((MethodDeclaration)
+                    // node).getBody().get().toString()).get;
+                    // System.out.println(((MethodDeclaration)
+                    // node).getBody().get().getTokenRange().get().getBegin());
                     MetricCollector collector = new MetricCollector();
                     collector._file = file;
-                    //collector.NTOKENS = ((MethodDeclaration) node).getModifiers().size();
-                    for (Modifier c : ((MethodDeclaration) node).getModifiers()){
+                    // collector.NTOKENS = ((MethodDeclaration)
+                    // node).getModifiers().size();
+                    for (Modifier c : ((MethodDeclaration) node).getModifiers()) {
                         collector.addToken(c.toString());
-                        collector.removeFromOperands.add(c.toString());
+                        MapUtils.addOrUpdateMap(collector.removeFromOperandsMap, c.toString());
                         collector.MOD++;
                     }
-                    
+
                     NodeList<ReferenceType> exceptionsThrown = ((MethodDeclaration) node).getThrownExceptions();
-                    if (exceptionsThrown.size()>0){
+                    if (exceptionsThrown.size() > 0) {
                         collector.addToken("throws");
                     }
-                    //collector.EXCT = exceptionsThrown.size();
+                    // collector.EXCT = exceptionsThrown.size();
                     NodeList<Parameter> nl = ((MethodDeclaration) node).getParameters();
-                    for(Parameter p : nl){
-                        
-                        for(Node c: p.getChildNodes()){
-                            if(c instanceof SimpleName)
-                                collector.parameterList.add(c.toString());
+                    for (Parameter p : nl) {
+
+                        for (Node c : p.getChildNodes()) {
+                            if (c instanceof SimpleName)
+                                MapUtils.addOrUpdateMap(collector.parameterMap, c.toString());
                         }
                     }
                     collector.NOA = nl.size();
                     collector.START_LINE = node.getBegin().get().line;
                     collector.END_LINE = node.getEnd().get().line;
                     collector._methodName = ((MethodDeclaration) node).getName().asString();
-                    collector.removeFromOperands.add(collector._methodName);
+                    MapUtils.addOrUpdateMap(collector.removeFromOperandsMap, collector._methodName);
                     node.accept(new MethodVisitor(), collector);
                     collector.computeHalsteadMetrics();
                     collector.COMP++; // add 1 for the default path.
                     collector.NOS++; // accounting for method declaration
-                    collector.innerMethods.remove(collector._methodName);
-                    collector.innerMethodParameters = (List<String>) CollectionUtils.subtract(collector.innerMethodParameters , collector.parameterList);
+                    collector.innerMethodsMap.remove(collector._methodName);
+                    MapUtils.subtractMaps(collector.innerMethodParametersMap, collector.parameterMap);
                     collector.populateVariableRefList();
-                    Collections.sort(collector.variablesRefList);
-                    Collections.sort(collector.variableDeclaredList);
-                    Collections.sort(collector.operands);
-                    Collections.sort(collector.typeList);
-                    Collections.sort(collector.operators);
-                    Collections.sort(collector.tokens);
                     this.writeToCsv(collector);
-                    System.out.println(collector._methodName+", MDN: "+collector.MDN +", TDN: "+ collector.TDN);
+                    System.out.println(collector._methodName + ", MDN: " + collector.MDN + ", TDN: " + collector.TDN);
                     System.out.println(collector);
                 }
             }
-            public void writeToCsv(MetricCollector collector){
+
+            public void writeToCsv(MetricCollector collector) {
                 try {
-                    if (pw==null) pw = new PrintWriter("output/metrics.csv");
-                    StringBuilder line=new StringBuilder("");
-                    line.append(collector.START_LINE).append("~~").append(collector.END_LINE).append("~~").append(collector._file).append("~~").
-                            append(collector._methodName).append("~~").append(collector.COMP).append("~~").append(collector.NOCL).append("~~").
-                            append(collector.NOS).append("~~").append(collector.HLTH).append("~~").append(collector.HVOC).append("~~").
-                            append(collector.HEFF).append("~~").append(collector.HBUG).append("~~").append(collector.CREF).append("~~").
-                            append(collector.XMET).append("~~").append(collector.LMET).append("~~").append(collector.NLOC).append("~~").
-                            append(collector.NOC).append("~~").append(collector.NOA).append("~~").append(collector.MOD).append("~~").
-                            append(collector.uniqueName).append("~~").append(collector.HDIF).append("~~").append(collector.VDEC).append("~~").
-                            append(collector.EXCT).append("~~").append(collector.EXCR).append("~~").append(collector.CAST).append("~~").
-                            append(collector.TDN).append("~~").append(collector.HVOL).append("~~").append(collector.NAND).append("~~").
-                            append(collector.simpleUniqueName).append("~~").append(collector.VREF).append("~~").append(collector.NOPR).append("~~").
-                            append(collector.MDN).append("~~").append(collector.NEXP).append("~~").append(collector.LOOP).append(System.lineSeparator());
-                    pw.append(line);
-                    pw.append(System.lineSeparator());
-                }
-                catch (Exception e){
+                    String internalSeparator = ",";
+                    String externalSeparator = "@#@";
+                    StringBuilder metricString = new StringBuilder("");
+                    StringBuilder metadataString = new StringBuilder("");
+                    StringBuilder actionTokenString = new StringBuilder("");
+                    metadataString.append(collector._file.getParent()).append(internalSeparator)
+                            .append(collector._file.getName()).append(internalSeparator).append(collector.START_LINE)
+                            .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
+                            .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
+                            .append(internalSeparator).append(collector.tokensMap.size());
+                    metricString.append(collector.COMP).append(internalSeparator)
+                            .append(collector.NOS).append(internalSeparator).append(collector.HVOC)
+                            .append(internalSeparator).append(collector.HEFF).append(internalSeparator)
+                            .append(collector.CREF).append(internalSeparator).append(collector.XMET)
+                            .append(internalSeparator).append(collector.LMET).append(internalSeparator)
+                            .append(collector.NOA).append(internalSeparator).append(collector.HDIF)
+                            .append(internalSeparator).append(collector.VDEC).append(internalSeparator)
+                            .append(collector.EXCT).append(internalSeparator).append(collector.EXCR)
+                            .append(internalSeparator).append(collector.CAST).append(internalSeparator)
+                            .append(collector.NAND).append(internalSeparator).append(collector.VREF)
+                            .append(internalSeparator).append(collector.NOPR).append(internalSeparator)
+                            .append(collector.MDN).append(internalSeparator).append(collector.NEXP)
+                            .append(internalSeparator).append(collector.LOOP);
+                    for(Entry<String,Integer> entry : collector.methodCallActionTokensMap.entrySet()){
+                        actionTokenString.append(entry.getKey()+":"+entry.getValue()+",");
+                    }
+                    for(Entry<String,Integer> entry : collector.fieldAccessActionTokensMap.entrySet()){
+                        actionTokenString.append(entry.getKey()+":"+entry.getValue()+",");
+                    }
+                    for(Entry<String,Integer> entry : collector.arrayAccessActionTokensMap.entrySet()){
+                        actionTokenString.append(entry.getKey()+":"+entry.getValue()+",");
+                    }
+                    for(Entry<String,Integer> entry : collector.arrayBinaryAccessActionTokensMap.entrySet()){
+                        actionTokenString.append(entry.getKey()+":"+entry.getValue()+",");
+                    }
+                    actionTokenString.append("_@"+collector._methodName+"@_");
+                    StringBuilder line = new StringBuilder("");
+                    line.append(metadataString).append(externalSeparator).append(metricString).append(externalSeparator).append(actionTokenString).append(System.lineSeparator());
+                    pw.append(line.toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-            
+
         };
         astVisitor.visitPreOrder(cu);
-        pw.close();
-
     }
-    
 }
