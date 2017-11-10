@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CodeCloneDetection" basedir="." default="metric">
+
+	<property name="src.dir" value="src" />
+	<property name="build.dir" value="build" />
+	<property name="classes.dir" value="${build.dir}/classes" />
+	<property name="jar.dir" value="dist" />
+	<property name="metricJar" value="metricCalculator" />
+
+	<property name="lib" value="lib" />
+
+	<property name="dist.dir" value="dist" />
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<delete dir="${jar.dir}" />
+	</target>
+
+	<target name="compile" depends="clean">
+		<mkdir dir="${classes.dir}" />
+		<mkdir dir="${jar.dir}" />
+		<javac encoding="utf-8" source="1.8" target="1.8" debug="true" includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}">
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="JarMetric" depends="compile">
+		<mkdir dir="${jar.dir}" />
+		<jar destfile="${jar.dir}/${metricJar}.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="uci.mondego.JavaMetricParser" />
+			</manifest>
+			<zipgroupfileset dir="${lib}" includes="**/*.jar" />
+		</jar>
+	</target>
+
+	<!--     <target name="clean-build" depends="clean,jar"/> -->
+	<target name="metric" depends="JarMetric" />
+</project>
