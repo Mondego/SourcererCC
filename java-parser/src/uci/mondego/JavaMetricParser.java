@@ -27,50 +27,61 @@ import com.github.javaparser.ast.visitor.TreeVisitor;
 public class JavaMetricParser {
     public PrintWriter pw = null;
     public PrintWriter errorPw = null;
+    public String outputDirPath;
+    public String outputFileName;
+    public String errorFileName;
+
+    public JavaMetricParser() {
+        this.outputFileName = "mlcc_input.file";
+        this.errorFileName = "error_metrics.file";
+        this.outputDirPath = "metric_output";
+        File outDir = new File(this.outputDirPath);
+        if (!outDir.exists()) {
+            outDir.mkdirs();
+        }
+    }
 
     public static void main(String[] args) throws FileNotFoundException {
         JavaMetricParser javaMetricParser = new JavaMetricParser();
-        if(args.length>0){
+        if (args.length > 0) {
             String filename = args[0];
             BufferedReader br;
             try {
-                br = new BufferedReader(new InputStreamReader(
-                        new FileInputStream(filename), "UTF-8"));
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
                 String line;
                 while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                    System.out.println("processing: "+ line);
-                    javaMetricParser.calculateMetrics(filename+File.pathSeparator+line.trim());
+                    System.out.println("processing: " + line);
+                    javaMetricParser.calculateMetrics(line.trim());
                 }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }else{
+        } else {
             System.out.println("FATAL: please specify the file with list of directories!");
         }
-        
+        System.out.println("done!");
     }
 
     public void calculateMetrics(String filename) throws FileNotFoundException {
+        System.out.println("processing file: " + filename);
         List<File> files = DirExplorer.finder(filename);
         if (null == this.pw) {
-            this.pw = new PrintWriter("output/metrics.csv");
-            this.errorPw = new PrintWriter("output/error.file");
+            this.pw = new PrintWriter(this.outputDirPath + File.separator + this.outputFileName);
+            this.errorPw = new PrintWriter(this.outputDirPath + File.separator + this.errorFileName);
         }
         for (File f : files) {
-            if (f.getName().equals("ArrayExamples.java")) {
-                try {
-                    this.metricalize(f);
-                } catch (FileNotFoundException e) {
-                    System.out.println("WARN: File not found, skipping file: " + f.getAbsolutePath());
-                    this.errorPw.write(f.getAbsolutePath());
-                } catch (ParseProblemException e) {
-                    System.out.println("WARN: parse problem exception, skippig file: " + f.getAbsolutePath());
-                    this.errorPw.write(f.getAbsolutePath());
-                    e.printStackTrace();
-                } catch (Exception e) {
-                }
+            try {
+                this.metricalize(f);
+            } catch (FileNotFoundException e) {
+                System.out.println("WARN: File not found, skipping file: " + f.getAbsolutePath());
+                this.errorPw.write(f.getAbsolutePath());
+            } catch (ParseProblemException e) {
+                System.out.println("WARN: parse problem exception, skippig file: " + f.getAbsolutePath());
+                this.errorPw.write(f.getAbsolutePath());
+                e.printStackTrace();
+            } catch (Exception e) {
             }
         }
         try {
@@ -130,8 +141,9 @@ public class JavaMetricParser {
                     MapUtils.subtractMaps(collector.innerMethodParametersMap, collector.parameterMap);
                     collector.populateVariableRefList();
                     this.writeToCsv(collector);
-                    System.out.println(collector._methodName + ", MDN: " + collector.MDN + ", TDN: " + collector.TDN);
-                    System.out.println(collector);
+                    // System.out.println(collector._methodName + ", MDN: " +
+                    // collector.MDN + ", TDN: " + collector.TDN);
+                    // System.out.println(collector);
                 }
             }
 
@@ -147,34 +159,35 @@ public class JavaMetricParser {
                             .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
                             .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
                             .append(internalSeparator).append(collector.tokensMap.size());
-                    metricString.append(collector.COMP).append(internalSeparator)
-                            .append(collector.NOS).append(internalSeparator).append(collector.HVOC)
-                            .append(internalSeparator).append(collector.HEFF).append(internalSeparator)
-                            .append(collector.CREF).append(internalSeparator).append(collector.XMET)
-                            .append(internalSeparator).append(collector.LMET).append(internalSeparator)
-                            .append(collector.NOA).append(internalSeparator).append(collector.HDIF)
-                            .append(internalSeparator).append(collector.VDEC).append(internalSeparator)
-                            .append(collector.EXCT).append(internalSeparator).append(collector.EXCR)
-                            .append(internalSeparator).append(collector.CAST).append(internalSeparator)
-                            .append(collector.NAND).append(internalSeparator).append(collector.VREF)
-                            .append(internalSeparator).append(collector.NOPR).append(internalSeparator)
-                            .append(collector.MDN).append(internalSeparator).append(collector.NEXP)
-                            .append(internalSeparator).append(collector.LOOP);
-                    for(Entry<String,Integer> entry : collector.methodCallActionTokensMap.entrySet()){
-                        actionTokenString.append(entry.getKey()+":"+entry.getValue()+",");
+                    metricString.append(collector.COMP).append(internalSeparator).append(collector.NOS)
+                            .append(internalSeparator).append(collector.HVOC).append(internalSeparator)
+                            .append(collector.HEFF).append(internalSeparator).append(collector.CREF)
+                            .append(internalSeparator).append(collector.XMET).append(internalSeparator)
+                            .append(collector.LMET).append(internalSeparator).append(collector.NOA)
+                            .append(internalSeparator).append(collector.HDIF).append(internalSeparator)
+                            .append(collector.VDEC).append(internalSeparator).append(collector.EXCT)
+                            .append(internalSeparator).append(collector.EXCR).append(internalSeparator)
+                            .append(collector.CAST).append(internalSeparator).append(collector.NAND)
+                            .append(internalSeparator).append(collector.VREF).append(internalSeparator)
+                            .append(collector.NOPR).append(internalSeparator).append(collector.MDN)
+                            .append(internalSeparator).append(collector.NEXP).append(internalSeparator)
+                            .append(collector.LOOP);
+                    for (Entry<String, Integer> entry : collector.methodCallActionTokensMap.entrySet()) {
+                        actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
                     }
-                    for(Entry<String,Integer> entry : collector.fieldAccessActionTokensMap.entrySet()){
-                        actionTokenString.append(entry.getKey()+":"+entry.getValue()+",");
+                    for (Entry<String, Integer> entry : collector.fieldAccessActionTokensMap.entrySet()) {
+                        actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
                     }
-                    for(Entry<String,Integer> entry : collector.arrayAccessActionTokensMap.entrySet()){
-                        actionTokenString.append(entry.getKey()+":"+entry.getValue()+",");
+                    for (Entry<String, Integer> entry : collector.arrayAccessActionTokensMap.entrySet()) {
+                        actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
                     }
-                    for(Entry<String,Integer> entry : collector.arrayBinaryAccessActionTokensMap.entrySet()){
-                        actionTokenString.append(entry.getKey()+":"+entry.getValue()+",");
+                    for (Entry<String, Integer> entry : collector.arrayBinaryAccessActionTokensMap.entrySet()) {
+                        actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
                     }
-                    actionTokenString.append("_@"+collector._methodName+"@_");
+                    actionTokenString.append("_@" + collector._methodName + "@_");
                     StringBuilder line = new StringBuilder("");
-                    line.append(metadataString).append(externalSeparator).append(metricString).append(externalSeparator).append(actionTokenString).append(System.lineSeparator());
+                    line.append(metadataString).append(externalSeparator).append(metricString).append(externalSeparator)
+                            .append(actionTokenString).append(System.lineSeparator());
                     pw.append(line.toString());
                 } catch (Exception e) {
                     e.printStackTrace();

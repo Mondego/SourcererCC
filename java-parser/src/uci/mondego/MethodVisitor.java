@@ -554,7 +554,6 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
             if (Character.isUpperCase(parts[0].charAt(0))){
                 arg.CREF++;
                 MapUtils.addOrUpdateMap(arg.typeMap, parts[0]);
-                System.out.println(parts[0]);
             }
         }
     }

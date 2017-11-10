@@ -32,7 +32,7 @@
 		<mkdir dir="${jar.dir}" />
 		<jar destfile="${jar.dir}/${metricJar}.jar" basedir="${classes.dir}">
 			<manifest>
-				<attribute name="Main-Class" value="com.mondego.JavaMetricParser" />
+				<attribute name="Main-Class" value="uci.mondego.JavaMetricParser" />
 			</manifest>
 			<zipgroupfileset dir="${lib}" includes="**/*.jar" />
 		</jar>
