@@ -56,10 +56,21 @@ public class JavaMetricParser {
             JavaMetricParser javaMetricParser = new JavaMetricParser(filename);
             BufferedReader br;
             try {
+                if (null == javaMetricParser.pw) {
+                    javaMetricParser.pw = new PrintWriter(javaMetricParser.outputDirPath + File.separator + javaMetricParser.outputFileName);
+                    javaMetricParser.errorPw = new PrintWriter(javaMetricParser.outputDirPath + File.separator + javaMetricParser.errorFileName);
+                }
                 br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
                 String line;
                 while ((line = br.readLine()) != null && line.trim().length() > 0) {
                     javaMetricParser.calculateMetrics(line.trim());
+                }
+
+                try {
+                    javaMetricParser.pw.close();
+                    javaMetricParser.errorPw.close();
+                } catch (Exception e) {
+                    System.out.println("Unexpected error while closing the output/error file");
                 }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
@@ -75,10 +86,6 @@ public class JavaMetricParser {
     public void calculateMetrics(String filename) throws FileNotFoundException {
         System.out.println("processing directory: " + filename);
         List<File> files = DirExplorer.finder(filename);
-        if (null == this.pw) {
-            this.pw = new PrintWriter(this.outputDirPath + File.separator + this.outputFileName);
-            this.errorPw = new PrintWriter(this.outputDirPath + File.separator + this.errorFileName);
-        }
         for (File f : files) {
             try {
                 this.metricalize(f);
@@ -93,12 +100,6 @@ public class JavaMetricParser {
                 System.out.println("WARN: unknown error, skippig file: " + f.getAbsolutePath() );
                 e.printStackTrace();
             }
-        }
-        try {
-            this.pw.close();
-            this.errorPw.close();
-        } catch (Exception e) {
-            System.out.println("Unexpected error while closing the output/error file");
         }
     }
 
