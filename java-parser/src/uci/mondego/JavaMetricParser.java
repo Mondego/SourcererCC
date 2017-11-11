@@ -90,6 +90,8 @@ public class JavaMetricParser {
                 this.errorPw.write(f.getAbsolutePath()+ System.lineSeparator());
                 e.printStackTrace();
             } catch (Exception e) {
+                System.out.println("WARN: unknown error, skippig file: " + f.getAbsolutePath() );
+                e.printStackTrace();
             }
         }
         try {
