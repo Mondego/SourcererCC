@@ -1,6 +1,6 @@
 import os
 import subprocess
-
+import shutil
 
 def full_file_path(string):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
@@ -44,13 +44,14 @@ def run_command(cmd, outFile, errFile):
     return returncode
 num_process = int(input("Enter the number of processes: "))
 
-main_dir="../train_dataset"
-subdirs = [os.path.basename(os.path.normpath(f.path)) for f in os.scandir(main_dir) if f.is_dir() ]
+main_dir="/home/saini/Documents/code/repo/SourcererCC/java-parser/testRun"
+subdirs = [f.path for f in os.scandir(main_dir) if f.is_dir() ]
 num_dir_per_process=len(subdirs)//num_process
 num_last_file=num_dir_per_process+(len(subdirs)%num_process)
 
-if not os.path.exists("output"):
-    os.makedirs("output")
+if os.path.exists("output"):
+    shutil.rmtree('output')
+os.makedirs("output")
 
 for i in range(num_process):
     file = open("output/file" + str(i + 1) + ".txt", "w")
@@ -62,8 +63,8 @@ for i in range(num_process):
             break
     file.close()
 for file in os.listdir("output/"):
-    command = " java -jar {filename}".format(
-        filename=file)
+    command = " java -jar ../java-parser/dist/metricCalculator.jar {filename}".format(
+        filename=full_file_path("output/"+file))
     command_params = command.split()
     returncode = run_command(
         command_params, full_file_path("metric.out"), full_file_path("metric.err"))

@@ -31,26 +31,34 @@ public class JavaMetricParser {
     public String outputFileName;
     public String errorFileName;
 
-    public JavaMetricParser() {
+    public JavaMetricParser(String inputFilePath) {
         this.outputFileName = "mlcc_input.file";
         this.errorFileName = "error_metrics.file";
-        this.outputDirPath = "metric_output";
+        this.outputDirPath = this.getBaseName(inputFilePath)+"_metric_output";
         File outDir = new File(this.outputDirPath);
         if (!outDir.exists()) {
             outDir.mkdirs();
         }
     }
+    private String getBaseName(String path){
+        File inputFile = new File(path);
+        String fileName = inputFile.getName();
+        int pos = fileName.lastIndexOf(".");
+        if (pos > 0) {
+            fileName = fileName.substring(0, pos);
+        }
+        return fileName;
+    }
 
     public static void main(String[] args) throws FileNotFoundException {
-        JavaMetricParser javaMetricParser = new JavaMetricParser();
         if (args.length > 0) {
             String filename = args[0];
+            JavaMetricParser javaMetricParser = new JavaMetricParser(filename);
             BufferedReader br;
             try {
                 br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
                 String line;
                 while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                    System.out.println("processing: " + line);
                     javaMetricParser.calculateMetrics(line.trim());
                 }
             } catch (UnsupportedEncodingException e) {
@@ -65,7 +73,7 @@ public class JavaMetricParser {
     }
 
     public void calculateMetrics(String filename) throws FileNotFoundException {
-        System.out.println("processing file: " + filename);
+        System.out.println("processing directory: " + filename);
         List<File> files = DirExplorer.finder(filename);
         if (null == this.pw) {
             this.pw = new PrintWriter(this.outputDirPath + File.separator + this.outputFileName);
@@ -154,7 +162,7 @@ public class JavaMetricParser {
                     StringBuilder metricString = new StringBuilder("");
                     StringBuilder metadataString = new StringBuilder("");
                     StringBuilder actionTokenString = new StringBuilder("");
-                    metadataString.append(collector._file.getParent()).append(internalSeparator)
+                    metadataString.append(collector._file.getParentFile().getName()).append(internalSeparator)
                             .append(collector._file.getName()).append(internalSeparator).append(collector.START_LINE)
                             .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
                             .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
