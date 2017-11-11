@@ -84,10 +84,10 @@ public class JavaMetricParser {
                 this.metricalize(f);
             } catch (FileNotFoundException e) {
                 System.out.println("WARN: File not found, skipping file: " + f.getAbsolutePath());
-                this.errorPw.write(f.getAbsolutePath());
+                this.errorPw.write(f.getAbsolutePath() +System.lineSeparator());
             } catch (ParseProblemException e) {
-                System.out.println("WARN: parse problem exception, skippig file: " + f.getAbsolutePath());
-                this.errorPw.write(f.getAbsolutePath());
+                System.out.println("WARN: parse problem exception, skippig file: " + f.getAbsolutePath() );
+                this.errorPw.write(f.getAbsolutePath()+ System.lineSeparator());
                 e.printStackTrace();
             } catch (Exception e) {
             }
