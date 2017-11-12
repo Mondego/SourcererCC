@@ -48,28 +48,48 @@ public class Util {
     static Random rand = new Random(5);
     public static final String CSV_DELIMITER = "~";
     public static final String INDEX_DIR = SearchManager.ROOT_DIR + "index";
-    public static final String INDEX_DIR_TEMP = SearchManager.ROOT_DIR
-            + "index_temp";
+    public static final String INDEX_DIR_TEMP = SearchManager.ROOT_DIR + "index_temp";
     public static final String GTPM_DIR = SearchManager.ROOT_DIR + "gtpm";
     public static final String GLOBAL_WFM_DIR = SearchManager.ROOT_DIR + "wfm";
-    public static final String FWD_INDEX_DIR = SearchManager.ROOT_DIR
-            + "fwdindex";
-    public static final String FWD_INDEX_DIR_TEMP = SearchManager.ROOT_DIR
-            + "fwdindex_temp";
-    public static final String GTPM_INDEX_DIR = SearchManager.ROOT_DIR
-            + "gtpmindex";
-    public static final String INDEX_DIR_NO_FILTER = SearchManager.ROOT_DIR
-            + "index_nofilter";
+    public static final String FWD_INDEX_DIR = SearchManager.ROOT_DIR + "fwdindex";
+    public static final String FWD_INDEX_DIR_TEMP = SearchManager.ROOT_DIR + "fwdindex_temp";
+    public static final String GTPM_INDEX_DIR = SearchManager.ROOT_DIR + "gtpmindex";
+    public static final String INDEX_DIR_NO_FILTER = SearchManager.ROOT_DIR + "index_nofilter";
     public static final String QUERY_FILE_NAME = "blocks.file";
-    public static final String OUTPUT_BACKUP_DIR = SearchManager.ROOT_DIR
-            + "backup_output";
-    public static final String SEARCH_METADATA = SearchManager.ROOT_DIR
-            + "search_metadata.txt";
-    public static final String RUN_METADATA = SearchManager.ROOT_DIR
-            + "run_metadata.scc";
+    public static final String OUTPUT_BACKUP_DIR = SearchManager.ROOT_DIR + "backup_output";
+    public static final String SEARCH_METADATA = SearchManager.ROOT_DIR + "search_metadata.txt";
+    public static final String RUN_METADATA = SearchManager.ROOT_DIR + "run_metadata.scc";
     public static List<String> METRICS_ORDER_IN_INPUT_FILE = Arrays.asList("num_tokens", "num_unique_tokens");
-            //, "num_separators","num_assignments","num_statements","num_expressions");
+    // , "num_separators","num_assignments","num_statements","num_expressions");
     private static final Logger logger = LogManager.getLogger(Util.class);
+
+    public static final int ROW_ID =0;
+    public static final int DIRECTORY =1;
+    public static final int FILE =2;
+    public static final int START_LINE =3;
+    public static final int END_LINE =4;
+    public static final int METHOD_NAME =5;
+    public static final int NUM_TOKENS =6;
+    public static final int NUM_UNIQUE_TOKENS =7;
+    public static final int COMP =0;
+    public static final int NOS =1;
+    public static final int HVOC =2;
+    public static final int HEFF =3;
+    public static final int CREF =4;
+    public static final int XMET =5;
+    public static final int LMET =6;
+    public static final int NOA =7;
+    public static final int HDIF =8;
+    public static final int VDEC =9;
+    public static final int EXCT =10;
+    public static final int EXCR =11;
+    public static final int CAST =12;
+    public static final int NAND =13;
+    public static final int VREF =14;
+    public static final int NOPR =15;
+    public static final int MDN =16;
+    public static final int NEXP =17;
+    public static final int LOOP =18;
 
     /**
      * generates a random integer
@@ -232,58 +252,52 @@ public class Util {
     }
 
     public static <K, V> Map<K, V> lruCache(final int maxSize) {
-        return Collections.synchronizedMap(
-                new LinkedHashMap<K, V>(maxSize * 4 / 3, 0.75f, true) {
-                    @Override
-                    protected boolean removeEldestEntry(
-                            Map.Entry<K, V> eldest) {
-                        return size() > maxSize;
-                    }
-                });
+        return Collections.synchronizedMap(new LinkedHashMap<K, V>(maxSize * 4 / 3, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+                return size() > maxSize;
+            }
+        });
     }
 
     // This cache is shared by all threads that call sortBag
-    public final static Map<String, Long> cache = lruCache(500000*2*12);
+    public final static Map<String, Long> cache = lruCache(500000 * 2 * 12);
 
     public static void sortBag(final Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);
-        logger.debug("bag to sort: "+bag);
+        logger.debug("bag to sort: " + bag);
         try {
             Collections.sort(bagAsList, new Comparator<TokenFrequency>() {
-                public int compare(TokenFrequency tfFirst,
-                        TokenFrequency tfSecond) {
+                public int compare(TokenFrequency tfFirst, TokenFrequency tfSecond) {
                     Long frequency1 = 0l;
                     Long frequency2 = 0l;
                     String k1 = tfFirst.getToken().getValue();
                     String k2 = tfSecond.getToken().getValue();
                     if (cache.containsKey(k1)) {
                         frequency1 = cache.get(k1);
-                        if(null==frequency1){
+                        if (null == frequency1) {
                             logger.warn("freq1 null from cache");
-                            frequency1 = SearchManager.gtpmSearcher
-                                    .getFrequency(k1);
+                            frequency1 = SearchManager.gtpmSearcher.getFrequency(k1);
                             cache.put(k1, frequency1);
                         }
                     } else {
-                        frequency1 = SearchManager.gtpmSearcher
-                                .getFrequency(k1);
+                        frequency1 = SearchManager.gtpmSearcher.getFrequency(k1);
                         cache.put(k1, frequency1);
                     }
                     if (cache.containsKey(k2)) {
                         frequency2 = cache.get(k2);
-                        if(null==frequency2){
+                        if (null == frequency2) {
                             logger.warn("freq2 null from cache");
-                            frequency2 = SearchManager.gtpmSearcher
-                                    .getFrequency(k2);
+                            frequency2 = SearchManager.gtpmSearcher.getFrequency(k2);
                             cache.put(k2, frequency2);
                         }
                     } else {
-                        frequency2 = SearchManager.gtpmSearcher
-                                .getFrequency(k2);
+                        frequency2 = SearchManager.gtpmSearcher.getFrequency(k2);
                         cache.put(k2, frequency2);
                     }
-                    if(null==frequency1 || null==frequency2){
-                        logger.warn("k1:"+k1+ " frequency1: "+ frequency1 + ", k2: "+k2 + " frequency2: "+ frequency2 + "bag: "+ bag) ;
+                    if (null == frequency1 || null == frequency2) {
+                        logger.warn("k1:" + k1 + " frequency1: " + frequency1 + ", k2: " + k2 + " frequency2: "
+                                + frequency2 + "bag: " + bag);
                     }
                     int result = frequency1.compareTo(frequency2);
                     if (result == 0) {
@@ -299,10 +313,10 @@ public class Util {
             }
         } catch (NullPointerException e) {
             logger.error("NPE caught while sorting, ", e);
-            SearchManager.FATAL_ERROR=true;
+            SearchManager.FATAL_ERROR = true;
         }
     }
-    
+
     public static List<Entry<String, TokenInfo>> sortList(final List<Entry<String, TokenInfo>> listOfTokens) {
         try {
             Collections.sort(listOfTokens, new Comparator<Entry<String, TokenInfo>>() {
@@ -314,32 +328,29 @@ public class Util {
                     String k2 = o2.getKey();
                     if (cache.containsKey(k1)) {
                         frequency1 = cache.get(k1);
-                        if(null==frequency1){
+                        if (null == frequency1) {
                             logger.warn("freq1 null from cache");
-                            frequency1 = SearchManager.gtpmSearcher
-                                    .getFrequency(k1);
+                            frequency1 = SearchManager.gtpmSearcher.getFrequency(k1);
                             cache.put(k1, frequency1);
                         }
                     } else {
-                        frequency1 = SearchManager.gtpmSearcher
-                                .getFrequency(k1);
+                        frequency1 = SearchManager.gtpmSearcher.getFrequency(k1);
                         cache.put(k1, frequency1);
                     }
                     if (cache.containsKey(k2)) {
                         frequency2 = cache.get(k2);
-                        if(null==frequency2){
+                        if (null == frequency2) {
                             logger.warn("freq2 null from cache");
-                            frequency2 = SearchManager.gtpmSearcher
-                                    .getFrequency(k2);
+                            frequency2 = SearchManager.gtpmSearcher.getFrequency(k2);
                             cache.put(k2, frequency2);
                         }
                     } else {
-                        frequency2 = SearchManager.gtpmSearcher
-                                .getFrequency(k2);
+                        frequency2 = SearchManager.gtpmSearcher.getFrequency(k2);
                         cache.put(k2, frequency2);
                     }
-                    if(null==frequency1 || null==frequency2){
-                        logger.warn("k1:"+k1+ " frequency1: "+ frequency1 + ", k2: "+k2 + " frequency2: "+ frequency2) ;
+                    if (null == frequency1 || null == frequency2) {
+                        logger.warn("k1:" + k1 + " frequency1: " + frequency1 + ", k2: " + k2 + " frequency2: "
+                                + frequency2);
                     }
                     int result = frequency1.compareTo(frequency2);
                     if (result == 0) {
@@ -351,7 +362,7 @@ public class Util {
             });
         } catch (NullPointerException e) {
             logger.error("NPE caught while sorting, ", e);
-            SearchManager.FATAL_ERROR=true;
+            SearchManager.FATAL_ERROR = true;
         }
         return listOfTokens;
     }
@@ -423,8 +434,7 @@ public class Util {
 
     }
 
-    public static void populateProcessedWFMSet(String filename,
-            Set<String> processedWFMset) {
+    public static void populateProcessedWFMSet(String filename, Set<String> processedWFMset) {
         BufferedReader br = null;
         File f = new File(filename);
         logger.debug("file is " + f);
@@ -448,18 +458,15 @@ public class Util {
         }
     }
 
-    public static BufferedReader getReader(File queryFile)
-            throws FileNotFoundException {
+    public static BufferedReader getReader(File queryFile) throws FileNotFoundException {
         BufferedReader br = null;
         br = new BufferedReader(new FileReader(queryFile));
         return br;
     }
 
-    public static Writer openFile(File output, boolean append)
-            throws IOException {
+    public static Writer openFile(File output, boolean append) throws IOException {
         // TODO Auto-generated method stub
-        Writer pWriter = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(output, append), "UTF-8"));
+        Writer pWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output, append), "UTF-8"));
         return pWriter;
     }
 

@@ -34,13 +34,14 @@ public class JavaMetricParser {
     public JavaMetricParser(String inputFilePath) {
         this.outputFileName = "mlcc_input.file";
         this.errorFileName = "error_metrics.file";
-        this.outputDirPath = this.getBaseName(inputFilePath)+"_metric_output";
+        this.outputDirPath = this.getBaseName(inputFilePath) + "_metric_output";
         File outDir = new File(this.outputDirPath);
         if (!outDir.exists()) {
             outDir.mkdirs();
         }
     }
-    private String getBaseName(String path){
+
+    private String getBaseName(String path) {
         File inputFile = new File(path);
         String fileName = inputFile.getName();
         int pos = fileName.lastIndexOf(".");
@@ -57,8 +58,10 @@ public class JavaMetricParser {
             BufferedReader br;
             try {
                 if (null == javaMetricParser.pw) {
-                    javaMetricParser.pw = new PrintWriter(javaMetricParser.outputDirPath + File.separator + javaMetricParser.outputFileName);
-                    javaMetricParser.errorPw = new PrintWriter(javaMetricParser.outputDirPath + File.separator + javaMetricParser.errorFileName);
+                    javaMetricParser.pw = new PrintWriter(
+                            javaMetricParser.outputDirPath + File.separator + javaMetricParser.outputFileName);
+                    javaMetricParser.errorPw = new PrintWriter(
+                            javaMetricParser.outputDirPath + File.separator + javaMetricParser.errorFileName);
                 }
                 br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
                 String line;
@@ -91,13 +94,13 @@ public class JavaMetricParser {
                 this.metricalize(f);
             } catch (FileNotFoundException e) {
                 System.out.println("WARN: File not found, skipping file: " + f.getAbsolutePath());
-                this.errorPw.write(f.getAbsolutePath() +System.lineSeparator());
+                this.errorPw.write(f.getAbsolutePath() + System.lineSeparator());
             } catch (ParseProblemException e) {
-                System.out.println("WARN: parse problem exception, skippig file: " + f.getAbsolutePath() );
-                this.errorPw.write(f.getAbsolutePath()+ System.lineSeparator());
+                System.out.println("WARN: parse problem exception, skippig file: " + f.getAbsolutePath());
+                this.errorPw.write(f.getAbsolutePath() + System.lineSeparator());
                 e.printStackTrace();
             } catch (Exception e) {
-                System.out.println("WARN: unknown error, skippig file: " + f.getAbsolutePath() );
+                System.out.println("WARN: unknown error, skippig file: " + f.getAbsolutePath());
                 e.printStackTrace();
             }
         }
@@ -151,14 +154,15 @@ public class JavaMetricParser {
                     collector.innerMethodsMap.remove(collector._methodName);
                     MapUtils.subtractMaps(collector.innerMethodParametersMap, collector.parameterMap);
                     collector.populateVariableRefList();
-                    this.writeToCsv(collector);
+                    collector.populateMetricHash();
+                    this.generateInputForOreo(collector);
                     // System.out.println(collector._methodName + ", MDN: " +
                     // collector.MDN + ", TDN: " + collector.TDN);
                     // System.out.println(collector);
                 }
             }
 
-            public void writeToCsv(MetricCollector collector) {
+            public void generateInputForOreo(MetricCollector collector) {
                 try {
                     String internalSeparator = ",";
                     String externalSeparator = "@#@";
@@ -169,7 +173,8 @@ public class JavaMetricParser {
                             .append(collector._file.getName()).append(internalSeparator).append(collector.START_LINE)
                             .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
                             .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
-                            .append(internalSeparator).append(collector.tokensMap.size());
+                            .append(internalSeparator).append(collector.tokensMap.size()).append(internalSeparator)
+                            .append(collector.metricHash);
                     metricString.append(collector.COMP).append(internalSeparator).append(collector.NOS)
                             .append(internalSeparator).append(collector.HVOC).append(internalSeparator)
                             .append(collector.HEFF).append(internalSeparator).append(collector.CREF)
@@ -203,6 +208,18 @@ public class JavaMetricParser {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+
+            public void generateInputForScc(MetricCollector collector) {
+                String internalSeparator = ",";
+                String externalSeparator = "@#@";
+                StringBuilder metadataString = new StringBuilder("");
+                StringBuilder tokenString = new StringBuilder("");
+                metadataString.append(collector._file.getParentFile().getName()).append(internalSeparator)
+                        .append(collector._file.getName()).append(internalSeparator).append(collector.START_LINE)
+                        .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
+                        .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
+                        .append(internalSeparator).append(collector.tokensMap.size());
             }
 
         };
