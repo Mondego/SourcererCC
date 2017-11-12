@@ -102,6 +102,7 @@ public class MetricCollector {
     public void addToken(String token) {
         token = this.strip(token);
         token = this.handleNoiseCharacters(token);
+        token = this.removeNewLines(token);
         token = token.trim();
         if (token.length() > 0) {
             
@@ -123,6 +124,11 @@ public class MetricCollector {
         String regexPattern = ";|@@::@@|@#@|@|#";
         String x = input.replaceAll(regexPattern, "");
         return x;
+    }
+    private static String removeNewLines(String input) {
+        String regexPatter = "\\n|\\r|\\r\\n";
+        input = input.replaceAll(regexPatter, " ");
+        return input;
     }
 
     public void computeHalsteadMetrics() {
