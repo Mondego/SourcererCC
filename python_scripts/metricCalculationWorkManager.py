@@ -45,6 +45,7 @@ def run_command(cmd, outFile, errFile):
 num_process = int(input("Enter the number of processes: "))
 
 main_dir="/home/sourcerer/oreo_related/train_dataset_sourcefiles/"
+# main_dir="D:\\PhD\\Clone\\MlCC-New\\SourcererCC\\train_dataset"
 subdirs = [f.path for f in os.scandir(main_dir) if f.is_dir() ]
 num_dir_per_process=len(subdirs)//num_process
 num_last_file=num_dir_per_process+(len(subdirs)%num_process)
@@ -54,7 +55,7 @@ if os.path.exists("output"):
 os.makedirs("output")
 
 for i in range(num_process):
-    file = open("output/file" + str(i + 1) + ".txt", "w")
+    file = open("output/" + str(i + 1) + ".txt", "w")
     numWritten=0
     for j in range((i*num_dir_per_process),len(subdirs)):
         file.write(subdirs[j]+"\n")
