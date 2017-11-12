@@ -101,9 +101,9 @@ public class MetricCollector {
 
     public void addToken(String token) {
         token = this.strip(token);
-        token = this.handleNoiseCharacters(token);
-        token = this.removeNewLines(token);
-        token = token.trim();
+        //token = this.handleNoiseCharacters(token);
+        //token = this.removeNewLines(token);
+        //token = token.trim();
         if (token.length() > 0) {
             
             MapUtils.addOrUpdateMap(this.tokensMap, token);

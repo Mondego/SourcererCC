@@ -241,11 +241,12 @@ public class JavaMetricParser {
                 metadataString.append(collector.fileId).append(internalSeparator).append(collector.methodId)
                         .append(internalSeparator).append(collector.NTOKENS).append(internalSeparator)
                         .append(collector.tokensMap.size());
+                String sep="";
                 for (Entry<String, Integer> entry : collector.tokensMap.entrySet()) {
-                    String s = entry.getKey() + "@@::@@" + entry.getValue() + ",";
+                    String s = sep+ entry.getKey() + "@@::@@" + entry.getValue();
                     tokenString.append(s);
+                    sep=",";
                 }
-                tokenString.setLength(tokenString.length() - 1);
                 StringBuilder line = new StringBuilder("");
                 line.append(metadataString).append(externalSeparator).append(tokenString)
                         .append(System.lineSeparator());
