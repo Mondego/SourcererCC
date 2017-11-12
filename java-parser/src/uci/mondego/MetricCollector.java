@@ -73,6 +73,8 @@ public class MetricCollector {
     public int XMET; // number of external methods called by the method
     public String metricHash;
     public String tokenHash;
+    public long fileId;
+    public long methodId;
 
     public void addFieldAccessActionTokens(String fieldAccessString) {
         String[] tokens = fieldAccessString.split("\\.");

@@ -25,16 +25,25 @@ import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.visitor.TreeVisitor;
 
 public class JavaMetricParser {
-    public PrintWriter pw = null;
+    public PrintWriter metricsFileWriter = null;
+    public PrintWriter bookkeepingWriter = null;
+    public PrintWriter tokensFileWriter = null;
     public PrintWriter errorPw = null;
     public String outputDirPath;
-    public String outputFileName;
+    public String metricsFileName;
+    public String tokensFileName;
+    public String bookkeepingFileName;
     public String errorFileName;
+    public static String prefix;
+    public static long FILE_COUNTER;
+    public static long METHOD_COUNTER;
 
     public JavaMetricParser(String inputFilePath) {
-        this.outputFileName = "mlcc_input.file";
+        this.metricsFileName = "mlcc_input.file";
+        this.bookkeepingFileName = "bookkeeping.file";
         this.errorFileName = "error_metrics.file";
-        this.outputDirPath = this.getBaseName(inputFilePath) + "_metric_output";
+        JavaMetricParser.prefix = this.getBaseName(inputFilePath);
+        this.outputDirPath = JavaMetricParser.prefix + "_metric_output";
         File outDir = new File(this.outputDirPath);
         if (!outDir.exists()) {
             outDir.mkdirs();
@@ -57,11 +66,15 @@ public class JavaMetricParser {
             JavaMetricParser javaMetricParser = new JavaMetricParser(filename);
             BufferedReader br;
             try {
-                if (null == javaMetricParser.pw) {
-                    javaMetricParser.pw = new PrintWriter(
-                            javaMetricParser.outputDirPath + File.separator + javaMetricParser.outputFileName);
+                if (null == javaMetricParser.metricsFileWriter) {
+                    javaMetricParser.metricsFileWriter = new PrintWriter(
+                            javaMetricParser.outputDirPath + File.separator + javaMetricParser.metricsFileName);
                     javaMetricParser.errorPw = new PrintWriter(
                             javaMetricParser.outputDirPath + File.separator + javaMetricParser.errorFileName);
+                    javaMetricParser.bookkeepingWriter = new PrintWriter(
+                            javaMetricParser.outputDirPath + File.separator + javaMetricParser.bookkeepingFileName);
+                    javaMetricParser.tokensFileWriter = new PrintWriter(
+                            javaMetricParser.outputDirPath + File.separator + javaMetricParser.tokensFileName);
                 }
                 br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
                 String line;
@@ -70,8 +83,10 @@ public class JavaMetricParser {
                 }
 
                 try {
-                    javaMetricParser.pw.close();
+                    javaMetricParser.metricsFileWriter.close();
                     javaMetricParser.errorPw.close();
+                    javaMetricParser.tokensFileWriter.close();
+                    javaMetricParser.bookkeepingWriter.close();
                 } catch (Exception e) {
                     System.out.println("Unexpected error while closing the output/error file");
                 }
@@ -108,13 +123,14 @@ public class JavaMetricParser {
 
     public void metricalize(final File file) throws FileNotFoundException {
         System.out.println("Metricalizing " + file.getName());
-
+        JavaMetricParser.FILE_COUNTER++;
         CompilationUnit cu = JavaParser.parse(file);
         TreeVisitor astVisitor = new TreeVisitor() {
 
             @Override
             public void process(Node node) {
                 if (node instanceof MethodDeclaration || node instanceof ConstructorDeclaration) {
+                    JavaMetricParser.METHOD_COUNTER++;
                     // JavaParser.parse(((MethodDeclaration)
                     // node).getBody().get().toString()).get;
                     // System.out.println(((MethodDeclaration)
@@ -128,7 +144,6 @@ public class JavaMetricParser {
                         MapUtils.addOrUpdateMap(collector.removeFromOperandsMap, c.toString());
                         collector.MOD++;
                     }
-
                     NodeList<ReferenceType> exceptionsThrown = ((MethodDeclaration) node).getThrownExceptions();
                     if (exceptionsThrown.size() > 0) {
                         collector.addToken("throws");
@@ -155,7 +170,12 @@ public class JavaMetricParser {
                     MapUtils.subtractMaps(collector.innerMethodParametersMap, collector.parameterMap);
                     collector.populateVariableRefList();
                     collector.populateMetricHash();
+                    String fileId = JavaMetricParser.prefix + JavaMetricParser.FILE_COUNTER;
+                    String methodId = fileId + "00" + JavaMetricParser.METHOD_COUNTER;
+                    collector.fileId = Long.parseLong(fileId);
+                    collector.methodId = Long.parseLong(methodId);
                     this.generateInputForOreo(collector);
+                    this.generateInputForScc(collector);
                     // System.out.println(collector._methodName + ", MDN: " +
                     // collector.MDN + ", TDN: " + collector.TDN);
                     // System.out.println(collector);
@@ -174,7 +194,8 @@ public class JavaMetricParser {
                             .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
                             .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
                             .append(internalSeparator).append(collector.tokensMap.size()).append(internalSeparator)
-                            .append(collector.metricHash);
+                            .append(collector.metricHash).append(internalSeparator).append(collector.fileId)
+                            .append(internalSeparator).append(collector.methodId);
                     metricString.append(collector.COMP).append(internalSeparator).append(collector.NOS)
                             .append(internalSeparator).append(collector.HVOC).append(internalSeparator)
                             .append(collector.HEFF).append(internalSeparator).append(collector.CREF)
@@ -204,7 +225,7 @@ public class JavaMetricParser {
                     StringBuilder line = new StringBuilder("");
                     line.append(metadataString).append(externalSeparator).append(metricString).append(externalSeparator)
                             .append(actionTokenString).append(System.lineSeparator());
-                    pw.append(line.toString());
+                    metricsFileWriter.append(line.toString());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -215,11 +236,23 @@ public class JavaMetricParser {
                 String externalSeparator = "@#@";
                 StringBuilder metadataString = new StringBuilder("");
                 StringBuilder tokenString = new StringBuilder("");
-                metadataString.append(collector._file.getParentFile().getName()).append(internalSeparator)
-                        .append(collector._file.getName()).append(internalSeparator).append(collector.START_LINE)
-                        .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
-                        .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
-                        .append(internalSeparator).append(collector.tokensMap.size());
+
+                metadataString.append(collector.fileId).append(internalSeparator).append(collector.methodId)
+                        .append(internalSeparator).append(collector.NTOKENS).append(internalSeparator)
+                        .append(collector.tokensMap.size());
+                for (Entry<String, Integer> entry : collector.tokensMap.entrySet()) {
+                    String s = entry.getKey() + "@@::@@" + entry.getValue() + ",";
+                    tokenString.append(s);
+                }
+                tokenString.setLength(tokenString.length() - 1);
+                StringBuilder line = new StringBuilder("");
+                line.append(metadataString).append(externalSeparator).append(tokenString)
+                        .append(System.lineSeparator());
+
+                bookkeepingWriter
+                        .println(collector.fileId + ":" + collector._file.getAbsolutePath() + ";" + collector.methodId
+                                + ":" + collector._methodName + ";" + collector.START_LINE + ":" + collector.END_LINE);
+                tokensFileWriter.append(line);
             }
 
         };
