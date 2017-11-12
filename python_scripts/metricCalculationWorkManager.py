@@ -14,37 +14,37 @@ def full_script_path(string, param=""):
 
 def run_command(cmd, outFile, errFile):
     print("running new command {}".format(" ".join(cmd)))
-    fo = open(outFile, "w")
-    fe = open(errFile, "w")
+    #fo = open(outFile, "w")
+    #fe = open(errFile, "w")
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          universal_newlines=True
                          )
-    while (True):
-        returncode = p.poll()  # returns None while subprocess is running
-        outputLine = p.stdout.readline()
-        errLine = p.stderr.readline()
-        if outputLine:
-            fo.write(outputLine)
-        if errLine:
-            fe.write(errLine)
-        if returncode is not None:
-            print("returncode is {}. ".format(returncode))
-            break
+   # while (True):
+   #     returncode = p.poll()  # returns None while subprocess is running
+   #     outputLine = p.stdout.readline()
+   #     errLine = p.stderr.readline()
+   #     if outputLine:
+   #         fo.write(outputLine)
+   #     if errLine:
+   #         fe.write(errLine)
+   #     if returncode is not None:
+   #         print("returncode is {}. ".format(returncode))
+   #         break
     # read the remaining lines in the buffers
-    outputLines = p.stdout.readlines()
-    for outputLine in outputLines:
-        fo.write(outputLine)
-    errLines = p.stderr.readlines()
-    for errLine in errLines:
-        fo.write(errLine)
-    fo.close()
-    fe.close()
-    return returncode
+    #outputLines = p.stdout.readlines()
+    #for outputLine in outputLines:
+    #    fo.write(outputLine)
+    #errLines = p.stderr.readlines()
+    #for errLine in errLines:
+    #    fo.write(errLine)
+    #fo.close()
+    #fe.close()
+
 num_process = int(input("Enter the number of processes: "))
 
-main_dir="/home/saini/Documents/code/repo/SourcererCC/java-parser/testRun"
+main_dir="/home/sourcerer/oreo_related/train_dataset_sourcefiles/"
 subdirs = [f.path for f in os.scandir(main_dir) if f.is_dir() ]
 num_dir_per_process=len(subdirs)//num_process
 num_last_file=num_dir_per_process+(len(subdirs)%num_process)
@@ -66,5 +66,5 @@ for file in os.listdir("output/"):
     command = " java -jar ../java-parser/dist/metricCalculator.jar {filename}".format(
         filename=full_file_path("output/"+file))
     command_params = command.split()
-    returncode = run_command(
+    run_command(
         command_params, full_file_path("metric.out"), full_file_path("metric.err"))
