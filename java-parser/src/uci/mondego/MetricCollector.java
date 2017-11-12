@@ -7,6 +7,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class MetricCollector {
     public File _file; // file object
     public String _methodName; // method name
@@ -101,9 +103,9 @@ public class MetricCollector {
 
     public void addToken(String token) {
         token = this.strip(token);
-        //token = this.handleNoiseCharacters(token);
-        //token = this.removeNewLines(token);
-        //token = token.trim();
+        token = this.handleNoiseCharacters(token);
+        token = this.removeNewLines(token);
+        token = token.trim();
         if (token.length() > 0) {
             
             MapUtils.addOrUpdateMap(this.tokensMap, token);
@@ -237,8 +239,17 @@ public class MetricCollector {
                 .append(this.EXCR).append(this.CAST).append(this.NAND).append(this.VREF).append(this.NOPR)
                 .append(this.MDN).append(this.NEXP).append(this.LOOP);
 
-        messageDigest.update(sb.toString().getBytes(Charset.forName("UTF8")));
-        this.metricHash = new String(messageDigest.digest());
+        messageDigest.update(sb.toString().getBytes(Charset.forName("UTF-8")));
+        this.metricHash = this.convertByteArrayToHexString(messageDigest.digest());
+    }
+    
+    private String convertByteArrayToHexString(byte[] arrayBytes) {
+        StringBuffer stringBuffer = new StringBuffer();
+        for (int i = 0; i < arrayBytes.length; i++) {
+            stringBuffer.append(Integer.toString((arrayBytes[i] & 0xff) + 0x100, 16)
+                    .substring(1));
+        }
+        return stringBuffer.toString();
     }
 
     public void populateTokenHash() {
