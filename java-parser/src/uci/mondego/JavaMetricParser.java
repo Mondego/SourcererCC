@@ -42,6 +42,7 @@ public class JavaMetricParser {
         this.metricsFileName = "mlcc_input.file";
         this.bookkeepingFileName = "bookkeeping.file";
         this.errorFileName = "error_metrics.file";
+        this.tokensFileName= "scc_input.file";
         JavaMetricParser.prefix = this.getBaseName(inputFilePath);
         this.outputDirPath = JavaMetricParser.prefix + "_metric_output";
         File outDir = new File(this.outputDirPath);
