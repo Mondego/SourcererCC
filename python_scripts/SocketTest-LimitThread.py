@@ -6,8 +6,12 @@ from sklearn.metrics import confusion_matrix
 import pickle
 import socket
 import threading
+import concurrent.futures
+
 
 start_time = time.time()
+
+pool = concurrent.futures.ThreadPoolExecutor(max_workers=3)
 
 print("imports complete")
 modelfilename_type31 = '/scratch/mondego/local/model_type/randfor_type31_20es20ds10l5.sav'
@@ -29,80 +33,31 @@ file_type2 = open('clonepairs_type2.txt', 'w')
 
 num_candidates_31=0
 num_candidates_32=0
-class predThread(threading.Thread):
-    def __init__(self):
-        super(predThread, self).__init__()
 
-    def __init__(self,threadId,array,type):
-        super(predThread, self).__init__()
-        self.threadId=threadId
-        self.array=array
-        self.type=type
-
-    def run(self):
-        print('thread' + str(self.threadId)+' started')
-        self.predict(self.type)
-        print('thread ' + str(self.threadId) + ' ended')
-
-    def predict(self,type):
-        start_process_pred = time.time()
-        file_clonepair = open('clonepairs' + str(self.threadId) + '_type_'+type+'.txt', 'w')
-        #file_recall = open('recall' + str(self.threadId) + '_type_'+type+'.txt', 'w')
-        #file_falsepos=open('falsepos' + str(self.threadId) + '_type_'+type+'.txt', 'w')
-        #file_falseneg = open('falseneg' + str(self.threadId) + '_type_'+type+'.txt', 'w')
-        clone_pairs = ''
-        falsepos=''
-        falseneg=''
-        array_pred = np.array(self.array)
-        # label = bool(int(array[2]))
-        X_test = array_pred[:, [i for i in range(0, 30+27) if i not in [0, 1, 2, 4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
-        X_test = X_test.astype(float)
-        Y_test = array_pred[:, 2].astype(bool)
-        # methodpair = array[[i for i in range(0, 2)]]
-        # X_test = np.reshape(X_test, (1, len(X_test)))
-        print('prediction is gonna start')
-        start_prediction = time.time()
-        if type=='31':
-            predictions = loaded_model_type31.predict(X_test)
-        elif type=='32':
-            predictions = loaded_model_type32.predict(X_test)
-        end_prediction = time.time()
-        print("prediction complete! time taken: " + str(end_prediction - start_prediction))
-        #print("candidates processed: "+str(num_candidates))
-        #file_recall.write(classification_report(Y_test, predictions))
-        #file_recall.close()
-        for i in range(predictions.shape[0]):
-            if predictions[i]:
-                clone_pairs += (array_pred[i][0] + ',' + array_pred[i][1]+'\n')
-                #if not Y_test[i]:
-                #    falsepos+=(array_pred[i][0] + ',' + array_pred[i][1])
-                #    for j in range(0, 30+27):
-                #        if j not in [0, 1, 2,4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]:
-                #            falsepos+=','+array_pred[i][j]
-                #    falsepos=falsepos[:-1]+'\n'
-            #if not predictions[i]:
-                #if Y_test[i]:
-                #    falseneg+=(array_pred[i][0] + ',' + array_pred[i][1])
-                #    for j in range(0, 30+27):
-                #        if j not in [0, 1, 2,4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]:
-                #            falseneg+=','+array_pred[i][j]
-                #    falseneg=falseneg[:-1]+'\n'
-        file_clonepair.write(clone_pairs)
-        file_clonepair.close()
-        #file_falsepos.write(falsepos)
-        #file_falsepos.close()
-        #file_falseneg.write(falseneg)
-        #file_falseneg.close()
-        # if label:
-        #     num_clones = num_clones + 1
-        #     if label == prediction:
-        #         tp = tp + 1
-        #     elif label != prediction:
-        #         fn = fn + 1
-        end_process_pred = time.time()
-        print("pred and writing to file: " + str(end_process_pred - start_process_pred))
-
-
+def predict(threadId,array,type):
+    start_process_pred = time.time()
+    file_clonepair = open('clonepairs' + str(threadId) + '_type_'+type+'.txt', 'w')
+    clone_pairs = ''
+    array_pred = np.array(array)
+    # label = bool(int(array[2]))
+    X_test = array_pred[:, [i for i in range(0, 30+27) if i not in [0, 1, 2, 4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
+    X_test = X_test.astype(float)
+    Y_test = array_pred[:, 2].astype(bool)
+    print('prediction is gonna start')
+    start_prediction = time.time()
+    if type=='31':
+        predictions = loaded_model_type31.predict(X_test)
+    elif type=='32':
+        predictions = loaded_model_type32.predict(X_test)
+    end_prediction = time.time()
+    print("prediction complete! time taken: " + str(end_prediction - start_prediction))
+    for i in range(predictions.shape[0]):
+        if predictions[i]:
+            clone_pairs += (array_pred[i][0] + ',' + array_pred[i][1]+'\n')
+    file_clonepair.write(clone_pairs)
+    file_clonepair.close()
+    end_process_pred = time.time()
+    print("pred and writing to file: " + str(end_process_pred - start_process_pred))
 clones_pred=''
 thread_counter=0
 array_31=[]
@@ -119,10 +74,9 @@ def process(data):
         print("last prediction started")
         thread_counter += 1
         # _thread.start_new_thread(predict(),array,thread_counter)
-        thread_31 = predThread(thread_counter, array_31,'31')
-        thread_32 = predThread(thread_counter, array_32,'32')
-        thread_31.start()
-        thread_32.start()
+        pool.submit(predict, thread_counter, array_31, '31')
+        pool.submit(predict, thread_counter, array_32, '32')
+
         print("Reading Finished. Wait for last thread to finish...")
         return 0
     data_splitted=data.split('#$#')
@@ -141,8 +95,9 @@ def process(data):
             print("prediction started")
             thread_counter+=1
             #_thread.start_new_thread(predict(),array_31,thread_counter)
-            thread=predThread(thread_counter,array_31,'31')
-            thread.start()
+            pool.submit(predict, thread_counter,array_31,'31')
+            #thread=predThread(thread_counter,array_31,'31')
+            #thread.start()
             array_31=[]
     elif data_splitted[0]=='3.2':
         array_32.append(clone_pairs)
@@ -151,8 +106,9 @@ def process(data):
             print("prediction started")
             thread_counter+=1
             #_thread.start_new_thread(predict(),array_32,thread_counter)
-            thread=predThread(thread_counter,array_32,'32')
-            thread.start()
+            pool.submit(predict, thread_counter, array_32, '32')
+            #thread=predThread(thread_counter,array_32,'32')
+            #thread.start()
             array_32=[]
     #end_process = time.time()
     #print("process time: " + str(end_process - start_process))
@@ -190,6 +146,9 @@ while True:
 end_time = time.time()
 file_type1.close()
 file_type2.close()
+pool.shutdown(wait=True)
 print("whole process took: "+str(end_time-start_time))
 print("finished at: "+str(end_time))
 print("total pairs analyzed: "+str(linecounter))
+
+

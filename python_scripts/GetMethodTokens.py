@@ -3,7 +3,7 @@ file_output=open('output/Method_Token_Map.txt', 'w')
 file_notokens=open('output/MethodNoToken.txt', 'w')
 dictmethods=dict()
 notokens=0
-with open('/scratch/mondego/local/farima/prep_code/output/IjaMapping_benchmark.txt','r') as file_input:
+with open('/scratch/mondego/local/farima/artifacts/scale_exp/output/IjaMapping_scale.txt','r') as file_input:
     print('ijamapping opened')
     for line in file_input:
         line=line.replace('\n','').replace('\r','')
@@ -15,9 +15,9 @@ with open('/scratch/mondego/local/farima/prep_code/output/IjaMapping_benchmark.t
         startline = int(file_info[2])
         endline = int(file_info[3])
         i=0
-        if os.path.isfile('/scratch/mondego/local/farima/benchmark_related/dataset_pedro/'+dir_name+'/'+file_name):
-            print('/scratch/mondego/local/farima/benchmark_related/dataset_pedro/'+dir_name+'/'+file_name)
-            with open('/scratch/mondego/local/farima/benchmark_related/dataset_pedro/'+dir_name+'/'+file_name) as file:
+        if os.path.isfile('/scratch/mondego/local/farima/scale_experiment/dataset/'+dir_name+'/'+file_name):
+            print('/scratch/mondego/local/farima/scale_experiment/dataset/'+dir_name+'/'+file_name)
+            with open('/scratch/mondego/local/farima/scale_experiment/dataset/'+dir_name+'/'+file_name) as file:
                 tokenseen=False
                 tokens=dict()
                 for line_code in file:
