@@ -11,8 +11,10 @@ for line in lines:
             if i==int(line_splitted[2]):
                 print(line_code)
                 print(i)
-                file_output.write('-----------------------------------------------------------'+'\n')
-                file_output.write(line_splitted[0]+','+line_splitted[1]+':'+'\n')
+                file_output.write('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'+'\n')
+                file_output.write(line_splitted[0]+','+line_splitted[1]+'\n')
+                file_output.write(line_splitted[4] + ',' + line_splitted[5] + '\n')
+                file_output.write('----------------------------------------' + '\n')
                 file_output.write(line_code)
             elif i>int(line_splitted[2]) and i<int(line_splitted[3]):
                 file_output.write(line_code)
@@ -20,7 +22,7 @@ for line in lines:
             elif i==int(line_splitted[3]):
                 print(line_code)
                 file_output.write(line_code)
-                file_output.write('******************************'+'\n')
+                file_output.write('----------------------------------------'+'\n')
             elif i > int(line_splitted[3]):
                 break
     file1.close()
@@ -30,12 +32,13 @@ for line in lines:
         for line_code in file2:
             i+=1
             if i == int(line_splitted[6]):
-                file_output.write(line_splitted[4] + ',' + line_splitted[5] + ':' + '\n')
+
                 file_output.write(line_code)
             elif i > int(line_splitted[6]) and i < int(line_splitted[7]):
                 file_output.write(line_code)
             elif i == int(line_splitted[7]):
                 file_output.write(line_code)
+                file_output.write('----------------------------------------' + '\n')
             elif i > int(line_splitted[7]):
                 break
     file2.close()
