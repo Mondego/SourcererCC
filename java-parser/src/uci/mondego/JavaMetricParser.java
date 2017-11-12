@@ -255,7 +255,7 @@ public class JavaMetricParser {
                                 + ":" + collector._methodName + ";" + collector.START_LINE + ":" + collector.END_LINE);
                 tokensFileWriter.append(line);
             }
-
+            
         };
         astVisitor.visitPreOrder(cu);
     }

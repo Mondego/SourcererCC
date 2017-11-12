@@ -100,14 +100,29 @@ public class MetricCollector {
     }
 
     public void addToken(String token) {
-        MapUtils.addOrUpdateMap(this.tokensMap, token);
-        if (KeywordsJava.operators.contains(token)) {
-            MapUtils.addOrUpdateMap(this.operatorsMap, token);
-            this.NOPR++;
-        } else {
-            MapUtils.addOrUpdateMap(this.operandsMap, token);
+        token = this.strip(token);
+        token = this.handleNoiseCharacters(token);
+        token = token.trim();
+        if (token.length() > 0) {
+            
+            MapUtils.addOrUpdateMap(this.tokensMap, token);
+            if (KeywordsJava.operators.contains(token)) {
+                MapUtils.addOrUpdateMap(this.operatorsMap, token);
+                this.NOPR++;
+            } else {
+                MapUtils.addOrUpdateMap(this.operandsMap, token);
+            }
+            this.NTOKENS++;
         }
-        this.NTOKENS++;
+    }
+    
+    private String strip(String str) {
+        return str.replaceAll("(\'|\"|\\\\|:)", "");
+    }
+    private String handleNoiseCharacters(String input) {
+        String regexPattern = ";|@@::@@|@#@|@|#";
+        String x = input.replaceAll(regexPattern, "");
+        return x;
     }
 
     public void computeHalsteadMetrics() {
@@ -219,9 +234,9 @@ public class MetricCollector {
         messageDigest.update(sb.toString().getBytes(Charset.forName("UTF8")));
         this.metricHash = new String(messageDigest.digest());
     }
-    
-    public void populateTokenHash(){
-        
+
+    public void populateTokenHash() {
+
     }
 
 }
