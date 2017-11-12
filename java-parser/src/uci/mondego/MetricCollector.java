@@ -125,7 +125,7 @@ public class MetricCollector {
         String x = input.replaceAll(regexPattern, "");
         return x;
     }
-    private static String removeNewLines(String input) {
+    private String removeNewLines(String input) {
         String regexPatter = "\\n|\\r|\\r\\n";
         input = input.replaceAll(regexPatter, " ");
         return input;
