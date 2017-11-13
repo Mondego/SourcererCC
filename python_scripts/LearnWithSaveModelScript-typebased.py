@@ -12,13 +12,16 @@ print("imports complete")
 #path_train="./train/train.txt"
 path_train="/scratch/mondego/local/farima/artifacts/train_exp/inputFiles/train_type3_1_fe.txt"
 #path_test="./test/train_sample_100k.txt"
-colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", 
-"HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
-"COMP_", "NOCL_", "NOS_", "HLTH_", "HVOC_", "HEFF_", "HBUG_", "CREF_", "XMET_", "LMET_", "NLOC_", "NOC_", "NOA_", "MOD_", "HDIF_", "VDEC_", "EXCT_", 
-"EXCR_", "CAST_", "TDN_", "HVOL_", "NAND_", "VREF_", "NOPR_", "MDN_", "NEXP_", "LOOP_"]
+# colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD",
+# "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
+# "COMP_", "NOCL_", "NOS_", "HLTH_", "HVOC_", "HEFF_", "HBUG_", "CREF_", "XMET_", "LMET_", "NLOC_", "NOC_", "NOA_", "MOD_", "HDIF_", "VDEC_", "EXCT_",
+# "EXCR_", "CAST_", "TDN_", "HVOL_", "NAND_", "VREF_", "NOPR_", "MDN_", "NEXP_", "LOOP_"]
 
 #colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", 
 #"HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]
+
+colNames=["block1","block2", "isClone", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET",
+          "NOA", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]#block1 (or 2) is directory,file,startline,endline
 
 clones_train = pd.read_csv(path_train, names=colNames, delimiter='~~', engine='python')
 print("train set read complete")
@@ -29,8 +32,9 @@ clones_train = clones_train.sample(frac=1).reset_index(drop=True) #shuffle data
 
 array = clones_train.values
 #X_train = array[:,[i for i in range(3,30+27) if i not in [4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
-X_train = array[:,[i for i in range(3,30) if i not in [4,13,14,16]]]
-Y_train = array[:,2]
+# X_train = array[:,[i for i in range(3,30) if i not in [4,13,14,16]]]
+X_train = array[:,[i for i in range(3,21)]]
+Y_train = array[:,3]
 
 #array = clones_test.values
 #X_test = array[:,3:30]
@@ -69,18 +73,19 @@ for i in range(predictions.shape[0]):
     if predictions[i]:
         clone_pairs += (str(array[i][0]) + ',' + str(array[i][1]) + '\n')
         if not Y_train[i]:
-            falsepos += (str(array[i][0]) + ',' + str(array[i][1]))
-            for j in range(0, 30): # + 27):
-                if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
-                    falsepos += ',' + str(array[i][j])
-            falsepos = falsepos[:-1] + '\n'
+            falsepos += (str(array[i])+ '\n')#append each candidate pair along with its features
+            # for j in range(0, 30): # + 27):
+            #     if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
+            #         falsepos += ',' + str(array[i][j])
+            # falsepos = falsepos[:-1] + '\n'
     if not predictions[i]:
         if Y_train[i]:
-            falseneg += (str(array[i][0]) + ',' + str(array[i][1]))
-            for j in range(0, 30): # + 27):
-                if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
-                    falseneg += ',' + str(array[i][j])
-            falseneg = falseneg[:-1] + '\n'
+            falseneg += (str(array[i]) + '\n')
+            # falseneg += (str(array[i][0]) + ',' + str(array[i][1]))
+            # for j in range(0, 27): # + 27):
+            #     if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
+            #         falseneg += '~' + str(array[i][j])
+            # falseneg = falseneg[:-1] + '\n'
 file_clonepair.write(clone_pairs)
 file_clonepair.close()
 file_falsepos.write(falsepos)
