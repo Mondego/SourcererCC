@@ -14,8 +14,11 @@ modelfilename_type31 = '/scratch/mondego/local/model_type/randfor_type31_20es20d
 modelfilename_type32 = '/scratch/mondego/local/model_type/randfor_type32_50es20ds10l5.sav'
 
 # path_test="./test/test.txt"
-colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
-"COMP_", "NOCL_", "NOS_", "HLTH_", "HVOC_", "HEFF_", "HBUG_", "CREF_", "XMET_", "LMET_", "NLOC_", "NOC_", "NOA_", "MOD_", "HDIF_", "VDEC_", "EXCT_", "EXCR_", "CAST_", "TDN_", "HVOL_", "NAND_", "VREF_", "NOPR_", "MDN_", "NEXP_", "LOOP_"]
+# colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
+# "COMP_", "NOCL_", "NOS_", "HLTH_", "HVOC_", "HEFF_", "HBUG_", "CREF_", "XMET_", "LMET_", "NLOC_", "NOC_", "NOA_", "MOD_", "HDIF_", "VDEC_", "EXCT_", "EXCR_", "CAST_", "TDN_", "HVOL_", "NAND_", "VREF_", "NOPR_", "MDN_", "NEXP_", "LOOP_"]
+
+colNames=["block1","block2", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET",
+          "NOA", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]#block1 (or 2) is directory,file,startline,endline
 
 #load model
 loaded_model_type31 = pickle.load(open(modelfilename_type31, 'rb'))
@@ -55,9 +58,10 @@ class predThread(threading.Thread):
         falseneg=''
         array_pred = np.array(self.array)
         # label = bool(int(array[2]))
-        X_test = array_pred[:, [i for i in range(0, 30+27) if i not in [0, 1, 2, 4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
+        # X_test = array_pred[:, [i for i in range(0, 30+27) if i not in [0, 1, 2, 4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
+        X_test = array_pred[:, [i for i in range(2, 20)]]
         X_test = X_test.astype(float)
-        Y_test = array_pred[:, 2].astype(bool)
+        # Y_test = array_pred[:, 2].astype(bool)
         # methodpair = array[[i for i in range(0, 2)]]
         # X_test = np.reshape(X_test, (1, len(X_test)))
         print('prediction is gonna start')

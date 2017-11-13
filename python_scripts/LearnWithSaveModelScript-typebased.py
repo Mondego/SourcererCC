@@ -23,7 +23,7 @@ path_train="/scratch/mondego/local/farima/artifacts/train_exp/inputFiles/train_t
 colNames=["block1","block2", "isClone", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET",
           "NOA", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]#block1 (or 2) is directory,file,startline,endline
 
-clones_train = pd.read_csv(path_train, names=colNames, delimiter='~', engine='python')
+clones_train = pd.read_csv(path_train, names=colNames, delimiter='~~', engine='python')
 print("train set read complete")
 #clones_test = pd.read_csv(path_test, names=colNames)
 #print("test set read complete")
@@ -33,7 +33,7 @@ clones_train = clones_train.sample(frac=1).reset_index(drop=True) #shuffle data
 array = clones_train.values
 #X_train = array[:,[i for i in range(3,30+27) if i not in [4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
 # X_train = array[:,[i for i in range(3,30) if i not in [4,13,14,16]]]
-X_train = array[:,[i for i in range(3,27)]]
+X_train = array[:,[i for i in range(3,21)]]
 Y_train = array[:,3]
 
 #array = clones_test.values
