@@ -332,7 +332,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
     @Override
     public void visit(BlockComment n, MetricCollector arg) {
         // TODO Auto-generated method stub
-        super.visit(n, arg);
+        //super.visit(n, arg);
     }
 
     @Override
@@ -423,7 +423,19 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         this.incNEXP(n, arg);
-        arg.addFieldAccessActionTokens(n.toString());
+        this.inspect(n);
+        for(Node c : n.getChildNodes()){
+            if (c instanceof SimpleName){
+                MapUtils.addOrUpdateMap(arg.fieldAccessActionTokensMap, c.toString());
+            }
+            if(c instanceof NameExpr){
+                String[] tokens = c.toString().split("\\.");
+                if (Character.isUpperCase(tokens[0].charAt(0))) {
+                    arg.CREF++; // heuristic to add class refs like System
+                    MapUtils.addOrUpdateMap(arg.typeMap, tokens[0]);
+                }
+            }
+        }
         
 
     }
@@ -471,7 +483,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
     @Override
     public void visit(JavadocComment n, MetricCollector arg) {
         // TODO Auto-generated method stub
-        super.visit(n, arg);
+        //super.visit(n, arg);
     }
 
     @Override
@@ -491,7 +503,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
     @Override
     public void visit(LineComment n, MetricCollector arg) {
         // TODO Auto-generated method stub
-        super.visit(n, arg);
+        //super.visit(n, arg);
     }
 
     @Override
@@ -706,7 +718,7 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
         // TODO Auto-generated method stub
         super.visit(n, arg);
         this.incNEXP(n, arg);
-        MapUtils.addOrUpdateMap(arg.typeMap, n.toString());
+        MapUtils.addOrUpdateMap(arg.literalsMap, n.toString());
         arg.addToken(n.toString());
     }
 

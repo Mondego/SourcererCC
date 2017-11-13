@@ -20,5 +20,20 @@ public class Util {
             throw e;
         }
     }
+    public static void closeOutputFile(Writer pWriter) {
+        if (null != pWriter) {
+            try {
+                pWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                pWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 
 }

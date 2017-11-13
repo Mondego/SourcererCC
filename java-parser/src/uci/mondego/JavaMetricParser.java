@@ -43,7 +43,7 @@ public class JavaMetricParser {
         this.bookkeepingFileName = "bookkeeping.file";
         this.errorFileName = "error_metrics.file";
         this.tokensFileName = "scc_input.file";
-        JavaMetricParser.prefix = this.getBaseName(inputFilePath);
+        JavaMetricParser.prefix = "1";//this.getBaseName(inputFilePath);
         this.outputDirPath = JavaMetricParser.prefix + "_metric_output";
         File outDir = new File(this.outputDirPath);
         if (!outDir.exists()) {
@@ -84,15 +84,10 @@ public class JavaMetricParser {
                 while ((line = br.readLine()) != null && line.trim().length() > 0) {
                     javaMetricParser.calculateMetrics(line.trim());
                 }
-
-                try {
-                    javaMetricParser.metricsFileWriter.close();
-                    javaMetricParser.errorPw.close();
-                    javaMetricParser.tokensFileWriter.close();
-                    javaMetricParser.bookkeepingWriter.close();
-                } catch (Exception e) {
-                    System.out.println("Unexpected error while closing the output/error file");
-                }
+                Util.closeOutputFile(javaMetricParser.metricsFileWriter);
+                Util.closeOutputFile(javaMetricParser.errorPw);
+                Util.closeOutputFile(javaMetricParser.tokensFileWriter);
+                Util.closeOutputFile(javaMetricParser.bookkeepingWriter);
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -179,6 +174,7 @@ public class JavaMetricParser {
                     System.out.println("fileId is : " + fileId + ", methodId is: " + methodId);
                     collector.fileId = Long.parseLong(fileId);
                     collector.methodId = Long.parseLong(methodId);
+                    System.out.println(collector);
                     this.generateInputForOreo(collector);
                     this.generateInputForScc(collector);
                 }
@@ -240,10 +236,10 @@ public class JavaMetricParser {
                 StringBuilder tokenString = new StringBuilder("");
 
                 metadataString.append(collector.fileId).append(internalSeparator).append(collector.methodId)
-                        .append(internalSeparator).append(collector.NTOKENS).append(internalSeparator)
-                        .append(collector.tokensMap.size());
+                        .append(internalSeparator).append(MapUtils.addValues(collector.sccTokensMap)).append(internalSeparator)
+                        .append(collector.sccTokensMap.size());
                 String sep = "";
-                for (Entry<String, Integer> entry : collector.tokensMap.entrySet()) {
+                for (Entry<String, Integer> entry : collector.sccTokensMap.entrySet()) {
                     String s = sep + entry.getKey() + "@@::@@" + entry.getValue();
                     tokenString.append(s);
                     sep = ",";

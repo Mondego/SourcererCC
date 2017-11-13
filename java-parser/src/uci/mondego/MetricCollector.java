@@ -4,10 +4,10 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 
 public class MetricCollector {
     public File _file; // file object
@@ -77,6 +77,7 @@ public class MetricCollector {
     public String tokenHash;
     public long fileId;
     public long methodId;
+    public Map<String, Integer> sccTokensMap = new HashMap<String, Integer>();
 
     public void addFieldAccessActionTokens(String fieldAccessString) {
         String[] tokens = fieldAccessString.split("\\.");
@@ -102,9 +103,6 @@ public class MetricCollector {
     }
 
     public void addToken(String token) {
-        token = this.strip(token);
-        token = this.handleNoiseCharacters(token);
-        token = this.removeNewLines(token);
         token = token.trim();
         if (token.length() > 0) {
             
@@ -117,20 +115,10 @@ public class MetricCollector {
             }
             this.NTOKENS++;
         }
-    }
-    
-    private String strip(String str) {
-        return str.replaceAll("(\'|\"|\\\\|:)", "");
-    }
-    private String handleNoiseCharacters(String input) {
-        String regexPattern = ";|@@::@@|@#@|@|#";
-        String x = input.replaceAll(regexPattern, "");
-        return x;
-    }
-    private String removeNewLines(String input) {
-        String regexPatter = "\\n|\\r|\\r\\n";
-        input = input.replaceAll(regexPatter, " ");
-        return input;
+        List<String> sccTokens = SccTokenizer.processString(token);
+        for(String sccToken : sccTokens){
+            MapUtils.addOrUpdateMap(this.sccTokensMap, sccToken);
+        }
     }
 
     public void computeHalsteadMetrics() {
