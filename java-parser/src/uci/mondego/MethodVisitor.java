@@ -436,8 +436,6 @@ public class MethodVisitor extends VoidVisitorAdapter<MetricCollector> {
                 }
             }
         }
-        
-
     }
 
     @Override
