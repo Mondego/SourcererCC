@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +26,7 @@ import com.mondego.utility.Util;
 public class Block {
     public long id; // file id
     public int size; // num tokens
-    public long functionId; // project id
+    public long parentId; // project id
     public int prefixSize;
     public int computedThreshold;
     public int maxCandidateSize;
@@ -75,6 +76,7 @@ public class Block {
             
             
             
+            
             this.rowId = Long.parseLong(metadata[Util.ROW_ID]);
             this.projectName = metadata[Util.DIRECTORY];
             this.fileName = metadata[Util.FILE];
@@ -82,25 +84,26 @@ public class Block {
             this.endLine = Integer.parseInt(metadata[Util.END_LINE]);
             this.size = Integer.parseInt(metadata[Util.NUM_TOKENS]);
             this.numUniqueTokens = Integer.parseInt(metadata[Util.NUM_UNIQUE_TOKENS]);
-            //this.functionId = Integer.parseInt(columns[8]);
-            //this.id = Long.parseLong(columns[9]);
-            //this.thash = columns[10];
-            // this.uniqueChars = columns[10];
-            StringBuilder sb = new StringBuilder();
+            this.metriHash = metadata[Util.METRIC_HASH];
+            this.parentId = Integer.parseInt(metadata[Util.PARENT_ID]);
+            this.id = Long.parseLong(metadata[Util.BLOCK_ID]);
+            
+            String metricPart = lineParts[1];
+            String[] metrics = metricPart.split(",");
             this.metrics = new ArrayList<Double>();
-            for (int i = 11; i < 38; i++) {
-                //this.metrics.add(Double.parseDouble(columns[i]));
-                //sb.append(columns[i]);
+            for (String metricVal : metrics) {
+                this.metrics.add(Double.parseDouble(metricVal));
             }
-            try {
-                messageDigest = MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            String actionTokensPart = lineParts[2];
+            String[] actionTokens = actionTokensPart.split(",");
+            for(String actionTokenFreqPairString : actionTokens){
+                String[] actionTokenFreqPair = actionTokenFreqPairString.split(":");
+                TokenFrequency tokenFrequency = new TokenFrequency();
+                tokenFrequency.setToken(new Token(actionTokenFreqPair[0]));
+                tokenFrequency.setFrequency(Integer.parseInt(actionTokenFreqPair[1]));
+                this.tokenFrequencySet.add(tokenFrequency);
+                this.numActionTokens += tokenFrequency.getFrequency();
             }
-            messageDigest.reset();
-            messageDigest.update(sb.toString().getBytes(Charset.forName("UTF8")));
-            this.metriHash = new String(messageDigest.digest());
            /* for (int i = 38; i < columns.length; i++) {
                 TokenFrequency tokenFrequency = new TokenFrequency();
                 String tf = null;
@@ -153,11 +156,11 @@ public class Block {
     }
 
     public long getFunctionId() {
-        return functionId;
+        return parentId;
     }
 
     public void setFunctionId(long functionId) {
-        this.functionId = functionId;
+        this.parentId = functionId;
     }
 
     public int getPrefixSize() {
@@ -186,7 +189,7 @@ public class Block {
 
     @Override
     public String toString() {
-        return "Block [id=" + id + ", size=" + size + ", functionId=" + functionId + ", computedThreshold="
+        return "Block [id=" + id + ", size=" + size + ", functionId=" + parentId + ", computedThreshold="
                 + computedThreshold + ", maxCandidateSize=" + maxCandidateSize + ", numUniqueTokens=" + numUniqueTokens
                 + ", projectName=" + projectName + ", fileName=" + fileName + ", startLine=" + startLine + ", endLine="
                 + endLine + ", metrics=" + metrics + ", fqmn=" + fqmn + ", rowId=" + rowId + ", minNOS=" + minNOS

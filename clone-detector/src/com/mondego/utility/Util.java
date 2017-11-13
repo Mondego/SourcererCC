@@ -71,6 +71,9 @@ public class Util {
     public static final int METHOD_NAME =5;
     public static final int NUM_TOKENS =6;
     public static final int NUM_UNIQUE_TOKENS =7;
+    public static final int METRIC_HASH =8;
+    public static final int PARENT_ID =9;
+    public static final int BLOCK_ID =10;
     public static final int COMP =0;
     public static final int NOS =1;
     public static final int HVOC =2;

@@ -107,12 +107,12 @@ public class CandidateProcessor implements IListener, Runnable {
         output[1] = candiadteBlock.projectName + "," + candiadteBlock.fileName + "," + candiadteBlock.startLine + ","
                 + candiadteBlock.endLine;
 
-        String cp = queryBlock.functionId + "," + queryBlock.id + "," + candiadteBlock.functionId + ","
+        String cp = queryBlock.parentId + "," + queryBlock.id + "," + candiadteBlock.parentId + ","
                 + candiadteBlock.id;
         if (SearchManager.clonePairs.contains(cp)) {
             output[2] = 1 + "";
         } else {
-            cp = candiadteBlock.functionId + "," + candiadteBlock.id + "," + queryBlock.functionId + ","
+            cp = candiadteBlock.parentId + "," + candiadteBlock.id + "," + queryBlock.parentId + ","
                     + queryBlock.id;
             if (SearchManager.clonePairs.contains(cp)) {
                 output[2] = 1 + "";

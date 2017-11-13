@@ -141,7 +141,7 @@ public class JavaMetricParser {
                     collector._file = file;
                     for (Modifier c : ((MethodDeclaration) node).getModifiers()) {
                         collector.addToken(c.toString());
-                        MapUtils.addOrUpdateMap(collector.removeFromOperandsMap, c.toString());
+                        MapUtils.addOrUpdateMap(collector.mapRemoveFromOperands, c.toString());
                         collector.MOD++;
                     }
                     NodeList<ReferenceType> exceptionsThrown = ((MethodDeclaration) node).getThrownExceptions();
@@ -153,25 +153,26 @@ public class JavaMetricParser {
 
                         for (Node c : p.getChildNodes()) {
                             if (c instanceof SimpleName)
-                                MapUtils.addOrUpdateMap(collector.parameterMap, c.toString());
+                                MapUtils.addOrUpdateMap(collector.mapParameter, c.toString());
                         }
                     }
                     collector.NOA = nl.size();
                     collector.START_LINE = node.getBegin().get().line;
                     collector.END_LINE = node.getEnd().get().line;
                     collector._methodName = ((MethodDeclaration) node).getName().asString();
-                    MapUtils.addOrUpdateMap(collector.removeFromOperandsMap, collector._methodName);
+                    MapUtils.addOrUpdateMap(collector.mapRemoveFromOperands, collector._methodName);
                     node.accept(new MethodVisitor(), collector);
                     collector.computeHalsteadMetrics();
                     collector.COMP++; // add 1 for the default path.
                     collector.NOS++; // accounting for method declaration
-                    collector.innerMethodsMap.remove(collector._methodName);
-                    MapUtils.subtractMaps(collector.innerMethodParametersMap, collector.parameterMap);
+                    collector.mapInnerMethods.remove(collector._methodName);
+                    MapUtils.subtractMaps(collector.mapInnerMethodParameters, collector.mapParameter);
                     collector.populateVariableRefList();
                     collector.populateMetricHash();
                     String fileId = JavaMetricParser.prefix + JavaMetricParser.FILE_COUNTER;
                     String methodId = fileId + "00" + JavaMetricParser.METHOD_COUNTER;
-                    System.out.println("fileId is : " + fileId + ", methodId is: " + methodId);
+                    // System.out.println("fileId is : " + fileId + ", methodId
+                    // is: " + methodId);
                     collector.fileId = Long.parseLong(fileId);
                     collector.methodId = Long.parseLong(methodId);
                     System.out.println(collector);
@@ -205,20 +206,23 @@ public class JavaMetricParser {
                         .append(internalSeparator).append(collector.VREF).append(internalSeparator)
                         .append(collector.NOPR).append(internalSeparator).append(collector.MDN)
                         .append(internalSeparator).append(collector.NEXP).append(internalSeparator)
-                        .append(collector.LOOP);
-                for (Entry<String, Integer> entry : collector.methodCallActionTokensMap.entrySet()) {
+                        .append(collector.LOOP).append(internalSeparator).append(collector.NBLTRL)
+                        .append(internalSeparator).append(collector.NCLTRL).append(internalSeparator)
+                        .append(collector.NNLTRL).append(internalSeparator).append(collector.NNULLTRL)
+                        .append(internalSeparator).append(collector.NSLTRL);
+                for (Entry<String, Integer> entry : collector.mapMethodCallActionTokens.entrySet()) {
                     actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
                 }
-                for (Entry<String, Integer> entry : collector.fieldAccessActionTokensMap.entrySet()) {
+                for (Entry<String, Integer> entry : collector.mapFieldAccessActionTokens.entrySet()) {
                     actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
                 }
-                for (Entry<String, Integer> entry : collector.arrayAccessActionTokensMap.entrySet()) {
+                for (Entry<String, Integer> entry : collector.mapArrayAccessActionTokens.entrySet()) {
                     actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
                 }
-                for (Entry<String, Integer> entry : collector.arrayBinaryAccessActionTokensMap.entrySet()) {
+                for (Entry<String, Integer> entry : collector.mapArrayBinaryAccessActionTokens.entrySet()) {
                     actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
                 }
-                actionTokenString.append("_@" + collector._methodName + "@_");
+                actionTokenString.append("_@" + collector._methodName + "@_:1");
                 StringBuilder line = new StringBuilder("");
                 line.append(metadataString).append(externalSeparator).append(metricString).append(externalSeparator)
                         .append(actionTokenString).append(System.lineSeparator());
@@ -236,10 +240,10 @@ public class JavaMetricParser {
                 StringBuilder tokenString = new StringBuilder("");
 
                 metadataString.append(collector.fileId).append(internalSeparator).append(collector.methodId)
-                        .append(internalSeparator).append(MapUtils.addValues(collector.sccTokensMap)).append(internalSeparator)
-                        .append(collector.sccTokensMap.size());
+                        .append(internalSeparator).append(MapUtils.addValues(collector.mapSccTokens))
+                        .append(internalSeparator).append(collector.mapSccTokens.size());
                 String sep = "";
-                for (Entry<String, Integer> entry : collector.sccTokensMap.entrySet()) {
+                for (Entry<String, Integer> entry : collector.mapSccTokens.entrySet()) {
                     String s = sep + entry.getKey() + "@@::@@" + entry.getValue();
                     tokenString.append(s);
                     sep = ",";
