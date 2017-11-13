@@ -117,7 +117,9 @@ public class MetricCollector {
         }
         List<String> sccTokens = SccTokenizer.processString(token);
         for(String sccToken : sccTokens){
-            MapUtils.addOrUpdateMap(this.sccTokensMap, sccToken);
+            if(sccToken.length()>0){
+                MapUtils.addOrUpdateMap(this.sccTokensMap, sccToken);
+            }
         }
     }
 
