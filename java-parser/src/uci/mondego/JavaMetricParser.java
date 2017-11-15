@@ -187,6 +187,8 @@ public class JavaMetricParser {
                 StringBuilder metricString = new StringBuilder("");
                 StringBuilder metadataString = new StringBuilder("");
                 StringBuilder actionTokenString = new StringBuilder("");
+                StringBuilder stopwordsActionTokenString = new StringBuilder("");
+                String methodNameActionString = "";
                 metadataString.append(collector._file.getParentFile().getName()).append(internalSeparator)
                         .append(collector._file.getName()).append(internalSeparator).append(collector.START_LINE)
                         .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
@@ -210,22 +212,36 @@ public class JavaMetricParser {
                         .append(internalSeparator).append(collector.NCLTRL).append(internalSeparator)
                         .append(collector.NNLTRL).append(internalSeparator).append(collector.NNULLTRL)
                         .append(internalSeparator).append(collector.NSLTRL);
+                String sep = "";
                 for (Entry<String, Integer> entry : collector.mapMethodCallActionTokens.entrySet()) {
-                    actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
+                    actionTokenString.append(sep).append(entry.getKey() + ":" + entry.getValue());
+                    sep = ",";
                 }
+                sep = "";
                 for (Entry<String, Integer> entry : collector.mapFieldAccessActionTokens.entrySet()) {
-                    actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
+                    actionTokenString.append(sep).append(entry.getKey() + ":" + entry.getValue());
+                    sep = ",";
                 }
+                sep = "";
                 for (Entry<String, Integer> entry : collector.mapArrayAccessActionTokens.entrySet()) {
-                    actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
+                    actionTokenString.append(sep).append(entry.getKey() + ":" + entry.getValue());
+                    sep = ",";
                 }
+                sep = "";
                 for (Entry<String, Integer> entry : collector.mapArrayBinaryAccessActionTokens.entrySet()) {
-                    actionTokenString.append(entry.getKey() + ":" + entry.getValue() + ",");
+                    actionTokenString.append(sep).append(entry.getKey() + ":" + entry.getValue());
+                    sep = ",";
                 }
-                actionTokenString.append("_@" + collector._methodName + "@_:1");
+                sep = "";
+                for (Entry<String, Integer> entry : collector.mapStopWordsActionTokens.entrySet()) {
+                    stopwordsActionTokenString.append(entry.getKey() + ":" + entry.getValue());
+                    sep = ",";
+                }
+                methodNameActionString = "_@" + collector._methodName + "@_:1";
                 StringBuilder line = new StringBuilder("");
                 line.append(metadataString).append(externalSeparator).append(metricString).append(externalSeparator)
-                        .append(actionTokenString).append(System.lineSeparator());
+                        .append(actionTokenString).append(externalSeparator).append(stopwordsActionTokenString)
+                        .append(externalSeparator).append(methodNameActionString).append(System.lineSeparator());
                 try {
                     metricsFileWriter.append(line.toString());
                 } catch (IOException e) {
