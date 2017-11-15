@@ -107,7 +107,7 @@ public class CloneValidator implements IListener, Runnable {
     private int updateSimilarity(Block queryBlock,
             int computedThreshold, int candidateSize, CandidateSimInfo simInfo) {
         int tokensSeenInCandidate = 0;
-        int similarity = simInfo.similarity;
+        int similarity = simInfo.actionTokenSimilarity;
         TokenInfo tokenInfo = null;
         boolean matchFound = false;
         /*

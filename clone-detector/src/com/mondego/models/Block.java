@@ -3,11 +3,8 @@
  */
 package com.mondego.models;
 
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +25,7 @@ public class Block {
     public int size; // num tokens
     public long parentId; // project id
     public int prefixSize;
-    public int computedThreshold;
+    public int minCandidateSize;
     public int maxCandidateSize;
     public int numUniqueTokens;
     public String projectName;
@@ -55,6 +52,8 @@ public class Block {
     public int maxCandidateActionTokens;
     public int minCandidateTotalActionTokens;
     public int maxCandidateTotalActionTokens;
+    public static int ACTION_TOKENS = 1;
+    public static int STOPWORD_ACTION_TOKENS = 2;
     private static final Logger logger = LogManager.getLogger(Block.class);
 
     /**
@@ -68,8 +67,10 @@ public class Block {
         this.minCandidateActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numActionTokens, SearchManager.th);
         this.maxCandidateActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numActionTokens, SearchManager.th);
         this.numTotalActionToken = this.numActionTokens + this.numStopActionToken;
-        this.minCandidateTotalActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTotalActionToken, SearchManager.th);
-        this.maxCandidateTotalActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numTotalActionToken, SearchManager.th);
+        this.minCandidateTotalActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTotalActionToken,
+                SearchManager.th);
+        this.maxCandidateTotalActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numTotalActionToken,
+                SearchManager.th);
         // this.uniqueChars =
         // SearchManager.ijaMapping.get(this.fqmn).split(",")[8];
 
@@ -125,11 +126,9 @@ public class Block {
                     this.numStopActionToken += tokenFrequency.getFrequency();
                 }
             }
-            this.computedThreshold = BlockInfo.getMinimumSimilarityThreshold(this.size, SearchManager.th);
+            this.setMinCandidateSize(BlockInfo.getMinimumSimilarityThreshold(this.size, SearchManager.th));
             this.setMaxCandidateSize(BlockInfo.getMaximumSimilarityThreshold(this.size, SearchManager.th));
-
         } catch (ArrayIndexOutOfBoundsException e) {
-
             logger.error(e.getMessage() + ", " + rawQuery);
             System.exit(1);
         }
@@ -167,12 +166,12 @@ public class Block {
         this.prefixSize = prefixSize;
     }
 
-    public int getComputedThreshold() {
-        return computedThreshold;
+    public int getMinCandidateSize() {
+        return minCandidateSize;
     }
 
-    public void setComputedThreshold(int computedThreshold) {
-        this.computedThreshold = computedThreshold;
+    public void setMinCandidateSize(int computedThreshold) {
+        this.minCandidateSize = computedThreshold;
     }
 
     public int getMaxCandidateSize() {
@@ -186,7 +185,7 @@ public class Block {
     @Override
     public String toString() {
         return "Block [id=" + id + ", size=" + size + ", functionId=" + parentId + ", computedThreshold="
-                + computedThreshold + ", maxCandidateSize=" + maxCandidateSize + ", numUniqueTokens=" + numUniqueTokens
+                + minCandidateSize + ", maxCandidateSize=" + maxCandidateSize + ", numUniqueTokens=" + numUniqueTokens
                 + ", projectName=" + projectName + ", fileName=" + fileName + ", startLine=" + startLine + ", endLine="
                 + endLine + ", metrics=" + metrics + ", fqmn=" + fqmn + ", rowId=" + rowId + ", minNOS=" + minNOS
                 + ", maxNOS=" + maxNOS + ", minNEXP=" + minNEXP + ", maxNEXP=" + maxNEXP + ", uniqueChars="
@@ -212,5 +211,12 @@ public class Block {
      */
     public void setNumUniqueTokens(int numUniqueTokens) {
         this.numUniqueTokens = numUniqueTokens;
+    }
+
+    public String getMethodIdentifier() {
+        StringBuilder methodIdentifier = new StringBuilder("");
+        String sep =",";
+        return methodIdentifier.append(projectName).append(sep).append(fileName).append(sep).append(startLine)
+                .append(sep).append(endLine).toString();
     }
 }
