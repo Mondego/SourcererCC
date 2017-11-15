@@ -902,7 +902,7 @@ public class SearchManager {
                 Block block = new Block(line);
                 // Bag bag = theInstance.cloneHelper.deserialise(line);
                 if (null != block) {
-                    size = size + (block.tokenFrequencySet.size() * 300); // approximate
+                    size = size + (block.actionTokenFrequencySet.size() * 300); // approximate
                                                                           // mem
                                                                           // utilization.
                                                                           // 1

@@ -67,7 +67,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
 		Map<Long,Integer> documentsAndTermFrequencyMap= new HashMap<Long,Integer>();
 		//Set<Long> docs = null;
 		// int prefixLength = documentForII.prefixSize;
-		for (TokenFrequency tf : block.tokenFrequencySet) {
+		for (TokenFrequency tf : block.actionTokenFrequencySet) {
 			// if (prefixLength > 0) {
 			String term = tf.getToken().getValue();
 			if (SearchManager.invertedIndex.containsKey(term)) {

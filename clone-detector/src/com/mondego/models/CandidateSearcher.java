@@ -85,7 +85,7 @@ public class CandidateSearcher implements IListener, Runnable {
     private Map<Long, CandidateSimInfo> search(Block queryBlock) {
         Map<Long, CandidateSimInfo> simMap = new HashMap<Long, CandidateSimInfo>();
         Set<Long> earlierDocs = new HashSet<Long>();
-        for (TokenFrequency tokenFrequency : queryBlock.tokenFrequencySet) {
+        for (TokenFrequency tokenFrequency : queryBlock.actionTokenFrequencySet) {
             String searchTerm = tokenFrequency.getToken().getValue();
             int searchTermFreq = tokenFrequency.getFrequency();
             Map<Long,Integer> candidateDocsandFreq = SearchManager.invertedIndex.get(searchTerm);

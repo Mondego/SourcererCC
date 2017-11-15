@@ -43,13 +43,18 @@ public class Block {
     public int minNEXP;
     public int maxNEXP;
     public String uniqueChars;
-    public Set<TokenFrequency> tokenFrequencySet;
+    public Set<TokenFrequency> actionTokenFrequencySet;
+    public Set<TokenFrequency> stopwordActionTokenFrequencySet;
     public String thash;
     public String metriHash;
     MessageDigest messageDigest;
     public int numActionTokens;
+    public int numStopActionToken;
+    public int numTotalActionToken;
     public int minCandidateActionTokens;
     public int maxCandidateActionTokens;
+    public int minCandidateTotalActionTokens;
+    public int maxCandidateTotalActionTokens;
     private static final Logger logger = LogManager.getLogger(Block.class);
 
     /**
@@ -57,10 +62,14 @@ public class Block {
      * @param size
      */
     public Block(String rawQuery) {
-        this.tokenFrequencySet = new HashSet<TokenFrequency>();
+        this.actionTokenFrequencySet = new HashSet<TokenFrequency>();
+        this.stopwordActionTokenFrequencySet = new HashSet<TokenFrequency>();
         this.populateFields(rawQuery);
         this.minCandidateActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numActionTokens, SearchManager.th);
         this.maxCandidateActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numActionTokens, SearchManager.th);
+        this.numTotalActionToken = this.numActionTokens + this.numStopActionToken;
+        this.minCandidateTotalActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTotalActionToken, SearchManager.th);
+        this.maxCandidateTotalActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numTotalActionToken, SearchManager.th);
         // this.uniqueChars =
         // SearchManager.ijaMapping.get(this.fqmn).split(",")[8];
 
@@ -73,10 +82,7 @@ public class Block {
             String[] lineParts = rawQuery.split("@#@");
             String metadataPart = lineParts[0];
             String[] metadata = metadataPart.split(",");
-            
-            
-            
-            
+
             this.rowId = Long.parseLong(metadata[Util.ROW_ID]);
             this.projectName = metadata[Util.DIRECTORY];
             this.fileName = metadata[Util.FILE];
@@ -87,7 +93,7 @@ public class Block {
             this.metriHash = metadata[Util.METRIC_HASH];
             this.parentId = Integer.parseInt(metadata[Util.PARENT_ID]);
             this.id = Long.parseLong(metadata[Util.BLOCK_ID]);
-            
+
             String metricPart = lineParts[1];
             String[] metrics = metricPart.split(",");
             this.metrics = new ArrayList<Double>();
@@ -95,42 +101,32 @@ public class Block {
                 this.metrics.add(Double.parseDouble(metricVal));
             }
             String actionTokensPart = lineParts[2];
-            String[] actionTokens = actionTokensPart.split(",");
-            for(String actionTokenFreqPairString : actionTokens){
-                String[] actionTokenFreqPair = actionTokenFreqPairString.split(":");
-                TokenFrequency tokenFrequency = new TokenFrequency();
-                tokenFrequency.setToken(new Token(actionTokenFreqPair[0]));
-                tokenFrequency.setFrequency(Integer.parseInt(actionTokenFreqPair[1]));
-                this.tokenFrequencySet.add(tokenFrequency);
-                this.numActionTokens += tokenFrequency.getFrequency();
+            if (actionTokensPart.trim().length() > 0) {
+                String[] actionTokens = actionTokensPart.split(",");
+                for (String actionTokenFreqPairString : actionTokens) {
+                    String[] actionTokenFreqPair = actionTokenFreqPairString.split(":");
+                    TokenFrequency tokenFrequency = new TokenFrequency();
+                    tokenFrequency.setToken(new Token(actionTokenFreqPair[0]));
+                    tokenFrequency.setFrequency(Integer.parseInt(actionTokenFreqPair[1]));
+                    this.actionTokenFrequencySet.add(tokenFrequency);
+                    this.numActionTokens += tokenFrequency.getFrequency();
+                }
             }
-           /* for (int i = 38; i < columns.length; i++) {
-                TokenFrequency tokenFrequency = new TokenFrequency();
-                String tf = null;
-                tf = columns[i];
-                String[] tfparts = tf.split(":");
-                tokenFrequency.setToken(new Token(tfparts[0]));
-                tokenFrequency.setFrequency(Integer.parseInt(tfparts[1]));
-                this.tokenFrequencySet.add(tokenFrequency);
-                this.numActionTokens += tokenFrequency.getFrequency();
-            }*/
+
+            String stopwordActionTokensPart = lineParts[2];
+            if (stopwordActionTokensPart.trim().length() > 0) {
+                String[] stopwordActionTokens = actionTokensPart.split(",");
+                for (String stopwordactionTokenFreqPairString : stopwordActionTokens) {
+                    String[] stopwwordActionTokenFreqPair = stopwordactionTokenFreqPairString.split(":");
+                    TokenFrequency tokenFrequency = new TokenFrequency();
+                    tokenFrequency.setToken(new Token(stopwwordActionTokenFreqPair[0]));
+                    tokenFrequency.setFrequency(Integer.parseInt(stopwwordActionTokenFreqPair[1]));
+                    this.stopwordActionTokenFrequencySet.add(tokenFrequency);
+                    this.numStopActionToken += tokenFrequency.getFrequency();
+                }
+            }
             this.computedThreshold = BlockInfo.getMinimumSimilarityThreshold(this.size, SearchManager.th);
             this.setMaxCandidateSize(BlockInfo.getMaximumSimilarityThreshold(this.size, SearchManager.th));
-            /*
-             * this.maxNOS =
-             * BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(2),
-             * SearchManager.th); this.minNOS =
-             * BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(2),
-             * SearchManager.th);
-             */
-
-            /*
-             * this.maxNEXP =
-             * BlockInfo.getMaximumSimilarityThreshold(this.metrics.get(25),
-             * SearchManager.th); this.minNEXP =
-             * BlockInfo.getMinimumSimilarityThreshold(this.metrics.get(25),
-             * SearchManager.th);
-             */
 
         } catch (ArrayIndexOutOfBoundsException e) {
 
@@ -194,7 +190,7 @@ public class Block {
                 + ", projectName=" + projectName + ", fileName=" + fileName + ", startLine=" + startLine + ", endLine="
                 + endLine + ", metrics=" + metrics + ", fqmn=" + fqmn + ", rowId=" + rowId + ", minNOS=" + minNOS
                 + ", maxNOS=" + maxNOS + ", minNEXP=" + minNEXP + ", maxNEXP=" + maxNEXP + ", uniqueChars="
-                + uniqueChars + ", tokenFrequencySet=" + tokenFrequencySet + ", thash=" + thash + ", metriHash="
+                + uniqueChars + ", tokenFrequencySet=" + actionTokenFrequencySet + ", thash=" + thash + ", metriHash="
                 + metriHash + ", numActionTokens=" + numActionTokens + ", minCandidateActionTokens="
                 + minCandidateActionTokens + ", maxCandidateActionTokens=" + maxCandidateActionTokens + "]";
     }
