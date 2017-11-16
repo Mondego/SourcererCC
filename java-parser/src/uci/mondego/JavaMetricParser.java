@@ -175,7 +175,7 @@ public class JavaMetricParser {
                     // is: " + methodId);
                     collector.fileId = Long.parseLong(fileId);
                     collector.methodId = Long.parseLong(methodId);
-                    System.out.println(collector);
+                    //System.out.println(collector);
                     this.generateInputForOreo(collector);
                     this.generateInputForScc(collector);
                 }
