@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
+import com.mondego.utility.Util;
 
 public class CandidateProcessor implements IListener, Runnable {
     private QueryCandidates qc;
@@ -167,9 +168,19 @@ public class CandidateProcessor implements IListener, Runnable {
                     }
                     String line = this.getLineToSend(this.getLineToWrite(qc.queryBlock, candidateBlock));
                     try {
-                        SearchManager.updateClonePairsCount(1);
-                        // logger.debug(type+"#$#"+line);
-                        SearchManager.socketWriter.writeToSocket(type + "#$#" + line);
+                        //
+                        
+                        if(type.equals("3.1")){
+                            logger.debug(type+"#$#"+line);
+                            SearchManager.updateClonePairsCount(1);
+                            Util.writeToFile(SearchManager.type_3_1_train_Writer, line, true);
+                        }else if(type.equals("3.2")){
+                            logger.debug(type+"#$#"+line);
+                            SearchManager.updateClonePairsCount(1);
+                            Util.writeToFile(SearchManager.type_3_2_train_Writer, line, true);
+                        }
+                        //SearchManager.reportCloneQueue
+                        //SearchManager.socketWriter.writeToSocket(type + "#$#" + line);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

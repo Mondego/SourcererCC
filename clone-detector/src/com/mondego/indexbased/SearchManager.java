@@ -68,6 +68,8 @@ public class SearchManager {
     public static String DATASET_DIR;
     public static String WFM_DIR_PATH;
     public static Writer clonesWriter; // writer to write the output
+    public static Writer type_3_1_train_Writer;
+    public static Writer type_3_2_train_Writer;
     public static Writer recoveryWriter; // writes the lines processed during
                                          // search. for recovery purpose.
     public static float th; // args[2]
@@ -477,6 +479,8 @@ public class SearchManager {
         try {
             Util.closeOutputFile(SearchManager.clonesWriter);
             Util.closeOutputFile(SearchManager.recoveryWriter);
+            Util.closeOutputFile(SearchManager.type_3_1_train_Writer);
+            Util.closeOutputFile(SearchManager.type_3_2_train_Writer);
             if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
                 theInstance.backupOutput();
             }
@@ -850,6 +854,13 @@ public class SearchManager {
                 SearchManager.recoveryWriter = Util.openFile(
                         SearchManager.OUTPUT_DIR + SearchManager.th / SearchManager.MUL_FACTOR + "/recovery.txt",
                         false);
+                SearchManager.type_3_1_train_Writer = Util.openFile(
+                        SearchManager.OUTPUT_DIR + SearchManager.th / SearchManager.MUL_FACTOR + "/train_3_1.csv",
+                        false);
+                SearchManager.type_3_2_train_Writer = Util.openFile(
+                        SearchManager.OUTPUT_DIR + SearchManager.th / SearchManager.MUL_FACTOR + "/train_3_2.csv",
+                        false);
+                
             } catch (IOException e) {
                 logger.error(e.getMessage() + " exiting");
                 System.exit(1);
@@ -955,7 +966,7 @@ public class SearchManager {
     private void initSearchEnv() {
         SearchManager.socketWriter = new SocketWriter(Integer.parseInt(properties.getProperty("PORT")),
                 properties.getProperty("ADDRESS"));
-        SearchManager.socketWriter.openSocketForWriting();
+       // SearchManager.socketWriter.openSocketForWriting();
         theInstance.loadIjaMap();
         theInstance.loadTokensMap();
         theInstance.loadCloneLabels();
