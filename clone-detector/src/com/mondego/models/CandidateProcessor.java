@@ -168,8 +168,6 @@ public class CandidateProcessor implements IListener, Runnable {
                     }
                     String line = this.getLineToSend(this.getLineToWrite(qc.queryBlock, candidateBlock));
                     try {
-                        //
-                        
                         if(type.equals("3.1")){
                             logger.debug(type+"#$#"+line);
                             SearchManager.updateClonePairsCount(1);
