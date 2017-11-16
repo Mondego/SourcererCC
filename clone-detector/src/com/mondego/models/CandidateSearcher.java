@@ -76,6 +76,7 @@ public class CandidateSearcher implements IListener, Runnable {
         long startTime = System.nanoTime();
         this.search(this.queryBlock.actionTokenFrequencySet,Block.ACTION_TOKENS);
         this.search(this.queryBlock.stopwordActionTokenFrequencySet,Block.STOPWORD_ACTION_TOKENS);
+        this.search(this.queryBlock.methodNameActionTokenFrequencySet,Block.METHODNAME_ACTION_TOKENS);
         if (this.qc.simMap.size() > 0) {
             long estimatedTime = System.nanoTime() - startTime;
             logger.debug(SearchManager.NODE_PREFIX + " CandidateSearcher, QueryBlock " + this.queryBlock + " in "
@@ -100,8 +101,10 @@ public class CandidateSearcher implements IListener, Runnable {
                             simInfo.actionTokenSimilarity = simInfo.actionTokenSimilarity + Math.min(searchTermFreq, docAndTermFreq.getValue());
                         }else if(whichTokens==Block.STOPWORD_ACTION_TOKENS){
                             simInfo.stopwordActionTokenSimilarity = simInfo.stopwordActionTokenSimilarity + Math.min(searchTermFreq, docAndTermFreq.getValue());
+                        }else{
+                            simInfo.methodNameActionTokenSimilarity = simInfo.methodNameActionTokenSimilarity + Math.min(searchTermFreq, docAndTermFreq.getValue());
                         }
-                        simInfo.totalActionTokenSimilarity = simInfo.stopwordActionTokenSimilarity+simInfo.actionTokenSimilarity;
+                        simInfo.totalActionTokenSimilarity = simInfo.stopwordActionTokenSimilarity+simInfo.actionTokenSimilarity+simInfo.methodNameActionTokenSimilarity;
                     } else {
                         if (this.earlierDocs.contains(docAndTermFreq)) {
                             continue;
@@ -116,8 +119,10 @@ public class CandidateSearcher implements IListener, Runnable {
                             simInfo.actionTokenSimilarity = Math.min(searchTermFreq, docAndTermFreq.getValue());
                         }else if(whichTokens==Block.STOPWORD_ACTION_TOKENS){
                             simInfo.stopwordActionTokenSimilarity = Math.min(searchTermFreq, docAndTermFreq.getValue());
+                        }else{
+                            simInfo.methodNameActionTokenSimilarity = Math.min(searchTermFreq, docAndTermFreq.getValue());
                         }
-                        simInfo.totalActionTokenSimilarity = simInfo.stopwordActionTokenSimilarity+simInfo.actionTokenSimilarity;
+                        simInfo.totalActionTokenSimilarity = simInfo.stopwordActionTokenSimilarity+simInfo.actionTokenSimilarity+simInfo.methodNameActionTokenSimilarity;
                         this.qc.simMap.put(docAndTermFreq.getKey(), simInfo);
                     }
                 }

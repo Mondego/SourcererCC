@@ -68,6 +68,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
         Map<Long, Integer> documentsAndTermFrequencyMap = new HashMap<Long, Integer>();
         this.indexTokensInSet(this.block.actionTokenFrequencySet, documentsAndTermFrequencyMap);
         this.indexTokensInSet(this.block.stopwordActionTokenFrequencySet, documentsAndTermFrequencyMap);
+        this.indexTokensInSet(this.block.methodNameActionTokenFrequencySet, documentsAndTermFrequencyMap);
     }
     private void indexTokensInSet(Set<TokenFrequency> tokenSet, Map<Long, Integer> documentsAndTermFrequencyMap){
         for (TokenFrequency tf : tokenSet) {

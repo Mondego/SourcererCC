@@ -419,8 +419,8 @@ public class SearchManager {
         Util.createDirs(SearchManager.OUTPUT_DIR + SearchManager.th / SearchManager.MUL_FACTOR);
         if (SearchManager.ACTION.equalsIgnoreCase(ACTION_CREATE_SHARDS)) {
             long begin_time = System.currentTimeMillis();
-            theInstance.loadIjaMap();
-            theInstance.loadTokensMap();
+            //theInstance.loadIjaMap();
+            //theInstance.loadTokensMap();
             theInstance.doPartitions();
             for (Shard shard : SearchManager.shards) {
                 shard.closeWriters();
@@ -967,8 +967,8 @@ public class SearchManager {
         SearchManager.socketWriter = new SocketWriter(Integer.parseInt(properties.getProperty("PORT")),
                 properties.getProperty("ADDRESS"));
        // SearchManager.socketWriter.openSocketForWriting();
-        theInstance.loadIjaMap();
-        theInstance.loadTokensMap();
+        //theInstance.loadIjaMap();
+        //theInstance.loadTokensMap();
         theInstance.loadCloneLabels();
         if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
             theInstance.readAndUpdateRunMetadata();

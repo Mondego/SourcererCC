@@ -42,11 +42,13 @@ public class Block {
     public String uniqueChars;
     public Set<TokenFrequency> actionTokenFrequencySet;
     public Set<TokenFrequency> stopwordActionTokenFrequencySet;
+    public Set<TokenFrequency> methodNameActionTokenFrequencySet;
     public String thash;
     public String metriHash;
     MessageDigest messageDigest;
     public int numActionTokens;
     public int numStopActionToken;
+    public int numMethodNameActionToken;
     public int numTotalActionToken;
     public int minCandidateActionTokens;
     public int maxCandidateActionTokens;
@@ -54,6 +56,8 @@ public class Block {
     public int maxCandidateTotalActionTokens;
     public static int ACTION_TOKENS = 1;
     public static int STOPWORD_ACTION_TOKENS = 2;
+    public static int METHODNAME_ACTION_TOKENS = 3;
+    
     private static final Logger logger = LogManager.getLogger(Block.class);
 
     /**
@@ -63,10 +67,11 @@ public class Block {
     public Block(String rawQuery) {
         this.actionTokenFrequencySet = new HashSet<TokenFrequency>();
         this.stopwordActionTokenFrequencySet = new HashSet<TokenFrequency>();
+        this.methodNameActionTokenFrequencySet = new HashSet<TokenFrequency>();
         this.populateFields(rawQuery);
         this.minCandidateActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numActionTokens, SearchManager.th);
         this.maxCandidateActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numActionTokens, SearchManager.th);
-        this.numTotalActionToken = this.numActionTokens + this.numStopActionToken;
+        this.numTotalActionToken = this.numActionTokens + this.numStopActionToken+ this.numMethodNameActionToken;
         this.minCandidateTotalActionTokens = BlockInfo.getMinimumSimilarityThreshold(this.numTotalActionToken,
                 SearchManager.th);
         this.maxCandidateTotalActionTokens = BlockInfo.getMaximumSimilarityThreshold(this.numTotalActionToken,
@@ -92,7 +97,7 @@ public class Block {
             this.size = Integer.parseInt(metadata[Util.NUM_TOKENS]);
             this.numUniqueTokens = Integer.parseInt(metadata[Util.NUM_UNIQUE_TOKENS]);
             this.metriHash = metadata[Util.METRIC_HASH];
-            this.parentId = Integer.parseInt(metadata[Util.PARENT_ID]);
+            this.parentId = Long.parseLong(metadata[Util.PARENT_ID]);
             this.id = Long.parseLong(metadata[Util.BLOCK_ID]);
             this.rowId = this.id; 
 
@@ -125,6 +130,18 @@ public class Block {
                     tokenFrequency.setFrequency(Integer.parseInt(stopwwordActionTokenFreqPair[1]));
                     this.stopwordActionTokenFrequencySet.add(tokenFrequency);
                     this.numStopActionToken += tokenFrequency.getFrequency();
+                }
+            }
+            String methodNameActionTokensPart = lineParts[3];
+            if (methodNameActionTokensPart.trim().length() > 0) {
+                String[] methodNameActionTokens = methodNameActionTokensPart.split(",");
+                for (String methodNameactionTokenFreqPairString : methodNameActionTokens) {
+                    String[] methodNameActionTokenFreqPair = methodNameactionTokenFreqPairString.split(":");
+                    TokenFrequency tokenFrequency = new TokenFrequency();
+                    tokenFrequency.setToken(new Token(methodNameActionTokenFreqPair[0]));
+                    tokenFrequency.setFrequency(Integer.parseInt(methodNameActionTokenFreqPair[1]));
+                    this.methodNameActionTokenFrequencySet.add(tokenFrequency);
+                    this.numMethodNameActionToken += tokenFrequency.getFrequency();
                 }
             }
             this.setMinCandidateSize(BlockInfo.getMinimumSimilarityThreshold(this.size, SearchManager.th));

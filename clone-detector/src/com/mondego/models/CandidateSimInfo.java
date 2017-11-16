@@ -6,6 +6,7 @@ public class CandidateSimInfo {
     public int candidateMatchPosition;
     public int actionTokenSimilarity;
     public int stopwordActionTokenSimilarity;
+    public int methodNameActionTokenSimilarity;
     public int totalActionTokenSimilarity;
     public int candidateSize;
     public Block doc;
