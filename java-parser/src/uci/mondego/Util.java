@@ -47,7 +47,7 @@ public class Util {
             throws IOException {
         try {
             Writer pWriter = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(filename, append), "UTF-8"),1024*1000*10);
+                    new FileOutputStream(filename, append), "UTF-8"),1024*100);
             return pWriter;
 
         } catch (IOException e) {
