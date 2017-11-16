@@ -84,7 +84,7 @@ public class Block {
             String metadataPart = lineParts[0];
             String[] metadata = metadataPart.split(",");
 
-            this.rowId = Long.parseLong(metadata[Util.ROW_ID]);
+            
             this.projectName = metadata[Util.DIRECTORY];
             this.fileName = metadata[Util.FILE];
             this.startLine = Integer.parseInt(metadata[Util.START_LINE]);
@@ -94,6 +94,7 @@ public class Block {
             this.metriHash = metadata[Util.METRIC_HASH];
             this.parentId = Integer.parseInt(metadata[Util.PARENT_ID]);
             this.id = Long.parseLong(metadata[Util.BLOCK_ID]);
+            this.rowId = this.id; 
 
             String metricPart = lineParts[1];
             String[] metrics = metricPart.split(",");
