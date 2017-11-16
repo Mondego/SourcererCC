@@ -187,6 +187,7 @@ public class JavaMetricParser {
                 StringBuilder metricString = new StringBuilder("");
                 StringBuilder metadataString = new StringBuilder("");
                 StringBuilder actionTokenString = new StringBuilder("");
+                
                 StringBuilder stopwordsActionTokenString = new StringBuilder("");
                 String methodNameActionString = "";
                 metadataString.append(collector._file.getParentFile().getName()).append(internalSeparator)
@@ -229,6 +230,7 @@ public class JavaMetricParser {
                     actionTokenString.append(sep).append(entry.getKey() + ":" + entry.getValue());
                     sep = ",";
                 }
+                sep="";
                 for (Entry<String, Integer> entry : collector.mapStopWordsActionTokens.entrySet()) {
                     stopwordsActionTokenString.append(sep).append(entry.getKey() + ":" + entry.getValue());
                     sep = ",";
