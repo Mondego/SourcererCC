@@ -35,7 +35,7 @@ array = clones_train.values
 #X_train = array[:,[i for i in range(3,30+27) if i not in [4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
 # X_train = array[:,[i for i in range(3,30) if i not in [4,13,14,16]]]
 X_train = array[:,[i for i in range(3,26)]]
-Y_train = array[:,3]
+Y_train = array[:,2]
 
 #array = clones_test.values
 #X_test = array[:,3:30]
