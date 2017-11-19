@@ -74,19 +74,18 @@ for i in range(predictions.shape[0]):
     if predictions[i]:
         clone_pairs += (str(array[i][0]) + ',' + str(array[i][1]) + '\n')
         if not Y_train[i]:
-            falsepos += (str(array[i])+ '\n')#append each candidate pair along with its features
-            # for j in range(0, 30): # + 27):
-            #     if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
-            #         falsepos += ',' + str(array[i][j])
-            # falsepos = falsepos[:-1] + '\n'
+            falsepos += (str(array[i][0]) + ',' + str(array[i][1]))
+            for j in range(3, 26): # + 27):
+                # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
+                    falsepos += ',' + str(array[i][j])
+            falsepos = falsepos[:-1] + '\n'
     if not predictions[i]:
         if Y_train[i]:
-            falseneg += (str(array[i]) + '\n')
-            # falseneg += (str(array[i][0]) + ',' + str(array[i][1]))
-            # for j in range(0, 27): # + 27):
-            #     if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
-            #         falseneg += '~' + str(array[i][j])
-            # falseneg = falseneg[:-1] + '\n'
+            falseneg += (str(array[i][0]) + ',' + str(array[i][1]))
+            for j in range(3, 26): # + 27):
+                # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
+                    falseneg += ',' + str(array[i][j])
+            falseneg = falseneg[:-1] + '\n'
 file_clonepair.write(clone_pairs)
 file_clonepair.close()
 file_falsepos.write(falsepos)
