@@ -76,7 +76,9 @@ print(predictions[1])
 for i in range(predictions.shape[0]):
     if predictions[i]:
         clone_pairs += (str(array[i][0]) + ',' + str(array[i][1]) + '\n')
+        print(Y_train[i])
         if not Y_train[i]:
+            print(falsepos)
             falsepos += (str(array[i][0]) + ',' + str(array[i][1]))
             for j in range(3, 26): # + 27):
                 # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
