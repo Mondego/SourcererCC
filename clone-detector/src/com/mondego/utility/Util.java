@@ -63,15 +63,17 @@ public class Util {
     // , "num_separators","num_assignments","num_statements","num_expressions");
     private static final Logger logger = LogManager.getLogger(Util.class);
 
-    public static final int ROW_ID =0;
-    public static final int DIRECTORY =1;
-    public static final int FILE =2;
-    public static final int START_LINE =3;
-    public static final int END_LINE =4;
-    public static final int METHOD_NAME =5;
-    public static final int NUM_TOKENS =6;
-    public static final int NUM_UNIQUE_TOKENS =7;
-    public static final int COMP =0;
+    public static final int DIRECTORY =0;
+    public static final int FILE =1;
+    public static final int START_LINE =2;
+    public static final int END_LINE =3;
+    public static final int METHOD_NAME =4;
+    public static final int NUM_TOKENS =5;
+    public static final int NUM_UNIQUE_TOKENS =6;
+    public static final int METRIC_HASH =7;
+    public static final int PARENT_ID =8;
+    public static final int BLOCK_ID =9;
+    /*public static final int COMP =0;
     public static final int NOS =1;
     public static final int HVOC =2;
     public static final int HEFF =3;
@@ -89,7 +91,7 @@ public class Util {
     public static final int NOPR =15;
     public static final int MDN =16;
     public static final int NEXP =17;
-    public static final int LOOP =18;
+    public static final int LOOP =18;*/
 
     /**
      * generates a random integer
