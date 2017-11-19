@@ -86,6 +86,7 @@ for i in range(predictions.shape[0]):
                 # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
                     falseneg += ',' + str(array[i][j])
             falseneg = falseneg[:-1] + '\n'
+            print(falseneg)
 file_clonepair.write(clone_pairs)
 file_clonepair.close()
 file_falsepos.write(falsepos)
