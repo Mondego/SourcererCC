@@ -70,6 +70,9 @@ end_time=time.time()
 print("prediction complete! time taken: " + str(end_time- start_time))
 file_recall.write(classification_report(Y_train.astype(bool), predictions))
 file_recall.close()
+print(predictions.shape)
+print(predictions[0])
+print(predictions[1])
 for i in range(predictions.shape[0]):
     if predictions[i]:
         clone_pairs += (str(array[i][0]) + ',' + str(array[i][1]) + '\n')
@@ -86,7 +89,6 @@ for i in range(predictions.shape[0]):
                 # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
                     falseneg += ',' + str(array[i][j])
             falseneg = falseneg[:-1] + '\n'
-            print(falseneg)
 file_clonepair.write(clone_pairs)
 file_clonepair.close()
 file_falsepos.write(falsepos)
