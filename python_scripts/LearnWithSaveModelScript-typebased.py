@@ -34,7 +34,7 @@ clones_train = clones_train.sample(frac=1).reset_index(drop=True) #shuffle data
 array = clones_train.values
 #X_train = array[:,[i for i in range(3,30+27) if i not in [4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
 # X_train = array[:,[i for i in range(3,30) if i not in [4,13,14,16]]]
-X_train = array[:,[i for i in range(3,26)]]
+X_train = array[:,[i for i in range(3,27)]]
 Y_train = array[:,2]
 
 #array = clones_test.values
@@ -70,22 +70,19 @@ end_time=time.time()
 print("prediction complete! time taken: " + str(end_time- start_time))
 file_recall.write(classification_report(Y_train.astype(bool), predictions))
 file_recall.close()
-print(predictions.shape)
-print(predictions[0])
-print(predictions[1])
 for i in range(predictions.shape[0]):
     if predictions[i]:
         clone_pairs += (str(array[i][0]) + ',' + str(array[i][1]) + '\n')
         if not Y_train[i]:
             falsepos += (str(array[i][0]) + ',' + str(array[i][1]))
-            for j in range(3, 26): # + 27):
+            for j in range(3, 27): # + 27):
                 # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
                     falsepos += ',' + str(array[i][j])
             falsepos = falsepos[:-1] + '\n'
     if not predictions[i]:
         if Y_train[i]:
             falseneg += (str(array[i][0]) + ',' + str(array[i][1]))
-            for j in range(3, 26): # + 27):
+            for j in range(3, 27): # + 27):
                 # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
                     falseneg += ',' + str(array[i][j])
             falseneg = falseneg[:-1] + '\n'
