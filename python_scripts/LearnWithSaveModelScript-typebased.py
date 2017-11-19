@@ -10,7 +10,7 @@ import pickle
 
 print("imports complete")
 #path_train="./train/train.txt"
-path_train="/scratch/mondego/local/farima/new_oreo/train_related/sampleTrainInput/train_type3_1_EqualCloneNonclone.txt"
+path_train="/scratch/mondego/local/farima/new_oreo/train_related/sampleTrainInput/train_type3_2_EqualCloneNonclone.txt"
 #path_test="./test/train_sample_100k.txt"
 # colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD",
 # "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
@@ -57,10 +57,10 @@ pickle.dump(clf, open(path_output+filename, 'wb'))
 print("model saved")
 
 #predict on this model
-file_clonepair = open(path_output+'train_results/clonepairs_type31_15d.txt', 'w')
-file_recall = open(path_output+'train_results/recall_type31_15d.txt', 'w')
-file_falsepos=open(path_output+'train_results/falsepos_type31_15d.txt', 'w')
-file_falseneg = open(path_output+'train_results/falseneg_type31_15d.txt', 'w')
+file_clonepair = open(path_output+'train_results/clonepairs_type32_15d.txt', 'w')
+file_recall = open(path_output+'train_results/recall_type32_15d.txt', 'w')
+file_falsepos=open(path_output+'train_results/falsepos_type32_15d.txt', 'w')
+file_falseneg = open(path_output+'train_results/falseneg_type32_15d.txt', 'w')
 clone_pairs = ''
 falsepos=''
 falseneg=''
