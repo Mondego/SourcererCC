@@ -52,7 +52,7 @@ clf.fit(X_train, Y_train.astype(bool))
 end_time=time.time()
 print("time to build model: "+str((end_time-start_time)))
 #Save model
-filename = 'randfor_type31_25es15d.sav'
+filename = 'randfor_type32_25es15d.sav'
 pickle.dump(clf, open(path_output+filename, 'wb'))
 print("model saved")
 
