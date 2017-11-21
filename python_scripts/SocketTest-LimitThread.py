@@ -14,14 +14,14 @@ start_time = time.time()
 pool = concurrent.futures.ThreadPoolExecutor(max_workers=3)
 
 print("imports complete")
-modelfilename_type31 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randfor_type31_20es20ds10l5.sav'
-modelfilename_type32 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randfor_type32_50es20ds10l5.sav'
+modelfilename_type31 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randfor_type31_25es15d.sav'
+modelfilename_type32 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randfor_type32_25es15d.sav'
 
 # path_test="./test/test.txt"
 # colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
 # "COMP_", "NOCL_", "NOS_", "HLTH_", "HVOC_", "HEFF_", "HBUG_", "CREF_", "XMET_", "LMET_", "NLOC_", "NOC_", "NOA_", "MOD_", "HDIF_", "VDEC_", "EXCT_", "EXCR_", "CAST_", "TDN_", "HVOL_", "NAND_", "VREF_", "NOPR_", "MDN_", "NEXP_", "LOOP_"]
-colNames=["block1","block2", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET",
-          "NOA", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]#block1 (or 2) is directory,file,startline,endline
+colNames=["block1","block2", "isClone", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET","NOA", "HDIF", "VDEC",
+          "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP","NBLTRL","NCLTRL","NNLTRL","NNULLTRL","NSLTRL"]
 #load model
 loaded_model_type31 = pickle.load(open(modelfilename_type31, 'rb'))
 loaded_model_type32 = pickle.load(open(modelfilename_type32, 'rb'))
@@ -29,7 +29,7 @@ print("models loaded")
 # data='com.liferay.portal.lar.PermissionImporter.importPermissions_6,com.liferay.portlet.wiki.action.ExportPageAction.getFile,0,33.33,0.0,22.22,21.6,13.59,9.89,24.0,9.52,8.7,100.0,17.24,0.0,11.11,0.0,31.58,0.0,0.0,0.0,0.0,42.86,24.07,22.22,27.42,20.89,33.33,36.36,100.0'
 # data=data.replace(',','~~')
 
-file_type1 = open('clonepairs_type1.txt', 'w')
+# file_type1 = open('clonepairs_type1.txt', 'w')
 file_type2 = open('clonepairs_type2.txt', 'w')
 
 num_candidates_31=0
@@ -41,7 +41,8 @@ def predict(threadId,array,type):
     clone_pairs = ''
     array_pred = np.array(array)
     # label = bool(int(array[2]))
-    X_test = array_pred[:, [i for i in range(0, 30+27) if i not in [0, 1, 2, 4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
+    # X_test = array_pred[:, [i for i in range(0, 30+27) if i not in [0, 1, 2, 4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
+    X_test = array_pred[:, [i for i in range(3, 27)]]
     X_test = X_test.astype(float)
     Y_test = array_pred[:, 2].astype(bool)
     print('prediction is gonna start')
@@ -54,7 +55,7 @@ def predict(threadId,array,type):
     print("prediction complete! time taken: " + str(end_prediction - start_prediction))
     for i in range(predictions.shape[0]):
         if predictions[i]:
-            clone_pairs += (array_pred[i][0] + ',' + array_pred[i][1]+'\n')
+            clone_pairs += (str(array_pred[i][0]) + ',' + str(array_pred[i][1]) + '\n')
     file_clonepair.write(clone_pairs)
     file_clonepair.close()
     end_process_pred = time.time()
@@ -69,7 +70,8 @@ def process(data):
     global thread_counter,num_candidates_31,num_candidates_32
     global array_31
     global array_32
-    global file_type1, file_type2
+    # global file_type1
+    global file_type2
     #start_process = time.time()
     if "FINISHED_JOB" in data:
         print("last prediction started")
@@ -83,10 +85,10 @@ def process(data):
     data_splitted=data.split('#$#')
     clone_pairs=data_splitted[1].split('~~')
     #print(data_splitted[0])
-    if data_splitted[0]=='1':
-        #print(data_splitted[0])
-        file_type1.write(clone_pairs[0]+','+clone_pairs[1]+'\n')
-    elif data_splitted[0]=='2':
+    # if data_splitted[0]=='1':
+    #     #print(data_splitted[0])
+    #     file_type1.write(clone_pairs[0]+','+clone_pairs[1]+'\n')
+    if data_splitted[0]=='2':
         #print(data_splitted[0])
         file_type2.write(clone_pairs[0] + ',' + clone_pairs[1]+'\n')
     elif data_splitted[0]=='3.1':
@@ -145,7 +147,7 @@ while True:
     else:
         break
 end_time = time.time()
-file_type1.close()
+# file_type1.close()
 file_type2.close()
 pool.shutdown(wait=True)
 print("whole process took: "+str(end_time-start_time))
