@@ -31,11 +31,13 @@ print("models loaded")
 # data='com.liferay.portal.lar.PermissionImporter.importPermissions_6,com.liferay.portlet.wiki.action.ExportPageAction.getFile,0,33.33,0.0,22.22,21.6,13.59,9.89,24.0,9.52,8.7,100.0,17.24,0.0,11.11,0.0,31.58,0.0,0.0,0.0,0.0,42.86,24.07,22.22,27.42,20.89,33.33,36.36,100.0'
 # data=data.replace(',','~~')
 
-# file_type1 = open('clonepairs_type1.txt', 'w')
-file_type2 = open(output_dir+'/clonepairs_type2.txt', 'w')
 
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
+
+# file_type1 = open('clonepairs_type1.txt', 'w')
+file_type2 = open(output_dir+'/clonepairs_type2.txt', 'w')
+
 
 num_candidates_31=0
 num_candidates_32=0
