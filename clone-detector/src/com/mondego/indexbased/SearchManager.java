@@ -966,7 +966,7 @@ public class SearchManager {
     private void initSearchEnv() {
         SearchManager.socketWriter = new SocketWriter(Integer.parseInt(properties.getProperty("PORT")),
                 properties.getProperty("ADDRESS"));
-       // SearchManager.socketWriter.openSocketForWriting();
+        SearchManager.socketWriter.openSocketForWriting();
         //theInstance.loadIjaMap();
         //theInstance.loadTokensMap();
         theInstance.loadCloneLabels();
