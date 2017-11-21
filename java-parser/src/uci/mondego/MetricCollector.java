@@ -213,7 +213,11 @@ public class MetricCollector {
     }
 
     private void setHDIF() {
-        this.HDIF = (this.UNPOR / 2) * (this.NAND / this.UNAND);
+        try{
+            this.HDIF = (this.UNPOR / 2) * (this.NAND / this.UNAND);
+        }catch(ArithmeticException e){
+            // ignore
+        }
     }
 
     private void setHEFF() {
