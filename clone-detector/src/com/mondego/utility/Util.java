@@ -91,7 +91,17 @@ public class Util {
     public static final int NOPR =15;
     public static final int MDN =16;
     public static final int NEXP =17;
-    public static final int LOOP =18;*/
+    public static final int LOOP =18;
+    public static final int NBLTRL =19;
+    public static final int NCLTRL =20;
+    public static final int NNLTRL =21;
+    public static final int NNULLTRL=22;
+    public static final int NSLTRL =23;
+    
+    
+     COMP~~NOS~~HVOC~~HEFF~~CREF~~XMET~~LMET~~NOA~~HDIF~~VDEC~~EXCT~~EXCR~~CAST~~NAND~~VREF~~NOPR~~MDN~~NEXP~~LOOP~~NBLTRL~~NCLTRL~~NNLTRL~~NNULLTRL~~NSLTRL
+    
+    */
 
     /**
      * generates a random integer

@@ -99,6 +99,7 @@ public class CandidateProcessor implements IListener, Runnable {
     }
 
     private List<String> getLineToWrite(Block queryBlock, Block candiadteBlock) {
+        // method1~~method2~~isCLone~~COMP~~NOS~~HVOC~~HEFF~~CREF~~XMET~~LMET~~NOA~~HDIF~~VDEC~~EXCT~~EXCR~~CAST~~NAND~~VREF~~NOPR~~MDN~~NEXP~~LOOP~~NBLTRL~~NCLTRL~~NNLTRL~~NNULLTRL~~NSLTRL
         List<String> features = new ArrayList<String>();
         features.add(queryBlock.getMethodIdentifier());
         features.add(candiadteBlock.getMethodIdentifier());
