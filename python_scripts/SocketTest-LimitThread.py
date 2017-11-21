@@ -7,6 +7,7 @@ import pickle
 import socket
 import threading
 import concurrent.futures
+import os
 
 
 start_time = time.time()
@@ -16,6 +17,7 @@ pool = concurrent.futures.ThreadPoolExecutor(max_workers=3)
 print("imports complete")
 modelfilename_type31 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randfor_type31_25es15d.sav'
 modelfilename_type32 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randfor_type32_25es15d.sav'
+output_dir='/scratch/mondego/local/farima/new_oreo/output_prediction'
 
 # path_test="./test/test.txt"
 # colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
@@ -30,14 +32,17 @@ print("models loaded")
 # data=data.replace(',','~~')
 
 # file_type1 = open('clonepairs_type1.txt', 'w')
-file_type2 = open('clonepairs_type2.txt', 'w')
+file_type2 = open(output_dir+'/clonepairs_type2.txt', 'w')
+
+if (not os.path.isdir(output_dir)):
+    os.makedirs(output_dir)
 
 num_candidates_31=0
 num_candidates_32=0
 
 def predict(threadId,array,type):
     start_process_pred = time.time()
-    file_clonepair = open('clonepairs' + str(threadId) + '_type_'+type+'.txt', 'w')
+    file_clonepair = open(output_dir+'/clonepairs' + str(threadId) + '_type_'+type+'.txt', 'w')
     clone_pairs = ''
     array_pred = np.array(array)
     # label = bool(int(array[2]))
