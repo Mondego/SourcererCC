@@ -169,7 +169,7 @@ public class CandidateProcessor implements IListener, Runnable {
                     }
                     String line = this.getLineToSend(this.getLineToWrite(qc.queryBlock, candidateBlock));
                     try {
-                        if(type.equals("3.1")){
+                        /*if(type.equals("3.1")){
                             logger.debug(type+"#$#"+line);
                             SearchManager.updateClonePairsCount(1);
                             Util.writeToFile(SearchManager.type_3_1_train_Writer, line, true);
@@ -177,9 +177,9 @@ public class CandidateProcessor implements IListener, Runnable {
                             logger.debug(type+"#$#"+line);
                             SearchManager.updateClonePairsCount(1);
                             Util.writeToFile(SearchManager.type_3_2_train_Writer, line, true);
-                        }
+                        }*/
                         //SearchManager.reportCloneQueue
-                        //SearchManager.socketWriter.writeToSocket(type + "#$#" + line);
+                        SearchManager.socketWriter.writeToSocket(type + "#$#" + line);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
