@@ -14,13 +14,14 @@ start_time = time.time()
 pool = concurrent.futures.ThreadPoolExecutor(max_workers=3)
 
 print("imports complete")
-modelfilename_type31 = '/scratch/mondego/local/model_type/randfor_type31_20es20ds10l5.sav'
-modelfilename_type32 = '/scratch/mondego/local/model_type/randfor_type32_50es20ds10l5.sav'
+modelfilename_type31 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randfor_type31_20es20ds10l5.sav'
+modelfilename_type32 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randfor_type32_50es20ds10l5.sav'
 
 # path_test="./test/test.txt"
-colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
-"COMP_", "NOCL_", "NOS_", "HLTH_", "HVOC_", "HEFF_", "HBUG_", "CREF_", "XMET_", "LMET_", "NLOC_", "NOC_", "NOA_", "MOD_", "HDIF_", "VDEC_", "EXCT_", "EXCR_", "CAST_", "TDN_", "HVOL_", "NAND_", "VREF_", "NOPR_", "MDN_", "NEXP_", "LOOP_"]
-
+# colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
+# "COMP_", "NOCL_", "NOS_", "HLTH_", "HVOC_", "HEFF_", "HBUG_", "CREF_", "XMET_", "LMET_", "NLOC_", "NOC_", "NOA_", "MOD_", "HDIF_", "VDEC_", "EXCT_", "EXCR_", "CAST_", "TDN_", "HVOL_", "NAND_", "VREF_", "NOPR_", "MDN_", "NEXP_", "LOOP_"]
+colNames=["block1","block2", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET",
+          "NOA", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]#block1 (or 2) is directory,file,startline,endline
 #load model
 loaded_model_type31 = pickle.load(open(modelfilename_type31, 'rb'))
 loaded_model_type32 = pickle.load(open(modelfilename_type32, 'rb'))

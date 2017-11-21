@@ -10,7 +10,7 @@ import pickle
 
 print("imports complete")
 #path_train="./train/train.txt"
-path_train="/scratch/mondego/local/farima/artifacts/train_exp/inputFiles/train_type3_1_fe.txt"
+path_train="/scratch/mondego/local/farima/new_oreo/train_related/sampleTrainInput/train_type3_2_EqualCloneNonclone.txt"
 #path_test="./test/train_sample_100k.txt"
 # colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD",
 # "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
@@ -20,9 +20,10 @@ path_train="/scratch/mondego/local/farima/artifacts/train_exp/inputFiles/train_t
 #colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", 
 #"HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]
 
-colNames=["block1","block2", "isClone", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET",
-          "NOA", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]#block1 (or 2) is directory,file,startline,endline
+colNames=["block1","block2", "isClone", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET","NOA", "HDIF", "VDEC",
+          "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP","NBLTRL","NCLTRL","NNLTRL","NNULLTRL","NSLTRL"]#block1 (or 2) is directory,file,startline,endline
 
+path_output="/scratch/mondego/local/farima/new_oreo/train_related/train_models/";
 clones_train = pd.read_csv(path_train, names=colNames, delimiter='~~', engine='python')
 print("train set read complete")
 #clones_test = pd.read_csv(path_test, names=colNames)
@@ -33,8 +34,8 @@ clones_train = clones_train.sample(frac=1).reset_index(drop=True) #shuffle data
 array = clones_train.values
 #X_train = array[:,[i for i in range(3,30+27) if i not in [4,4+27,5+27,8+27,13,13+27,14,14+27,16,16+27,23+27]]]
 # X_train = array[:,[i for i in range(3,30) if i not in [4,13,14,16]]]
-X_train = array[:,[i for i in range(3,21)]]
-Y_train = array[:,3]
+X_train = array[:,[i for i in range(3,27)]]
+Y_train = array[:,2]
 
 #array = clones_test.values
 #X_test = array[:,3:30]
@@ -42,7 +43,7 @@ Y_train = array[:,3]
 
 
 #Learn
-clf = RandomForestClassifier(n_estimators=25, max_depth=20)
+clf = RandomForestClassifier(n_estimators=25, max_depth=15)
 #clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=10, max_features='sqrt'), n_estimators=25)
 #clf = DecisionTreeClassifier(max_depth=10, max_features='sqrt', min_samples_split=10, min_samples_leaf=5)
 #clf = KNeighborsClassifier(n_neighbors=5)
@@ -51,15 +52,15 @@ clf.fit(X_train, Y_train.astype(bool))
 end_time=time.time()
 print("time to build model: "+str((end_time-start_time)))
 #Save model
-filename = 'randfor_type31_25es20d_fe.sav'
-pickle.dump(clf, open('./model_type/'+filename, 'wb'))
+filename = 'randfor_type32_25es15d.sav'
+pickle.dump(clf, open(path_output+filename, 'wb'))
 print("model saved")
 
 #predict on this model
-file_clonepair = open('./model_type/clonepairs_type31_20dfe.txt', 'w')
-file_recall = open('./model_type/recall_type31_20dfe.txt', 'w')
-file_falsepos=open('./model_type/falsepos_type31_20dfe.txt', 'w')
-file_falseneg = open('./model_type/falseneg_type31_20dfe.txt', 'w')
+file_clonepair = open(path_output+'train_results/clonepairs_type32_15d.txt', 'w')
+file_recall = open(path_output+'train_results/recall_type32_15d.txt', 'w')
+file_falsepos=open(path_output+'train_results/falsepos_type32_15d.txt', 'w')
+file_falseneg = open(path_output+'train_results/falseneg_type32_15d.txt', 'w')
 clone_pairs = ''
 falsepos=''
 falseneg=''
@@ -73,19 +74,18 @@ for i in range(predictions.shape[0]):
     if predictions[i]:
         clone_pairs += (str(array[i][0]) + ',' + str(array[i][1]) + '\n')
         if not Y_train[i]:
-            falsepos += (str(array[i])+ '\n')#append each candidate pair along with its features
-            # for j in range(0, 30): # + 27):
-            #     if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
-            #         falsepos += ',' + str(array[i][j])
-            # falsepos = falsepos[:-1] + '\n'
+            falsepos += (str(array[i][0]) + ',' + str(array[i][1]))
+            for j in range(3, 27): # + 27):
+                # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
+                    falsepos += ',' + str(array[i][j])
+            falsepos = falsepos[:-1] + '\n'
     if not predictions[i]:
         if Y_train[i]:
-            falseneg += (str(array[i]) + '\n')
-            # falseneg += (str(array[i][0]) + ',' + str(array[i][1]))
-            # for j in range(0, 27): # + 27):
-            #     if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
-            #         falseneg += '~' + str(array[i][j])
-            # falseneg = falseneg[:-1] + '\n'
+            falseneg += (str(array[i][0]) + ',' + str(array[i][1]))
+            for j in range(3, 27): # + 27):
+                # if j not in [0, 1, 2, 4, 4 + 27, 5 + 27, 8 + 27, 13, 13 + 27, 14, 14 + 27, 16, 16 + 27, 23 + 27]:
+                    falseneg += ',' + str(array[i][j])
+            falseneg = falseneg[:-1] + '\n'
 file_clonepair.write(clone_pairs)
 file_clonepair.close()
 file_falsepos.write(falsepos)
