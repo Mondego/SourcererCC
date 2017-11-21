@@ -35,6 +35,7 @@ public class JavaMetricParser {
     public String bookkeepingFileName;
     public String errorFileName;
     public static String prefix;
+    public static String fileIdPrefix;
     public static long FILE_COUNTER;
     public static long METHOD_COUNTER;
 
@@ -43,6 +44,7 @@ public class JavaMetricParser {
         this.bookkeepingFileName = "bookkeeping.file";
         this.errorFileName = "error_metrics.file";
         this.tokensFileName = "scc_input.file";
+        //JavaMetricParser.fileIdPrefix = "1";
         JavaMetricParser.prefix = this.getBaseName(inputFilePath);
         this.outputDirPath = JavaMetricParser.prefix + "_metric_output";
         File outDir = new File(this.outputDirPath);
@@ -162,20 +164,45 @@ public class JavaMetricParser {
                     JavaMetricParser.METHOD_COUNTER++;
                     MetricCollector collector = new MetricCollector();
                     collector._file = file;
-                    for (Modifier c : ((MethodDeclaration) node)
-                            .getModifiers()) {
-                        collector.addToken(c.toString());
-                        MapUtils.addOrUpdateMap(collector.mapRemoveFromOperands,
-                                c.toString());
-                        collector.MOD++;
+                    if (node instanceof MethodDeclaration){
+                        for (Modifier c : ((MethodDeclaration) node)
+                                .getModifiers()) {
+                            collector.addToken(c.toString());
+                            MapUtils.addOrUpdateMap(collector.mapRemoveFromOperands,
+                                    c.toString());
+                            collector.MOD++;
+                        }
                     }
-                    NodeList<ReferenceType> exceptionsThrown = ((MethodDeclaration) node)
-                            .getThrownExceptions();
+                    if (node instanceof ConstructorDeclaration){
+                        for (Modifier c : ((ConstructorDeclaration) node)
+                                .getModifiers()) {
+                            collector.addToken(c.toString());
+                            MapUtils.addOrUpdateMap(collector.mapRemoveFromOperands,
+                                    c.toString());
+                            collector.MOD++;
+                        }
+                    }
+                    NodeList<ReferenceType> exceptionsThrown=null;
+                    if (node instanceof MethodDeclaration){
+                        exceptionsThrown = ((MethodDeclaration) node)
+                                .getThrownExceptions();
+                    }
+                    if (node instanceof ConstructorDeclaration){
+                        exceptionsThrown = ((ConstructorDeclaration) node)
+                                .getThrownExceptions();
+                    }
                     if (exceptionsThrown.size() > 0) {
                         collector.addToken("throws");
                     }
-                    NodeList<Parameter> nl = ((MethodDeclaration) node)
-                            .getParameters();
+                    NodeList<Parameter> nl = null;
+                    if (node instanceof MethodDeclaration){
+                        nl = ((MethodDeclaration) node)
+                                .getParameters();
+                    }
+                    if (node instanceof ConstructorDeclaration){
+                        nl = ((ConstructorDeclaration) node)
+                                .getParameters();
+                    }
                     for (Parameter p : nl) {
 
                         for (Node c : p.getChildNodes()) {
@@ -187,8 +214,14 @@ public class JavaMetricParser {
                     collector.NOA = nl.size();
                     collector.START_LINE = node.getBegin().get().line;
                     collector.END_LINE = node.getEnd().get().line;
-                    collector._methodName = ((MethodDeclaration) node).getName()
-                            .asString();
+                    if (node instanceof MethodDeclaration){
+                        collector._methodName = ((MethodDeclaration) node).getName()
+                                .asString();
+                    }
+                    if (node instanceof ConstructorDeclaration){
+                        collector._methodName = ((ConstructorDeclaration) node).getName()
+                                .asString();
+                    }
                     MapUtils.addOrUpdateMap(collector.mapRemoveFromOperands,
                             collector._methodName);
                     node.accept(new MethodVisitor(), collector);
