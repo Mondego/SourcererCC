@@ -18,11 +18,12 @@ with open('/scratch/mondego/local/farima/new_oreo/recall_related/metricCalculato
         filename=filefullpath[-1]
         line_nums=linesplitted[2].split(':')
         file_methodid[filepart[0]+','+methodpart[0]]=file_dir+','+filename+','+line_nums[0]+','+line_nums[1]
+        print(file_dir+','+filename+','+line_nums[0]+','+line_nums[1])
 
 with open(scc_clonepairs_path) as file_scc_cps:
     for line in file_scc_cps:
         linesplitted=line.split(',')
         cp1=file_methodid[linesplitted[0]+','+linesplitted[1]]
-        cp2 = file_methodid[linesplitted[2] + ',' + linesplitted[3]]
+        cp2 = file_methodid[linesplitted[2] + ',' + linesplitted[3]].rstrip()
         file_output.write(cp1+','+cp2+'\n')
 file_output.close()
