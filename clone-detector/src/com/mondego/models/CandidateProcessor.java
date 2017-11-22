@@ -11,7 +11,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
-import com.mondego.utility.Util;
 
 public class CandidateProcessor implements IListener, Runnable {
     private QueryCandidates qc;
@@ -155,9 +154,9 @@ public class CandidateProcessor implements IListener, Runnable {
             Block candidateBlock = simInfo.doc;
             if (candidateBlock.size >= this.qc.queryBlock.minCandidateSize
                     && candidateBlock.size <= this.qc.queryBlock.maxCandidateSize) {
-                int minPosibleSimilarity = this.qc.queryBlock.minCandidateActionTokens;
-                if (candidateBlock.numActionTokens > this.qc.queryBlock.numActionTokens) {
-                    minPosibleSimilarity = candidateBlock.minCandidateActionTokens;
+                int minPosibleSimilarity = this.qc.queryBlock.minCandidateTotalActionTokens;
+                if (candidateBlock.numTotalActionToken > this.qc.queryBlock.numTotalActionToken) {
+                    minPosibleSimilarity = candidateBlock.minCandidateTotalActionTokens;
                 }
                 if (simInfo.totalActionTokenSimilarity >= minPosibleSimilarity) {
                     logger.debug("similarity is: " + simInfo.totalActionTokenSimilarity);
