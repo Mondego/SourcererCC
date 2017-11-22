@@ -17,6 +17,7 @@ with open('/scratch/mondego/local/farima/new_oreo/recall_related/metricCalculato
         file_dir=filefullpath[-2]
         filename=filefullpath[-1]
         line_nums=linesplitted[2].split(':')
+        if(line_nums[1][-1:]=='\n'): line_nums[1]=line_nums[1][:-1]
         file_methodid[filepart[0]+','+methodpart[0]]=file_dir+','+filename+','+line_nums[0]+','+line_nums[1]
         print(file_dir+','+filename+','+line_nums[0]+','+line_nums[1])
 
