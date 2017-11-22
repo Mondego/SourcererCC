@@ -24,6 +24,6 @@ with open(scc_clonepairs_path) as file_scc_cps:
     for line in file_scc_cps:
         linesplitted=line.split(',')
         cp1=file_methodid[linesplitted[0]+','+linesplitted[1]]
-        cp2 = file_methodid[linesplitted[2] + ',' + linesplitted[3]].rstrip()
+        cp2 = file_methodid[linesplitted[2] + ',' + linesplitted[3]].rstrip('\n')
         file_output.write(cp1+','+cp2+'\n')
 file_output.close()
