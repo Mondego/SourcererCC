@@ -1,4 +1,6 @@
-SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UCI")'s token-based code clone detector for very large code bases and Internet-scale project repositories. SourcererCC works at many levels of granularity, from block level to project level, depending on specific clone detection needs:
+
+# Tutorial
+SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UCI")'s token-based code clone detector for very large code bases and Internet-scale project repositories. SourcererCC works at many levels of granularity such as detecting clones between files, methods, statements or blocks, in any language. This tutorial is for file-level clone detection on Java.
 
 ### Additional Resources:
 
@@ -13,7 +15,7 @@ This VM is the easiest way to get started with SourcererCC to perform your own c
 
 Let's get started.
 
-# Table of Contents
+## Table of Contents
 1. Tokenize source code
 2. Run SourcererCC
 3. I want to know more!
@@ -21,6 +23,7 @@ Let's get started.
 ### Tokenize source code:
 
 SourcererCC is a token-based clone detector. This means that source code must go through an initial step of processing. Luckily, we have a tool do to so, which we will explain in this section.
+
 The program needed to tokenize souce code can be found [here](https://github.com/Mondego/SourcererCC/tree/master/tokenizers/file-level). Start by looking at [config.ini](https://github.com/Mondego/SourcererCC/blob/master/tokenizers/file-level/config.ini) which sets the configuration for the tokenizer. You need to edit a few parameters (the parameters not covered here can be dismissed for now):
 
 Performance parameters:
