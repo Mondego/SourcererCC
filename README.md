@@ -29,10 +29,22 @@ N_PROCESSES = 1
 ; How many projects does each process process at a time?
 PROJECTS_BATCH = 2
 ``` 
-Input, where `paths.txt` needs to be a list of project paths, the projects we want to find clones on:
+
+Where `N_PROCESSES` are active at any given time, and each one processes a batch of `PROJECTS_BATCH` projects.
+
+To set the input you can do:
 ```
 FILE_projects_list = this/is/a/path/paths.txt
 ```
+where `paths.txt` is a list of project paths, the projects we want to find clones on. A sample of a `paths.txt` file would look like this:
+
+```
+path/for/projects/aesthetic-master.zip
+path/for/projects/aesthetic-master.zipOffsetAnimator-master.zip
+path/for/projects/aesthetic-master.zipResourceInspector-master.zip
+path/for/projects/aesthetic-master.zipzachtaylor-JPokemon.zip
+```
+
 Language configurations. Since comments are removed you need to set the language primitives for `comment_inline` and `comment_open_tag`/`comment_close_tag` comments. Finally, describe the `File_extensions` being analyzed (supports a list of extensions):
 ```
 [Language]
@@ -45,22 +57,16 @@ And then run with:
 ```
 pythoon tokenizer.py zip
 ```
-where `zip` is the extension of the individual projects in `FILE_projects_list = this/is/a/path/paths.txt`. For example:
+where `zip` is the extension of the individual projects in `FILE_projects_list = this/is/a/path/paths.txt`. 
 
-```
-path/for/projects/aesthetic-master.zip
-path/for/projects/aesthetic-master.zipOffsetAnimator-master.zip
-path/for/projects/aesthetic-master.zipResourceInspector-master.zip
-path/for/projects/aesthetic-master.zipzachtaylor-JPokemon.zip
-```
-The resulting output is composed by three folders, in the same location:
+The resulting output is composed of three folders, in the same location:
 * `bookkeeping_projs/` - contains a list of processed projects. Has the following format:
-project id, project path, project url
+`project id, project path, project url`
 * `files_stats/` - contains lists of files together with various statistics. Has the following format:
 `file id,project id,project path,project url,file hash,size bytes,lines,LOC,SLOC`
 * `files_tokens/` - contains lists of files together with various statistics and the tokenized forms. Has the following format: `file id,project id,total tokens,unique tokens,token hash@#@token1@@::@@frequency,token2@@::@@frequency,...`
 
-The elements `file id` and `project id` always point to the same file or project, respectively. So a line in `files_stats/*` that start with `1,1` represents the same file as the line in `files_tokens/*` that starts with `1,1`, and these came from the project in `bookkeeping_projs/*` whose line starts with `1`.
+The elements `file id` and `project id` always point to the same source code file or project, respectively (they work as a primary key). So a line in `files_stats/*` that start with `1,1` represents the same file as the line in `files_tokens/*` that starts with `1,1`, and these came from the project in `bookkeeping_projs/*` whose line starts with `1`.
 The number of lines in `bookkeeping_projs/*` corresponds to the total number of projects analyzed, the number of lines in `files_stats/*` is the same as `files_tokens/*` and is the same as the total number of files obtained from the projects.
 
 ### Run SourcererCC
@@ -103,8 +109,15 @@ This tool splits the task by multiple nodes, which must be aggregated in the end
 cat clone-detector/NODE_*/output8.0/query_* > results.pairs
 ```
 
-The resulting information is a list of file id's which are clones at 80% or more. These id's correspond to the ids
-generated in the tokenization phase.
+The resulting information is a list of file id pairs which are clones. These ids correspond to the ids
+generated in the tokenization phase. An example output is:
+
+```
+1,2
+2,3
+```
+
+In this case we have the clone pairs `(1,2)` and `(2,3)`. To know which file corresponds to `1`, we can look at the folder `files_stats/*` and look for the line with the unique id `1`.
 
 ### I want to know more!
 
