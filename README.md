@@ -4,12 +4,12 @@ SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UC
 
 * For more information about SourcererCC please see the [ICSE'16](http://arxiv.org/abs/1512.06448) paper.
 * SourcererCC supports DéjàVu, a large scale study of cloning on GitHub. It has a [homepage](http://mondego.ics.uci.edu/projects/dejavu/), and was published at [OOPSLA'17](https://dl.acm.org/citation.cfm?id=3133908)
-* DéjàVu as supporting web-tool to allow quick and simple clone analysis, [here](http://dejavu.ics.uci.edu/).
+* DéjàVu is a supporting web-tool to allow quick and simple clone analysis, can be found [here](http://dejavu.ics.uci.edu/).
 
 ### Before going through:
 
-We have created an artifact in the form of a virtual machine (VM) that contains the pre-programmed set of instructions that take the user from raw source code to a database with a clone mapping, including all the intermediate steps and explanation of intermediate data types. It can be downloaded on the 'artifacts' section of the [paper ACM website](https://dl.acm.org/citation.cfm?id=3133908) or in the [DéjàVu homepage](http://mondego.ics.uci.edu/projects/dejavu/) (only the latter is kept updated).
-This VM is the easiest and simple way to get started with SourcererCC and perform your own clone analysis, and it most of the information here. **Please try this VM before contacting us.**
+We have created an artifact in the form of a virtual machine (VM) that contains the pre-programmed set of instructions that take the user from raw source code to a database with a clone mapping, including all the intermediate steps and explanation of intermediate data types. It can be downloaded from the 'Source Materials' section of the [paper ACM website](https://dl.acm.org/citation.cfm?id=3133908) or from the [DéjàVu homepage](http://mondego.ics.uci.edu/projects/dejavu/) (only the latter is kept updated).
+This VM is the easiest way to get started with SourcererCC to perform your own clone analysis. It has most of the information here. **Please try this VM before contacting us.**
 
 Let's get started.
 
@@ -56,30 +56,19 @@ project id, project path, project url
 The elements `file id` and `project id` always point to the same file or project, respectively. So a line in `files_stats/*` that start with `1,1` represents the same file as the line in `files_tokens/*` that starts with `1,1`, and these came from the project in `bookkeeping_projs/*` whose line starts with `1`.
 The number of lines in `bookkeeping_projs/*` corresponds to the total number of projects analyzed, the number of lines in `files_stats/*` is the same as `files_tokens/*` and is the same as the total number of files obtained from the projects.
 
-Since the clone detection technique uses token information, there is an additional step of find only the files whose token
-information is distinct. To obtain this list run [this script](https://github.com/Mondego/SourcererCC/blob/master/scripts-data-analysis/pre-CC/step4/find-distinct-token-hashes.py):
-
-```
-python find-distinct-token-hashes.py files_tokens/ files_stats/
-```
-
-The folder `files_tokens/` and `files_stats/` were the ones produced by the tokenizer. This step will produced a new file `distinct-tokens.tokens`. You will need it in the next step.
-
-Note that through this process we already have a notion of cloning, respectively, of token clones, since the resulting list eliminates
-all the files with the same number of tokens, and therefore all the 'token clones'.
-
 ### Run SourcererCC
 
 For this step we will run SourcererCC, which can be found [here](https://github.com/Mondego/SourcererCC/tree/master/clone-detector).
 
-Start by:
+
+Start with `files_tokens/` from the previous step:
 
 ```
-cp distinct-tokens.tokens clone-detector/input/dataset/
-mv clone-detector/input/dataset/distinct-tokens.tokens clone-detector/input/dataset/blocks.file
+cat files_tokens/* > blocks.file
+cp blocks.file SourcererCC/clone-detector/input/dataset/
 ```
 
-It is worth looking at [sourcerer-cc.properties](https://github.com/Mondego/SourcererCC/blob/master/clone-detector/sourcerer-cc.properties), in particular at:
+Inside [clone-detector/](https://github.com/Mondego/SourcererCC/tree/master/clone-detector) it is worth looking at [sourcerer-cc.properties](https://github.com/Mondego/SourcererCC/blob/master/clone-detector/sourcerer-cc.properties), in particular at:
 
 ```
 # Ignore all files outside these bounds
@@ -87,6 +76,14 @@ MIN_TOKENS=65
 MAX_TOKENS=500000
 ```
 where you can set an upper and lower bound for file clone detection. You can dismiss the other parameters for now.
+
+To change the percentage of clone similarity, look at [runnodes.sh](https://github.com/Mondego/SourcererCC/blob/master/clone-detector/runnodes.sh#L9), line 9:
+
+```
+threshold="${3:-8}"
+```
+where `8` means clones will be flagged at 80% similarity (current setup), `7` at 70%, and so on.
+The JVM parameters can be configured in the [same file](https://github.com/Mondego/SourcererCC/blob/master/clone-detector/runnodes.sh#L20), at line 20.
 
 Finally, run:
 
@@ -106,5 +103,5 @@ generated in the tokenization phase.
 
 That is great :+1: In the VM we refer to above you can find instructions and programs to import everything into an easily queryable database and perform statistic analysis on this information.
 Our [OOPSLA'17](https://dl.acm.org/citation.cfm?id=3133908) paper is a great way to understand out typical pipeline and which kind of results you can obtain.
-Finally, if you have any question or need more technical help (tweaking performance parameters for you hardware, for example), feel free to contact us.
+Finally, if you have any question or need more technical help (tweaking performance parameters for you hardware, for example), feel free to [contact us](http://mondego.ics.uci.edu/).
 
