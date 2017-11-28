@@ -45,7 +45,14 @@ And then run with:
 ```
 pythoon tokenizer.py zip
 ```
-where `zip` is the extension of the individual projects in `FILE_projects_list = this/is/a/path/paths.txt`. Other options supported are `folder` and `tar`.
+where `zip` is the extension of the individual projects in `FILE_projects_list = this/is/a/path/paths.txt`. For example:
+
+```
+path/for/projects/aesthetic-master.zip
+path/for/projects/aesthetic-master.zipOffsetAnimator-master.zip
+path/for/projects/aesthetic-master.zipResourceInspector-master.zip
+path/for/projects/aesthetic-master.zipzachtaylor-JPokemon.zip
+```
 The resulting output is composed by three folders, in the same location:
 * `bookkeeping_projs/` - contains a list of processed projects. Has the following format:
 project id, project path, project url
