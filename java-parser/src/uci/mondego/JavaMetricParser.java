@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class JavaMetricParser {
     public String outputDirPath;
@@ -19,14 +21,16 @@ public class JavaMetricParser {
     public static long FILE_COUNTER;
     public static long METHOD_COUNTER;
     private IInputProcessor inputProcessor;
-
+    public static Set<String> filesToprocess;
+    
     public JavaMetricParser(String inputFilePath) {
         this.metricsFileName = "mlcc_input.file";
         this.bookkeepingFileName = "bookkeeping.file";
         this.errorFileName = "error_metrics.file";
         this.tokensFileName = "scc_input.file";
-        // JavaMetricParser.fileIdPrefix = "1";
+        JavaMetricParser.filesToprocess = new HashSet<String>();
         JavaMetricParser.prefix = this.getBaseName(inputFilePath);
+        JavaMetricParser.fileIdPrefix = JavaMetricParser.prefix;//"1";
         this.outputDirPath = JavaMetricParser.prefix + "_metric_output";
         File outDir = new File(this.outputDirPath);
         if (!outDir.exists()) {
@@ -70,17 +74,23 @@ public class JavaMetricParser {
                 this.initializeWriters();
 
             br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
-            String line;
+            String line = null;
+            while ((line = br.readLine()) != null && line.trim().length() > 0) {
+                JavaMetricParser.filesToprocess.add(line);
+            }
+            try{
+                br.close();
+            }catch(IOException e){
+                System.out.println("WARN, couldn't close inputfile: "+ filename);
+            }
             if ("dir".equals(inputMode)) {
                 this.inputProcessor = new FolderInputProcessor();
             }else if ("tgz".equals(inputMode)){
-                
+                this.inputProcessor = new TGZInputProcessor();
             }else if ("zip".equals(inputMode)){
                 
             }
-            while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                this.inputProcessor.processInput(line.trim());
-            }
+            this.inputProcessor.processInput("dummy");
             this.closeWriters();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -91,6 +101,7 @@ public class JavaMetricParser {
 
     public static void main(String[] args) throws FileNotFoundException {
         if (args.length > 0) {
+            System.out.println(args);
             String filename = args[0];
             String inputMode = args[1];
             JavaMetricParser javaMetricParser = new JavaMetricParser(filename);

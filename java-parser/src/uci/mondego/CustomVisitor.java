@@ -2,6 +2,7 @@ package uci.mondego;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map.Entry;
 
 import com.github.javaparser.ast.Modifier;
@@ -16,9 +17,17 @@ import com.github.javaparser.ast.visitor.TreeVisitor;
 
 public class CustomVisitor extends TreeVisitor {
     File file;
+    String fileContent;
+    Path path;
     public CustomVisitor(File file) {
         super();
         this.file = file;
+        this.path = file.toPath();
+    }
+    public CustomVisitor(String content, Path path) {
+        super();
+        this.fileContent = content;
+        this.path=path;
     }
 
     @Override
@@ -27,6 +36,7 @@ public class CustomVisitor extends TreeVisitor {
             JavaMetricParser.METHOD_COUNTER++;
             MetricCollector collector = new MetricCollector();
             collector._file = this.file;
+            collector._path = this.path;
             if (node instanceof MethodDeclaration) {
                 for (Modifier c : ((MethodDeclaration) node).getModifiers()) {
                     collector.addToken(c.toString());
@@ -83,7 +93,7 @@ public class CustomVisitor extends TreeVisitor {
             MapUtils.subtractMaps(collector.mapInnerMethodParameters, collector.mapParameter);
             collector.populateVariableRefList();
             collector.populateMetricHash();
-            String fileId = JavaMetricParser.prefix + JavaMetricParser.FILE_COUNTER;
+            String fileId = JavaMetricParser.fileIdPrefix + JavaMetricParser.FILE_COUNTER;
             String methodId = fileId + "00" + JavaMetricParser.METHOD_COUNTER;
             // System.out.println("fileId is : " + fileId + ", methodId
             // is: " + methodId);
@@ -105,8 +115,8 @@ public class CustomVisitor extends TreeVisitor {
 
         StringBuilder stopwordsActionTokenString = new StringBuilder("");
         String methodNameActionString = "";
-        metadataString.append(collector._file.getParentFile().getName()).append(internalSeparator)
-                .append(collector._file.getName()).append(internalSeparator).append(collector.START_LINE)
+        metadataString.append(collector._path.getParent().toString()).append(internalSeparator)
+                .append(collector._path.getFileName()).append(internalSeparator).append(collector.START_LINE)
                 .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
                 .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
                 .append(internalSeparator).append(collector.tokensMap.size()).append(internalSeparator)
@@ -176,7 +186,7 @@ public class CustomVisitor extends TreeVisitor {
         StringBuilder line = new StringBuilder("");
         line.append(metadataString).append(externalSeparator).append(tokenString).append(System.lineSeparator());
         try {
-            FileWriters.bookkeepingWriter.append(collector.fileId + ":" + collector._file.getAbsolutePath() + ";"
+            FileWriters.bookkeepingWriter.append(collector.fileId + ":" + collector._path.toString() + ";"
                     + collector.methodId + ":" + collector._methodName + ";" + collector.START_LINE + ":"
                     + collector.END_LINE + System.lineSeparator());
             FileWriters.tokensFileWriter.append(line.toString());
