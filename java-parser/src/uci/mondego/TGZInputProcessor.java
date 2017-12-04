@@ -47,6 +47,11 @@ public class TGZInputProcessor implements IInputProcessor {
                     }
                     this.metricalize(sb.toString(), p);
                 }
+                try{
+                    br.close();
+                }catch(IOException er){
+                    System.out.println("WARN: "+ er.getMessage());
+                }
                 currentEntry = tarInput.getNextTarEntry(); // iterate to the
                                                            // next file
             }
