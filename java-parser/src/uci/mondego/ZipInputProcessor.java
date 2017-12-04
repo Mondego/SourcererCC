@@ -2,58 +2,53 @@ package uci.mondego;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.visitor.TreeVisitor;
 
-public class TGZInputProcessor implements IInputProcessor {
-    public static String rootDirForInput = "/Users/vaibhavsaini/Documents";
-    public static String tgzFile = rootDirForInput + File.separator + "test.tgz";
+public class ZipInputProcessor implements IInputProcessor {
+    public static String rootDirForInput = "/home/saini/Documents";
+    public static String zipFile = rootDirForInput + File.separator + "test.zip";
 
-    @Override
     public void processInput(String filename) throws FileNotFoundException {
-        TarArchiveInputStream tarInput;
         try {
-            tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(filename)));
-            TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
+            ZipFile zipFile = new ZipFile(filename);
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
             BufferedReader br = null;
             String ext = null;
             StringBuilder sb = new StringBuilder();
-            while (currentEntry != null) {
+            while (entries.hasMoreElements()) {
+                ZipEntry currentEntry = entries.nextElement();
                 ext = FilenameUtils.getExtension(currentEntry.getName());
                 if (ext.equals("java")) {
                     Path p = Paths.get(currentEntry.getName());
-                    br = new BufferedReader(new InputStreamReader(tarInput)); // Read
-                                                                              // directly
-                                                                              // from
-                                                                              // tarInput
+                    // Read directly from zip
+                    br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(currentEntry))); 
                     sb.setLength(0);
                     String line;
                     while ((line = br.readLine()) != null) {
                         // System.out.println(line);
                         sb.append(line).append(System.lineSeparator());
                     }
+                    //System.out.println(sb);
                     this.metricalize(sb.toString(), p);
                 }
-                currentEntry = tarInput.getNextTarEntry(); // iterate to the
-                                                           // next file
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
         }
-
     }
 
     private void metricalize(String fileContent, Path path) throws FileNotFoundException {
@@ -64,8 +59,8 @@ public class TGZInputProcessor implements IInputProcessor {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        IInputProcessor processor = new TGZInputProcessor();
-        processor.processInput(TGZInputProcessor.tgzFile);
+        IInputProcessor processor = new ZipInputProcessor();
+        processor.processInput(ZipInputProcessor.zipFile);
     }
 
 }

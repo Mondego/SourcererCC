@@ -21,16 +21,14 @@ public class JavaMetricParser {
     public static long FILE_COUNTER;
     public static long METHOD_COUNTER;
     private IInputProcessor inputProcessor;
-    public static Set<String> filesToprocess;
-    
+
     public JavaMetricParser(String inputFilePath) {
         this.metricsFileName = "mlcc_input.file";
         this.bookkeepingFileName = "bookkeeping.file";
         this.errorFileName = "error_metrics.file";
         this.tokensFileName = "scc_input.file";
-        JavaMetricParser.filesToprocess = new HashSet<String>();
         JavaMetricParser.prefix = this.getBaseName(inputFilePath);
-        JavaMetricParser.fileIdPrefix = JavaMetricParser.prefix;//"1";
+        JavaMetricParser.fileIdPrefix = JavaMetricParser.prefix;// "1";
         this.outputDirPath = JavaMetricParser.prefix + "_metric_output";
         File outDir = new File(this.outputDirPath);
         if (!outDir.exists()) {
@@ -47,50 +45,49 @@ public class JavaMetricParser {
         }
         return fileName;
     }
-    private void initializeWriters() throws IOException{
-        FileWriters.metricsFileWriter = Util.openFile(
-                this.outputDirPath + File.separator + this.metricsFileName, false);
 
-        FileWriters.errorPw = Util.openFile(
-                this.outputDirPath + File.separator + this.errorFileName, false);
-        FileWriters.bookkeepingWriter = Util.openFile(
-                this.outputDirPath + File.separator + this.bookkeepingFileName,
+    private void initializeWriters() throws IOException {
+        FileWriters.metricsFileWriter = Util.openFile(this.outputDirPath + File.separator + this.metricsFileName,
                 false);
-        FileWriters.tokensFileWriter = Util.openFile(
-                this.outputDirPath + File.separator + this.tokensFileName, false);
+
+        FileWriters.errorPw = Util.openFile(this.outputDirPath + File.separator + this.errorFileName, false);
+        FileWriters.bookkeepingWriter = Util.openFile(this.outputDirPath + File.separator + this.bookkeepingFileName,
+                false);
+        FileWriters.tokensFileWriter = Util.openFile(this.outputDirPath + File.separator + this.tokensFileName, false);
     }
-    
-    private void closeWriters(){
+
+    private void closeWriters() {
         Util.closeOutputFile(FileWriters.metricsFileWriter);
         Util.closeOutputFile(FileWriters.errorPw);
         Util.closeOutputFile(FileWriters.tokensFileWriter);
         Util.closeOutputFile(FileWriters.bookkeepingWriter);
     }
-    
-    
-    private void handleInput(String inputMode, String filename){
+
+    private void handleInput(String inputMode, String filename) {
         BufferedReader br;
         try {
-                this.initializeWriters();
+            this.initializeWriters();
+            if ("dir".equals(inputMode)) {
+                this.inputProcessor = new FolderInputProcessor();
+            } else if ("tgz".equals(inputMode)) {
+                this.inputProcessor = new TGZInputProcessor();
+            } else if ("zip".equals(inputMode)) {
+                
+
+            }
 
             br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
             String line = null;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
-                JavaMetricParser.filesToprocess.add(line);
+                line = line.trim();
+                this.inputProcessor.processInput(line);
             }
-            try{
+            try {
                 br.close();
-            }catch(IOException e){
-                System.out.println("WARN, couldn't close inputfile: "+ filename);
+            } catch (IOException e) {
+                System.out.println("WARN, couldn't close inputfile: " + filename);
             }
-            if ("dir".equals(inputMode)) {
-                this.inputProcessor = new FolderInputProcessor();
-            }else if ("tgz".equals(inputMode)){
-                this.inputProcessor = new TGZInputProcessor();
-            }else if ("zip".equals(inputMode)){
-                
-            }
-            this.inputProcessor.processInput("dummy");
+
             this.closeWriters();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
