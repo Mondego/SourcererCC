@@ -1,6 +1,8 @@
 import os
 import subprocess
 import shutil
+import zipfile
+import tarfile
 
 def full_file_path(string):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
@@ -45,8 +47,8 @@ def run_command(cmd, outFile, errFile):
 num_process = int(input("Enter the number of processes: "))
 
 main_dir="/home/sourcerer/oreo_related/train_dataset_sourcefiles/"
-# main_dir="D:\\PhD\\Clone\\MlCC-New\\SourcererCC\\train_dataset"
-subdirs = [f.path for f in os.scandir(main_dir) if f.is_dir() ]
+# main_dir="D:\\PhD\\Clone\\MlCC-New\\SourcererCC\\test_input"
+subdirs = [f.path for f in os.scandir(main_dir) if (f.is_dir() or zipfile.is_zipfile(f) or tarfile.is_tarfile(f))]
 num_dir_per_process=len(subdirs)//num_process
 num_last_file=num_dir_per_process+(len(subdirs)%num_process)
 
