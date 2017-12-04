@@ -35,15 +35,19 @@ public class ZipInputProcessor implements IInputProcessor {
                 if (ext.equals("java")) {
                     Path p = Paths.get(currentEntry.getName());
                     // Read directly from zip
-                    br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(currentEntry))); 
+                    br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(currentEntry)));
                     sb.setLength(0);
                     String line;
                     while ((line = br.readLine()) != null) {
                         // System.out.println(line);
                         sb.append(line).append(System.lineSeparator());
                     }
-                    //System.out.println(sb);
                     this.metricalize(sb.toString(), p);
+                    try {
+                        br.close();
+                    } catch (IOException er) {
+                        System.out.println("WARN: "+ er.getMessage());
+                    }
                 }
             }
         } catch (IOException e1) {
