@@ -44,11 +44,24 @@ def run_command(cmd, outFile, errFile):
     #fo.close()
     #fe.close()
 
+type_input=''
+while(not (type_input=='z' or type_input=='d')):
+    type_input=input("Enter project types; d fir dirs and z for zipped files: ")
 num_process = int(input("Enter the number of processes: "))
 
 main_dir="/home/sourcerer/oreo_related/train_dataset_sourcefiles/"
 # main_dir="D:\\PhD\\Clone\\MlCC-New\\SourcererCC\\test_input"
-subdirs = [f.path for f in os.scandir(main_dir) if (f.is_dir() or zipfile.is_zipfile(f) or tarfile.is_tarfile(f))]
+if(type_input=="z"):
+    subdirs=[]
+    for root, dirs, files in os.walk(main_dir):
+        for file in files:
+            print(os.path.join(root, file))
+            if (zipfile.is_zipfile(os.path.join(root, file)) or tarfile.is_tarfile(os.path.join(root, file))):
+             subdirs.append(os.path.join(root, file))
+elif (type_input=="d"):
+    subdirs = [f.path for f in os.scandir(main_dir) if f.is_dir()]
+
+
 num_dir_per_process=len(subdirs)//num_process
 num_last_file=num_dir_per_process+(len(subdirs)%num_process)
 
