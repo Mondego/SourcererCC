@@ -1,6 +1,8 @@
 import os
 import subprocess
 import shutil
+import zipfile
+import sys
 
 def full_file_path(string):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
@@ -42,30 +44,47 @@ def run_command(cmd, outFile, errFile):
     #fo.close()
     #fe.close()
 
-num_process = int(input("Enter the number of processes: "))
+if __name__ == '__main__':
+    num_process = 2
+    if len(sys.argv) > 2:
+        num_process = int(sys.argv[1])
+        type_input=sys.argv[2]
+    else:
+        print("Please provide all arguments")
+if(type_input=='z' or type_input=='d'):
 
-main_dir="/home/sourcerer/oreo_related/train_dataset_sourcefiles/"
-# main_dir="D:\\PhD\\Clone\\MlCC-New\\SourcererCC\\train_dataset"
-subdirs = [f.path for f in os.scandir(main_dir) if f.is_dir() ]
-num_dir_per_process=len(subdirs)//num_process
-num_last_file=num_dir_per_process+(len(subdirs)%num_process)
+    main_dir="/home/sourcerer/oreo_related/train_dataset_sourcefiles/"
+    # main_dir="D:\\PhD\\Clone\\MlCC-New\\SourcererCC\\test_input"
+    if(type_input=="z"):
+        subdirs=[]
+        for root, dirs, files in os.walk(main_dir):
+            for file in files:
+                print(os.path.join(root, file))
+                if (zipfile.is_zipfile(os.path.join(root, file))):
+                 subdirs.append(os.path.join(root, file))
+    elif (type_input=="d"):
+        subdirs = [f.path for f in os.scandir(main_dir) if f.is_dir()]
 
-if os.path.exists("output"):
-    shutil.rmtree('output')
-os.makedirs("output")
 
-for i in range(num_process):
-    file = open("output/" + str(i + 1) + ".txt", "w")
-    numWritten=0
-    for j in range((i*num_dir_per_process),len(subdirs)):
-        file.write(subdirs[j]+"\n")
-        numWritten+=1
-        if(numWritten==(num_dir_per_process) and i!=(num_process-1)):
-            break
-    file.close()
-for file in os.listdir("output/"):
-    command = " java -jar ../java-parser/dist/metricCalculator.jar {filename}".format(
-        filename=full_file_path("output/"+file))
-    command_params = command.split()
-    run_command(
-        command_params, full_file_path("metric.out"), full_file_path("metric.err"))
+    num_dir_per_process=len(subdirs)//num_process
+    num_last_file=num_dir_per_process+(len(subdirs)%num_process)
+
+    if os.path.exists("output"):
+        shutil.rmtree('output')
+    os.makedirs("output")
+
+    for i in range(num_process):
+        file = open("output/" + str(i + 1) + ".txt", "w")
+        numWritten=0
+        for j in range((i*num_dir_per_process),len(subdirs)):
+            file.write(subdirs[j]+"\n")
+            numWritten+=1
+            if(numWritten==(num_dir_per_process) and i!=(num_process-1)):
+                break
+        file.close()
+    for file in os.listdir("output/"):
+        command = " java -jar ../java-parser/dist/metricCalculator.jar {filename}".format(
+            filename=full_file_path("output/"+file))
+        command_params = command.split()
+        run_command(
+            command_params, full_file_path("metric.out"), full_file_path("metric.err"))
