@@ -7,8 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
-import java.util.Set;
 
 public class JavaMetricParser {
     public String outputDirPath;
@@ -72,8 +70,7 @@ public class JavaMetricParser {
             } else if ("tgz".equals(inputMode)) {
                 this.inputProcessor = new TGZInputProcessor();
             } else if ("zip".equals(inputMode)) {
-                
-
+                this.inputProcessor = new ZipInputProcessor();
             }
 
             br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
