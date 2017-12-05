@@ -15,6 +15,7 @@ import java.util.zip.ZipFile;
 import org.apache.commons.io.FilenameUtils;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.visitor.TreeVisitor;
 
@@ -35,6 +36,7 @@ public class ZipInputProcessor implements IInputProcessor {
                 if (ext.equals("java")) {
                     Path p = Paths.get(currentEntry.getName());
                     // Read directly from zip
+                    System.out.println("processing " + currentEntry.getName());
                     br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(currentEntry)));
                     sb.setLength(0);
                     String line;
@@ -42,11 +44,36 @@ public class ZipInputProcessor implements IInputProcessor {
                         // System.out.println(line);
                         sb.append(line).append(System.lineSeparator());
                     }
-                    this.metricalize(sb.toString(), p);
+                    try {
+                        this.metricalize(sb.toString(), p);
+                    } catch (FileNotFoundException e) {
+                        System.out.println("WARN: File not found, skipping file: " + p.toString());
+                        try {
+                            FileWriters.errorPw.write(p.toString() + System.lineSeparator());
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    } catch (ParseProblemException e) {
+                        System.out.println("WARN: parse problem exception, skippig file: " + p.toString());
+                        try {
+                            FileWriters.errorPw.write(p.toString() + System.lineSeparator());
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        System.out.println("WARN: unknown error, skippig file: " + p.toString());
+                        try {
+                            FileWriters.errorPw.write(p.toString() + System.lineSeparator());
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                        e.printStackTrace();
+                    }
                     try {
                         br.close();
                     } catch (IOException er) {
-                        System.out.println("WARN: "+ er.getMessage());
+                        System.out.println("WARN: " + er.getMessage());
                     }
                 }
             }
