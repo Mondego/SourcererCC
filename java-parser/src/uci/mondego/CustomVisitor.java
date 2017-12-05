@@ -115,7 +115,7 @@ public class CustomVisitor extends TreeVisitor {
 
         StringBuilder stopwordsActionTokenString = new StringBuilder("");
         String methodNameActionString = "";
-        metadataString.append(collector._path.getParent().toString()).append(internalSeparator)
+        metadataString.append(collector._path.getParent().getFileName()).append(internalSeparator)
                 .append(collector._path.getFileName()).append(internalSeparator).append(collector.START_LINE)
                 .append(internalSeparator).append(collector.END_LINE).append(internalSeparator)
                 .append(collector._methodName).append(internalSeparator).append(collector.NTOKENS)
