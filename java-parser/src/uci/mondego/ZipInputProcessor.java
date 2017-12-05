@@ -78,6 +78,10 @@ public class ZipInputProcessor implements IInputProcessor {
                 }
             }
         } catch (IOException e1) {
+            System.out.println("WARN: unknown error, skippig zip: " + filename);
+            e1.printStackTrace();
+        } catch (IllegalArgumentException e1){
+            System.out.println("WARN: unknown error, skippig zip: " + filename);
             e1.printStackTrace();
         }
     }
