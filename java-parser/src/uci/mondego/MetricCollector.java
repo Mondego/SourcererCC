@@ -2,15 +2,16 @@ package uci.mondego;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MetricCollector {
     public File _file; // file object
+    public Path _path; // path of the file. useful when file is inside a tgz or zip
     public String _methodName; // method name
     public int CAST; // number of class casts (Integer)x
     public int COMP; // McCabes cyclomatic complexity
@@ -243,7 +244,7 @@ public class MetricCollector {
 
     @Override
     public String toString() {
-        return "MetricCollector [_file=" + _file + ", _methodName=" + _methodName + ", CAST=" + CAST + ", COMP=" + COMP
+        return "MetricCollector [_path=" + _path + ", _methodName=" + _methodName + ", CAST=" + CAST + ", COMP=" + COMP
                 + ", CREF=" + CREF + ", END_LINE=" + END_LINE + ", EXCR=" + EXCR + ", EXCT=" + EXCT + ", fileId="
                 + fileId + ", HBUG=" + HBUG + ", HDIF=" + HDIF + ", HEFF=" + HEFF + ", HLTH=" + HLTH + ", HVOC=" + HVOC
                 + ", HVOL=" + HVOL + ", LMET=" + LMET + ", LOOP=" + LOOP + ", mapArrayAccessActionTokens="
