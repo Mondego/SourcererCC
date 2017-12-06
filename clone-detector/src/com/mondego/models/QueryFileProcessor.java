@@ -9,13 +9,16 @@ import com.mondego.indexbased.SearchManager;
 
 public class QueryFileProcessor implements ITokensFileProcessor {
     private static final Logger logger = LogManager.getLogger(QueryFileProcessor.class);
-    public QueryFileProcessor() {
+    Shard shard;
+    public QueryFileProcessor(Shard shard) {
+        this.shard= shard;
     }
 
     @Override
     public void processLine(String line) {
         try {
-            SearchManager.queryLineQueue.send(line);
+            
+            SearchManager.queryLineQueue.send(new QueryLineWrapper(line, this.shard));
         } catch (InstantiationException e) {
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
