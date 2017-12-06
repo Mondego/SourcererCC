@@ -170,8 +170,9 @@ public class CandidateProcessor implements IListener, Runnable {
                     String line = this.getLineToSend(this.getLineToWrite(qc.queryBlock, candidateBlock));
                     try {
                         if (!type.equals("2")){
-                            String key = "train_shard_"+qc.queryBlock.shard.id + "_type_"+type;
-                            Util.writeToFile(SearchManager.trainWriters.get(key), line, true);
+                            //String key = "train_shard_"+qc.queryBlock.shard.id + "_type_"+type;
+                            String key = "type_"+type;
+                            Util.writeToFile(SearchManager.getWriter(key), line, true);
                         }
                         /*if(type.equals("3.1")){
                             logger.debug(type+"#$#"+line);

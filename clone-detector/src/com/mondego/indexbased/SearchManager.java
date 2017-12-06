@@ -887,8 +887,16 @@ public class SearchManager {
                         String[] lineParts = line.split("@#@");
                         String metadataPart = lineParts[0];
                         String[] metadata = metadataPart.split(",");
-                        int numTokens = Integer
-                                .parseInt(metadata[Util.NUM_TOKENS]);
+                        int numTokens = 0;
+                        try{
+                            numTokens = Integer
+                                    .parseInt(metadata[Util.NUM_TOKENS]);
+                        }catch(NumberFormatException e){
+                            e.printStackTrace();
+                            logger.warn(e.getMessage());
+                            logger.warn("mettadatapart: "+ metadataPart+", ignoring this line");
+                        }
+                        
                         List<Shard> shardsToIndex = SearchManager
                                 .getShards(numTokens);
                         for (Shard shard : shardsToIndex) {
