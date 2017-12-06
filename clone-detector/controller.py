@@ -163,34 +163,12 @@ class ScriptController(object):
 
     def run_command(self, cmd, outFile, errFile):
         print("running new command {}".format(" ".join(cmd)))
-        fo = open(outFile, "w")
-        fe = open(errFile, "w")
-        p = subprocess.Popen(cmd,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             universal_newlines=True
-                             )
-        while (True):
-            returncode = p.poll()  # returns None while subprocess is running
-            outputLine = p.stdout.readline()
-            errLine = p.stderr.readline()
-            if outputLine:
-                fo.write(outputLine)
-            if errLine:
-                fe.write(errLine)
-            if returncode is not None:
-                print ("returncode is {}. ".format(returncode))
-                break
-        # read the remaining lines in the buffers
-        outputLines = p.stdout.readlines()
-        for outputLine in outputLines:
-            fo.write(outputLine)
-        errLines = p.stderr.readlines()
-        for errLine in errLines:
-            fo.write(errLine)
-        fo.close()
-        fe.close()
-        return returncode
+        with open(outFile, "w") as fo, \
+             open(errFile, "w") as fe:
+            p = subprocess.Popen(cmd, stdout=fo, stderr=fe, universal_newlines=True)
+            p.communicate()
+        return p.returncode
+
 if __name__ == '__main__':
     numnodes = 2
     if len(sys.argv) > 1:
