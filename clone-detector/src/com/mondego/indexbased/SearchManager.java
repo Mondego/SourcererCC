@@ -900,7 +900,7 @@ public class SearchManager {
                             logger.warn("mettadatapart: "+ metadataPart+", ignoring this line");
                             continue;
                         }
-                        if (numTokens>=SearchManager.min_tokens){
+                        if (numTokens>=SearchManager.min_tokens && numTokens<=SearchManager.max_tokens){
                             List<Shard> shardsToIndex = SearchManager
                                     .getShards(numTokens);
                             for (Shard shard : shardsToIndex) {
