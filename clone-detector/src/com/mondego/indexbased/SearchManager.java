@@ -381,7 +381,10 @@ public class SearchManager {
                 mid = (low + high) / 2;
             }
         }
-        return shard;
+        if(metric>=shard.getMinMetricValue() && metric<=shard.getMaxMetricValue()){
+            return shard;
+        }
+        return null;
     }
 
     public static Shard getShardRecursive(Bag bag, Shard parentShard,
@@ -887,7 +890,7 @@ public class SearchManager {
                         String[] lineParts = line.split("@#@");
                         String metadataPart = lineParts[0];
                         String[] metadata = metadataPart.split(",");
-                        int numTokens = 0;
+                        int numTokens = -1;
                         try{
                             numTokens = Integer
                                     .parseInt(metadata[Util.NUM_TOKENS]);
@@ -897,21 +900,22 @@ public class SearchManager {
                             logger.warn("mettadatapart: "+ metadataPart+", ignoring this line");
                             continue;
                         }
-                        
-                        List<Shard> shardsToIndex = SearchManager
-                                .getShards(numTokens);
-                        for (Shard shard : shardsToIndex) {
-                            Util.writeToFile(shard.candidateFileWriter, line,
-                                    true);
-                            shard.size++;
+                        if (numTokens>=SearchManager.min_tokens){
+                            List<Shard> shardsToIndex = SearchManager
+                                    .getShards(numTokens);
+                            for (Shard shard : shardsToIndex) {
+                                Util.writeToFile(shard.candidateFileWriter, line,
+                                        true);
+                                shard.size++;
+                            }
+                            Shard shardToSearch = SearchManager
+                                    .getShardToSearch(numTokens);
+                            if (null != shardToSearch) {
+                                Util.writeToFile(shardToSearch.queryFileWriter,
+                                        line, true);
+                            }
+                            count++;
                         }
-                        Shard shardToSearch = SearchManager
-                                .getShardToSearch(numTokens);
-                        if (null != shardToSearch) {
-                            Util.writeToFile(shardToSearch.queryFileWriter,
-                                    line, true);
-                        }
-                        count++;
                     }
                     logger.debug("total files partitioned: " + count);
                 } catch (FileNotFoundException e) {
