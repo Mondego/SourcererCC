@@ -825,12 +825,6 @@ public class SearchManager {
                 "key");
         if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
             theInstance.readAndUpdateRunMetadata();
-            File completedNodeFile = new File(SearchManager.completedNodes);
-            if (completedNodeFile.exists()) {
-                logger.debug(completedNodeFile.getAbsolutePath()
-                        + "exists, deleting it.");
-                completedNodeFile.delete();
-            }
         }
     }
 
