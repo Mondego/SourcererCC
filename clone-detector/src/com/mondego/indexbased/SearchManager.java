@@ -895,6 +895,7 @@ public class SearchManager {
                             e.printStackTrace();
                             logger.warn(e.getMessage());
                             logger.warn("mettadatapart: "+ metadataPart+", ignoring this line");
+                            continue;
                         }
                         
                         List<Shard> shardsToIndex = SearchManager
@@ -1084,7 +1085,7 @@ public class SearchManager {
         // theInstance.loadIjaMap();
         // theInstance.loadTokensMap();
         theInstance.loadCloneLabels();
-        if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
+        /*if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
             theInstance.readAndUpdateRunMetadata();
             File completedNodeFile = new File(SearchManager.completedNodes);
             if (completedNodeFile.exists()) {
@@ -1092,7 +1093,7 @@ public class SearchManager {
                         + "exists, deleting it.");
                 completedNodeFile.delete();
             }
-        }
+        }*/
 
         // SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR,
         // "key");
