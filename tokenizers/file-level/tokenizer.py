@@ -152,7 +152,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   final_stats = (file_hash,lines,LOC,SLOC)
 
   # Rather a copy of the file string here for tokenization
-  file_string_for_tokenization = file_string
+  file_string_for_tokenization = file_string.decode('utf-8')
 
   temp_string = file_string_for_tokenization.split('\n')
   if experimental:
@@ -181,7 +181,8 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
   t_time = dt.datetime.now()
   #SourcererCC formatting
-  tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in file_string_for_tokenization.iteritems()])
+  tokens = ','.join(['{}@@::@@{}'.format(k.encode('utf-8'), v)
+                    for k,v in file_string_for_tokenization.iteritems()])
   t_time = (dt.datetime.now() - t_time).microseconds
 
   # MD5
