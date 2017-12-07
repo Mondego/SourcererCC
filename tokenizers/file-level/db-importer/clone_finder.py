@@ -153,12 +153,12 @@ def load_project_file_counts(db_object, project_file_counts):
     logging.debug("Loading project file counts... done")
 
 
-def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_counts):
+def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_counts, host):
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
     logging.info('Starting process %s', pnum)
-    db_object = DB(DB_user, DB_name, DB_pass, logging)
+    db_object = DB(DB_user, DB_name, DB_pass, logging, host)
 
     try:
         pcounter =  0
@@ -179,18 +179,30 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_c
         db_object.close()
 
 if __name__ == "__main__":
-    FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
+    log_path = 'LOG-db-clonefinder.log'
+
+    if os.path.isfile(log_path):
+        print 'ERROR: Log file:',log_path,'already exists'
+        sys.exit(1)
+
+    FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setFormatter(logging.Formatter(FORMAT))
+    logging.getLogger().addHandler(file_handler)
 
     if len(sys.argv) < 4:
-        logging.error('Usage: mysql-import.py user passwd database')
+        logging.error('Usage: clone-finder.py user passwd database (host|OPTIONAL)') 
         sys.exit(1)
 
     DB_user  = sys.argv[1]
     DB_pass = sys.argv[2]
     DB_name = sys.argv[3]
+    host = 'localhost'
+    if len(sys.argv) == 5:
+        host = sys.argv[4]
 
-    db_object = DB(DB_user, DB_name, DB_pass, logging)
+    db_object = DB(DB_user, DB_name, DB_pass, logging, host)
 
     try:
         db_object.execute("DROP TABLE IF EXISTS `projectClones`;")
@@ -236,7 +248,7 @@ if __name__ == "__main__":
         processes = []
         for process_num in xrange(N_PROCESSES):
             p = Process(name='Process '+str(process_num), target=start_process, 
-                        args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, ))
+                        args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, host, ))
             processes.append(p)
             p.start()
 
