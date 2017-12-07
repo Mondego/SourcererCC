@@ -181,7 +181,7 @@ public class SearchManager {
             this.rcq_thread_count = Integer
                     .parseInt(properties.getProperty("RCQ_THREADS", "1"));
             SearchManager.min_tokens = Integer.parseInt(
-                    properties.getProperty("LEVEL_1_MIN_TOKENS", "65"));
+                    properties.getProperty("LEVEL_1_MIN_TOKENS", "15"));
             SearchManager.max_tokens = Integer.parseInt(
                     properties.getProperty("LEVEL_1_MAX_TOKENS", "500000"));
             this.threadsToProcessBagsToSortQueue = Integer
@@ -1023,7 +1023,15 @@ public class SearchManager {
                 if (completedLines <= avoidLines) {
                     continue;
                 }
-                Block block = new Block(line);
+                Block block= null;
+                try{
+                    block = new Block(line);
+                }catch(NumberFormatException e ){
+                    logger.warn("parse error in line: "+ line);
+                    logger.warn("ignoring this line, moving to the next one");
+                    continue;
+                }
+                
                 // Bag bag = theInstance.cloneHelper.deserialise(line);
                 if (null != block) {
                     size = size + (block.actionTokenFrequencySet.size() * 300); // approximate
