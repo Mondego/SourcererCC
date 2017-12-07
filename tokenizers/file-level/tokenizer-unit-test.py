@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 import re
 import os
 import collections
@@ -11,13 +13,13 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser # ver. < 3.0
 
-    config = ConfigParser()
-    # parse existing file
-    try:
-        config.read('config.ini')
-    except IOError:
-        print 'ERROR - Config settings not found. Usage: $python this-script.py config.ini'
-        sys.exit()
+config = ConfigParser()
+# parse existing file
+try:
+    config.read('config.ini')
+except IOError:
+    print 'ERROR - Config settings not found. Usage: $python this-script.py config.ini'
+    sys.exit()
 
 separators = config.get('Language', 'separators').strip('"').split(' ')
 comment_inline = config.get('Language', 'comment_inline')
@@ -26,7 +28,7 @@ comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
 comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
 comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
 
-REGEX = re.compile('\w+@@::@@+\d')
+REGEX = re.compile('.+?@@::@@+\d')
 
 class TestParser(unittest.TestCase):
 
@@ -43,7 +45,7 @@ class TestParser(unittest.TestCase):
         input = """ line 1
                     line 2
                     line 3 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,3)
@@ -55,7 +57,7 @@ class TestParser(unittest.TestCase):
                     line 2
                     line 3
 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,3)
@@ -68,7 +70,7 @@ class TestParser(unittest.TestCase):
                     // line 2
                     line 3 
                 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,5)
@@ -77,7 +79,7 @@ class TestParser(unittest.TestCase):
 
     def test_comments(self):
         input = "// Hello\n // World"
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
@@ -92,7 +94,7 @@ class TestParser(unittest.TestCase):
 
     def test_multiline_comment(self):
         input = '/* this is a \n comment */ /* Last one */ '
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
@@ -106,7 +108,7 @@ class TestParser(unittest.TestCase):
         self.assert_common_properties(tokens)
 
     def test_simple_file(self):
-        input = """#include GLFW_INCLUDE_GLU
+        input = u"""#include GLFW_INCLUDE_GLU
                    #include <GLFW/glfw3.h>
                    #include <cstdio>
                    
@@ -116,17 +118,18 @@ class TestParser(unittest.TestCase):
                        // Comment here
                        input_event_queue->push(inputaction);   
                      }
-                   }"""
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize(input, comment_inline_pattern, comment_open_close_pattern, separators)
+                     printf("%s", "asciiじゃない文字");
+                   }""".encode("utf-8")
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
-        self.assertEqual(lines,11)
-        self.assertEqual(LOC,10)
-        self.assertEqual(SLOC,8)
+        self.assertEqual(lines,12)
+        self.assertEqual(LOC,11)
+        self.assertEqual(SLOC,9)
 
-        self.assertEqual(tokens_count_total,24)
-        self.assertEqual(tokens_count_unique,18)
+        self.assertEqual(tokens_count_total,27)
+        self.assertEqual(tokens_count_unique,21)
         self.assert_common_properties(tokens)
 
         hard_tokens = set(['int@@::@@4','void@@::@@1','cstdio@@::@@1','action@@::@@1','static@@::@@1','key@@::@@1','glfw_key_callback@@::@@1','mod@@::@@1','if@@::@@1','glfw3@@::@@1','scancode@@::@@1','h@@::@@1','GLFW_INCLUDE_GLU@@::@@1','input_event_queue@@::@@2','GLFW@@::@@1','push@@::@@1','inputaction@@::@@1','include@@::@@3'])
