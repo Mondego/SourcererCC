@@ -12,6 +12,18 @@ import traceback
 TOKEN_THRESHOLD = 1
 N_PROCESSES = 2
 
+log_path = 'LOG-db-clonefinder.log'
+
+if os.path.isfile(log_path):
+    print 'ERROR: Log file:',log_path,'already exists'
+    sys.exit(1)
+
+FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
+logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+file_handler = logging.FileHandler(log_path)
+file_handler.setFormatter(logging.Formatter(FORMAT))
+logging.getLogger().addHandler(file_handler)
+
 def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
 
     try:
@@ -19,6 +31,7 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
                    JOIN stats as s ON f.fileHash=s.fileHash 
                    WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(token_hashes.keys()) + "'", project_id)
         res = db_object.execute(query);
+        logging.info(query)
         for (file_id, projectId, fileHash, tokenHash, ) in res:
             pfiles = token_hashes[tokenHash]
             for f in pfiles:
@@ -42,6 +55,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                    JOIN stats as s ON f.fileHash=s.fileHash 
                    WHERE projectId=%s;"""  % (project_id)
         res = db_object.execute(query);
+        logging.info(query)
         for (file_id, fileHash, tokenHash, totalTokens, ) in res:
             if (totalTokens > TOKEN_THRESHOLD):
                 files_clones.setdefault(str(file_id), set())
@@ -51,44 +65,15 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                 token_hashes[tokenHash].append(str(file_id))
 
         total_files = len(res)
-        #logging.debug('## Number of files in project %s: %s', project_id, total_files)
-
-        # # Find CC clones
-        # for k, v in files_clones.iteritems():
-        #     query = "SELECT pairs.fileId1,fls.fileHash FROM CCPairs as pairs JOIN files as fls ON pairs.fileId1=%s AND pairs.fileId2=fls.fileId;" % (k)
-        #     res = db_object.execute(query);
-        #     for (fileId1,fileHash, ) in res:
-        #         files_clones[k].add(str(fileId1))
-        #         files_hashes.setdefault(str(fileId1), fileHash)
-
-        #     query = "SELECT pairs.fileId2,fls.fileHash FROM CCPairs as pairs JOIN files as fls ON pairs.fileId2=%s AND pairs.fileId1=fls.fileId;" % (k)
-        #     res = db_object.execute(query);
-        #     for (fileId2,fileHash, ) in res:
-        #         files_clones[k].add(str(fileId2))
-        #         files_hashes.setdefault(str(fileId2), fileHash)
 
         if debug == 'all':
             logging.debug('## After round 1')
             for k, v in files_clones.iteritems():
                 if len(v) > 0:
                     logging.debug('%s-%s', k, v)
-            #for k, v in files_hashes.iteritems():
-            #    print k,'-',v
-
-        #if debug:
-        #    print '## After round 2'
-        #    for k, v in files_clones.iteritems():
-        #        print k,'-',v
-        #    for k, v in files_hashes.iteritems():
-        #        print k,'-',v
 
         # Find token-hash clones
         findAllTokenHashClones(project_id, token_hashes, files_clones, db_object)
-
-        #if debug:
-        #    print '## After round 3'
-        #    for k, v in files_clones.iteritems():
-        #        print k,'-',v
 
         percentage_clone_projects_counter = {}
         percentage_host_projects_counter = {}
@@ -148,17 +133,18 @@ def load_project_file_counts(db_object, project_file_counts):
     logging.debug("Loading project file counts...")
     q = "SELECT projectId, COUNT(*) FROM files GROUP BY projectId;" 
     res = db_object.execute(q)
+    logging.info(q)
     for (pid, total_files_host, ) in res:
         project_file_counts[pid] = total_files_host
     logging.debug("Loading project file counts... done")
 
 
-def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_counts):
+def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_counts, host):
     FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
     logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
     logging.info('Starting process %s', pnum)
-    db_object = DB(DB_user, DB_name, DB_pass, logging)
+    db_object = DB(DB_user, DB_name, DB_pass, logging, host)
 
     try:
         pcounter =  0
@@ -179,21 +165,23 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_c
         db_object.close()
 
 if __name__ == "__main__":
-    FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
-    logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
     if len(sys.argv) < 4:
-        logging.error('Usage: mysql-import.py user passwd database')
+        logging.error('Usage: clone-finder.py user passwd database (host|OPTIONAL)') 
         sys.exit(1)
 
     DB_user  = sys.argv[1]
     DB_pass = sys.argv[2]
     DB_name = sys.argv[3]
+    host = 'localhost'
+    if len(sys.argv) == 5:
+        host = sys.argv[4]
 
-    db_object = DB(DB_user, DB_name, DB_pass, logging)
+    db_object = DB(DB_user, DB_name, DB_pass, logging, host)
 
     try:
         db_object.execute("DROP TABLE IF EXISTS `projectClones`;")
+        logging.info("DROP TABLE IF EXISTS `projectClones`;")
         table = """CREATE TABLE `projectClones` (
                        id                  INT(6)       UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
                        cloneId             INT(6)       UNSIGNED NOT NULL,
@@ -213,6 +201,7 @@ if __name__ == "__main__":
                        UNIQUE INDEX pair (cloneId, hostId)
                        ) ENGINE = MYISAM;"""
         db_object.execute(table)
+        logging.info(table)
 
         project_file_counts = {}
         load_project_file_counts(db_object, project_file_counts)
@@ -236,7 +225,7 @@ if __name__ == "__main__":
         processes = []
         for process_num in xrange(N_PROCESSES):
             p = Process(name='Process '+str(process_num), target=start_process, 
-                        args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, ))
+                        args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, host, ))
             processes.append(p)
             p.start()
 
@@ -249,4 +238,3 @@ if __name__ == "__main__":
 
     finally:
         db_object.close()
-
