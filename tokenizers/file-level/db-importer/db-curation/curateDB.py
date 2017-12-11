@@ -27,9 +27,9 @@ def curate_projects(db,file_mapping_path_url,logging):
       cpp_path_cut    = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/c++-projects/')
       python_path_cut = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/python-projects/')
 
-      new_path = ppath[python_path_cut:]
-      cursor.execute("UPDATE projects SET projectPath=\"%s\", projectUrl=\"%s\" WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid))
-      #print "UPDATE projects SET projectPath=\"%s\", projectUrl=\"%s\" WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid)
+      new_path = ppath[java_path_cut:]
+      cursor.execute("UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid))
+      # print "UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid)
       count += 1
   except Exception as e:
     logging.error('Problem curating projects: %s' % (e))
@@ -88,7 +88,7 @@ if __name__ == '__main__':
   host     = 'amazon.ics.uci.edu'#'localhost' #
   username = 'sourcerer'#'user' #
   password = sys.argv[1]
-  database = 'CPP2'#'clonestesting' #
+  database = 'DBName' # WHEN CHANGING THIS, MAKE SURE to change 'file_mapping_path_url' below and 'new_path = ppath[java_path_cut:]' above
 
   FORMAT = '[%(levelname)s] (%(asctime)-15s) %(message)s'
   logging.basicConfig(level=logging.DEBUG,format=FORMAT)
@@ -97,12 +97,13 @@ if __name__ == '__main__':
   db = DB(username, database, password, logging, host)
   logging.info("Connected to %s @ %s" % (database,host))
 
-  #file_mapping_path_url = 'python-relativePath-relativeUrl.txt'
+  file_mapping_path_url = 'java-complete-relativePath-relativeUrl.txt'
+  # 'python-relativePath-relativeUrl.txt'
   # 'c++-relativePath-relativeUrl.txt'
   # 'java-relativePath-relativeUrl.txt'
-  #curate_projects(db,file_mapping_path_url,logging)
+  curate_projects(db,file_mapping_path_url,logging)
 
-  curate_files(db,logging)
+  # curate_files(db,logging)
 
   db.close()
 
