@@ -103,20 +103,23 @@ public class CandidateProcessor implements IListener, Runnable {
         List<String> features = new ArrayList<String>();
         features.add(queryBlock.getMethodIdentifier());
         features.add(candiadteBlock.getMethodIdentifier());
-        String cp = queryBlock.parentId + "," + queryBlock.id + "," + candiadteBlock.parentId + "," + candiadteBlock.id;
+        CloneLabel cp = new CloneLabel((int) queryBlock.parentId, queryBlock.id, (int) candiadteBlock.parentId,
+                candiadteBlock.id);
         if (SearchManager.clonePairs.contains(cp)) {
             features.add("1");
         } else {
-            cp = candiadteBlock.parentId + "," + candiadteBlock.id + "," + queryBlock.parentId + "," + queryBlock.id;
+            cp = new CloneLabel((int) candiadteBlock.parentId, candiadteBlock.id, (int) queryBlock.parentId,
+                    queryBlock.id);
             if (SearchManager.clonePairs.contains(cp)) {
                 features.add("1");
             } else {
                 features.add("0");
             }
         }
-        for(int i = 0; i < queryBlock.metrics.size(); i++){
-            features.add(roundThreeDecimal(
-                    getPercentageDiff(queryBlock.metrics.get(i), candiadteBlock.metrics.get(i), 10)).toString());
+        for (int i = 0; i < queryBlock.metrics.size(); i++) {
+            features.add(
+                    roundThreeDecimal(getPercentageDiff(queryBlock.metrics.get(i), candiadteBlock.metrics.get(i), 10))
+                            .toString());
         }
         return features;
     }
@@ -135,7 +138,7 @@ public class CandidateProcessor implements IListener, Runnable {
     private String getLineToSend(List<String> lineParams) {
         StringBuilder line = new StringBuilder("");
         String sep = "";
-        for (String feature :lineParams) {
+        for (String feature : lineParams) {
             line.append(sep).append(feature);
             sep = "~~";
         }
@@ -169,22 +172,27 @@ public class CandidateProcessor implements IListener, Runnable {
                     }
                     String line = this.getLineToSend(this.getLineToWrite(qc.queryBlock, candidateBlock));
                     try {
-                        if (!type.equals("2")){
-                            //String key = "train_shard_"+qc.queryBlock.shard.id + "_type_"+type;
-                            String key = "type_"+type;
+                        if (!type.equals("2")) {
+                            // String key =
+                            // "train_shard_"+qc.queryBlock.shard.id +
+                            // "_type_"+type;
+                            String key = "type_" + type;
                             Util.writeToFile(SearchManager.getWriter(key), line, true);
                         }
-                        /*if(type.equals("3.1")){
-                            logger.debug(type+"#$#"+line);
-                            SearchManager.updateClonePairsCount(1);
-                            Util.writeToFile(SearchManager.type_3_1_train_Writer, line, true);
-                        }else if(type.equals("3.2")){
-                            logger.debug(type+"#$#"+line);
-                            SearchManager.updateClonePairsCount(1);
-                            Util.writeToFile(SearchManager.type_3_2_train_Writer, line, true);
-                        }*/
-                        //SearchManager.reportCloneQueue
-                        //SearchManager.socketWriter.writeToSocket(type + "#$#" + line);
+                        /*
+                         * if(type.equals("3.1")){
+                         * logger.debug(type+"#$#"+line);
+                         * SearchManager.updateClonePairsCount(1);
+                         * Util.writeToFile(SearchManager.type_3_1_train_Writer,
+                         * line, true); }else if(type.equals("3.2")){
+                         * logger.debug(type+"#$#"+line);
+                         * SearchManager.updateClonePairsCount(1);
+                         * Util.writeToFile(SearchManager.type_3_2_train_Writer,
+                         * line, true); }
+                         */
+                        // SearchManager.reportCloneQueue
+                        // SearchManager.socketWriter.writeToSocket(type + "#$#"
+                        // + line);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
