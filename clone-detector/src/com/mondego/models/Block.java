@@ -57,6 +57,7 @@ public class Block {
     public static int ACTION_TOKENS = 1;
     public static int STOPWORD_ACTION_TOKENS = 2;
     public static int METHODNAME_ACTION_TOKENS = 3;
+    public Shard shard;
     
     private static final Logger logger = LogManager.getLogger(Block.class);
 

@@ -9,10 +9,13 @@ import com.mondego.indexbased.SearchManager;
 
 public class QueryLineProcessor implements Runnable {
     private String line;
-    private static final Logger logger = LogManager.getLogger(QueryLineProcessor.class);
+    private static final Logger logger = LogManager
+            .getLogger(QueryLineProcessor.class);
+    private Shard shard;
 
-    public QueryLineProcessor(String line) {
-        this.line = line;
+    public QueryLineProcessor(QueryLineWrapper lineWrapper) {
+        this.line = lineWrapper.line;
+        this.shard = lineWrapper.shard;
     }
 
     public void run() {
@@ -28,13 +31,11 @@ public class QueryLineProcessor implements Runnable {
         // TODO Auto-generated method stub
         long startTime = System.nanoTime();
         try {
-        	
             Block queryBlock = new Block(line);
-            if (queryBlock == null)
-                return;
-            
+            queryBlock.shard = this.shard;
             long estimatedTime = System.nanoTime() - startTime;
-            logger.debug(SearchManager.NODE_PREFIX + " QLP processed QueryBlock " + queryBlock + " in "
+            logger.debug(SearchManager.NODE_PREFIX
+                    + " QLP processed QueryBlock " + queryBlock + " in "
                     + estimatedTime / 1000 + " micros");
             SearchManager.queryBlockQueue.send(queryBlock);
             // System.out.println(SearchManager.NODE_PREFIX +
@@ -43,7 +44,9 @@ public class QueryLineProcessor implements Runnable {
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            logger.error(e.getMessage() + " skiping this query block, illegal args: " + line.substring(0, 40));
+            logger.error(
+                    e.getMessage() + " skiping this query block, illegal args: "
+                            + line.substring(0, 40));
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             logger.error("EXCEPTION CAUGHT::", e);
@@ -57,8 +60,7 @@ public class QueryLineProcessor implements Runnable {
             // TODO Auto-generated catch block
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();
-        } 
-        catch (SecurityException e) {
+        } catch (SecurityException e) {
             // TODO Auto-generated catch block
             logger.error("EXCEPTION CAUGHT::", e);
             e.printStackTrace();

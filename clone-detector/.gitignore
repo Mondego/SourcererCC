@@ -2,7 +2,7 @@
 Log*
 NODE*
 *index
-query*
+# query*
 input/dataset/*
 *.scc
 *.log

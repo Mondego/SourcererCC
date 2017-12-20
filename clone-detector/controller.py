@@ -37,14 +37,14 @@ class ScriptController(object):
         self.previous_run_state = self.load_previous_state()
         self.configFilename = self.full_file_path("sourcerer-cc.properties")
 
-    def full_file_path(self,string):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)),string)
+    def full_file_path(self, string):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
 
-    def full_script_path(self,string,param=""):
+    def full_script_path(self, string, param=""):
         if len(param) == 0:
-            return os.path.join(os.path.dirname(os.path.realpath(__file__)),string)
+            return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
         else:
-            return os.path.join(os.path.dirname(os.path.realpath(__file__)),string)+" "+param
+            return os.path.join(os.path.dirname(os.path.realpath(__file__)), string) + " " + param
 
     def execute(self):
         # execute command
@@ -128,7 +128,7 @@ class ScriptController(object):
                                 command_params = command.split()
                                 returncode = self.run_command(
                                     command_params, self.full_file_path("Log_search.out"), self.full_file_path("Log_search.err"))
-                            self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
+                            self.current_state = ScriptController.STATE_EXECUTE_1  # go back to EXE 1 state
                             if returncode == ScriptController.EXIT_SUCCESS:
                                 self.flush_state()
                                 print("SUCCESS: Search Completed on all nodes")
@@ -167,78 +167,55 @@ class ScriptController(object):
 
     def run_command(self, cmd, outFile, errFile):
         print("running new command {}".format(" ".join(cmd)))
-        fo = open(outFile, "w")
-        fe = open(errFile, "w")
-        p = subprocess.Popen(cmd,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             universal_newlines=True
-                             )
-        while (True):
-            returncode = p.poll()  # returns None while subprocess is running
-            outputLine = p.stdout.readline()
-            errLine = p.stderr.readline()
-            if outputLine:
-                fo.write(outputLine)
-            if errLine:
-                fe.write(errLine)
-            if returncode is not None:
-                print ("returncode is {}. ".format(returncode))
-                break
-        # read the remaining lines in the buffers
-        outputLines = p.stdout.readlines()
-        for outputLine in outputLines:
-            fo.write(outputLine)
-        errLines = p.stderr.readlines()
-        for errLine in errLines:
-            fo.write(errLine)
-        fo.close()
-        fe.close()
-        return returncode
+        with open(outFile, "w") as fo, \
+             open(errFile, "w") as fe:
+            p = subprocess.Popen(cmd, stdout=fo, stderr=fe, universal_newlines=True)
+            p.communicate()
+        return p.returncode
     
     def assignShardsToNodes(self):
-        nodes=int(self.params["num_nodes_search"])
+        nodes = int(self.params["num_nodes_search"])
         totalShards = 0
         with codecs.open(self.configFilename, "r") as f:
             for line in f:
                 line = line.strip()
                 if "LEVEL_1_SHARD_MAX_NUM_TOKENS" in line:
                     shards = line.split(",")
-                    totalShards = len(shards)+1
+                    totalShards = len(shards) + 1
                     break
-        print("nodes are : {n}. total shards: {s}".format(n=nodes,s=totalShards))
-        if nodes <=totalShards:
+        print("nodes are : {n}. total shards: {s}".format(n=nodes, s=totalShards))
+        if nodes <= totalShards:
             nodesToShardIdMap = {}
-            nodeId=1
-            for shardId in range(1,totalShards+1):
+            nodeId = 1
+            for shardId in range(1, totalShards + 1):
                 if nodeId in nodesToShardIdMap:
                     shards = nodesToShardIdMap[nodeId]
                     shards.append("{sId}".format(sId=shardId))
-                    nodeId +=1
-                    if (nodeId%(nodes+1))==0:
-                        nodeId =1
+                    nodeId += 1
+                    if (nodeId % (nodes + 1)) == 0:
+                        nodeId = 1
                 else:
                     shards = []
                     shards.append("{sId}".format(sId=shardId))
-                    nodesToShardIdMap[nodeId]=shards
-                    nodeId +=1
-                    if (nodeId%(nodes+1))==0:
-                        nodeId =1
+                    nodesToShardIdMap[nodeId] = shards
+                    nodeId += 1
+                    if (nodeId % (nodes + 1)) == 0:
+                        nodeId = 1
             
             for node, shards in nodesToShardIdMap.items():
                 print("{n}:{s}".format(n=node, s=",".join(shards)))
                 
-            for nodeId in range(1,nodes+1):
+            for nodeId in range(1, nodes + 1):
                 configFilePath = self.full_file_path("NODE_{id}/sourcerer-cc.properties".format(id=nodeId))
                 searchShardString = ",".join(nodesToShardIdMap[nodeId])
                 newSearchShardsString = "SEARCH_SHARDS={s}\n".format(s=searchShardString)
                 content = []
-                with codecs.open(configFilePath,"r") as f:
+                with codecs.open(configFilePath, "r") as f:
                     for line in f:
                         if "SEARCH_SHARDS=" in line:
                             line = newSearchShardsString
                         content.append(line)
-                with codecs.open(configFilePath,"w+") as f:
+                with codecs.open(configFilePath, "w+") as f:
                         for line in content:
                             f.write(line)
 

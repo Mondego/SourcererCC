@@ -15,6 +15,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.visitor.TreeVisitor;
 
@@ -45,13 +46,39 @@ public class TGZInputProcessor implements IInputProcessor {
                         // System.out.println(line);
                         sb.append(line).append(System.lineSeparator());
                     }
-                    this.metricalize(sb.toString(), p);
+                    try {
+                        this.metricalize(sb.toString(), p);
+                    } catch (FileNotFoundException e) {
+                        System.out.println("WARN: File not found, skipping file: " + p.toString());
+                        try {
+                            FileWriters.errorPw.write(p.toString() + System.lineSeparator());
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    } catch (ParseProblemException e) {
+                        System.out.println("WARN: parse problem exception, skippig file: " + p.toString());
+                        try {
+                            FileWriters.errorPw.write(p.toString() + System.lineSeparator());
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        System.out.println("WARN: unknown error, skippig file: " + p.toString());
+                        try {
+                            FileWriters.errorPw.write(p.toString() + System.lineSeparator());
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                        e.printStackTrace();
+                    }
+                    try {
+                        br.close();
+                    } catch (IOException er) {
+                        System.out.println("WARN: " + er.getMessage());
+                    }
                 }
-                try{
-                    br.close();
-                }catch(IOException er){
-                    System.out.println("WARN: "+ er.getMessage());
-                }
+
                 currentEntry = tarInput.getNextTarEntry(); // iterate to the
                                                            // next file
             }

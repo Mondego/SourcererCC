@@ -10,7 +10,9 @@ import pickle
 
 print("imports complete")
 #path_train="./train/train.txt"
+
 path_train="/scratch/mondego/local/farima/new_oreo/train_related/sampleTrainInput/th60_files/train_type3_1_equalCloneNonClone_merged_shuffled.txt"
+
 #path_test="./test/train_sample_100k.txt"
 # colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD",
 # "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP",
