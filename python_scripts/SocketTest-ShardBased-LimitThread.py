@@ -30,8 +30,8 @@ modelfilename_shard4_type32 = '/scratch/mondego/local/farima/new_oreo/train_rela
 modelfilename_shard5_type31 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/cc_th60/shard-based/randfor_node5_type31.sav'
 modelfilename_shard5_type32 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/cc_th60/shard-based/randfor_node5_type32.sav'
 
-modelfilename_shard67_type31 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/cc_th60/shard-based/randfor_node67_type31.sav'
-modelfilename_shard67_type32 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/cc_th60/shard-based/randfor_node67_type32.sav'
+modelfilename_shard67_type31 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/cc_th60/shard-based/randfor_node6_7_type31.sav'
+modelfilename_shard67_type32 = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/cc_th60/shard-based/randfor_node6_7_type32.sav'
 
 output_dir='/scratch/mondego/local/farima/new_oreo/output_prediction/shard-based'
 
@@ -105,9 +105,9 @@ def predict(threadId,array,type,shard):
         predictions = loaded_model_shard5_type31.predict(X_test)
     elif shard==5 and type=='32':
         predictions = loaded_model_shard5_type32.predict(X_test)
-    elif shard==67 and type=='31':
+    elif shard==6 and type=='31':
         predictions = loaded_model_shard67_type31.predict(X_test)
-    elif shard==67 and type=='32':
+    elif shard==6 and type=='32':
         predictions = loaded_model_shard67_type32.predict(X_test)
     end_prediction = time.time()
     print("prediction complete! time taken: " + str(end_prediction - start_prediction))
@@ -141,6 +141,7 @@ def process(data):
         print("Reading Finished. Wait for last thread to finish...")
         return 0
     data_splitted=data.split('#$#')
+    #print("line received: ", data)
     clone_pairs=data_splitted[2].split('~~')
     #print(data_splitted[0])
     # if data_splitted[0]=='1':
@@ -176,6 +177,7 @@ def process(data):
     return 1
 
 
+print("waiting for connection")
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.bind(('localhost', 9901))
 serversocket.listen(1) # maximum  1 connection
