@@ -2,29 +2,32 @@ import pandas as pd
 import time as time
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-
+from sklearn.ensemble import RandomForestClassifier
 import pickle
 
 print("imports complete")
 chunkSize=1024*5000
-modelfilename = 'cart_model2.sav'
-path_test="C:\\clone_data\\test.txt"
+modelfilename = '/scratch/mondego/local/farima/new_oreo/train_related/train_models/randFoer_Pierre_Dataset.sav'
+path_test="/lv_scratch/scratch/mondego/local/farima/new_oreo/train_related/sampleTrainInput/th60_files/pierre/train_20Per_byPercentageDiff.txt"
+path_output="/scratch/mondego/local/farima/new_oreo/train_related/train_models/randFor_Pierre_Report.txt"
 # path_test="./test/test.txt"
-colNames=["block1", "block2", "isClone", "COMP", "NOCL", "NOS", "HLTH", "HVOC", "HEFF", "HBUG", "CREF", "XMET", "LMET", "NLOC", "NOC", "NOA", "MOD", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "TDN", "HVOL", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP"]
+file_output = open(path_output, 'w')
+colNames=["block1","block2", "isClone", "COMP", "NOS", "HVOC", "HEFF", "CREF", "XMET", "LMET","NOA", "HDIF", "VDEC", "EXCT", "EXCR", "CAST", "NAND", "VREF", "NOPR", "MDN", "NEXP", "LOOP","NBLTRL","NCLTRL","NNLTRL","NNULLTRL","NSLTRL"]
 
 #load model
 loaded_model = pickle.load(open(modelfilename, 'rb'))
 print("model loaded")
 
-clones_test = pd.read_csv(path_test, names=colNames)
+clones_test = pd.read_csv(path_test, names=colNames, delimiter='~~', engine='python')
 print("test set read complete")
 
 array = clones_test.values
-X_test = array[:, 3:30]
+X_test = array[:,[i for i in range(3,27)]]
 Y_test = array[:, 2]
 start_time = time.time()
 predictions = loaded_model.predict(X_test)
 end_time=time.time()
 print("time to predict: "+str((end_time-start_time)))
-print(confusion_matrix(Y_test.astype(bool), predictions))
-print(classification_report(Y_test.astype(bool), predictions))
+file_output.write(confusion_matrix(Y_test.astype(bool), predictions))
+file_output.write(classification_report(Y_test.astype(bool), predictions))
+file_output.close()
