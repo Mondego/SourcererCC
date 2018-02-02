@@ -127,8 +127,32 @@ public class CandidateProcessor implements IListener, Runnable {
         return features;
     }
 
-    private Double getPercentageDiff(double firstValue, double secondValue,
-            int padding) {
+    private List<String> getLineToWriteForDeepLearning(Block queryBlock, Block candiadteBlock) {
+    
+        List<String> features = new ArrayList<String>();
+        features.add(queryBlock.getMethodIdentifier());
+        features.add(candiadteBlock.getMethodIdentifier());
+        CloneLabel cp = new CloneLabel((int) queryBlock.parentId, queryBlock.id, (int) candiadteBlock.parentId,
+                candiadteBlock.id);
+        if (SearchManager.clonePairs.contains(cp)) {
+            features.add("1");
+        } else {
+            cp = new CloneLabel((int) candiadteBlock.parentId, candiadteBlock.id, (int) queryBlock.parentId,
+                    queryBlock.id);
+            if (SearchManager.clonePairs.contains(cp)) {
+                features.add("1");
+            } else {
+                features.add("0");
+            }
+        }
+        for (int i = 0; i < queryBlock.metrics.size(); i++) {
+            features.add(queryBlock.metrics.get(i)+"");
+            features.add(candiadteBlock.metrics.get(i)+"");
+        }
+        return features;
+    }
+
+    private Double getPercentageDiff(double firstValue, double secondValue, int padding) {
         if (padding > 0) {
             return (Math.abs(firstValue - secondValue)
                     / (padding + Math.max(firstValue + 1, secondValue + 1)));
@@ -181,8 +205,7 @@ public class CandidateProcessor implements IListener, Runnable {
                             this.qc.queryBlock.size, 0) < 11) {
                         type = "3.1";
                     }
-                    String line = this.getLineToSend(
-                            this.getLineToWrite(qc.queryBlock, candidateBlock));
+                    String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
                     try {
                         /*
                          * if (!type.equals("2")) { // String key = //
