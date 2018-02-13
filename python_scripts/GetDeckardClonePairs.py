@@ -1,8 +1,11 @@
 import os.path
-file_output_path='deckard_clonepairs.txt'
+# file_output_path='deckard_clonepairs.txt'
+file_output_path='/lv_scratch/scratch/mondego/local/farima/new_oreo/toolsEval/deckard/Deckard-parallel1.3/deckard_clonepairs.txt'
+file_error_path='/lv_scratch/scratch/mondego/local/farima/new_oreo/toolsEval/deckard/Deckard-parallel1.3/deckard_parsing_error.txt'
 file_deckard_path='/lv_scratch/scratch/mondego/local/farima/new_oreo/toolsEval/deckard/Deckard-parallel1.3/clusters/cluster_vdb_50_3_g15_1.732051_30_100000'
 # file_deckard_path='D:\\PhD\\Clone\\deckard_clusters.txt'
 file_output=open(file_output_path,'w')
+file_error=open(file_error_path,'w')
 
 def parseline(line):
     linesplitted=line.split(' ')
@@ -27,16 +30,24 @@ with open(file_deckard_path,'r') as file_deckard:
     linenum=0
     for line in file_deckard:
         linenum+=1
-        if linenum>9:
-            if (line  in ['\n', '\r\n']):
-                print('one cluster found')
-                future_cluster_num+=1
-                continue
-            if (future_cluster_num>current_cluster_num):
-                if (len(cluster_list)>0): getclonepairs(cluster_list)
-                cluster_list = []
-                current_cluster_num=future_cluster_num
-            cluster_list.append(line)
-    getclonepairs(cluster_list)
+        try:
+            if linenum>9:
+                if (line  in ['\n', '\r\n']):
+                    print('one cluster found')
+                    future_cluster_num+=1
+                    continue
+                if (future_cluster_num>current_cluster_num):
+                    if (len(cluster_list)>0): getclonepairs(cluster_list)
+                    cluster_list = []
+                    current_cluster_num=future_cluster_num
+                cluster_list.append(line)
+        except:
+            file_error.write('error at line '+str(linenum))
+
+    try:
+        getclonepairs(cluster_list)
+    except:
+        file_error.write('error at line ' + str(linenum))
 
 file_output.close()
+file_error.close()
