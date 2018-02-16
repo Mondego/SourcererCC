@@ -1,17 +1,18 @@
 package com.mondego.models;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
-import com.mondego.utility.Util;
 
 public class CandidateProcessor implements IListener, Runnable {
     private QueryCandidates qc;
@@ -124,6 +125,31 @@ public class CandidateProcessor implements IListener, Runnable {
         return features;
     }
 
+    private List<String> getLineToWriteForDeepLearning(Block queryBlock, Block candiadteBlock) {
+        // method1~~method2~~isCLone~~COMP~~NOS~~HVOC~~HEFF~~CREF~~XMET~~LMET~~NOA~~HDIF~~VDEC~~EXCT~~EXCR~~CAST~~NAND~~VREF~~NOPR~~MDN~~NEXP~~LOOP~~NBLTRL~~NCLTRL~~NNLTRL~~NNULLTRL~~NSLTRL
+        List<String> features = new ArrayList<String>();
+        features.add(queryBlock.getMethodIdentifier());
+        features.add(candiadteBlock.getMethodIdentifier());
+        CloneLabel cp = new CloneLabel((int) queryBlock.parentId, queryBlock.id, (int) candiadteBlock.parentId,
+                candiadteBlock.id);
+        if (SearchManager.clonePairs.contains(cp)) {
+            features.add("1");
+        } else {
+            cp = new CloneLabel((int) candiadteBlock.parentId, candiadteBlock.id, (int) queryBlock.parentId,
+                    queryBlock.id);
+            if (SearchManager.clonePairs.contains(cp)) {
+                features.add("1");
+            } else {
+                features.add("0");
+            }
+        }
+        for (int i = 0; i < queryBlock.metrics.size(); i++) {
+            features.add(queryBlock.metrics.get(i) + "");
+            features.add(candiadteBlock.metrics.get(i) + "");
+        }
+        return features;
+    }
+
     private Double getPercentageDiff(double firstValue, double secondValue, int padding) {
         if (padding > 0) {
             return (Math.abs(firstValue - secondValue) / (padding + Math.max(firstValue + 1, secondValue + 1)));
@@ -170,15 +196,15 @@ public class CandidateProcessor implements IListener, Runnable {
                     } else if (this.getPercentageDiff(candidateBlock.size, this.qc.queryBlock.size, 0) < 11) {
                         type = "3.1";
                     }
-                    String line = this.getLineToSend(this.getLineToWrite(qc.queryBlock, candidateBlock));
+                    String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
                     try {
-                        if (!type.equals("2")) {
-                            // String key =
-                            // "train_shard_"+qc.queryBlock.shard.id +
-                            // "_type_"+type;
-                            String key = "type_" + type;
-                            Util.writeToFile(SearchManager.getWriter(key), line, true);
-                        }
+                        /*
+                         * (if (!type.equals("2")) { // String key = //
+                         * "train_shard_"+qc.queryBlock.shard.id + //
+                         * "_type_"+type; String key = "type_" + type;
+                         * Util.writeToFile(SearchManager.getWriter(key), line,
+                         * true); }
+                         */
                         /*
                          * if(type.equals("3.1")){
                          * logger.debug(type+"#$#"+line);
@@ -193,6 +219,18 @@ public class CandidateProcessor implements IListener, Runnable {
                         // SearchManager.reportCloneQueue
                         // SearchManager.socketWriter.writeToSocket(type + "#$#"
                         // + line);
+                        SearchManager.updateClonePairsCount(1);
+                        System.out.println("size of one line: "+line.getBytes(StandardCharsets.UTF_8).length);
+                        /*synchronized (SearchManager.clonepairs) {
+                            if(SearchManager.clonepairs.size()<1000){
+                                SearchManager.clonepairs.add(type + "#$#" + line);
+                                break;
+                            }
+                        }
+                        */
+                        int randomNum = ThreadLocalRandom.current().nextInt(9900, 9903 + 1);
+                        SearchManager.getSocketWriter("localhost", randomNum);
+                        SearchManager.socketWriter.writeToSocket(type + "#$#" + line);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
