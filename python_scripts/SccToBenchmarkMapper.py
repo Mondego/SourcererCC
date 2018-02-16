@@ -1,14 +1,15 @@
 import os
 
 file_methodid={}
-scc_clonepairs_path='/scratch/mondego/local/farima/new_oreo/recall_related/scc/SourcererCC/clone-detector/scc_clonepairs_1.txt'
+scc_clonepairs_path='/scratch/mondego/local/farima/new_oreo/train_related/SourcererCC/clone-detector/scc_clonepairs_6_15_tokens_and_more.txt'
 output_dir='/scratch/mondego/local/farima/new_oreo/scc_related'
 
 if (not os.path.isdir(output_dir)):
     os.makedirs(output_dir)
-file_output = open(output_dir+'/scc_benchmark_formatted_1.txt', 'w')
 
-with open('/scratch/mondego/local/farima/new_oreo/recall_related/metricCalculator/SourcererCC/python_scripts/1_metric_output/bookkeeping.file') as file_bookkeeping:
+file_output = open(output_dir+'/scc_benchmark_formatted_6th_15tok.txt', 'w')
+
+with open('/scratch/mondego/local/farima/new_oreo/train_related/train_input_generation_code/SourcererCC/python_scripts/scc_bookkeeping.file') as file_bookkeeping:
     for line in file_bookkeeping:
         linesplitted=line.split(";")
         filepart=linesplitted[0].split(":")

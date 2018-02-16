@@ -1213,7 +1213,7 @@ public class SearchManager {
         }
         return SearchManager.trainWriters.get(key);
     }
-    public static SocketWriter getSocketWriter(String address, int port) throws IOException {
+    public static SocketWriter getSocketWriter(String address, int port){
         
         String key = "address::"+port;
         if (!SearchManager.socketWriters.containsKey(key)) {
