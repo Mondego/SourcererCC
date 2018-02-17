@@ -146,6 +146,8 @@ public class SearchManager {
     public static HashMap<String, String> tokensMapping;
     public static Set<CloneLabel> clonePairs;
     public static SocketWriter socketWriter;
+    public static Map<String, SocketWriter> socketWriters;
+    
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -532,7 +534,9 @@ public class SearchManager {
                         Thread.sleep(4000);
                     }
                 }
-                SearchManager.socketWriter.closeSocket();
+                for (SocketWriter socketWriter : SearchManager.socketWriters.values()){
+                    socketWriter.closeSocket();
+                }
             }
         } else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_INIT)) {
             // WordFrequencyStore wfs = new WordFrequencyStore();
@@ -1091,10 +1095,10 @@ public class SearchManager {
     }
 
     private void initSearchEnv() {
-        SearchManager.socketWriter = new SocketWriter(
+        /*SearchManager.socketWriter = new SocketWriter(
                 Integer.parseInt(properties.getProperty("PORT")),
                 properties.getProperty("ADDRESS"));
-        SearchManager.socketWriter.openSocketForWriting();
+        SearchManager.socketWriter.openSocketForWriting();*/
         // theInstance.loadIjaMap();
         // theInstance.loadTokensMap();
         theInstance.loadCloneLabels();
@@ -1208,6 +1212,16 @@ public class SearchManager {
                             + key + ".csv", false));
         }
         return SearchManager.trainWriters.get(key);
+    }
+    public static SocketWriter getSocketWriter(String address, int port){
+        
+        String key = "address::"+port;
+        if (!SearchManager.socketWriters.containsKey(key)) {
+            SocketWriter socketWriter = new SocketWriter(port, address);
+            socketWriter.openSocketForWriting();
+            SearchManager.socketWriters.put(key, socketWriter);
+        }
+        return SearchManager.socketWriters.get(key);
     }
 
 }

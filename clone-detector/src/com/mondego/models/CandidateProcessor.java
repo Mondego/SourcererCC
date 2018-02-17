@@ -1,22 +1,23 @@
 package com.mondego.models;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
-import com.mondego.utility.Util;
 
 public class CandidateProcessor implements IListener, Runnable {
     private QueryCandidates qc;
-    private static final Logger logger = LogManager
-            .getLogger(CandidateProcessor.class);
+    private static final Logger logger = LogManager.getLogger(CandidateProcessor.class);
 
     public CandidateProcessor(QueryCandidates qc) {
         // TODO Auto-generated constructor stub
@@ -99,36 +100,8 @@ public class CandidateProcessor implements IListener, Runnable {
         return sim * 100 / (numtokens1 + numtokens2 - sim);
     }
 
-    private List<String> getLineToWrite(Block queryBlock,
-            Block candiadteBlock) {
+    private List<String> getLineToWrite(Block queryBlock, Block candiadteBlock) {
         // method1~~method2~~isCLone~~COMP~~NOS~~HVOC~~HEFF~~CREF~~XMET~~LMET~~NOA~~HDIF~~VDEC~~EXCT~~EXCR~~CAST~~NAND~~VREF~~NOPR~~MDN~~NEXP~~LOOP~~NBLTRL~~NCLTRL~~NNLTRL~~NNULLTRL~~NSLTRL
-        List<String> features = new ArrayList<String>();
-        features.add(queryBlock.getMethodIdentifier());
-        features.add(candiadteBlock.getMethodIdentifier());
-        CloneLabel cp = new CloneLabel((int) queryBlock.parentId, queryBlock.id,
-                (int) candiadteBlock.parentId, candiadteBlock.id);
-        if (SearchManager.clonePairs.contains(cp)) {
-            features.add("1");
-        } else {
-            cp = new CloneLabel((int) candiadteBlock.parentId,
-                    candiadteBlock.id, (int) queryBlock.parentId,
-                    queryBlock.id);
-            if (SearchManager.clonePairs.contains(cp)) {
-                features.add("1");
-            } else {
-                features.add("0");
-            }
-        }
-        for (int i = 0; i < queryBlock.metrics.size(); i++) {
-            features.add(roundThreeDecimal(
-                    getPercentageDiff(queryBlock.metrics.get(i),
-                            candiadteBlock.metrics.get(i), 10)).toString());
-        }
-        return features;
-    }
-
-    private List<String> getLineToWriteForDeepLearning(Block queryBlock, Block candiadteBlock) {
-    
         List<String> features = new ArrayList<String>();
         features.add(queryBlock.getMethodIdentifier());
         features.add(candiadteBlock.getMethodIdentifier());
@@ -146,19 +119,43 @@ public class CandidateProcessor implements IListener, Runnable {
             }
         }
         for (int i = 0; i < queryBlock.metrics.size(); i++) {
-            features.add(queryBlock.metrics.get(i)+"");
-            features.add(candiadteBlock.metrics.get(i)+"");
+            features.add(
+                    roundThreeDecimal(getPercentageDiff(queryBlock.metrics.get(i), candiadteBlock.metrics.get(i), 10))
+                            .toString());
+        }
+        return features;
+    }
+
+    private List<String> getLineToWriteForDeepLearning(Block queryBlock, Block candiadteBlock) {
+
+        List<String> features = new ArrayList<String>();
+        features.add(queryBlock.getMethodIdentifier());
+        features.add(candiadteBlock.getMethodIdentifier());
+        CloneLabel cp = new CloneLabel((int) queryBlock.parentId, queryBlock.id, (int) candiadteBlock.parentId,
+                candiadteBlock.id);
+        if (SearchManager.clonePairs.contains(cp)) {
+            features.add("1");
+        } else {
+            cp = new CloneLabel((int) candiadteBlock.parentId, candiadteBlock.id, (int) queryBlock.parentId,
+                    queryBlock.id);
+            if (SearchManager.clonePairs.contains(cp)) {
+                features.add("1");
+            } else {
+                features.add("0");
+            }
+        }
+        for (int i = 0; i < queryBlock.metrics.size(); i++) {
+            features.add(queryBlock.metrics.get(i) + "");
+            features.add(candiadteBlock.metrics.get(i) + "");
         }
         return features;
     }
 
     private Double getPercentageDiff(double firstValue, double secondValue, int padding) {
         if (padding > 0) {
-            return (Math.abs(firstValue - secondValue)
-                    / (padding + Math.max(firstValue + 1, secondValue + 1)));
+            return (Math.abs(firstValue - secondValue) / (padding + Math.max(firstValue + 1, secondValue + 1)));
         }
-        return (Math.abs(firstValue - secondValue)
-                / (padding + Math.max(firstValue, secondValue))) * 100;
+        return (Math.abs(firstValue - secondValue) / (padding + Math.max(firstValue, secondValue))) * 100;
     }
 
     private Double roundThreeDecimal(double param) {
@@ -175,16 +172,14 @@ public class CandidateProcessor implements IListener, Runnable {
         return line.toString();
     }
 
-    private void processCandidates() throws InterruptedException,
-            InstantiationException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException,
-            NoSuchMethodException, SecurityException {
+    private void processCandidates() throws InterruptedException, InstantiationException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         // System.out.println("HERE, thread_id: " + Util.debug_thread() +
         // ", query_id "+ queryBlock.getId());
         Map<Long, CandidateSimInfo> simMap = this.qc.simMap;
         Block queryBlock = this.qc.queryBlock;
-        logger.debug(SearchManager.NODE_PREFIX + ", num candidates: "
-                + simMap.entrySet().size() + ", query: " + queryBlock);
+        logger.debug(
+                SearchManager.NODE_PREFIX + ", num candidates: " + simMap.entrySet().size() + ", query: " + queryBlock);
         for (Entry<Long, CandidateSimInfo> entry : simMap.entrySet()) {
             CandidateSimInfo simInfo = entry.getValue();
             Block candidateBlock = simInfo.doc;
@@ -195,46 +190,18 @@ public class CandidateProcessor implements IListener, Runnable {
                     minPosibleSimilarity = candidateBlock.minCandidateTotalActionTokens;
                 }
                 if (simInfo.totalActionTokenSimilarity >= minPosibleSimilarity) {
-                    logger.debug("similarity is: "
-                            + simInfo.totalActionTokenSimilarity);
+                    logger.debug("similarity is: " + simInfo.totalActionTokenSimilarity);
                     String type = "3.2";
-                    if (candidateBlock.metriHash
-                            .equals(this.qc.queryBlock.metriHash)) {
+                    if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)) {
                         type = "2";
-                    } else if (this.getPercentageDiff(candidateBlock.size,
-                            this.qc.queryBlock.size, 0) < 11) {
+                    } else if (this.getPercentageDiff(candidateBlock.size, this.qc.queryBlock.size, 0) < 11) {
                         type = "3.1";
                     }
                     String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
-                    try {
-                        /*
-                         * if (!type.equals("2")) { // String key = //
-                         * "train_shard_"+qc.queryBlock.shard.id + //
-                         * "_type_"+type; String key = "type_" + type;
-                         * Util.writeToFile(SearchManager.getWriter(key), line,
-                         * true); }
-                         */
-
-                        /*
-                         * if(type.equals("3.1")){
-                         * logger.debug(type+"#$#"+line);
-                         * SearchManager.updateClonePairsCount(1);
-                         * Util.writeToFile(SearchManager.type_3_1_train_Writer,
-                         * line, true); }else if(type.equals("3.2")){
-                         * logger.debug(type+"#$#"+line);
-                         * SearchManager.updateClonePairsCount(1);
-                         * Util.writeToFile(SearchManager.type_3_2_train_Writer,
-                         * line, true); }
-                         */
-                        // SearchManager.reportCloneQueue
-                        SearchManager.updateClonePairsCount(1);
-//                        SearchManager.socketWriter
-//                                .writeToSocket(qc.queryBlock.shard.id+"#$#"+type + "#$#" + line);
-                        SearchManager.socketWriter
-                                .writeToSocket(type + "#$#" + line);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    SearchManager.updateClonePairsCount(1);
+                    System.out.println("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
+                    int randomNum = ThreadLocalRandom.current().nextInt(9900, 9903 + 1);
+                    SearchManager.getSocketWriter("localhost", randomNum).writeToSocket(type + "#$#" + line);
                 }
             }
         }
