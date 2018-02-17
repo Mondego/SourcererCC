@@ -37,7 +37,7 @@ public class SocketWriter {
             os = socket.getOutputStream();
             pwrite = new BufferedWriter(
                     new OutputStreamWriter(os, StandardCharsets.UTF_8),
-                    1024 * 1000 * 1000 * 2);
+                    1024 * 1000 * 1000 * 1);
             // pwrite = new PrintWriter(new
             // OutputStreamWriter(os,StandardCharsets.UTF_8), false);
 

@@ -1043,7 +1043,7 @@ public class SearchManager {
                 
                 // Bag bag = theInstance.cloneHelper.deserialise(line);
                 if (null != block) {
-                    size = size + (block.actionTokenFrequencySet.size() * 300); // approximate
+                    size = size + (block.numTotalActionToken * 300); // approximate
                     // mem
                     // utilization.
                     // 1
