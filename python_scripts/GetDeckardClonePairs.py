@@ -12,10 +12,10 @@ file_error=open(file_error_path,'w')
 
 def parseline(line):
     linesplitted=line.split(' ') 
-    path=linesplitted[16].split('/')
+    path=linesplitted[1].split('/')
     path_to_write=path[11]+','+path[12]
-    startline=linesplitted[17].split(':')[1]
-    endline=int(startline)+int(linesplitted[17].split(':')[2])-1
+    startline=linesplitted[2].split(':')[1]
+    endline=int(startline)+int(linesplitted[2].split(':')[2])-1
     return (path_to_write+','+startline+','+str(endline))
 
 
