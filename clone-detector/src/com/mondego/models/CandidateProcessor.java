@@ -199,9 +199,10 @@ public class CandidateProcessor implements IListener, Runnable {
                     }
                     String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
                     SearchManager.updateClonePairsCount(1);
-                    System.out.println("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
+                    logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
                     int randomNum = ThreadLocalRandom.current().nextInt(9900, 9903 + 1);
                     SearchManager.getSocketWriter("localhost", randomNum).writeToSocket(type + "#$#" + line);
+                    
                 }
             }
         }

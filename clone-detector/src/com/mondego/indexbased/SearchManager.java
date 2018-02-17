@@ -1217,6 +1217,7 @@ public class SearchManager {
         
         String key = "address::"+port;
         if (!SearchManager.socketWriters.containsKey(key)) {
+            logger.debug("creating a new socketWriter instance for address ."+ key);
             SocketWriter socketWriter = new SocketWriter(port, address);
             socketWriter.openSocketForWriting();
             SearchManager.socketWriters.put(key, socketWriter);
