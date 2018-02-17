@@ -1205,7 +1205,7 @@ public class SearchManager {
         return SearchManager.docId;
     }
 
-    public static Writer getWriter(String key) throws IOException {
+    public static synchronized Writer getWriter(String key) throws IOException {
         if (!SearchManager.trainWriters.containsKey(key)) {
             SearchManager.trainWriters.put(key,
                     Util.openFile(SearchManager.OUTPUT_DIR
