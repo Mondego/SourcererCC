@@ -1102,6 +1102,12 @@ public class SearchManager {
         SearchManager.socketWriter.openSocketForWriting();*/
         // theInstance.loadIjaMap();
         // theInstance.loadTokensMap();
+        for (int i = 9900;i<9904;i++){
+            String key = "address::"+i;
+            SocketWriter socketWriter = new SocketWriter(i, "localhost");
+            socketWriter.openSocketForWriting();
+            SearchManager.socketWriters.put(key, socketWriter);
+        }
         theInstance.loadCloneLabels();
         /*if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
             theInstance.readAndUpdateRunMetadata();
@@ -1214,16 +1220,9 @@ public class SearchManager {
         }
         return SearchManager.trainWriters.get(key);
     }
-    public static synchronized SocketWriter getSocketWriter(String address, int port){
+    public static SocketWriter getSocketWriter(String address, int port){
         
         String key = "address::"+port;
-        
-        if (!SearchManager.socketWriters.containsKey(key)) {
-            logger.debug("creating a new socketWriter instance for address ."+ key);
-            SocketWriter socketWriter = new SocketWriter(port, address);
-            socketWriter.openSocketForWriting();
-            SearchManager.socketWriters.put(key, socketWriter);
-        }
         return SearchManager.socketWriters.get(key);
     }
 
