@@ -168,6 +168,7 @@ public class SearchManager {
         this.tokensMapping = new HashMap<String, String>();
         this.clonePairs = new HashSet<CloneLabel>();
         this.trainWriters = new HashMap<String, Writer>();
+        SearchManager.socketWriters = new HashMap<String,SocketWriter>();
         try {
 
             SearchManager.th = (Float.parseFloat(args[1])
@@ -1216,6 +1217,7 @@ public class SearchManager {
     public static SocketWriter getSocketWriter(String address, int port){
         
         String key = "address::"+port;
+        
         if (!SearchManager.socketWriters.containsKey(key)) {
             logger.debug("creating a new socketWriter instance for address ."+ key);
             SocketWriter socketWriter = new SocketWriter(port, address);
