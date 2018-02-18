@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -538,6 +539,9 @@ public class SearchManager {
                 for (SocketWriter socketWriter : SearchManager.socketWriters.values()){
                     socketWriter.closeSocket();
                 }
+                logger.debug("sleeping for 60 mins");
+                TimeUnit.MINUTES.sleep(60);
+
             }
         } else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_INIT)) {
             // WordFrequencyStore wfs = new WordFrequencyStore();
