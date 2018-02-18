@@ -43,7 +43,6 @@ import com.mondego.models.CloneLabel;
 import com.mondego.models.ClonePair;
 import com.mondego.models.CloneReporter;
 import com.mondego.models.CloneValidator;
-import com.mondego.models.DocumentForInvertedIndex;
 import com.mondego.models.InvertedIndexCreator;
 import com.mondego.models.QueryCandidates;
 import com.mondego.models.QueryFileProcessor;
@@ -147,6 +146,7 @@ public class SearchManager {
     public static Set<CloneLabel> clonePairs;
     public static SocketWriter socketWriter;
     public static Map<String, SocketWriter> socketWriters;
+    public static int queriesProcessed;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -168,6 +168,7 @@ public class SearchManager {
         this.clonePairs = new HashSet<CloneLabel>();
         this.trainWriters = new HashMap<String, Writer>();
         SearchManager.socketWriters = new HashMap<String, SocketWriter>();
+        SearchManager.queriesProcessed=0;
         try {
 
             SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
@@ -1123,6 +1124,10 @@ public class SearchManager {
 
         String key = "address::" + port;
         return SearchManager.socketWriters.get(key);
+    }
+    
+    public synchronized static void incrementProcessedQueriesCounter(){
+        SearchManager.queriesProcessed++;
     }
 
 }

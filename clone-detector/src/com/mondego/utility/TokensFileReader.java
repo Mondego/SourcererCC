@@ -10,6 +10,7 @@ import java.text.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.indexbased.SearchManager;
 import com.mondego.models.ITokensFileProcessor;
 
 public class TokensFileReader {
@@ -32,12 +33,11 @@ public class TokensFileReader {
             throws FileNotFoundException, IOException, ParseException {
         BufferedReader br = new BufferedReader(new FileReader(file));
         String line;
-        long lineNumber = 0;
         char[] buf = new char[40];
         while ((line = br.readLine()) != null) {
             this.processor.processLine(line);
-            lineNumber++;
-            logger.debug("queries processed: " + lineNumber);
+            SearchManager.incrementProcessedQueriesCounter();
+            logger.debug("queries processed: " + SearchManager.queriesProcessed);
         }
         try {
             br.close();
