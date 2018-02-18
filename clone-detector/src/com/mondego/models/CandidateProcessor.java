@@ -133,7 +133,7 @@ public class CandidateProcessor implements IListener, Runnable {
         features.add(candiadteBlock.getMethodIdentifier());
         CloneLabel cp = new CloneLabel((int) queryBlock.parentId, queryBlock.id, (int) candiadteBlock.parentId,
                 candiadteBlock.id);
-        if(SearchManager.properties.getBoolean("IS_TRAIN_MODE")){
+        if (SearchManager.properties.getBoolean("IS_TRAIN_MODE")) {
             if (SearchManager.clonePairs.contains(cp)) {
                 features.add("1");
             } else {
@@ -145,10 +145,10 @@ public class CandidateProcessor implements IListener, Runnable {
                     features.add("0");
                 }
             }
-        }else{
+        } else {
             features.add("0");
         }
-        
+
         for (int i = 0; i < queryBlock.metrics.size(); i++) {
             features.add(queryBlock.metrics.get(i) + "");
             features.add(candiadteBlock.metrics.get(i) + "");
@@ -205,9 +205,10 @@ public class CandidateProcessor implements IListener, Runnable {
                     String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
                     SearchManager.updateClonePairsCount(1);
                     logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
-                    int randomNum = ThreadLocalRandom.current().nextInt(9900, 9903 + 1);
+                    int randomNum = ThreadLocalRandom.current().nextInt(SearchManager.properties.getInt("START_PORT"),
+                            SearchManager.properties.getInt("END_PORT") + 1);
                     SearchManager.getSocketWriter("localhost", randomNum).writeToSocket(type + "#$#" + line);
-                    
+
                 }
             }
         }
