@@ -133,17 +133,22 @@ public class CandidateProcessor implements IListener, Runnable {
         features.add(candiadteBlock.getMethodIdentifier());
         CloneLabel cp = new CloneLabel((int) queryBlock.parentId, queryBlock.id, (int) candiadteBlock.parentId,
                 candiadteBlock.id);
-        if (SearchManager.clonePairs.contains(cp)) {
-            features.add("1");
-        } else {
-            cp = new CloneLabel((int) candiadteBlock.parentId, candiadteBlock.id, (int) queryBlock.parentId,
-                    queryBlock.id);
+        if(SearchManager.properties.getBoolean("IS_TRAIN_MODE")){
             if (SearchManager.clonePairs.contains(cp)) {
                 features.add("1");
             } else {
-                features.add("0");
+                cp = new CloneLabel((int) candiadteBlock.parentId, candiadteBlock.id, (int) queryBlock.parentId,
+                        queryBlock.id);
+                if (SearchManager.clonePairs.contains(cp)) {
+                    features.add("1");
+                } else {
+                    features.add("0");
+                }
             }
+        }else{
+            features.add("0");
         }
+        
         for (int i = 0; i < queryBlock.metrics.size(); i++) {
             features.add(queryBlock.metrics.get(i) + "");
             features.add(candiadteBlock.metrics.get(i) + "");
