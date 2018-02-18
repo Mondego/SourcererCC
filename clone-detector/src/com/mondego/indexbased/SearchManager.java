@@ -1000,7 +1000,8 @@ public class SearchManager {
          */
         // theInstance.loadIjaMap();
         // theInstance.loadTokensMap();
-        for (int i = 9900; i < 9904; i++) {
+        for (int i = SearchManager.properties.getInt("START_PORT"); i <= SearchManager.properties
+                .getInt("END_PORT"); i++) {
             String key = "address::" + i;
             SocketWriter socketWriter = new SocketWriter(i, "localhost");
             socketWriter.openSocketForWriting();
