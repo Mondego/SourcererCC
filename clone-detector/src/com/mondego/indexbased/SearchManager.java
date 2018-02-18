@@ -168,6 +168,7 @@ public class SearchManager {
         this.tokensMapping = new HashMap<String, String>();
         this.clonePairs = new HashSet<CloneLabel>();
         this.trainWriters = new HashMap<String, Writer>();
+        SearchManager.socketWriters = new HashMap<String,SocketWriter>();
         try {
 
             SearchManager.th = (Float.parseFloat(args[1])
@@ -1043,7 +1044,7 @@ public class SearchManager {
                 
                 // Bag bag = theInstance.cloneHelper.deserialise(line);
                 if (null != block) {
-                    size = size + (block.actionTokenFrequencySet.size() * 300); // approximate
+                    size = size + (block.numTotalActionToken * 300); // approximate
                     // mem
                     // utilization.
                     // 1
@@ -1101,6 +1102,12 @@ public class SearchManager {
         SearchManager.socketWriter.openSocketForWriting();*/
         // theInstance.loadIjaMap();
         // theInstance.loadTokensMap();
+        for (int i = 9900;i<9904;i++){
+            String key = "address::"+i;
+            SocketWriter socketWriter = new SocketWriter(i, "localhost");
+            socketWriter.openSocketForWriting();
+            SearchManager.socketWriters.put(key, socketWriter);
+        }
         theInstance.loadCloneLabels();
         /*if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
             theInstance.readAndUpdateRunMetadata();
@@ -1204,7 +1211,7 @@ public class SearchManager {
         return SearchManager.docId;
     }
 
-    public static Writer getWriter(String key) throws IOException {
+    public static synchronized Writer getWriter(String key) throws IOException {
         if (!SearchManager.trainWriters.containsKey(key)) {
             SearchManager.trainWriters.put(key,
                     Util.openFile(SearchManager.OUTPUT_DIR
@@ -1216,11 +1223,6 @@ public class SearchManager {
     public static SocketWriter getSocketWriter(String address, int port){
         
         String key = "address::"+port;
-        if (!SearchManager.socketWriters.containsKey(key)) {
-            SocketWriter socketWriter = new SocketWriter(port, address);
-            socketWriter.openSocketForWriting();
-            SearchManager.socketWriters.put(key, socketWriter);
-        }
         return SearchManager.socketWriters.get(key);
     }
 
