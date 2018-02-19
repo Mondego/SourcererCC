@@ -207,7 +207,7 @@ public class CandidateProcessor implements IListener, Runnable {
                     //logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
                     int limitPerSocket=100000;
                     int turn= (int) (SearchManager.clonePairsCount/limitPerSocket);
-                    int totalSockets = SearchManager.properties.getInt("END_PORT")-SearchManager.properties.getInt("START_PORT");
+                    int totalSockets = SearchManager.properties.getInt("END_PORT")-SearchManager.properties.getInt("START_PORT")+1;
                     int port = SearchManager.properties.getInt("START_PORT") + turn%totalSockets;
                     logger.debug("CALCULATING turn: "+ turn+", totalSockets: "+totalSockets+", port: "+ port);
                     
