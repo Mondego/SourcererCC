@@ -63,7 +63,7 @@ import net.jmatrix.eproperties.EProperties;
  * 
  */
 public class SearchManager {
-    private static long clonePairsCount;
+    public static long clonePairsCount;
     public static CodeSearcher gtpmSearcher;
     public CloneHelper cloneHelper;
     public static String QUERY_DIR_PATH;
@@ -941,7 +941,7 @@ public class SearchManager {
 
                 // Bag bag = theInstance.cloneHelper.deserialise(line);
                 if (null != block) {
-                    size = size + (block.numTotalActionToken * 300); // approximate
+                    size = size + (block.numTotalActionToken * 2400); // approximate
                     // mem
                     // utilization.
                     // 1
@@ -1081,7 +1081,7 @@ public class SearchManager {
     }
 
     private void setupSearchers(Shard shard) {
-        this.max_index_size = Integer.parseInt(properties.getProperty("MAX_INDEX_SIZE", "12"));
+        this.max_index_size = SearchManager.properties.getInt("MAX_INDEX_SIZE");
         if (shard.subShards.size() > 0) {
             for (Shard subShard : shard.subShards) {
                 this.setupSearchers(subShard);

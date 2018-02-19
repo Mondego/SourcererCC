@@ -204,11 +204,13 @@ public class CandidateProcessor implements IListener, Runnable {
                     }
                     String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
                     SearchManager.updateClonePairsCount(1);
-                    logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
-                    int randomNum = ThreadLocalRandom.current().nextInt(SearchManager.properties.getInt("START_PORT"),
-                            SearchManager.properties.getInt("END_PORT") + 1);
-                    SearchManager.getSocketWriter("localhost", randomNum).writeToSocket(type + "#$#" + line);
-
+                    //logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
+                    int limitPerSocket=2800000;
+                    int turn= (int) (SearchManager.clonePairsCount/limitPerSocket);
+                    int totalSockets = SearchManager.properties.getInt("END_PORT")-SearchManager.properties.getInt("START_PORT");
+                    int port = SearchManager.properties.getInt("START_PORT") + turn%totalSockets;
+                    
+                    SearchManager.getSocketWriter("localhost", port).writeToSocket(type + "#$#" + line);
                 }
             }
         }
