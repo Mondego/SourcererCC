@@ -205,7 +205,7 @@ public class CandidateProcessor implements IListener, Runnable {
                     String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
                     SearchManager.updateClonePairsCount(1);
                     //logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
-                    int limitPerSocket=100000;
+                    int limitPerSocket=(int)SearchManager.properties.getInt("SOCKET_BUFFER")/350;
                     int turn= (int) (SearchManager.clonePairsCount/limitPerSocket);
                     int totalSockets = SearchManager.properties.getInt("END_PORT")-SearchManager.properties.getInt("START_PORT")+1;
                     int port = SearchManager.properties.getInt("START_PORT") + turn%totalSockets;

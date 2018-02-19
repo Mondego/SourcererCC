@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mondego.indexbased.SearchManager;
+
 public class SocketWriter {
 
     private Socket socket;
@@ -37,7 +39,7 @@ public class SocketWriter {
             os = socket.getOutputStream();
             pwrite = new BufferedWriter(
                     new OutputStreamWriter(os, StandardCharsets.UTF_8),
-                    1024 * 1000 * 35 * 1);
+                    SearchManager.properties.getInt("SOCKET_BUFFER"));
             // pwrite = new PrintWriter(new
             // OutputStreamWriter(os,StandardCharsets.UTF_8), false);
 
