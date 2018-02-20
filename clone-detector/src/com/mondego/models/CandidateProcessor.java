@@ -196,7 +196,7 @@ public class CandidateProcessor implements IListener, Runnable {
                     minPosibleSimilarity = candidateBlock.minCandidateTotalActionTokens;
                 }
                 if (simInfo.totalActionTokenSimilarity >= minPosibleSimilarity) {
-                    logger.debug("similarity is: " + simInfo.totalActionTokenSimilarity);
+                    //logger.debug("similarity is: " + simInfo.totalActionTokenSimilarity);
                     String type = "3.2";
                     if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)) {
                         type = "2";
