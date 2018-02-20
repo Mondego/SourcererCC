@@ -155,7 +155,7 @@ public class Util {
             throws IOException {
         try {
             Writer pWriter = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(filename, append), "UTF-8"),1024*1000*10);
+                    new FileOutputStream(filename, append), "UTF-8"),SearchManager.properties.getInt("DEFAULT_BUFFERED_WRITER_SIZE"));
             return pWriter;
 
         } catch (IOException e) {
