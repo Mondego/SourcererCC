@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
+import com.mondego.utility.Util;
 
 public class CandidateProcessor implements IListener, Runnable {
     private QueryCandidates qc;
@@ -203,17 +204,31 @@ public class CandidateProcessor implements IListener, Runnable {
                         type = "3.1";
                     }
                     String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
-                    SearchManager.updateClonePairsCount(1);
+                    //SearchManager.updateClonePairsCount(1);
                     //logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
-                    int limitPerSocket=(int)SearchManager.properties.getInt("SOCKET_BUFFER")/350;
+                    /*int limitPerSocket=(int)SearchManager.properties.getInt("SOCKET_BUFFER")/350;
                     int turn= (int) (SearchManager.clonePairsCount/limitPerSocket);
                     int totalSockets = SearchManager.properties.getInt("END_PORT")-SearchManager.properties.getInt("START_PORT")+1;
                     int port = SearchManager.properties.getInt("START_PORT") + turn%totalSockets;
-                    logger.debug("CALCULATING turn: "+ turn+", totalSockets: "+totalSockets+", port: "+ port);
+                    logger.debug("CALCULATING turn: "+ turn+", totalSockets: "+totalSockets+", port: "+ port);*/
                     
-                    SearchManager.getSocketWriter("localhost", port).writeToSocket(type + "#$#" + line);
+                    this.sendLine(type + "#$#" + line);
+                    
+                    //SearchManager.getSocketWriter("localhost", port).writeToSocket(type + "#$#" + line);
                 }
             }
+        }
+    }
+    
+    private void sendLine(String line){
+        int limitPerFile = 100000;
+        int port = ThreadLocalRandom.current().nextInt(SearchManager.properties.getInt("START_PORT"), SearchManager.properties.getInt("END_PORT") + 1);
+        int count = SearchManager.updateClonePairsCount(1, port);
+        int nextFileCounter = (int) (count/limitPerFile);
+        try {
+            Util.writeToFile(SearchManager.getCandidatesWriter(port, nextFileCounter), line, true);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -71,6 +71,7 @@ public class SearchManager {
     public static String WFM_DIR_PATH;
     public static Writer clonesWriter; // writer to write the output
     public static Map<String, Writer> trainWriters;
+    public static Map<String, Writer> candidateWriters;
     public static Writer recoveryWriter; // writes the lines processed during
                                          // search. for recovery purpose.
     public static float th; // args[2]
@@ -147,6 +148,10 @@ public class SearchManager {
     public static SocketWriter socketWriter;
     public static Map<String, SocketWriter> socketWriters;
     public static int queriesProcessed;
+    public static Map<Integer, Integer> clientWiseCandidatesCount;
+    public static Map<Integer, String> clinetWiseCandidateListFile;
+    public static Map<String, String> keyWiseCandidateFilePath;
+    public static Map<Integer, Integer> clientWiseCurrentCandidateFileNum;
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.clonePairsCount = 0;
@@ -167,8 +172,15 @@ public class SearchManager {
         this.tokensMapping = new HashMap<String, String>();
         this.clonePairs = new HashSet<CloneLabel>();
         this.trainWriters = new HashMap<String, Writer>();
+        this.candidateWriters = new HashMap<String, Writer>();
+        SearchManager.clientWiseCandidatesCount = new HashMap<Integer, Integer>();
+        SearchManager.clinetWiseCandidateListFile = new HashMap<Integer, String>();
+
+        SearchManager.keyWiseCandidateFilePath = new HashMap<String, String>();
+        SearchManager.clientWiseCurrentCandidateFileNum = new HashMap<Integer, Integer>();
+
         SearchManager.socketWriters = new HashMap<String, SocketWriter>();
-        SearchManager.queriesProcessed=0;
+        SearchManager.queriesProcessed = 0;
         try {
 
             SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
@@ -474,11 +486,33 @@ public class SearchManager {
                         Thread.sleep(4000);
                     }
                 }
-                for (SocketWriter socketWriter : SearchManager.socketWriters.values()) {
-                    socketWriter.closeSocket();
+                /*
+                 * for (SocketWriter socketWriter :
+                 * SearchManager.socketWriters.values()) {
+                 * socketWriter.closeSocket(); }
+                 */
+                for (int i = SearchManager.properties.getInt("START_PORT"); i <= SearchManager.properties
+                        .getInt("END_PORT"); i++){
+                    
+                    if (SearchManager.clientWiseCurrentCandidateFileNum.containsKey(i)) {
+                        // close the candiadte pair file
+                        String key = i+":"+ SearchManager.clientWiseCurrentCandidateFileNum.get(i);
+                        Util.writeToFile(SearchManager.candidateWriters.get(key), "FINISHED_JOB", true);
+                        Util.closeOutputFile(SearchManager.candidateWriters.get(key));
+                        if (!SearchManager.clinetWiseCandidateListFile.containsKey(i)) {
+                            String candidateListFilePath = SearchManager.properties.getString("CANDIDATES_DIR") + "/" + i
+                                    + "/candidatesList.txt";
+                            SearchManager.clinetWiseCandidateListFile.put(i, candidateListFilePath);
+                        }
+                        String candidateListFilePath = SearchManager.clinetWiseCandidateListFile.get(i);
+                        Writer writer = Util.openFile(candidateListFilePath, true);
+                        Util.writeToFile(writer, SearchManager.keyWiseCandidateFilePath.get(key), true);
+                        Util.closeOutputFile(writer);
+                    }
                 }
-                logger.debug("sleeping for 60 mins");
-                TimeUnit.MINUTES.sleep(60);
+
+                //    logger.debug("sleeping for 60 mins");
+                //TimeUnit.MINUTES.sleep(60);
 
             }
         } else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_INIT)) {
@@ -495,6 +529,9 @@ public class SearchManager {
             Util.closeOutputFile(SearchManager.clonesWriter);
             Util.closeOutputFile(SearchManager.recoveryWriter);
             for (Writer writer : SearchManager.trainWriters.values()) {
+                Util.closeOutputFile(writer);
+            }
+            for (Writer writer : SearchManager.candidateWriters.values()) {
                 Util.closeOutputFile(writer);
             }
             if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
@@ -1001,13 +1038,13 @@ public class SearchManager {
          */
         // theInstance.loadIjaMap();
         // theInstance.loadTokensMap();
-        for (int i = SearchManager.properties.getInt("START_PORT"); i <= SearchManager.properties
-                .getInt("END_PORT"); i++) {
-            String key = "address::" + i;
-            SocketWriter socketWriter = new SocketWriter(i, "localhost");
-            socketWriter.openSocketForWriting();
-            SearchManager.socketWriters.put(key, socketWriter);
-        }
+        /*
+         * for (int i = SearchManager.properties.getInt("START_PORT"); i <=
+         * SearchManager.properties .getInt("END_PORT"); i++) { String key =
+         * "address::" + i; SocketWriter socketWriter = new SocketWriter(i,
+         * "localhost"); socketWriter.openSocketForWriting();
+         * SearchManager.socketWriters.put(key, socketWriter); }
+         */
         if (SearchManager.properties.getBoolean("IS_TRAIN_MODE")) {
             theInstance.loadCloneLabels();
         }
@@ -1100,8 +1137,16 @@ public class SearchManager {
         SearchManager.numCandidates += num;
     }
 
-    public static synchronized void updateClonePairsCount(int num) {
+    public static synchronized int updateClonePairsCount(int num, int port) {
         SearchManager.clonePairsCount += num;
+        int count = 0;
+        if (SearchManager.clientWiseCandidatesCount.containsKey(port)) {
+            count = SearchManager.clientWiseCandidatesCount.get(port);
+            SearchManager.clientWiseCandidatesCount.put(port, count + 1);
+        } else {
+            SearchManager.clientWiseCandidatesCount.put(port, count + 1);
+        }
+        return count + 1;
     }
 
     public static synchronized long getNextId() {
@@ -1120,13 +1165,40 @@ public class SearchManager {
         return SearchManager.trainWriters.get(key);
     }
 
+    public static synchronized Writer getCandidatesWriter(int port, int count) throws IOException {
+        String key = port + ":" + count;
+        if (!SearchManager.candidateWriters.containsKey(key)) {
+            Util.createDirs(SearchManager.properties.getString("CANDIDATES_DIR") + "/" + port);
+            String filePath = SearchManager.properties.getString("CANDIDATES_DIR") + "/" + port + "/" + key + ".txt";
+            SearchManager.candidateWriters.put(key, Util.openFile(filePath, false));
+            SearchManager.keyWiseCandidateFilePath.put(key, filePath);
+            SearchManager.clientWiseCurrentCandidateFileNum.put(port, count);
+            // write completed file path
+            String previousKey = port + ":" + (count - 1);
+            if (SearchManager.candidateWriters.containsKey(previousKey)) {
+                // close the candiadte pair file
+                Util.closeOutputFile(SearchManager.candidateWriters.get(previousKey));
+                if (!SearchManager.clinetWiseCandidateListFile.containsKey(port)) {
+                    String candidateListFilePath = SearchManager.properties.getString("CANDIDATES_DIR") + "/" + port
+                            + "/candidatesList.txt";
+                    SearchManager.clinetWiseCandidateListFile.put(port, candidateListFilePath);
+                }
+                String candidateListFilePath = SearchManager.clinetWiseCandidateListFile.get(port);
+                Writer writer = Util.openFile(candidateListFilePath, true);
+                Util.writeToFile(writer, SearchManager.keyWiseCandidateFilePath.get(previousKey), true);
+                Util.closeOutputFile(writer);
+            }
+        }
+        return SearchManager.candidateWriters.get(key);
+    }
+
     public static SocketWriter getSocketWriter(String address, int port) {
 
         String key = "address::" + port;
         return SearchManager.socketWriters.get(key);
     }
-    
-    public synchronized static void incrementProcessedQueriesCounter(){
+
+    public synchronized static void incrementProcessedQueriesCounter() {
         SearchManager.queriesProcessed++;
     }
 
