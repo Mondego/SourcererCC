@@ -1178,6 +1178,8 @@ public class SearchManager {
             if (SearchManager.candidateWriters.containsKey(previousKey)) {
                 // close the candiadte pair file
                 Util.closeOutputFile(SearchManager.candidateWriters.get(previousKey));
+                // remove this writer from the map
+                SearchManager.candidateWriters.remove(previousKey);
                 if (!SearchManager.clinetWiseCandidateListFile.containsKey(port)) {
                     String candidateListFilePath = SearchManager.properties.getString("CANDIDATES_DIR") + "/" + port
                             + "/candidatesList.txt";
@@ -1187,6 +1189,8 @@ public class SearchManager {
                 Writer writer = Util.openFile(candidateListFilePath, true);
                 Util.writeToFile(writer, SearchManager.keyWiseCandidateFilePath.get(previousKey), true);
                 Util.closeOutputFile(writer);
+                // remove this path from the map
+                SearchManager.keyWiseCandidateFilePath.remove(previousKey);
             }
         }
         return SearchManager.candidateWriters.get(key);
