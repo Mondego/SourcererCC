@@ -19,15 +19,22 @@ public class CustomVisitor extends TreeVisitor {
     File file;
     String fileContent;
     Path path;
+    SourceCodeLineCounter sourceCodeLineCounter;
+    boolean APPLY_SLOC_FILTER = true;
+    int MIN_SLOC_ALLOWED = 10;
+
     public CustomVisitor(File file) {
         super();
         this.file = file;
         this.path = file.toPath();
+        sourceCodeLineCounter = new SourceCodeLineCounter();
     }
+
     public CustomVisitor(String content, Path path) {
         super();
         this.fileContent = content;
-        this.path=path;
+        this.path = path;
+        sourceCodeLineCounter = new SourceCodeLineCounter();
     }
 
     @Override
@@ -43,6 +50,14 @@ public class CustomVisitor extends TreeVisitor {
                     MapUtils.addOrUpdateMap(collector.mapRemoveFromOperands, c.toString());
                     collector.MOD++;
                 }
+                MethodDeclaration m = (MethodDeclaration) node;
+                StringBuilder sb = new StringBuilder();
+                try{
+                    sb.append(m.getDeclarationAsString()).append(m.getBody().get());
+                }catch(Exception e){
+                    //ignore this method has no method body
+                }
+                collector.SLOC = SourceCodeLineCounter.getNumberOfLines(sb.toString().split("[\\r\\n]+"));
             }
             if (node instanceof ConstructorDeclaration) {
                 for (Modifier c : ((ConstructorDeclaration) node).getModifiers()) {
@@ -50,6 +65,17 @@ public class CustomVisitor extends TreeVisitor {
                     MapUtils.addOrUpdateMap(collector.mapRemoveFromOperands, c.toString());
                     collector.MOD++;
                 }
+                ConstructorDeclaration m = (ConstructorDeclaration) node;
+                StringBuilder sb = new StringBuilder();
+                try{
+                    sb.append(m.getDeclarationAsString()).append(m.getBody());
+                }catch(Exception e){
+                    //ignore this method has no method body
+                }
+                collector.SLOC = SourceCodeLineCounter.getNumberOfLines(sb.toString().split("[\\r\\n]+"));
+            }
+            if (this.APPLY_SLOC_FILTER && collector.SLOC < this.MIN_SLOC_ALLOWED) {
+                return;
             }
             NodeList<ReferenceType> exceptionsThrown = null;
             if (node instanceof MethodDeclaration) {
@@ -160,7 +186,8 @@ public class CustomVisitor extends TreeVisitor {
         StringBuilder line = new StringBuilder("");
         line.append(metadataString).append(externalSeparator).append(metricString).append(externalSeparator)
                 .append(actionTokenString).append(externalSeparator).append(stopwordsActionTokenString)
-                .append(externalSeparator).append(methodNameActionString).append(System.lineSeparator());
+                .append(externalSeparator).append(methodNameActionString).append(externalSeparator)
+                .append(collector.SLOC).append(System.lineSeparator());
         try {
             FileWriters.metricsFileWriter.append(line.toString());
         } catch (IOException e) {
