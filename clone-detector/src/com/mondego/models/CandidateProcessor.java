@@ -2,7 +2,6 @@ package com.mondego.models;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -196,7 +195,7 @@ public class CandidateProcessor implements IListener, Runnable {
                     minPosibleSimilarity = candidateBlock.minCandidateTotalActionTokens;
                 }
                 if (simInfo.totalActionTokenSimilarity >= minPosibleSimilarity) {
-                    //logger.debug("similarity is: " + simInfo.totalActionTokenSimilarity);
+                    logger.debug("similarity is: " + simInfo.totalActionTokenSimilarity);
                     String type = "3.2";
                     if (candidateBlock.metriHash.equals(this.qc.queryBlock.metriHash)) {
                         type = "2";
@@ -221,14 +220,17 @@ public class CandidateProcessor implements IListener, Runnable {
     }
     
     private void sendLine(String line){
-        int limitPerFile = 100000;
-        int port = ThreadLocalRandom.current().nextInt(SearchManager.properties.getInt("START_PORT"), SearchManager.properties.getInt("END_PORT") + 1);
-        int count = SearchManager.updateClonePairsCount(1, port);
-        int nextFileCounter = (int) (count/limitPerFile);
-        try {
-            Util.writeToFile(SearchManager.getCandidatesWriter(port, nextFileCounter), line, true);
-        } catch (IOException e) {
-            e.printStackTrace();
+        synchronized (SearchManager.theInstance) {
+            int limitPerFile = 100000;
+            int port = ThreadLocalRandom.current().nextInt(SearchManager.properties.getInt("START_PORT"), SearchManager.properties.getInt("END_PORT") + 1);
+            int count = SearchManager.updateClonePairsCount(1, port);
+            int nextFileCounter = (int) (count/limitPerFile);
+            try {
+                Util.writeToFile(SearchManager.getCandidatesWriter(port, nextFileCounter), line, true);
+            } catch (IOException e) {
+                logger.error("error while writing to file, port: "+port+", filecounter: "+nextFileCounter+", count: "+count, e);
+            }
         }
+        
     }
 }

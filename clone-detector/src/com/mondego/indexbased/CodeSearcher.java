@@ -23,7 +23,6 @@ import org.apache.lucene.util.Version;
 
 import com.mondego.models.Block;
 import com.mondego.models.TokenInfo;
-import com.mondego.noindex.CloneHelper;
 
 /**
  * @author vaibhavsaini
@@ -60,7 +59,6 @@ public class CodeSearcher {
                                                                    // argument
                                                                    // to
                                                                    // constructor
-        new CloneHelper(); // i don't remember why we are making this object?
         this.queryParser = new QueryParser(Version.LUCENE_46, this.field,
                 analyzer);
     }

@@ -168,7 +168,11 @@ public class ClonesBugsAssembler {
         sb.append("K"+Util.CSV_DELIMITER+"Malicious_Code"+Util.CSV_DELIMITER+"=SUMIF(P:P,\"=0\",K:K)"+Util.CSV_DELIMITER+"=SUMIF(P:P,\">0\",K:K)"+Util.CSV_DELIMITER+"=(C"+(columnOffset+offset)+"*1000)/"+"C"+columnOffset+Util.CSV_DELIMITER+"=(D"+(columnOffset+offset)+"*1000)/"+"D"+columnOffset+"\n");
         sb.append("Total"+Util.CSV_DELIMITER+""+Util.CSV_DELIMITER+"=SUM(C"+(columnOffset+4)+":C"+(columnOffset+offset)+")"+Util.CSV_DELIMITER+"=SUM(D"+(columnOffset+4)+":D"+(columnOffset+offset)+")"+"\n");
         System.out.println(sb);
-        Util.writeToFile(this.outputWriter, sb.toString(), true);
+        try {
+            Util.writeToFile(this.outputWriter, sb.toString(), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     private void populateClonesList(){
         Set<String> keys = this.clonesNameMap.keySet();
