@@ -90,8 +90,6 @@ public class Block {
             String[] lineParts = rawQuery.split("@#@");
             String metadataPart = lineParts[0];
             String[] metadata = metadataPart.split(",");
-
-            
             this.projectName = metadata[Util.DIRECTORY];
             this.fileName = metadata[Util.FILE];
             this.startLine = Integer.parseInt(metadata[Util.START_LINE]);
@@ -124,7 +122,7 @@ public class Block {
 
             String stopwordActionTokensPart = lineParts[2];
             if (stopwordActionTokensPart.trim().length() > 0) {
-                String[] stopwordActionTokens = actionTokensPart.split(",");
+                String[] stopwordActionTokens = stopwordActionTokensPart.split(",");
                 for (String stopwordactionTokenFreqPairString : stopwordActionTokens) {
                     String[] stopwwordActionTokenFreqPair = stopwordactionTokenFreqPairString.split(":");
                     TokenFrequency tokenFrequency = new TokenFrequency();
@@ -149,8 +147,10 @@ public class Block {
             this.setMinCandidateSize(BlockInfo.getMinimumSimilarityThreshold(this.size, SearchManager.th));
             this.setMaxCandidateSize(BlockInfo.getMaximumSimilarityThreshold(this.size, SearchManager.th));
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.error(e.getMessage() + ", " + rawQuery);
-            System.exit(1);
+            logger.error("ERROR caught: ", e );
+            logger.error("rawQuerry was: "+ rawQuery);
+            logger.info("ignoring this block");
+            //System.exit(1);
         }
 
     }
