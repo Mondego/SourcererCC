@@ -119,7 +119,7 @@ public class Block {
                     this.numActionTokens += tokenFrequency.getFrequency();
                 }
             }
-
+/*
             String stopwordActionTokensPart = lineParts[2];
             if (stopwordActionTokensPart.trim().length() > 0) {
                 String[] stopwordActionTokens = stopwordActionTokensPart.split(",");
@@ -144,6 +144,7 @@ public class Block {
                     this.numMethodNameActionToken += tokenFrequency.getFrequency();
                 }
             }
+            */
             this.setMinCandidateSize(BlockInfo.getMinimumSimilarityThreshold(this.size, SearchManager.th));
             this.setMaxCandidateSize(BlockInfo.getMaximumSimilarityThreshold(this.size, SearchManager.th));
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -151,6 +152,10 @@ public class Block {
             logger.error("rawQuerry was: "+ rawQuery);
             logger.info("ignoring this block");
             //System.exit(1);
+        } catch (Exception e){
+            logger.error("ERROR caught: ", e );
+            logger.error("rawQuerry was: "+ rawQuery);
+            logger.info("ignoring this block");
         }
 
     }
