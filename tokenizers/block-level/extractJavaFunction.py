@@ -75,7 +75,7 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
     closed = 0
     openned = 0
 
-    print '###################################################################################################'
+    #print '###################################################################################################'
     #print (init_line,b)
     #print 'INIT LINE -> ',file_string_split[init_line-1]
     #print '---------------------'
@@ -100,7 +100,7 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
       else:
         method_body.append(line)
 
-    print '\n'.join(method_body)
+    #print '\n'.join(method_body)
 
     end_line = init_line + len(method_body) - 1
     method_body = '\n'.join(method_body)
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
   i = 0
   for elem in positions:
-    print '#### method at:',elem
-    print strings[i]
-    print '---------------------------------------------------------'
+    #print '#### method at:',elem
+    #print strings[i]
+    #print '---------------------------------------------------------'
     i += 1

@@ -340,9 +340,9 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
         # Adjust the blocks stats written to the files, file stats start with a letter 'b'
         FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
         if len(experimental_values) == 0:
-          FILE_tokens_file.write('~~'.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
         else:
-          FILE_tokens_file.write('~~'.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),experimental_values,token_hash+tokens]) + '\n')
+          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),experimental_values,token_hash+tokens]) + '\n')
       w_time = (dt.datetime.now() - ww_time).microseconds
     except Exception as e:
       logging.warning('Error on step3 of process_file_contents. '+str(e))
