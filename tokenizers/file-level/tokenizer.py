@@ -157,10 +157,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
-def tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-  # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
-  return (None,None,None)
-
 def process_file_contents(file_string, proj_id, file_id, container_path, 
               file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
   
@@ -168,51 +164,23 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
   global file_count
   file_count += 1
-  
-  if project_format == 'zipblocks':
-    print '\''+project_format+'\' not supported yet. Exiting...'
-    sys.exit(1)
-    
-    (file_stats, blocks_data, file_parsing_times) = tokenize_python_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
-    if len(blocks_data) > 900:
-      logging.error('The file %s has more than %s blocks. Range MUST be increased.')
-      sys.exit(1)
-    else:
-      blocks_data = zip(range(100,1000),blocks_data)
 
-      ww_time = dt.datetime.now()
-      for relative_id, block_data in blocks_data:
-        (blocks_tokens,blocks_stats) = block_data
-        blocks_id = str(relative_id)+str(file_id)
+  (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
 
-        (things,inside,blocks,stats) = blocks_stats
-        (things,inside,blocks,tokens) = blocks_tokens
+  (file_hash,lines,LOC,SLOC) = final_stats
 
-        file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
-        file_path = os.path.join(container_path, file_path)
+  (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
-        # Adjust the columns written to the files
-        #FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
-        #FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-      ww_time += (dt.datetime.now() - ww_time).microseconds
+  file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
+  file_path = os.path.join(container_path, file_path)
 
-  else:
-    (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
-  
-    (file_hash,lines,LOC,SLOC) = final_stats
+  ww_time = dt.datetime.now()
+  FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
+  w_time = (dt.datetime.now() - ww_time).microseconds
 
-    (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
-
-    file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
-    file_path = os.path.join(container_path, file_path)
-
-    ww_time = dt.datetime.now()
-    FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
-    w_time = (dt.datetime.now() - ww_time).microseconds
-
-    ww_time = dt.datetime.now()
-    FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-    w_time += (dt.datetime.now() - ww_time).microseconds
+  ww_time = dt.datetime.now()
+  FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+  w_time += (dt.datetime.now() - ww_time).microseconds
 
   logging.info('Successfully ran process_file_contents '+os.path.join(container_path, file_path))
 
@@ -416,7 +384,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
 
     FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
 
-  if project_format in ['zip','zipblocks']:
+  if project_format in ['zip']:
     proj_url = 'NULL'
 
     logging.info('Starting zip project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
@@ -508,10 +476,10 @@ def active_process_count(processes):
 if __name__ == '__main__':
 
   global project_format
-  project_format = sys.argv[1] # 'zip' or 'leidos'  or 'zipblocks' (when want the blocks inside files)
+  project_format = sys.argv[1] # 'zip' or 'leidos'
 
-  if project_format not in ['zip','leidos','zipblocks']:
-    print "ERROR - Please insert archive format, 'zip', 'leidos' or 'zipblocks'!"
+  if project_format not in ['zip','leidos']:
+    print "ERROR - Please insert archive format, 'zip', 'leidos'!"
     sys.exit()
 
   read_config()
@@ -539,7 +507,7 @@ if __name__ == '__main__':
         if not prio:
           proj_paths.append(line_split)
     proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
-  if project_format in ['zip','zipblocks']: # zipblocks will diverge the process flow on process_file()
+  if project_format in ['zip']:
     print '\'',project_format,'\'','format'
     with open(FILE_projects_list) as f:
       for line in f:
