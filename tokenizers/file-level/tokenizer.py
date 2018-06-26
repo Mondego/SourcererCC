@@ -248,7 +248,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
 
         file_bytes=str(f.size)
 
-        z_time = dt.datetime.now();
+        z_time = dt.datetime.now()
         try:
           myfile = my_tar_file.extractfile(f)
         except:
@@ -310,7 +310,7 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
 
         file_bytes=str(file.file_size)
 
-        z_time = dt.datetime.now();
+        z_time = dt.datetime.now()
         try:
           my_zip_file = my_file.open(file.filename,'r')
         except:
