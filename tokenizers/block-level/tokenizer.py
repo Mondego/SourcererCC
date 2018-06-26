@@ -777,7 +777,7 @@ if __name__ == '__main__':
   # Start the priority projects
   print "*** Starting priority projects..."
   while len(prio_proj_paths) > 0:
-    start_child(processes, global_queue, prio_proj_paths, 1)
+    start_child(processes, global_queue, prio_proj_paths, 1, project_format)
 
   # Start all other projects
   print "*** Starting regular projects..."
