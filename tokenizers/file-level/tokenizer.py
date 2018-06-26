@@ -38,9 +38,6 @@ file_extensions = '.none'
 
 file_count = 0
 
-# If True, new values/parameters will be output to files_tokens
-experimental = False
-
 def read_config():
   global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
   global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
@@ -86,32 +83,6 @@ def read_config():
 
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
 
-  if experimental:
-    separators_count  = 0
-    assignments_count = 0 #(=)
-    statements_count = 0
-    expressions_count = 0
-    tree = None
-
-  if experimental:
-    try:
-      print 'Parsing'
-      tree = javalang.parse.parse(file_string)
-
-      #for path, node in tree.filter(javalang.tree.Assignment):
-      #  assignments_count += 1
-      # Assignments are calculated below in the AST an Assignment node might be Assignment(),
-      # VariableDeclarator(), and some more
-
-      for path, node in tree.filter(javalang.tree.Statement):
-        statements_count += 1
-
-      for path, node in tree.filter(javalang.tree.Expression):
-        expressions_count += 1
-
-    except Exception as e:
-      print 'ERROR: ',e
-
   final_stats  = 'ERROR'
   final_tokens = 'ERROR'
 
@@ -119,7 +90,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   lines     = 'ERROR'
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
-
 
   h_time = dt.datetime.now()
   m = hashlib.md5()
@@ -154,17 +124,9 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   # Rather a copy of the file string here for tokenization
   file_string_for_tokenization = file_string.decode('utf-8')
 
-  temp_string = file_string_for_tokenization.split('\n')
-  if experimental:
-    for line in temp_string:
-      if ('=' in line) and ('==' not in line):
-        assignments_count += 1
-
   #Transform separators into spaces (remove them)
   s_time = dt.datetime.now()
   for x in separators:
-    if experimental:
-      separators_count += file_string_for_tokenization.count(x)
     file_string_for_tokenization = file_string_for_tokenization.replace(x,' ')
   s_time = (dt.datetime.now() - s_time).microseconds
 
@@ -191,11 +153,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   m.update(tokens)
   hash_time += (dt.datetime.now() - h_time).microseconds
 
-  if experimental:
-    new_experimental_values = '%s,%s,%s,%s' % (separators_count,assignments_count,statements_count,expressions_count) # String must go formatted to files_tokens
-    final_tokens = (tokens_count_total,tokens_count_unique,new_experimental_values,m.hexdigest(),'@#@'+tokens)
-  else:
-    final_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
+  final_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
 
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
@@ -242,10 +200,8 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
   
     (file_hash,lines,LOC,SLOC) = final_stats
-    if experimental:
-      (tokens_count_total,tokens_count_unique,new_experimental_values,token_hash,tokens) = final_tokens
-    else:
-      (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
+
+    (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
     file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
     file_path = os.path.join(container_path, file_path)
@@ -255,10 +211,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     w_time = (dt.datetime.now() - ww_time).microseconds
 
     ww_time = dt.datetime.now()
-    if experimental:
-      FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),new_experimental_values,token_hash+tokens]) + '\n')
-    else:
-      FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+    FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
     w_time += (dt.datetime.now() - ww_time).microseconds
 
   logging.info('Successfully ran process_file_contents '+os.path.join(container_path, file_path))
@@ -556,16 +509,6 @@ if __name__ == '__main__':
 
   global project_format
   project_format = sys.argv[1] # 'zip' or 'leidos'  or 'zipblocks' (when want the blocks inside files)
-
-  #global experimental
-  #experimental = False
-  if len(sys.argv) >= 3:
-    if (sys.argv[2] == 'experimentalJava'):
-      experimental = True
-    else:
-      print 'Unknown parameter \''+sys.argv[2]+'\'.'
-      sys.exit(1)
-
 
   if project_format not in ['zip','leidos','zipblocks']:
     print "ERROR - Please insert archive format, 'zip', 'leidos' or 'zipblocks'!"
