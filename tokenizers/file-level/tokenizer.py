@@ -236,7 +236,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
         # Adjust the columns written to the files
         #FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
         #FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-      w_time += (dt.datetime.now() - ww_time).microseconds
+      ww_time += (dt.datetime.now() - ww_time).microseconds
 
   else:
     (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
@@ -629,7 +629,7 @@ if __name__ == '__main__':
   # Start the priority projects
   print "*** Starting priority projects..."
   while len(prio_proj_paths) > 0:
-    start_child(processes, global_queue, prio_proj_paths, 1)
+    start_child(processes, global_queue, prio_proj_paths, 1, project_format)
 
   # Start all other projects
   print "*** Starting regular projects..."
