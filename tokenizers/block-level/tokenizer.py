@@ -591,7 +591,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
 
     FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
 
-  if project_format in ['zip','zipblocks']:
+  if project_format in ['zipblocks']:
     proj_url = 'NULL'
     
     proj_id = str(proj_id_flag) + proj_id
@@ -706,10 +706,10 @@ def active_process_count(processes):
 if __name__ == '__main__':
 
   global project_format
-  project_format = sys.argv[1] # 'zip' or 'leidos'  or 'zipblocks' or 'folderblocks' (when want the blocks inside files)
+  project_format = sys.argv[1] # 'zipblocks' or 'folderblocks' (when want the blocks inside files)
 
-  if project_format not in ['zip','leidos','zipblocks','folderblocks']:
-    print("ERROR - Please insert archive format, 'zip', 'leidos', 'zipblocks' or 'folderblocks'!")
+  if project_format not in ['zipblocks','folderblocks']:
+    print("ERROR - Please insert archive format, 'zipblocks' or 'folderblocks'!")
     sys.exit()
 
   read_config()
@@ -725,7 +725,7 @@ if __name__ == '__main__':
 
   proj_paths = []
 
-  if project_format in ['zip','zipblocks']: # zipblocks will diverge the process flow on process_file()
+  if project_format in ['zipblocks']: # zipblocks will diverge the process flow on process_file()
     print('\''+project_format+'\''+'format')
     with open(FILE_projects_list) as f:
       for line in f:
