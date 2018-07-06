@@ -40,6 +40,8 @@ file_extensions = '.none'
 
 file_count = 0
 
+print('GO')
+
 def read_config():
   global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
   global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
@@ -51,7 +53,6 @@ def read_config():
 
   global proj_id_flag
 
-
   # instantiate
   config = ConfigParser()
 
@@ -59,7 +60,7 @@ def read_config():
   try:
     config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)) , 'config.ini'))
   except IOError:
-    print 'ERROR - Config settings not found. Usage: $python this-script.py config-file.ini'
+    print('ERROR - Config settings not found. Usage: $python this-script.py config-file.ini')
     sys.exit()
 
   # Get info from config.ini into global variables
@@ -681,7 +682,7 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
   paths_batch = proj_paths[:batch]
   del proj_paths[:batch]
 
-  print "Starting new process %s" % (pid)
+  print("Starting new process %s" % (pid))
   p = Process(name='Process '+str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format, ))
   processes[pid][0] = p
   p.start()
@@ -693,7 +694,7 @@ def kill_child(processes, pid, n_files_processed):
     processes[pid][0] = None
     processes[pid][1] += n_files_processed
     
-    print "Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count)
+    print("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count))
 
 def active_process_count(processes):
   count = 0
@@ -708,7 +709,7 @@ if __name__ == '__main__':
   project_format = sys.argv[1] # 'zip' or 'leidos'  or 'zipblocks' or 'folderblocks' (when want the blocks inside files)
 
   if project_format not in ['zip','leidos','zipblocks','folderblocks']:
-    print "ERROR - Please insert archive format, 'zip', 'leidos', 'zipblocks' or 'folderblocks'!"
+    print("ERROR - Please insert archive format, 'zip', 'leidos', 'zipblocks' or 'folderblocks'!")
     sys.exit()
 
   read_config()
@@ -723,36 +724,23 @@ if __name__ == '__main__':
     prio_proj_paths = zip(range(init_proj_id, len(prio_proj_paths)+init_proj_id), prio_proj_paths)
 
   proj_paths = []
-  if project_format == 'leidos':
-    print '\'',project_format,'\'','format'
-    with open(FILE_projects_list) as f:
-      for line in f:
-        prio = False
-        line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
-        for p in prio_proj_paths:
-          if p[1][0] == line_split[0]:
-            prio = True
-            print "Project %s is in priority list" % line_split[0]
-        if not prio:
-          proj_paths.append((line_split[0],line_split[4]))
-    proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
 
   if project_format in ['zip','zipblocks']: # zipblocks will diverge the process flow on process_file()
-    print '\'',project_format,'\'','format'
+    print('\''+project_format+'\''+'format')
     with open(FILE_projects_list) as f:
       for line in f:
         proj_paths.append(line[:-1])
-    proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
+    proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
 
   if project_format in ['folderblocks']: # folderblocks will diverge the process flow on process_file()
-    print '\'',project_format,'\'','format'
+    print('\''+project_format+'\''+'format')
     with open(FILE_projects_list) as f:
       for line in f:
         proj_paths.append(line[:-1])
-    proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
+    proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
 
   if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-    print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'
+    print('ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!')
     sys.exit(1)
   else:
     os.makedirs(PATH_stats_file_folder)
@@ -765,30 +753,30 @@ if __name__ == '__main__':
 
   # Multiprocessing with N_PROCESSES
   # [process, file_count]
-  processes = [[None, init_file_id] for i in xrange(N_PROCESSES)]
+  processes = [[None, init_file_id] for i in range(N_PROCESSES)]
   # Multiprocessing shared variable instance for recording file_id
   #file_id_global_var = Value('i', 1)
   # The queue for processes to communicate back to the parent (this process)
   # Initialize it with N_PROCESSES number of (process_id, n_files_processed)
   global_queue = Queue()
-  for i in xrange(N_PROCESSES):
+  for i in range(N_PROCESSES):
     global_queue.put((i, 0))
 
   # Start the priority projects
-  print "*** Starting priority projects..."
+  print("*** Starting priority projects...")
   while len(prio_proj_paths) > 0:
     start_child(processes, global_queue, prio_proj_paths, 1, project_format)
 
   # Start all other projects
-  print "*** Starting regular projects..."
+  print("*** Starting regular projects...")
   while len(proj_paths) > 0:
     start_child(processes, global_queue, proj_paths, PROJECTS_BATCH, project_format)
 
-  print "*** No more projects to process. Waiting for children to finish..."
+  print("*** No more projects to process. Waiting for children to finish...")
   while active_process_count(processes) > 0:
     pid, n_files_processed = global_queue.get()
     kill_child(processes, pid, n_files_processed)
 
   p_elapsed = dt.datetime.now() - p_start
-  print "*** All done. %s files in %s" % (file_count, p_elapsed)
+  print("*** All done. %s files in %s" % (file_count, p_elapsed))
 
