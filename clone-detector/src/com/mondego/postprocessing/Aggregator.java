@@ -142,7 +142,11 @@ public class Aggregator {
         sb.append(this.avg_comparisions_without_filter+",");
         sb.append(this.clones_count+",");
         sb.append(this.threshold);
-        Util.writeToFile(this.summryWriter, sb.toString(), true);
+        try {
+            Util.writeToFile(this.summryWriter, sb.toString(), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

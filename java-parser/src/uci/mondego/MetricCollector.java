@@ -51,6 +51,7 @@ public class MetricCollector {
     public int NAND; // number of operands
     public int NBLTRL; // number of boolean literals
     public int NCLTRL; // number of char literals
+    public int SLOC;
     // http://www.verifysoft.com/en_halstead_metrics.html
     /*
      * Tokens of the following categories are all counted as operants by CMT++:

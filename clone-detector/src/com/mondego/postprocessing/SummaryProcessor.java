@@ -62,11 +62,15 @@ public class SummaryProcessor {
                 break;
             }
         }
-        this.writeOutput();
+        try {
+            this.writeOutput();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         System.out.println("Done");
     }
 
-    private void writeOutput() {
+    private void writeOutput() throws IOException {
         String header = "project_name,7.5, 8," + "8.5,9,9.5,10";
         
         Util.writeToFile(this.processedSummryWriter_time, header, true);

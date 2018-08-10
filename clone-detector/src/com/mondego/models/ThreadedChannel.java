@@ -48,12 +48,18 @@ public class ThreadedChannel<E> {
     }
 
     public void shutdown() {
+        long start_time = System.nanoTime();
+        
         this.executor.shutdown();
         try {
-            this.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            if (!this.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)){
+                logger.error("Pool did not terminate");
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
             logger.error("inside catch, shutdown");
         }
+        long end_time = System.nanoTime();
+        logger.info("time taken for shutdown: "+ (end_time-start_time)/1000 +" micro seconds");
     }
 }

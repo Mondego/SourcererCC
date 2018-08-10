@@ -68,7 +68,12 @@ public class CloneBugPattern {
         Set<String> methods = clonesNameMap.keySet();
         boolean found=false;
         boolean ret = false;
-        Util.writeToFile(this.outputWriter, "sep="+Util.CSV_DELIMITER, true);
+        try {
+            Util.writeToFile(this.outputWriter, "sep="+Util.CSV_DELIMITER, true);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         for (String method : methods) {
             StringBuilder sb = new StringBuilder();
             String valueString = clonesNameMap.get(method);
@@ -82,7 +87,12 @@ public class CloneBugPattern {
                 found = found || ret;
             }
             if(found){
-                Util.writeToFile(this.outputWriter, sb.toString(), true);
+                try {
+                    Util.writeToFile(this.outputWriter, sb.toString(), true);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 found = false;
             }
             

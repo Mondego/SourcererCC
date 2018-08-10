@@ -63,24 +63,26 @@ public class InvertedIndexCreator implements IListener, Runnable {
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         // DocumentForInvertedIndex documentForII =
         // this.documentMaker.prepareDocumentForII(block);
-
-        SearchManager.documentsForII.put(this.block.rowId, this.block);
-        Map<Long, Integer> documentsAndTermFrequencyMap = new HashMap<Long, Integer>();
-        this.indexTokensInSet(this.block.actionTokenFrequencySet, documentsAndTermFrequencyMap);
-        this.indexTokensInSet(this.block.stopwordActionTokenFrequencySet, documentsAndTermFrequencyMap);
-        this.indexTokensInSet(this.block.methodNameActionTokenFrequencySet, documentsAndTermFrequencyMap);
+        synchronized (SearchManager.theInstance) {
+            SearchManager.documentsForII.put(this.block.id, this.block);
+            //Map<Long, Integer> documentsAndTermFrequencyMap = new HashMap<Long, Integer>();
+            this.indexTokensInSet(this.block.actionTokenFrequencySet);
+          //this.indexTokensInSet(this.block.stopwordActionTokenFrequencySet, documentsAndTermFrequencyMap);
+            //this.indexTokensInSet(this.block.methodNameActionTokenFrequencySet, documentsAndTermFrequencyMap);
+        }
     }
-    private void indexTokensInSet(Set<TokenFrequency> tokenSet, Map<Long, Integer> documentsAndTermFrequencyMap){
+    private void indexTokensInSet(Set<TokenFrequency> tokenSet){
         for (TokenFrequency tf : tokenSet) {
             // if (prefixLength > 0) {
             String term = tf.getToken().getValue();
             if (SearchManager.invertedIndex.containsKey(term)) {
-                documentsAndTermFrequencyMap = SearchManager.invertedIndex.get(term);
+                Map<Long, Integer> documentsAndTermFrequencyMap = SearchManager.invertedIndex.get(term);
+                documentsAndTermFrequencyMap.put(this.block.id, tf.getFrequency());
             } else {
-                documentsAndTermFrequencyMap = new HashMap<Long, Integer>();
+                Map<Long, Integer> documentsAndTermFrequencyMap = new HashMap<Long, Integer>();
                 SearchManager.invertedIndex.put(term, documentsAndTermFrequencyMap);
+                documentsAndTermFrequencyMap.put(this.block.id, tf.getFrequency());
             }
-            documentsAndTermFrequencyMap.put(this.block.rowId, tf.getFrequency());
         }
     }
 

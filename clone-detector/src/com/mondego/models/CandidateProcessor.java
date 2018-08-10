@@ -2,7 +2,6 @@ package com.mondego.models;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
+import com.mondego.utility.Util;
 
 public class CandidateProcessor implements IListener, Runnable {
     private QueryCandidates qc;
@@ -133,17 +133,22 @@ public class CandidateProcessor implements IListener, Runnable {
         features.add(candiadteBlock.getMethodIdentifier());
         CloneLabel cp = new CloneLabel((int) queryBlock.parentId, queryBlock.id, (int) candiadteBlock.parentId,
                 candiadteBlock.id);
-        if (SearchManager.clonePairs.contains(cp)) {
-            features.add("1");
-        } else {
-            cp = new CloneLabel((int) candiadteBlock.parentId, candiadteBlock.id, (int) queryBlock.parentId,
-                    queryBlock.id);
+        if (SearchManager.properties.getBoolean("IS_TRAIN_MODE")) {
             if (SearchManager.clonePairs.contains(cp)) {
                 features.add("1");
             } else {
-                features.add("0");
+                cp = new CloneLabel((int) candiadteBlock.parentId, candiadteBlock.id, (int) queryBlock.parentId,
+                        queryBlock.id);
+                if (SearchManager.clonePairs.contains(cp)) {
+                    features.add("1");
+                } else {
+                    features.add("0");
+                }
             }
+        } else {
+            features.add("0");
         }
+
         for (int i = 0; i < queryBlock.metrics.size(); i++) {
             features.add(queryBlock.metrics.get(i) + "");
             features.add(candiadteBlock.metrics.get(i) + "");
@@ -198,13 +203,34 @@ public class CandidateProcessor implements IListener, Runnable {
                         type = "3.1";
                     }
                     String line = this.getLineToSend(this.getLineToWriteForDeepLearning(qc.queryBlock, candidateBlock));
-                    SearchManager.updateClonePairsCount(1);
-                    logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
-                    int randomNum = ThreadLocalRandom.current().nextInt(9900, 9903 + 1);
-                    SearchManager.getSocketWriter("localhost", randomNum).writeToSocket(type + "#$#" + line);
+                    //SearchManager.updateClonePairsCount(1);
+                    //logger.debug("size of one line: " + line.getBytes(StandardCharsets.UTF_8).length);
+                    /*int limitPerSocket=(int)SearchManager.properties.getInt("SOCKET_BUFFER")/350;
+                    int turn= (int) (SearchManager.clonePairsCount/limitPerSocket);
+                    int totalSockets = SearchManager.properties.getInt("END_PORT")-SearchManager.properties.getInt("START_PORT")+1;
+                    int port = SearchManager.properties.getInt("START_PORT") + turn%totalSockets;
+                    logger.debug("CALCULATING turn: "+ turn+", totalSockets: "+totalSockets+", port: "+ port);*/
                     
+                    this.sendLine(type + "#$#" + line);
+                    
+                    //SearchManager.getSocketWriter("localhost", port).writeToSocket(type + "#$#" + line);
                 }
             }
         }
+    }
+    
+    private void sendLine(String line){
+        synchronized (SearchManager.theInstance) {
+            int limitPerFile = 100000;
+            int port = ThreadLocalRandom.current().nextInt(SearchManager.properties.getInt("START_PORT"), SearchManager.properties.getInt("END_PORT") + 1);
+            int count = SearchManager.updateClonePairsCount(1, port);
+            int nextFileCounter = (int) (count/limitPerFile);
+            try {
+                Util.writeToFile(SearchManager.getCandidatesWriter(port, nextFileCounter), line, true);
+            } catch (IOException e) {
+                logger.error("error while writing to file, port: "+port+", filecounter: "+nextFileCounter+", count: "+count, e);
+            }
+        }
+        
     }
 }

@@ -53,7 +53,7 @@ if __name__ == '__main__':
         print("Please provide all arguments")
 if(type_input=='z' or type_input=='d'):
 
-    main_dir="/home/sourcerer/oreo_related/train_dataset_sourcefiles/"
+    main_dir="/scratch/mondego/local/farima/new_oreo/scalability_related/dataset/dataset/"
     # main_dir="D:\\PhD\\Clone\\MlCC-New\\SourcererCC\\test_input"
     if(type_input=="z"):
         subdirs=[]
@@ -83,8 +83,13 @@ if(type_input=='z' or type_input=='d'):
                 break
         file.close()
     for file in os.listdir("output/"):
-        command = " java -jar ../java-parser/dist/metricCalculator.jar {filename}".format(
-            filename=full_file_path("output/"+file))
+        mode="zip"
+        if type_input=="z":
+            mode="zip"
+        elif type_input=="d":
+            mode="dir"
+        command = " java -jar ../java-parser/dist/metricCalculator.jar {filename} {mode}".format(
+            filename=full_file_path("output/"+file),mode=mode)
         command_params = command.split()
         run_command(
             command_params, full_file_path("metric.out"), full_file_path("metric.err"))

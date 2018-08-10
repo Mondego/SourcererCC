@@ -49,8 +49,13 @@ public class InputGen {
         for (int i = 0; i < 500; i++) {
             int randomNum = rand.nextInt((max - min) + 1) + min;
             System.out.println(randomNum);
-            Util.writeToFile(this.queryBlockWriter,
-                    this.methodBlocks.get(randomNum), true);
+            try {
+                Util.writeToFile(this.queryBlockWriter,
+                        this.methodBlocks.get(randomNum), true);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
     }

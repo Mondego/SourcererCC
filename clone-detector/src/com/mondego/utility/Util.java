@@ -63,45 +63,36 @@ public class Util {
     // , "num_separators","num_assignments","num_statements","num_expressions");
     private static final Logger logger = LogManager.getLogger(Util.class);
 
-    public static final int DIRECTORY =0;
-    public static final int FILE =1;
-    public static final int START_LINE =2;
-    public static final int END_LINE =3;
-    public static final int METHOD_NAME =4;
-    public static final int NUM_TOKENS =5;
-    public static final int NUM_UNIQUE_TOKENS =6;
-    public static final int METRIC_HASH =7;
-    public static final int PARENT_ID =8;
-    public static final int BLOCK_ID =9;
-    /*public static final int COMP =0;
-    public static final int NOS =1;
-    public static final int HVOC =2;
-    public static final int HEFF =3;
-    public static final int CREF =4;
-    public static final int XMET =5;
-    public static final int LMET =6;
-    public static final int NOA =7;
-    public static final int HDIF =8;
-    public static final int VDEC =9;
-    public static final int EXCT =10;
-    public static final int EXCR =11;
-    public static final int CAST =12;
-    public static final int NAND =13;
-    public static final int VREF =14;
-    public static final int NOPR =15;
-    public static final int MDN =16;
-    public static final int NEXP =17;
-    public static final int LOOP =18;
-    public static final int NBLTRL =19;
-    public static final int NCLTRL =20;
-    public static final int NNLTRL =21;
-    public static final int NNULLTRL=22;
-    public static final int NSLTRL =23;
-    
-    
-     COMP~~NOS~~HVOC~~HEFF~~CREF~~XMET~~LMET~~NOA~~HDIF~~VDEC~~EXCT~~EXCR~~CAST~~NAND~~VREF~~NOPR~~MDN~~NEXP~~LOOP~~NBLTRL~~NCLTRL~~NNLTRL~~NNULLTRL~~NSLTRL
-    
-    */
+    public static final int DIRECTORY = 0;
+    public static final int FILE = 1;
+    public static final int START_LINE = 2;
+    public static final int END_LINE = 3;
+    public static final int METHOD_NAME = 4;
+    public static final int NUM_TOKENS = 5;
+    public static final int NUM_UNIQUE_TOKENS = 6;
+    public static final int METRIC_HASH = 7;
+    public static final int PARENT_ID = 8;
+    public static final int BLOCK_ID = 9;
+    /*
+     * public static final int COMP =0; public static final int NOS =1; public
+     * static final int HVOC =2; public static final int HEFF =3; public static
+     * final int CREF =4; public static final int XMET =5; public static final
+     * int LMET =6; public static final int NOA =7; public static final int HDIF
+     * =8; public static final int VDEC =9; public static final int EXCT =10;
+     * public static final int EXCR =11; public static final int CAST =12;
+     * public static final int NAND =13; public static final int VREF =14;
+     * public static final int NOPR =15; public static final int MDN =16; public
+     * static final int NEXP =17; public static final int LOOP =18; public
+     * static final int NBLTRL =19; public static final int NCLTRL =20; public
+     * static final int NNLTRL =21; public static final int NNULLTRL=22; public
+     * static final int NSLTRL =23;
+     * 
+     * 
+     * COMP~~NOS~~HVOC~~HEFF~~CREF~~XMET~~LMET~~NOA~~HDIF~~VDEC~~EXCT~~EXCR~~
+     * CAST~~NAND~~VREF~~NOPR~~MDN~~NEXP~~LOOP~~NBLTRL~~NCLTRL~~NNLTRL~~NNULLTRL
+     * ~~NSLTRL
+     * 
+     */
 
     /**
      * generates a random integer
@@ -121,26 +112,21 @@ public class Util {
      *            text to be written in the file
      * @param isNewline
      *            whether to start from a newline or not
+     * @throws IOException
      */
-    public static synchronized void writeToFile(Writer pWriter,
-            final String text, final boolean isNewline) {
-        if (isNewline) {
-            try {
+    public static void writeToFile(Writer pWriter, final String text, final boolean isNewline)
+            throws IOException {
+        synchronized (pWriter) {
+            if (isNewline) {
                 pWriter.write(text + System.lineSeparator());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            try {
+            } else {
                 pWriter.write(text);
+            }
+            /*try {
+                pWriter.flush();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-        }
-        try {
-            pWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+            }*/
         }
     }
 
@@ -151,17 +137,20 @@ public class Util {
      * @throws IOException
      * @return PrintWriter
      */
-    public static Writer openFile(String filename, boolean append)
-            throws IOException {
-        try {
-            Writer pWriter = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(filename, append), "UTF-8"),1024*1000*10);
-            return pWriter;
+    public static Writer openFile(String filename, boolean append) throws IOException {
+        synchronized (SearchManager.lock) {
+            try {
+                Writer pWriter = new BufferedWriter(
+                        new OutputStreamWriter(new FileOutputStream(filename, append), "UTF-8"),
+                        SearchManager.properties.getInt("DEFAULT_BUFFERED_WRITER_SIZE"));
+                return pWriter;
 
-        } catch (IOException e) {
-            // IO exception caught
-            System.err.println(e.getMessage());
-            throw e;
+            } catch (IOException e) {
+                // IO exception caught
+                logger.error("error while opening file: " + filename, e);
+                // System.err.println(e.getMessage());
+                throw e;
+            }
         }
     }
 
@@ -173,12 +162,10 @@ public class Util {
             try {
                 pWriter.flush();
             } catch (IOException e) {
-                e.printStackTrace();
             }
             try {
                 pWriter.close();
             } catch (IOException e) {
-                e.printStackTrace();
             }
         }
 
@@ -194,16 +181,13 @@ public class Util {
         }
     }
 
-    public static boolean isSatisfyPosFilter(int similarity, int querySize,
-            int termsSeenInQueryBlock, int candidateSize,
-            int termsSeenInCandidate, int computedThreshold) {
+    public static boolean isSatisfyPosFilter(int similarity, int querySize, int termsSeenInQueryBlock,
+            int candidateSize, int termsSeenInCandidate, int computedThreshold) {
         return computedThreshold <= similarity
-                + Math.min(querySize - termsSeenInQueryBlock,
-                        candidateSize - termsSeenInCandidate);
+                + Math.min(querySize - termsSeenInQueryBlock, candidateSize - termsSeenInCandidate);
     }
 
-    public static void writeJsonStream(String filename,
-            Map<String, Integer> gtpm) {
+    public static void writeJsonStream(String filename, Map<String, Integer> gtpm) {
         Writer writer = null;
         try {
             writer = Util.openFile(filename, false);
@@ -226,8 +210,7 @@ public class Util {
     }
 
     public static String debug_thread() {
-        return "  Thread_id: " + Thread.currentThread().getId()
-                + " Thread_name: " + Thread.currentThread().getName();
+        return "  Thread_id: " + Thread.currentThread().getId() + " Thread_name: " + Thread.currentThread().getName();
     }
 
     public static Map<String, Integer> readJsonStream(String filename) {
@@ -235,8 +218,7 @@ public class Util {
         BufferedReader br = null;
         Map<String, Integer> gtpm = new HashMap<String, Integer>();
         try {
-            br = new BufferedReader(new InputStreamReader(
-                    new FileInputStream(filename), "UTF-8"), 1024 * 1024 * 512);
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"), 1024 * 1024 * 512);
             String line;
             while ((line = br.readLine()) != null && line.trim().length() > 0) {
                 Gson gson = new GsonBuilder().create();
