@@ -1,11 +1,30 @@
 from xml.dom import minidom
 cpd_clones_file_path='/lv_scratch/scratch/mondego/local/farima/IC-tools/pmd-bin-6.6.0/pcd_clones.xml'
 # cpd_clones_file_path='D:\\pcd_clones.xml'
+
+cpd_clones_file_withoutsource_path='/lv_scratch/scratch/mondego/local/farima/IC-tools/pmd-bin-6.6.0/pcd_clones_withoutsource.xml'
+# cpd_clones_file_withoutsource_path='D:\\pcd_clones_withoutsource.xml'
+
 clonepairs_output_path='/lv_scratch/scratch/mondego/local/farima/IC-tools/pmd-bin-6.6.0/pcd_clonepairs_bceformatted.txt'
 # clonepairs_output_path='D:\\pcd_clonepairs_bceformatted.txt'
+
+file_withoutsource_output=open(cpd_clones_file_withoutsource_path,'r+')
+ignore=False
+with open(cpd_clones_file_path,'r') as file_cpd:
+    for line in file_cpd:
+        if ignore and line.strip().__contains__('</codefragment>'):
+            ignore=False
+            continue
+        if line.strip().startswith('<codefragment>'):
+            ignore=True
+            continue
+        elif not ignore:
+            file_withoutsource_output.write(line)
+
+
 file_output=open(clonepairs_output_path,'w')
 # parse an xml file by name
-mydoc = minidom.parse(cpd_clones_file_path)
+mydoc = minidom.parse(cpd_clones_file_withoutsource_path)
 
 items = mydoc.getElementsByTagName('duplication')
 
