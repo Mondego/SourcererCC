@@ -8,7 +8,7 @@ cpd_clones_file_withoutsource_path='/lv_scratch/scratch/mondego/local/farima/IC-
 clonepairs_output_path='/lv_scratch/scratch/mondego/local/farima/IC-tools/pmd-bin-6.6.0/pcd_clonepairs_bceformatted.txt'
 # clonepairs_output_path='D:\\pcd_clonepairs_bceformatted.txt'
 
-file_withoutsource_output=open(cpd_clones_file_withoutsource_path,'r+')
+file_withoutsource_output=open(cpd_clones_file_withoutsource_path,'w')
 ignore=False
 with open(cpd_clones_file_path,'r') as file_cpd:
     for line in file_cpd:
@@ -21,8 +21,9 @@ with open(cpd_clones_file_path,'r') as file_cpd:
         elif not ignore:
             file_withoutsource_output.write(line)
 
-
+file_withoutsource_output.close()
 file_output=open(clonepairs_output_path,'w')
+
 # parse an xml file by name
 mydoc = minidom.parse(cpd_clones_file_withoutsource_path)
 
