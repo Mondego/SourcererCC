@@ -28,21 +28,23 @@ file_output=open(clonepairs_output_path,'w')
 mydoc = minidom.parse(cpd_clones_file_withoutsource_path)
 
 items = mydoc.getElementsByTagName('duplication')
-
+print('num of duplications: '+str(len(items)))
+dup_count=0
 for elem in items:
-    num_lines =elem.attributes['lines'].value
+    dup_count+=1
+    print('duplication number: '+ str(dup_count))
 
+    num_lines =elem.attributes['lines'].value
     files=elem.getElementsByTagName('file')
     line_write=''
     for i in range(0, len(files)):
+        filepath1 = files[i].attributes['path'].value
+        filepath1_splitted = filepath1.split('/')
+        directory1 = filepath1_splitted[len(filepath1_splitted) - 2]
+        file1 = filepath1_splitted[len(filepath1_splitted) - 1]
+        startline1 = files[i].attributes['line'].value
+        endline1 = (int(startline1) + int(num_lines)) - 1
         for j in range(i + 1, len(files)):
-            filepath1=files[i].attributes['path'].value
-            filepath1_splitted=filepath1.split('/')
-            directory1=filepath1_splitted[len(filepath1_splitted)-2]
-            file1=filepath1_splitted[len(filepath1_splitted)-1]
-            startline1=files[i].attributes['line'].value
-            print(startline1)
-            endline1 = (int(startline1)+int(num_lines))-1
             filepath2 = files[j].attributes['path'].value
             filepath2_splitted = filepath2.split('/')
             directory2 = filepath2_splitted[len(filepath2_splitted) - 2]
