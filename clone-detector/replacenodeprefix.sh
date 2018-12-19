@@ -1,5 +1,6 @@
 #!/bin/bash
-scriptPATH=`realpath $0`
+# scriptPATH=`realpath $0`
+scriptPATH="pwd"
 rootPATH=`dirname $scriptPATH`
 num_nodes="${1:-0}"
 src_text="NODE_PREFIX=NODE"

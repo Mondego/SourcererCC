@@ -1,6 +1,7 @@
 #!/bin/bash
 # run this script on master
-scriptPATH=`realpath $0`
+# scriptPATH=`realpath $0`
+scriptPATH="pwd"
 rootPATH=`dirname $scriptPATH`
 echo $rootPATH
 ant -buildfile $rootPATH/build.xml clean cdi

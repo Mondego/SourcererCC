@@ -1,5 +1,6 @@
 #!/bin/bash
-scriptPATH=`realpath $0`
+# scriptPATH=`realpath $0`
+scriptPATH="pwd"
 rootPATH=`dirname $scriptPATH`
 num=`cat search_metadata.txt`
 

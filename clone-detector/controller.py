@@ -52,7 +52,8 @@ class ScriptController(object):
             command = self.full_script_path('execute.sh', "1")
             command_params = command.split()
             returncode = self.run_command(
-                command_params, self.full_file_path("Log_execute_1.out"), self.full_file_path("Log_execute_1.err"))
+                command_params, self.full_file_path("Log_execute_1.out"), 
+                self.full_file_path("Log_execute_1.err"))
         self.current_state += 1
         if returncode == ScriptController.EXIT_SUCCESS:
             self.flush_state()
