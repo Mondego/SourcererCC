@@ -175,11 +175,10 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
   lines     = 'ERROR'
   LOC       = 'ERROR'
   SLOC      = 'ERROR'
-  experimental_values = ''
   if '.py' in file_extensions:
     (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
   if '.java' in file_extensions:
-    (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, logging, file_path, separators, comment_inline_pattern)
+    (block_linenos, blocks, block_names) = extractJavaFunction.getFunctions(file_string, logging, file_path, separators, comment_inline_pattern)
 
   if block_linenos is None:
     logging.info('Returning None on tokenize_blocks for file %s.' % (file_path))
@@ -290,7 +289,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
           logging.info('Error on tokenize_blocks (3) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
         hash_time += (dt.datetime.now() - h_time).microseconds
         block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
-        blocks_data.append((block_tokens, block_stats, experimental_values[i]))
+        blocks_data.append((block_tokens, block_stats))
     except Exception as e:
       logging.warning('Some error on tokenize_blocks for file %s. %s' % (file_path, e))
 
@@ -332,7 +331,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     try:
       for relative_id, block_data in blocks_data:
 
-        (blocks_tokens, blocks_stats, experimental_values) = block_data
+        (blocks_tokens, blocks_stats) = block_data
         block_id = str(relative_id)+str(file_id)
   
         (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
@@ -340,11 +339,8 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
 
         # Adjust the blocks stats written to the files, file stats start with a letter 'b'
         FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
-        if len(experimental_values) == 0:
-          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-        else:
-          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),experimental_values,token_hash+tokens]) + '\n')
-      w_time = (dt.datetime.now() - ww_time).microseconds
+        FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+        w_time = (dt.datetime.now() - ww_time).microseconds
     except Exception as e:
       logging.warning('Error on step3 of process_file_contents. '+str(e))
 
