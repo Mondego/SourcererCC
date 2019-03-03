@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 import multiprocessing as mp
 from multiprocessing import Process, Value, Queue
