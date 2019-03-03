@@ -1,0 +1,25 @@
+[INFO] (MainThread) Process 0 starting
+[INFO] (MainThread) Starting zip project <11,tokenizer-sample-input/aesthetic-master.zip> (process 0)
+[INFO] (MainThread) Attempting to process_zip_ball tokenizer-sample-input/aesthetic-master.zip
+[INFO] (MainThread) Attempting to process_file_contents tokenizer-sample-input/aesthetic-master.zip\aesthetic-master/library/src/main/java/com/afollestad/aesthetic/ActiveInactiveColors.java
+[WARNING] (MainThread) Unable to open zip on <tokenizer-sample-input/aesthetic-master.zip> (process 0)
+[WARNING] (MainThread) object of type 'ZipInfo' has no len()
+[INFO] (MainThread) Project finished <11,tokenizer-sample-input/aesthetic-master.zip> (process 0)
+[INFO] (MainThread)  (0): Total: 0:00:00.121000micros | Zip: -1 Read: -1 Separators: -1micros Tokens: -1micros Write: -1micros Hash: -1 regex: -1
+[INFO] (MainThread) Starting zip project <12,\tokenizer-sample-input/OffsetAnimator-master.zip> (process 0)
+[WARNING] (MainThread) Unable to open project <12,\tokenizer-sample-input/OffsetAnimator-master.zip> (process 0)
+[INFO] (MainThread) Starting zip project <13,tokenizer-sample-input/ResourceInspector-master.zip> (process 0)
+[INFO] (MainThread) Attempting to process_zip_ball tokenizer-sample-input/ResourceInspector-master.zip
+[INFO] (MainThread) Attempting to process_file_contents tokenizer-sample-input/ResourceInspector-master.zip\ResourceInspector-master/example/src/main/java/cn/nekocode/resinspector/example/MainActivity.java
+[WARNING] (MainThread) Unable to open zip on <tokenizer-sample-input/ResourceInspector-master.zip> (process 0)
+[WARNING] (MainThread) object of type 'ZipInfo' has no len()
+[INFO] (MainThread) Project finished <13,tokenizer-sample-input/ResourceInspector-master.zip> (process 0)
+[INFO] (MainThread)  (0): Total: 0:00:00.023000micros | Zip: -1 Read: -1 Separators: -1micros Tokens: -1micros Write: -1micros Hash: -1 regex: -1
+[INFO] (MainThread) Starting zip project <14,tokenizer-sample-input/zachtaylor-JPokemon.zip> (process 0)
+[INFO] (MainThread) Attempting to process_zip_ball tokenizer-sample-input/zachtaylor-JPokemon.zip
+[INFO] (MainThread) Attempting to process_file_contents tokenizer-sample-input/zachtaylor-JPokemon.zip\JPokemon-master/src/com/jpokemon/interactioneditor/ActionPanel.java
+[WARNING] (MainThread) Unable to open zip on <tokenizer-sample-input/zachtaylor-JPokemon.zip> (process 0)
+[WARNING] (MainThread) object of type 'ZipInfo' has no len()
+[INFO] (MainThread) Project finished <14,tokenizer-sample-input/zachtaylor-JPokemon.zip> (process 0)
+[INFO] (MainThread)  (0): Total: 0:00:00.043000micros | Zip: -1 Read: -1 Separators: -1micros Tokens: -1micros Write: -1micros Hash: -1 regex: -1
+[INFO] (MainThread) Process 0 finished. 3 files in 0s.

@@ -1,6 +1,10 @@
 #!/bin/bash
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
 num_nodes="${1:-0}"
-scriptPATH=`realpath $0`
+scriptPATH=$(realpath "$0")
 rootPATH=`dirname $scriptPATH`
 echo "rootpath is : $rootPATH"
 for i in $(seq 1 1 $num_nodes)
