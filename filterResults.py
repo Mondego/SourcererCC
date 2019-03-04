@@ -1,5 +1,3 @@
-
-
 def compareLisenseLists(licenses1, licenses2) :
     if licenses1[0] == '' or licenses2[0] == '':
         return False
@@ -25,24 +23,11 @@ def compareLisenses(license1, license2) :
     #return False
 
 def renameLicense(license):
-    if 'MIT' in license:
-        return 'MIT'
-    if 'Apache-2.0' in license:
-        return 'Apache-2.0'
-    if 'GPL-2.0' in license:
-        return 'GPL-2.0'
-    if 'GPL-3.0' in license:
-        return 'GPL-3.0'
-    if 'LGPL-3.0' in license:
-        return 'LGPL-3.0'
-    if 'AGPL-3.0' in license:
-        return 'AGPL-3.0'
-    if 'BSD-3-Clause' in license:
-        return 'BSD-3-Clause'
-    if 'BSD-2-Clause' in license:
-        return 'BSD-2-Clause'
+    basicLicenses = ['MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-3-Clause', 'BSD-2-Clause']
+    for licenseType in basicLicenses:
+        if licenseType in license:
+            return licenseType
     return license
-
 
 cloneGroups = [[]]
 
@@ -63,9 +48,7 @@ def addPairToCloneGroup(clone1,  clone2) :
                 return
         cloneGroups.append([clone1, clone2])
 
- 
 licenses = {}
-
 licensesCompatibility = {}
 licensesCompatibility['MIT'] = {'MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-2-Clause', 'BSD-3-Clause'}
 licensesCompatibility['Apache-2.0'] = {'Apache-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0'}
@@ -75,7 +58,6 @@ licensesCompatibility['LGPL-3.0'] = {'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0'}
 licensesCompatibility['AGPL-3.0'] = {'AGPL-3.0'}
 licensesCompatibility['BSD-2-Clause'] = {'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-2-Clause', 'BSD-3-Clause'}
 licensesCompatibility['BSD-3-Clause'] = {'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-3-Clause'}
-
 
 if __name__ == '__main__':
     with open("cloneGithub/nameToLicense.txt", 'r') as fin:
@@ -93,15 +75,15 @@ if __name__ == '__main__':
 
 
     with open("SourcererCC/results.pairs", 'r') as fin:
-            for line in fin:
-                x = line.split(',')
-                if x[0] != x[2]:
-                    name1 = projectNameByNumber[int(x[0][1:])]
-                    name2 = projectNameByNumber[int(x[2][1:])]
-                    if not compareLisenseLists(licenses[name1], licenses[name2]):
-                        addPairToCloneGroup(name1, name2)
+        for line in fin:
+            x = line.split(',')
+            if x[0] != x[2]:
+                name1 = projectNameByNumber[int(x[0][1:])]
+                name2 = projectNameByNumber[int(x[2][1:])]
+                if not compareLisenseLists(licenses[name1], licenses[name2]):
+                    addPairToCloneGroup(name1, name2)
 
     with open("filteredResults.txt", 'w') as fout:
-        four write(len(cloneGroups))
+        fout.write(len(cloneGroups))
         for elem in cloneGroups:
             fout.write(str(elem) + '\n\n')
