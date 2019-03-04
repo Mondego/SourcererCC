@@ -31,7 +31,6 @@ comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
 REGEX = re.compile('.+?@@::@@+\d')
 
 class TestParser(unittest.TestCase):
-
     #Input is something like: @#@print@@::@@1,include@@::@@1,sys@@::@@1
     def assert_common_properties(self, list_tokens_string):
         self.assertTrue(list_tokens_string.startswith('@#@'))
@@ -83,7 +82,6 @@ class TestParser(unittest.TestCase):
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
-
         self.assertEqual(lines,2)
         self.assertEqual(LOC,2)
         self.assertEqual(SLOC,0)
@@ -97,7 +95,6 @@ class TestParser(unittest.TestCase):
         (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
-
 
         self.assertEqual(lines,2)
         self.assertEqual(LOC,2)
