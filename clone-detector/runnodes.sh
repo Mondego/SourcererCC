@@ -1,6 +1,10 @@
 #!/bin/bash
 # run this script on master
-scriptPATH=`realpath $0`
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+scriptPATH=$(realpath "$0")
 rootPATH=`dirname $scriptPATH`
 echo $rootPATH
 ant -buildfile $rootPATH/build.xml clean cdi

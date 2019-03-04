@@ -4,7 +4,11 @@
 #lines_per_part = int(total_lines + $N - 1) / $N
 
 # Configuration stuff
-scriptPATH=`realpath $0`
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+scriptPATH=$(realpath "$0")
 rootPATH=`dirname $scriptPATH`
 echo "inside splitquery "
 queryfile="$rootPATH/input/dataset/blocks.file"

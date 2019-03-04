@@ -25,6 +25,7 @@ import java.util.Set;
 
 import net.jmatrix.eproperties.EProperties;
 
+import net.jmatrix.eproperties.Key;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -290,61 +291,58 @@ public class SearchManager {
         return null;
     }
 
-    public static void main(String[] args)
-            throws IOException, ParseException, InterruptedException {
+    private static String getProperty(String name) {
+        return getProperty(name, null);
+    }
+
+    private static String getProperty(String name, String defaultValue) {
+        Key key = new Key(name);
+        Object result = properties.get(key);
+        if (result == null) {
+            return defaultValue;
+        }
+
+        return String.valueOf(result);
+    }
+
+    public static void main(String[] args) throws IOException, ParseException, InterruptedException {
         long start_time = System.nanoTime();
         logger.info("user.dir is: " + System.getProperty("user.dir"));
         logger.info("root dir is:" + System.getProperty("properties.rootDir"));
         SearchManager.ROOT_DIR = System.getProperty("properties.rootDir");
-        FileInputStream fis = null;
         logger.info("reading Q values from properties file");
         String propertiesPath = System.getProperty("properties.location");
         logger.debug("propertiesPath: " + propertiesPath);
-        fis = new FileInputStream(propertiesPath);
+
         try {
-            properties.load(fis);
-            String[] params = new String[2];
-            params[0] = args[0];
-            params[1] = args[1];
-            SearchManager.DATASET_DIR = SearchManager.ROOT_DIR
-                    + properties.getProperty("DATASET_DIR_PATH");
-            SearchManager.isGenCandidateStats = Boolean.parseBoolean(
-                    properties.getProperty("IS_GEN_CANDIDATE_STATISTICS"));
-            SearchManager.isStatusCounterOn = Boolean.parseBoolean(
-                    properties.getProperty("IS_STATUS_REPORTER_ON"));
-            SearchManager.NODE_PREFIX = properties.getProperty("NODE_PREFIX")
-                    .toUpperCase();
-            SearchManager.OUTPUT_DIR = SearchManager.ROOT_DIR
-                    + properties.getProperty("OUTPUT_DIR");
-            SearchManager.QUERY_DIR_PATH = SearchManager.ROOT_DIR
-                    + properties.getProperty("QUERY_DIR_PATH");
-            logger.debug("Query path:" + SearchManager.QUERY_DIR_PATH);
-            SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES = Integer
-                    .parseInt(properties.getProperty(
-                            "LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", "1000"));
-            theInstance = new SearchManager(params);
+            properties.load(propertiesPath);
         } catch (IOException e) {
             logger.error("ERROR READING PROPERTIES FILE, " + e.getMessage());
             System.exit(1);
-        } finally {
-
-            if (null != fis) {
-                fis.close();
-            }
         }
-        logger.debug(SearchManager.NODE_PREFIX + " MAX_TOKENS=" + max_tokens
-                + " MIN_TOKENS=" + min_tokens);
+
+        String[] params = new String[2];
+        params[0] = args[0];
+        params[1] = args[1];
+        SearchManager.DATASET_DIR = SearchManager.ROOT_DIR + getProperty("DATASET_DIR_PATH");
+        SearchManager.isGenCandidateStats = Boolean.parseBoolean(getProperty("IS_GEN_CANDIDATE_STATISTICS"));
+        SearchManager.isStatusCounterOn = Boolean.parseBoolean(getProperty("IS_STATUS_REPORTER_ON"));
+        SearchManager.NODE_PREFIX = getProperty("NODE_PREFIX").toUpperCase();
+        SearchManager.OUTPUT_DIR = SearchManager.ROOT_DIR + getProperty("OUTPUT_DIR");
+        SearchManager.QUERY_DIR_PATH = SearchManager.ROOT_DIR + getProperty("QUERY_DIR_PATH");
+        logger.debug("Query path:" + SearchManager.QUERY_DIR_PATH);
+        SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES =
+                Integer.parseInt(getProperty("LOG_PROCESSED_LINENUMBER_AFTER_X_LINES", "1000"));
+        theInstance = new SearchManager(params);
+
+        logger.debug(SearchManager.NODE_PREFIX + " MAX_TOKENS=" + max_tokens + " MIN_TOKENS=" + min_tokens);
 
         Util.createDirs(SearchManager.OUTPUT_DIR
                 + SearchManager.th / SearchManager.MUL_FACTOR);
         String reportFileName = SearchManager.OUTPUT_DIR
                 + SearchManager.th / SearchManager.MUL_FACTOR + "/report.csv";
         File reportFile = new File(reportFileName);
-        if (reportFile.exists()) {
-            theInstance.appendToExistingFile = true;
-        } else {
-            theInstance.appendToExistingFile = false;
-        }
+        theInstance.appendToExistingFile = reportFile.exists();
         theInstance.reportWriter = Util.openFile(reportFileName,
                 theInstance.appendToExistingFile);
         if (SearchManager.ACTION.equalsIgnoreCase(ACTION_INDEX)) {
