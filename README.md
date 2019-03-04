@@ -58,7 +58,7 @@ File_extensions = .py
 ```
 And then run with:
 ```
-pythoon tokenizer.py zip
+python tokenizer.py zip
 ```
 where `zip` is the extension of the individual projects in `FILE_projects_list = this/is/a/path/paths.txt`. 
 
