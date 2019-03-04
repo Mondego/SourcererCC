@@ -274,7 +274,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
         file_string = myfile.read()
         file_time += (dt.datetime.now() - f_time).microseconds
 
-        times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes,proj_url, FILE_tokens_file, FILE_stats_file, logging)
+        times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging)
         string_time += times[0]
         tokens_time += times[1]
         write_time  += times[4]
@@ -332,7 +332,7 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
         file_string = my_zip_file.read()
         file_time   += (dt.datetime.now() - f_time).microseconds
 
-        times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,proj_url, FILE_tokens_file, FILE_stats_file, logging)
+        times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging)
 
         string_time += times[0]
         tokens_time += times[1]
@@ -351,6 +351,7 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
 
   logging.info('Successfully ran process_zip_ball '+zip_file)
   return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+
 # процессит проект
 def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format):
   p_start = dt.datetime.now()
