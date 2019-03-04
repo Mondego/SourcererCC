@@ -1,8 +1,3 @@
-'''
-Created on Nov 8, 2016
-
-@author: saini
-'''
 from __future__ import absolute_import, division, print_function, unicode_literals
 import subprocess
 import sys
@@ -11,11 +6,8 @@ import os
 class ScriptControllerException(Exception):
     pass
 
-
+# Aim of this class is to run the scripts for SourcererCC with a single command
 class ScriptController(object):
-    '''
-    Aim of this class is to run the scripts for SourcererCC with a single command
-    '''
     # exit codes
     EXIT_SUCCESS = 0
     EXIT_FAILURE = 1
@@ -38,10 +30,11 @@ class ScriptController(object):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)),string)
 
     def full_script_path(self,string,param=""):
+        res = os.path.join(os.path.dirname(os.path.realpath(__file__)),string)
         if len(param) == 0:
-            return os.path.join(os.path.dirname(os.path.realpath(__file__)),string)
+            return res
         else:
-            return os.path.join(os.path.dirname(os.path.realpath(__file__)),string)+" "+param
+            return res + " " + param
 
     def execute(self):
         # execute command
@@ -109,10 +102,7 @@ class ScriptController(object):
                             command = self.full_script_path("execute.sh", "{nodes}".format(
                                 nodes=self.params["num_nodes_search"]))
                             command_params = command.split()
-                            returncode = self.run_command(command_params,
-                                                          self.full_file_path("Log_execute_{nodes}.out".format(
-                                                              nodes=self.params["num_nodes_search"])),
-                                                          self.full_file_path("Log_execute_{nodes}.err".format(nodes=self.params["num_nodes_search"])))
+                            returncode = self.run_command(command_params, self.full_file_path("Log_execute_{nodes}.out".format(nodes=self.params["num_nodes_search"])), self.full_file_path("Log_execute_{nodes}.err".format(nodes=self.params["num_nodes_search"])))
                         self.current_state += 1
                         if returncode == ScriptController.EXIT_SUCCESS:
                             self.flush_state()
@@ -137,7 +127,6 @@ class ScriptController(object):
                     else:
                         raise ScriptControllerException(
                             "error in move-index.sh script.")
-
                 else:
                     raise ScriptControllerException("error during indexing.")
             else:
@@ -170,9 +159,7 @@ class ScriptController(object):
         return p.returncode
 
 if __name__ == '__main__':
-    numnodes = 2
-    if len(sys.argv) > 1:
-        numnodes = int(sys.argv[1])
+    numnodes = (2 if len(sys.argv) <= 1 else int(sys.argv[1]))
     print("search will be carried out with {num} nodes".format(num=numnodes))
     params = {"num_nodes_search": numnodes}
 
