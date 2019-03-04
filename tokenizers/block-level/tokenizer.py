@@ -591,7 +591,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
 
     FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
 
-  if project_format in ['zipblocks']:
+  if project_format == 'zipblocks':
     proj_url = 'NULL'
     
     proj_id = str(proj_id_flag) + proj_id
@@ -725,14 +725,13 @@ if __name__ == '__main__':
 
   proj_paths = []
 
-  if project_format in ['zipblocks']: # zipblocks will diverge the process flow on process_file()
+  if project_format == 'zipblocks': # zipblocks will diverge the process flow on process_file()
     print('\''+project_format+'\''+'format')
     with open(FILE_projects_list) as f:
       for line in f:
         proj_paths.append(line[:-1])
     proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
-
-  if project_format in ['folderblocks']: # folderblocks will diverge the process flow on process_file()
+  elif project_format == 'folderblocks': # folderblocks will diverge the process flow on process_file()
     print('\''+project_format+'\''+'format')
     with open(FILE_projects_list) as f:
       for line in f:

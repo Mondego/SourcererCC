@@ -384,7 +384,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
 
     FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
 
-  if project_format in ['zip']:
+  if project_format == 'zip':
     proj_url = 'NULL'
 
     logging.info('Starting zip project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
@@ -476,7 +476,7 @@ def active_process_count(processes):
 if __name__ == '__main__':
 
   global project_format
-  project_format = sys.argv[1] # 'zip' or 'leidos'
+  project_format = sys.argv[1]
 
   if project_format not in ['zip','leidos']:
     print "ERROR - Please insert archive format, 'zip', 'leidos'!"
@@ -507,7 +507,7 @@ if __name__ == '__main__':
         if not prio:
           proj_paths.append(line_split)
     proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
-  if project_format in ['zip']:
+  elif project_format == 'zip':
     print '\'',project_format,'\'','format'
     with open(FILE_projects_list) as f:
       for line in f:
@@ -554,4 +554,3 @@ if __name__ == '__main__':
 
   p_elapsed = dt.datetime.now() - p_start
   print "*** All done. %s files in %s" % (file_count, p_elapsed)
-
