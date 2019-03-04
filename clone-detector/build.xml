@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CodeCloneDetection" basedir="." default="compile">
+
+    <property name="src.dir"     value="src"/>
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir"     value="dist"/>
+    <property name="cdWithFilter"  value="noindex.CloneDetectorWithFilter"/>
+    <property name="cdWithoutFilter"  value="noindex.CloneDetector"/>
+    <property name="clonesBugsAssembler"  value="postprocessing.ClonesBugsAssembler"/>
+    <property name="clonesNamesAssembler"  value="postprocessing.ClonesNamesAssembler"/>
+    <property name="clonesBugPattern"  value="validation.CloneBugPattern"/>
+    <property name="aggregatorClones"  value="postprocessing.Aggregator"/>
+	<property name="clonedMethod"  value="postprocessing.ClonedMethod"/>
+	<property name="fixIdMethodMap"  value="postprocessing.FixIdMethodMap"/>
+    <property name="cdIndex"  value="indexbased.SearchManager"/>
+	<property name="indexMerge"  value="indexbased.IndexMerger"/>
+	
+	<property name="lib"  value="lib"/>
+    
+    <property name="dist.dir" value="dist"/>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${jar.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${jar.dir}"/>
+        <javac encoding="utf-8" source="1.7" target="1.7" debug ="true" includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}">
+            <classpath>
+               <fileset dir="${lib}">
+                  <include name="**/*.jar" />
+               </fileset>
+         </classpath>
+         </javac>
+    </target>
+
+    <target name="jarWF" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${cdWithFilter}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.mondego.${cdWithFilter}"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="jarWOF" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${cdWithoutFilter}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.mondego.${cdWithoutFilter}"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="jarCDI" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${cdIndex}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.mondego.${cdIndex}"/>
+            </manifest>
+            <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+        </jar>
+    </target>
+    
+    <target name="jarBA" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${clonesBugsAssembler}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.mondego.${clonesBugsAssembler}"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="jarNA" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${clonesNamesAssembler}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.mondego.${clonesNamesAssembler}"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="jarV" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${clonesBugPattern}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.mondego.${clonesBugPattern}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="runWF" depends="jarWF">
+        <java jar="${jar.dir}/${cdWithFilter}.jar" fork="true"/>
+    </target>
+    <target name="runWOF" depends="jarWOF">
+        <java jar="${jar.dir}/${cdWithoutFilter}.jar" fork="true"/>
+    </target>
+    <target name="jarAg" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${aggregatorClones}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="$com.mondego.{aggregatorClones}"/>
+            </manifest>
+        </jar>
+    </target>
+	
+	<target name="jarCM" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${clonedMethod}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.mondego.${clonedMethod}"/>
+            </manifest>
+        	<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+        </jar>
+    </target>
+	
+	<target name="jarFix" depends="compile">
+	        <mkdir dir="${jar.dir}"/>
+	        <jar destfile="${jar.dir}/${fixIdMethodMap}.jar" basedir="${classes.dir}">
+	            <manifest>
+	                <attribute name="Main-Class" value="com.mondego.${fixIdMethodMap}"/>
+	            </manifest>
+	        	<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+	        </jar>
+	    </target>
+
+	<target name="jarMerge" depends="compile">
+	            <mkdir dir="${jar.dir}"/>
+	            <jar destfile="${jar.dir}/${indexMerge}.jar" basedir="${classes.dir}">
+	                <manifest>
+	                    <attribute name="Main-Class" value="com.mondego.${indexMerge}"/>
+	                </manifest>
+	                <zipgroupfileset dir="${lib}" includes="**/*.jar"/>
+	            </jar>
+	        </target>
+	
+<!--     <target name="clean-build" depends="clean,jar"/> -->
+    <target name="cdwf" depends="clean,runWF"/>
+    <target name="cdwof" depends="clean,runWOF"/>
+    <target name="cdboth" depends="clean,jarWF,jarWOF"/>
+    <target name="cdpp" depends="jarBA,jarNA"/>
+    <target name="cdv" depends="jarV"/>
+    <target name="cda" depends="jarAg"/>
+    <target name="cdi" depends="jarCDI"/>
+	<target name="cdini" depends="cdboth, cdi"/>
+	<target name="ppm" depends="clean, jarCM, jarFix"/>
+	<target name="cdmerge" depends="jarMerge"/>
+</project>

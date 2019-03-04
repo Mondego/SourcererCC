@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="error" strict="true">
+  <Properties>
+    <Property name="root">SCC_LOGS/NODE_</Property>
+    <Property name="scc">${root}/scc.log</Property>
+  </Properties>
+ 
+  <Appenders>
+    <RollingFile name="sccRollingFile" fileName="${scc}"
+                 filePattern="SCC_LOGS/$${date:yyyy-MM}/scc-%d{MM-dd-yyyy}-%i.log.gz">
+      <PatternLayout>
+        <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <OnStartupTriggeringPolicy />
+        <SizeBasedTriggeringPolicy size="2048 MB" />
+      </Policies>
+    </RollingFile>
+  </Appenders>
+ 
+  <Loggers>
+    <Logger name="com.mondego" level="debug" additivity="false">
+      <AppenderRef ref="sccRollingFile"/>
+    </Logger>
+ 
+    <Root level="error">
+      <AppenderRef ref="sccRollingFile"/>
+    </Root>
+  </Loggers>
+ 
+</Configuration>
