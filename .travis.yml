@@ -9,3 +9,9 @@ script:
   - cd ..
   - cp SourcererCC/test.sh .
   - ./test.sh
+notifications:
+  email:
+    recipients:
+      - poletansky@gmail.com
+    on_success: never
+    on_failure: always
