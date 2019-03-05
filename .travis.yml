@@ -2,9 +2,7 @@ language: python
 script:
   - sudo pip install javalang
   - sudo apt-get install ant
-  - mkdir tmp
-  - cp test.sh tmp
-  - cd tmp
-  - git clone https://github.com/rprtr258/SourcererCC
+  - cd ..
+  - cp SourcererCC/test.sh .
   - sudo ./test.sh
   - cat test/t1/rprtr258-SourcererCC-copy/clone-detector/Log_init.*
