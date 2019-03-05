@@ -7,4 +7,4 @@ script:
   - cd tmp
   - git clone https://github.com/rprtr258/SourcererCC
   - sudo ./test.sh
-  - cat tmp/test/t1/rprtr258-SourcererCC-copy/clone-detector/Log_init.*
+  - cat test/t1/rprtr258-SourcererCC-copy/clone-detector/Log_init.*
