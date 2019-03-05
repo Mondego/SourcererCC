@@ -73,7 +73,6 @@ if __name__ == '__main__':
             i = i + 1
             projectNameByNumber[i] = line[9:-5]
 
-
     with open("SourcererCC/results.pairs", 'r') as fin:
         for line in fin:
             x = line.split(',')
