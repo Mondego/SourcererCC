@@ -14,10 +14,10 @@ rm -rf file_block_stats
 rm -rf logs
 rm extractJavaFunction.pyc
 rm extractPythonFunction.pyc
-python tokenizer.py zip
+python tokenizer.py zip 2>/dev/null
 cat files_tokens/* > blocks.file
 cp blocks.file ../../clone-detector/input/dataset/
 cd ../../clone-detector
-python controller.py
+python controller.py 1
 cd ..
 cat clone-detector/NODE_*/output8.0/query_* > results.pairs
