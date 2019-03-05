@@ -57,11 +57,11 @@ cd test
 mkdir t1 t2
 cp rprtr258-SourcererCC-copy/ t1/ -r
 cp rprtr258-SourcererCC-copy/ t2/ -r
-cd ./t1/rprtr258-SourcererCC-copy/
 mkdir ./t1/rprtr258-SourcererCC-copy/clone-detector/input/
 mkdir ./t1/rprtr258-SourcererCC-copy/clone-detector/input/dataset/
 mkdir ./t2/rprtr258-SourcererCC-copy/clone-detector/input/
 mkdir ./t2/rprtr258-SourcererCC-copy/clone-detector/input/dataset/
+cd ./t1/rprtr258-SourcererCC-copy/
 ./runSourcererCC-BlocksMode.sh >../../blocks.out
 echo "Blocks mode:"
 cat results.pairs
