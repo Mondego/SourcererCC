@@ -18,6 +18,6 @@ python tokenizer.py zipblocks 2>/dev/null
 cat blocks_tokens/* > blocks.file
 cp blocks.file ../../clone-detector/input/dataset/
 cd ../../clone-detector
-python controller.py
+python controller.py 1
 cd ..
 cat clone-detector/NODE_*/output8.0/query_* > results.pairs
