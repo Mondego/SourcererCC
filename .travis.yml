@@ -1,5 +1,7 @@
+language: python
 script:
   - mkdir tmp
   - cp test.sh tmp
   - cd tmp
   - git clone https://github.com/rprtr258/SourcererCC
+  - sudo ./test.sh
