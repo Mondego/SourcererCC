@@ -3,7 +3,6 @@ script:
   - sudo pip install javalang
   - sudo apt-get install ant
   - cd ..
-  - cat test/t1/rprtr258-SourcererCC-copy/clone-detector/Log_init.*
   - mkdir test
   - cp SourcererCC/ test/rprtr258-SourcererCC-copy/ -r
   - cd test
@@ -16,9 +15,13 @@ script:
   - mkdir ./t2/rprtr258-SourcererCC-copy/clone-detector/input/dataset/
   - cd ./t1/rprtr258-SourcererCC-copy/
   - ./runSourcererCC-BlocksMode.sh >../../blocks.out
+  - cat ../../blocks.out
   - echo "Blocks mode:"
   - cat results.pairs
   - cd ../../t2/rprtr258-SourcererCC-copy/
   - ./runSourcererCC-FilesMode.sh >../../files.out
+  - cat ../../files.out
   - echo "Files mode:"
   - cat results.pairs
+  - cat test/t1/rprtr258-SourcererCC-copy/clone-detector/*.out
+  - cat test/t1/rprtr258-SourcererCC-copy/clone-detector/*.err
