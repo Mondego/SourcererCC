@@ -154,7 +154,7 @@ class ScriptController(object):
         print("running new command {}".format(" ".join(cmd)))
         with open(outFile, "w") as fo, \
              open(errFile, "w") as fe:
-            p = subprocess.Popen(cmd, stdout=fo, stderr=fe, universal_newlines=True)
+            p = subprocess.Popen(cmd, universal_newlines=True)
             p.communicate()
         return p.returncode
 
