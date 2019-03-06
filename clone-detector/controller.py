@@ -19,9 +19,8 @@ class ScriptController(object):
     STATE_EXECUTE_2 = 4
     STATE_SEARCH = 5
 
-    def __init__(self, params):
-        self.params = {}
-        self.params.update(params)
+    def __init__(self, num_nodes):
+        self.num_nodes_search = num_nodes
         self.script_meta_file_name = self.full_file_path("scriptinator_metadata.scc")
         self.current_state = ScriptController.STATE_EXECUTE_1  # default state
         self.previous_run_state = self.load_previous_state()
@@ -80,10 +79,10 @@ class ScriptController(object):
                             returncode = ScriptController.EXIT_SUCCESS
                             # execute command to create the dir structure
                         else:
-                            returncode = self.run_command_wrapper("execute.sh", "{}".format(self.params["num_nodes_search"]), "execute_{}".format(self.params["num_nodes_search"]))
+                            returncode = self.run_command_wrapper("execute.sh", "{}".format(self.num_nodes_search), "execute_{}".format(self.num_nodes_search))
                         self.current_state += 1
                         if returncode == ScriptController.EXIT_SUCCESS:
-                            returncode = self.perform_step(ScriptController.STATE_SEARCH, "runnodes.sh", "search {}".format(self.params["num_nodes_search"]), "search_{}".format(self.params["num_nodes_search"]))
+                            returncode = self.perform_step(ScriptController.STATE_SEARCH, "runnodes.sh", "search {}".format(self.num_nodes_search), "search_{}".format(self.num_nodes_search))
                             self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
                             if returncode == ScriptController.EXIT_SUCCESS:
                                 self.flush_state()
@@ -143,7 +142,6 @@ if __name__ == '__main__':
     if len(sys.argv) >= 2:
         numnodes = int(sys.argv[1])
     print("search will be carried out with {} nodes".format(numnodes))
-    params = {"num_nodes_search": numnodes}
 
-    controller = ScriptController(params)
+    controller = ScriptController(numnodes)
     controller.execute()
