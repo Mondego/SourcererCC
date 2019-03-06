@@ -43,18 +43,16 @@ def read_config():
   global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
   global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
   global file_extensions
-  
   global init_file_id
   global init_proj_id
 
   # instantiate
   config = ConfigParser()
-
   # parse existing file
   try:
     config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)) , 'config.ini'))
   except IOError:
-    print 'ERROR - Config settings not found. Usage: $python this-script.py config-file.ini'
+    print('ERROR - Config settings not found. Usage: $python this-script.py config-file.ini')
     sys.exit()
 
   # Get info from config.ini into global variables
@@ -76,27 +74,17 @@ def read_config():
   comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
   comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
   file_extensions = config.get('Language', 'File_extensions').split(' ')
-
   # Reading config settings
   init_file_id = config.getint('Config', 'init_file_id')
   init_proj_id = config.getint('Config', 'init_proj_id')
 
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-
-  final_stats  = 'ERROR'
-  final_tokens = 'ERROR'
-
-  file_hash = 'ERROR'
-  lines     = 'ERROR'
-  LOC       = 'ERROR'
-  SLOC      = 'ERROR'
-
+  final_stats  = final_tokens = file_hash = lines = LOC = SLOC = 'ERROR'
   h_time = dt.datetime.now()
   m = hashlib.md5()
   m.update(file_string)
   file_hash = m.hexdigest()
   hash_time = (dt.datetime.now() - h_time).microseconds
-  
   lines = file_string.count('\n')
   if not file_string.endswith('\n'):
     lines += 1
@@ -114,22 +102,17 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   re_time = (dt.datetime.now() - re_time).microseconds
 
   file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
-
   SLOC = file_string.count('\n')
   if file_string != '' and not file_string.endswith('\n'):
     SLOC += 1
-
   final_stats = (file_hash,lines,LOC,SLOC)
-
   # Rather a copy of the file string here for tokenization
   file_string_for_tokenization = file_string.decode('utf-8')
-
   #Transform separators into spaces (remove them)
   s_time = dt.datetime.now()
   for x in separators:
     file_string_for_tokenization = file_string_for_tokenization.replace(x,' ')
   s_time = (dt.datetime.now() - s_time).microseconds
-
   ##Create a list of tokens
   file_string_for_tokenization = file_string_for_tokenization.split()
   ## Total number of tokens
@@ -137,91 +120,69 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   ##Count occurrences
   file_string_for_tokenization = collections.Counter(file_string_for_tokenization)
   ##Converting Counter to dict because according to StackOverflow is better
-  file_string_for_tokenization=dict(file_string_for_tokenization)
+  file_string_for_tokenization = dict(file_string_for_tokenization)
   ## Unique number of tokens
   tokens_count_unique = len(file_string_for_tokenization)
-
   t_time = dt.datetime.now()
   #SourcererCC formatting
-  tokens = ','.join(['{}@@::@@{}'.format(k.encode('utf-8'), v)
-                    for k,v in file_string_for_tokenization.iteritems()])
+  tokens = ','.join(['{}@@::@@{}'.format(k.encode('utf-8'), v) for k, v in file_string_for_tokenization.iteritems()])
   t_time = (dt.datetime.now() - t_time).microseconds
-
   # MD5
   h_time = dt.datetime.now()
   m = hashlib.md5()
   m.update(tokens)
   hash_time += (dt.datetime.now() - h_time).microseconds
-
-  final_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
-
+  final_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
-def process_file_contents(file_string, proj_id, file_id, container_path, 
-              file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
-  
-  logging.info('Attempting to process_file_contents '+os.path.join(container_path, file_path))
-
+def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
   global file_count
+
+  logging.info('Attempting to process_file_contents '+os.path.join(container_path, file_path))
   file_count += 1
-
   (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
-
   (file_hash,lines,LOC,SLOC) = final_stats
-
   (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
-
-  file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
+  file_url = proj_url + '/' + file_path[7:].replace(' ', '%20')
   file_path = os.path.join(container_path, file_path)
-
   ww_time = dt.datetime.now()
-  FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
+  FILE_stats_file.write(','.join([proj_id, str(file_id), '\"' + file_path + '\"', '\"' + file_url + '\"', '\"' + file_hash + '\"', file_bytes, str(lines), str(LOC), str(SLOC)]) + '\n')
   w_time = (dt.datetime.now() - ww_time).microseconds
-
   ww_time = dt.datetime.now()
-  FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
+  FILE_tokens_file.write(','.join([proj_id, str(file_id), str(tokens_count_total), str(tokens_count_unique), token_hash + tokens]) + '\n')
   w_time += (dt.datetime.now() - ww_time).microseconds
-
   logging.info('Successfully ran process_file_contents '+os.path.join(container_path, file_path))
-
   return file_parsing_times + [w_time] # [s_time, t_time, w_time, hash_time, re_time]
 
 def process_regular_folder(args, folder_path, files):
-  process_num, proj_id, proj_path, proj_url, base_file_id, \
-    FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times = args
-
+  process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times = args
   file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
   all_files = files
-
   # Filter them by the correct extension
   aux = []
   for extension in file_extensions:
     aux.extend([x for x in all_files if x.endswith(extension)])
   all_files = aux
-
   # This is very strange, but I did find some paths with newlines,
   # so I am simply eliminates them
   all_files = [x for x in all_files if '\n' not in x]
 
   for file_path in all_files:
-    file_id = process_num*MULTIPLIER + base_file_id + file_count
-    print "<%s, %s, %s>" %(file_id, folder_path, file_path)
+    file_id = process_num * MULTIPLIER + base_file_id + file_count
+    print("<%s, %s, %s>" % (file_id, folder_path, file_path))
     file_path = os.path.join(folder_path, file_path)
 
     with open(file_path) as f:
       f_time = dt.datetime.now()
       file_string = f.read()
       f_time = (dt.datetime.now() - f_time).microseconds
-
-      times_c = process_file_contents(file_string, proj_id, file_id, "", file_path, str(os.path.getsize(file_path)),
-                        proj_url, FILE_tokens_file, FILE_stats_file, logging)
+      times_c = process_file_contents(file_string, proj_id, file_id, "", file_path, str(os.path.getsize(file_path)), proj_url, FILE_tokens_file, FILE_stats_file, logging)
       times[0] += f_time
       times[1] += times_c[0]
       times[2] += times_c[1]
       times[3] += times_c[4]
       times[4] += times_c[2]
       times[5] += times_c[3]
-      
 
 def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
   zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
