@@ -29,9 +29,9 @@ class ScriptController(object):
     def full_file_path(self,string):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
 
-    def full_script_path(self,string,param=""):
+    def full_script_path(self,string,param = ""):
         res = self.full_file_path(string)
-        if len(param) != 0:
+        if param != "":
             res += " " + param
         return res
 
@@ -92,16 +92,16 @@ class ScriptController(object):
                             returncode = ScriptController.EXIT_SUCCESS
                             # execute command to create the dir structure
                         else:
-                            command = self.full_script_path("execute.sh", "{nodes}".format(nodes=self.params["num_nodes_search"]))
+                            command = self.full_script_path("execute.sh", "{nodes}".format(nodes = self.params["num_nodes_search"]))
                             command_params = command.split()
-                            returncode = self.run_command(command_params, self.full_file_path("Log_execute_{nodes}.out".format(nodes=self.params["num_nodes_search"])), self.full_file_path("Log_execute_{nodes}.err".format(nodes=self.params["num_nodes_search"])))
+                            returncode = self.run_command(command_params, self.full_file_path("Log_execute_{nodes}.out".format(nodes = self.params["num_nodes_search"])), self.full_file_path("Log_execute_{nodes}.err".format(nodes = self.params["num_nodes_search"])))
                         self.current_state += 1
                         if returncode == ScriptController.EXIT_SUCCESS:
                             self.flush_state()
                             if self.previous_run_state > ScriptController.STATE_SEARCH:
                                 returncode = ScriptController.EXIT_SUCCESS
                             else:
-                                command = self.full_script_path("runnodes.sh", "search {nodes}".format(nodes=self.params["num_nodes_search"]))
+                                command = self.full_script_path("runnodes.sh", "search {nodes}".format(nodes = self.params["num_nodes_search"]))
                                 command_params = command.split()
                                 returncode = self.run_command(command_params, self.full_file_path("Log_search.out"), self.full_file_path("Log_search.err"))
                             self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
@@ -126,7 +126,7 @@ class ScriptController(object):
         print("current state: ", str(self.current_state))
         with open(self.script_meta_file_name, "w") as f:
             print ("flushing current state", str(self.current_state))
-            f.write("{line}\n".format(line=self.current_state))
+            f.write("{line}\n".format(line = self.current_state))
 
     def load_previous_state(self):
         print("loading previous run state")
@@ -134,7 +134,7 @@ class ScriptController(object):
             with open(self.script_meta_file_name, "r") as f:
                 return int(f.readline())
         else:
-            print("{f} doesn't exist, creating one with state EXECUTE_1".format(f=self.script_meta_file_name))
+            print("{f} doesn't exist, creating one with state EXECUTE_1".format(f = self.script_meta_file_name))
             return ScriptController.STATE_EXECUTE_1
 
     def run_command(self, cmd, outFile, errFile):
@@ -145,8 +145,10 @@ class ScriptController(object):
         return p.returncode
 
 if __name__ == '__main__':
-    numnodes = (2 if len(sys.argv) <= 1 else int(sys.argv[1]))
-    print("search will be carried out with {num} nodes".format(num=numnodes))
+    numnodes = 2
+    if len(sys.argv) >= 2:
+        numnodes = int(sys.argv[1])
+    print("search will be carried out with {num} nodes".format(num = numnodes))
     params = {"num_nodes_search": numnodes}
 
     controller = ScriptController(params)
