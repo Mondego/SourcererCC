@@ -84,7 +84,7 @@ class ScriptController(object):
         if return_code != EXIT_SUCCESS:
             raise ScriptControllerException(error_message)
         self.current_state += 1
-        return returncode
+        return return_code
 
     def flush_state(self):
         print ("flushing current state {}".format(self.current_state))
