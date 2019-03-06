@@ -68,11 +68,13 @@ class ScriptController(object):
         self.current_state = STATE_EXECUTE_1 # go back to EXE 1 state
         print("SUCCESS: Search Completed on all nodes")
 
-    def perform_step(self, state, cmd, params, cmd_shortcut):
+    def perform_step(self, state, cmd, params, cmd_shortcut, error_message):
         returncode = EXIT_SUCCESS
         self.flush_state()
         if self.previous_run_state <= state:
             returncode = self.run_command_wrapper(cmd, params, cmd_shortcut)
+        if return_code != EXIT_SUCCESS:
+            raise ScriptControllerException(error_message)
         self.current_state += 1
         return returncode
 
@@ -90,13 +92,11 @@ class ScriptController(object):
             print("{} doesn't exist, creating one with state EXECUTE_1".format(self.script_meta_file_name))
             return STATE_EXECUTE_1
     
-    def run_command_wrapper(self, cmd, params, cmd_shortcut, error_message):
+    def run_command_wrapper(self, cmd, params, cmd_shortcut):
         command = self.full_script_path(cmd, params)
         out_file = self.full_file_path("Log_{}.out".format(cmd_shortcut))
         err_file = self.full_file_path("Log_{}.err".format(cmd_shortcut))
         return_code = self.run_command(command.split(), out_file, err_file)
-        if return_code != EXIT_SUCCESS:
-            raise ScriptControllerException(error_message)
         return return_code
 
     def run_command(self, cmd, outFile, errFile):
