@@ -37,7 +37,7 @@ class ScriptController(object):
 
     def execute(self):
         # execute command
-        print("previous run state {s}".format(s = self.previous_run_state))
+        print("previous run state {}".format(self.previous_run_state))
         if self.previous_run_state > ScriptController.STATE_EXECUTE_1:
             returncode = ScriptController.EXIT_SUCCESS
         else:
@@ -92,16 +92,16 @@ class ScriptController(object):
                             returncode = ScriptController.EXIT_SUCCESS
                             # execute command to create the dir structure
                         else:
-                            command = self.full_script_path("execute.sh", "{nodes}".format(nodes = self.params["num_nodes_search"]))
+                            command = self.full_script_path("execute.sh", "{}".format(self.params["num_nodes_search"]))
                             command_params = command.split()
-                            returncode = self.run_command(command_params, self.full_file_path("Log_execute_{nodes}.out".format(nodes = self.params["num_nodes_search"])), self.full_file_path("Log_execute_{nodes}.err".format(nodes = self.params["num_nodes_search"])))
+                            returncode = self.run_command(command_params, self.full_file_path("Log_execute_{}.out".format(self.params["num_nodes_search"])), self.full_file_path("Log_execute_{}.err".format(self.params["num_nodes_search"])))
                         self.current_state += 1
                         if returncode == ScriptController.EXIT_SUCCESS:
                             self.flush_state()
                             if self.previous_run_state > ScriptController.STATE_SEARCH:
                                 returncode = ScriptController.EXIT_SUCCESS
                             else:
-                                command = self.full_script_path("runnodes.sh", "search {nodes}".format(nodes = self.params["num_nodes_search"]))
+                                command = self.full_script_path("runnodes.sh", "search {}".format(self.params["num_nodes_search"]))
                                 command_params = command.split()
                                 returncode = self.run_command(command_params, self.full_file_path("Log_search.out"), self.full_file_path("Log_search.err"))
                             self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
@@ -123,10 +123,10 @@ class ScriptController(object):
             raise ScriptControllerException("error in execute.sh script while preparing for init step.")
 
     def flush_state(self):
-        print("current state: ", str(self.current_state))
+        print("current state: {}".format(self.current_state))
         with open(self.script_meta_file_name, "w") as f:
-            print ("flushing current state", str(self.current_state))
-            f.write("{line}\n".format(line = self.current_state))
+            print ("flushing current state {}".format(self.current_state))
+            f.write("{}\n".format(self.current_state))
 
     def load_previous_state(self):
         print("loading previous run state")
@@ -134,7 +134,7 @@ class ScriptController(object):
             with open(self.script_meta_file_name, "r") as f:
                 return int(f.readline())
         else:
-            print("{f} doesn't exist, creating one with state EXECUTE_1".format(f = self.script_meta_file_name))
+            print("{} doesn't exist, creating one with state EXECUTE_1".format(self.script_meta_file_name))
             return ScriptController.STATE_EXECUTE_1
 
     def run_command(self, cmd, outFile, errFile):
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     numnodes = 2
     if len(sys.argv) >= 2:
         numnodes = int(sys.argv[1])
-    print("search will be carried out with {num} nodes".format(num = numnodes))
+    print("search will be carried out with {} nodes".format(numnodes))
     params = {"num_nodes_search": numnodes}
 
     controller = ScriptController(params)
