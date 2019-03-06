@@ -27,10 +27,10 @@ class ScriptController(object):
         self.previous_run_state = self.load_previous_state()
 
     def full_file_path(self,string):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)),string)
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
 
     def full_script_path(self,string,param=""):
-        res = os.path.join(os.path.dirname(os.path.realpath(__file__)),string)
+        res = full_file_path(string)
         if len(param) == 0:
             return res
         else:
@@ -38,7 +38,7 @@ class ScriptController(object):
 
     def execute(self):
         # execute command
-        print("previous run state {s}".format(s=self.previous_run_state))
+        print("previous run state {s}".format(s = self.previous_run_state))
         if self.previous_run_state > ScriptController.STATE_EXECUTE_1:
             returncode = ScriptController.EXIT_SUCCESS
         else:
