@@ -6,40 +6,31 @@ import zipfile
 
 default_output_folder = 'projects_from_blocks'
 
-def grab_ids(folder_or_file):
-  paths = set()
+def filter_files(folder_or_file, extension):
+  res = set()
   if os.path.isdir(folder_or_file):
     for file in os.listdir(folder_or_file):
-      if file.endswith(".tokens"):
-        paths.add(os.path.join(folder_or_file, file))
+      if file.endswith(extension):
+        res.add(os.path.join(folder_or_file, file))
+  elif os.path.isfile(folder_or_file):
+    res.add(folder_or_file)
   else:
-    if os.path.isfile(folder_or_file):
-      paths.add(folder_or_file)
-    else:
-      print "ERROR: '",projects_from_blocks,"' not found!"
-  
+    print("ERROR: '", projects_from_blocks, "' not found!")
+  return res
+
+def grab_ids(folder_or_file):
+  paths = filter_files(folder_or_file, ".tokens")
   res = set()
   for p in paths:
-    with open(p,'r') as file:
+    with open(p, 'r') as file:
       for line in file:
         res.add(line.split(',')[1])
-
   return res
 
 def copy_files(ids_set, folder_or_file, output_folder):
   copy_count = 0
-  paths = set()
-
-  if os.path.isdir(folder_or_file):
-    for file in os.listdir(folder_or_file):
-      if file.endswith(".stats"):
-        paths.add(os.path.join(folder_or_file, file))
-  else:
-    if os.path.isfile(folder_or_file):
-      paths.add(folder_or_file)
-    else:
-      print "ERROR: '",projects_from_blocks,"' not found!"
-
+  paths = filter_files(folder_or_file, ".stats")
+  
   for p in paths:
     with open(p,'r') as file:
       for line in file:
