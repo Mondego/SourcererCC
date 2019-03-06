@@ -44,8 +44,7 @@ class ScriptController(object):
         else:
             command = self.full_script_path('execute.sh', "1")
             command_params = command.split()
-            returncode = self.run_command(
-                command_params, self.full_file_path("Log_execute_1.out"), self.full_file_path("Log_execute_1.err"))
+            returncode = self.run_command(command_params, self.full_file_path("Log_execute_1.out"), self.full_file_path("Log_execute_1.err"))
         self.current_state += 1
         if returncode == ScriptController.EXIT_SUCCESS:
             self.flush_state()
@@ -57,19 +56,16 @@ class ScriptController(object):
                     # last time the execution failed at init step. We need to replace the existing gtpm index  from the backup
                     command = self.full_script_path("restore-gtpm.sh")
                     command_params = command.split()
-                    returncode = self.run_command(
-                    command_params, self.full_file_path("Log_restore_gtpm.out"), self.full_file_path("Log_restore_gtpm.err"))
+                    returncode = self.run_command(command_params, self.full_file_path("Log_restore_gtpm.out"), self.full_file_path("Log_restore_gtpm.err"))
                 else:
                     # take backup of existing gtpmindex before starting init
                     command = self.full_script_path("backup-gtpm.sh")
                     command_params = command.split()
-                    returncode = self.run_command(
-                    command_params, self.full_file_path("Log_backup_gtpm.out"), self.full_file_path("Log_backup_gtpm.err"))
+                    returncode = self.run_command(command_params, self.full_file_path("Log_backup_gtpm.out"), self.full_file_path("Log_backup_gtpm.err"))
                 # run the init step
                 command = self.full_script_path("runnodes.sh", "init 1")
                 command_params = command.split()
-                returncode = self.run_command(
-                    command_params, self.full_file_path("Log_init.out"), self.full_file_path("Log_init.err"))
+                returncode = self.run_command(command_params, self.full_file_path("Log_init.out"), self.full_file_path("Log_init.err"))
             self.current_state += 1
             if returncode == ScriptController.EXIT_SUCCESS:
                 self.flush_state()
@@ -79,8 +75,7 @@ class ScriptController(object):
                 else:
                     command = self.full_script_path("runnodes.sh", "index 1")
                     command_params = command.split()
-                    returncode = self.run_command(
-                        command_params, self.full_file_path("Log_index.out"), self.full_file_path("Log_index.err"))
+                    returncode = self.run_command(command_params, self.full_file_path("Log_index.out"), self.full_file_path("Log_index.err"))
                 self.current_state += 1
                 if returncode == ScriptController.EXIT_SUCCESS:
                     self.flush_state()
@@ -90,8 +85,7 @@ class ScriptController(object):
                         # execute move indexes
                         command = self.full_script_path("move-index.sh")
                         command_params = command.split()
-                        returncode = self.run_command(
-                            command_params, self.full_file_path("Log_move_index.out"), self.full_file_path("Log_move_index.err"))
+                        returncode = self.run_command(command_params, self.full_file_path("Log_move_index.out"), self.full_file_path("Log_move_index.err"))
                     self.current_state += 1
                     if returncode == ScriptController.EXIT_SUCCESS:
                         self.flush_state()
@@ -99,8 +93,7 @@ class ScriptController(object):
                             returncode = ScriptController.EXIT_SUCCESS
                             # execute command to create the dir structure
                         else:
-                            command = self.full_script_path("execute.sh", "{nodes}".format(
-                                nodes=self.params["num_nodes_search"]))
+                            command = self.full_script_path("execute.sh", "{nodes}".format(nodes=self.params["num_nodes_search"]))
                             command_params = command.split()
                             returncode = self.run_command(command_params, self.full_file_path("Log_execute_{nodes}.out".format(nodes=self.params["num_nodes_search"])), self.full_file_path("Log_execute_{nodes}.err".format(nodes=self.params["num_nodes_search"])))
                         self.current_state += 1
@@ -109,11 +102,9 @@ class ScriptController(object):
                             if self.previous_run_state > ScriptController.STATE_SEARCH:
                                 returncode = ScriptController.EXIT_SUCCESS
                             else:
-                                command = self.full_script_path("runnodes.sh", "search {nodes}".format(
-                                    nodes=self.params["num_nodes_search"]))
+                                command = self.full_script_path("runnodes.sh", "search {nodes}".format(nodes=self.params["num_nodes_search"]))
                                 command_params = command.split()
-                                returncode = self.run_command(
-                                    command_params, self.full_file_path("Log_search.out"), self.full_file_path("Log_search.err"))
+                                returncode = self.run_command(command_params, self.full_file_path("Log_search.out"), self.full_file_path("Log_search.err"))
                             self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
                             if returncode == ScriptController.EXIT_SUCCESS:
                                 self.flush_state()
@@ -122,18 +113,15 @@ class ScriptController(object):
                                 raise ScriptControllerException("One or more nodes failed during Step Search. \
                                     Check Log_search.log for more details. grep for FAILED in the log file")
                         else:
-                            raise ScriptControllerException(
-                                "error in execute.sh script while preparing for the search step.")
+                            raise ScriptControllerException("error in execute.sh script while preparing for the search step.")
                     else:
-                        raise ScriptControllerException(
-                            "error in move-index.sh script.")
+                        raise ScriptControllerException("error in move-index.sh script.")
                 else:
                     raise ScriptControllerException("error during indexing.")
             else:
                 raise ScriptControllerException("error during init.")
         else:
-            raise ScriptControllerException(
-                "error in execute.sh script while preparing for init step.")
+            raise ScriptControllerException("error in execute.sh script while preparing for init step.")
 
     def flush_state(self):
         print("current state: ", str(self.current_state))
@@ -152,9 +140,8 @@ class ScriptController(object):
 
     def run_command(self, cmd, outFile, errFile):
         print("running new command {}".format(" ".join(cmd)))
-        with open(outFile, "w") as fo, \
-             open(errFile, "w") as fe:
-            p = subprocess.Popen(cmd, universal_newlines=True)
+        with open(outFile, "w") as fo, open(errFile, "w") as fe:
+            p = subprocess.Popen(cmd, stdout = fo, stderr = fe, universal_newlines = True)
             p.communicate()
         return p.returncode
 
