@@ -165,7 +165,6 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_c
         db_object.close()
 
 if __name__ == "__main__":
-
     if len(sys.argv) < 4:
         logging.error('Usage: clone-finder.py user passwd database (host|OPTIONAL)') 
         sys.exit(1)
@@ -178,7 +177,6 @@ if __name__ == "__main__":
         host = sys.argv[4]
 
     db_object = DB(DB_user, DB_name, DB_pass, logging, host)
-
     try:
         db_object.execute("DROP TABLE IF EXISTS `projectClones`;")
         logging.info("DROP TABLE IF EXISTS `projectClones`;")
@@ -220,21 +218,18 @@ if __name__ == "__main__":
             project_ids.append(projectId)
             pair_number += 1
 
-        project_ids = [ project_ids[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
+        project_ids = [project_ids[i::N_PROCESSES] for i in xrange(N_PROCESSES)]
 
         processes = []
         for process_num in xrange(N_PROCESSES):
-            p = Process(name='Process '+str(process_num), target=start_process, 
-                        args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, host, ))
+            p = Process(name = 'Process ' + str(process_num), target = start_process, args = (process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, host))
             processes.append(p)
             p.start()
-
         [p.join() for p in processes]
 
     except Exception as e:
         print 'Error in clone_finder.__main__'
         print e
         sys.exit(1)
-
     finally:
         db_object.close()
