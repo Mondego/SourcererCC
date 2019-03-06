@@ -347,21 +347,15 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
   logging.info('Successfully ran process_zip_ball '+zip_file)
   return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-def process_one_project(process_num, proj_id, proj_path, base_file_id, 
-            FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format):
-
+def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format):
   p_start = dt.datetime.now()
-
-  if project_format == 'leidos':
-    proj_path = proj_path
-    proj_url = 'None'
-    
-    logging.info('Starting leidos project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-
-    if not os.path.isdir(proj_path):
+  logging.info('Starting ' + project_format + ' project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
+  if not os.path.isfile(proj_path):
       logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
       return
 
+  if project_format == 'leidos':
+    proj_url = 'None'
     # Search for tar files with _code in them
     tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
     tar_files = [f for f in tar_files if '_code' in f]
@@ -375,68 +369,47 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
       zip_time = 0
     else:
       tar_file = tar_files[0]
-      times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, 
-                   FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
-    if times is not None:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-    else:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (-1,-1,-1,-1,-1,-1,-1)
-
-    FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
-
-  if project_format == 'zip':
+      times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+  elif project_format == 'zip':
     proj_url = 'NULL'
-
-    logging.info('Starting zip project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-
-    if not os.path.isfile(proj_path):
-      logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-      return
-
     zip_file = proj_path
-    times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
-    if times is not None:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-    else:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (-1,-1,-1,-1,-1,-1,-1)
+    times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+  if times is not None:
+    zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
+  else:
+    zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (-1,-1,-1,-1,-1,-1,-1)
 
-    FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
+  FILE_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
 
   p_elapsed = dt.datetime.now() - p_start
   logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-  logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
-         process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+  logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 def process_projects(process_num, list_projects, base_file_id, global_queue, project_format):
-    if platform.system() =='Windows':
+    if platform.system() == 'Windows':
         read_config()
 
     # Logging code
     FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
-    logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-    file_handler = logging.FileHandler(os.path.join(PATH_logs,'LOG-'+str(process_num)+'.log'))
+    logging.basicConfig(level = logging.DEBUG, format = FORMAT)
+    file_handler = logging.FileHandler(os.path.join(PATH_logs, 'LOG-' + str(process_num) + '.log'))
     file_handler.setFormatter(logging.Formatter(FORMAT))
     logging.getLogger().addHandler(file_handler)
 
-    FILE_files_stats_file = os.path.join(PATH_stats_file_folder,'files-stats-'+str(process_num)+'.stats')
-    FILE_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,'bookkeeping-proj-'+str(process_num)+'.projs')
-    FILE_files_tokens_file = os.path.join(PATH_tokens_file_folder,'files-tokens-'+str(process_num)+'.tokens')
+    FILE_files_stats_file = os.path.join(PATH_stats_file_folder, 'files-stats-' + str(process_num) + '.stats')
+    FILE_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder, 'bookkeeping-proj-' + str(process_num) + '.projs')
+    FILE_files_tokens_file = os.path.join(PATH_tokens_file_folder, 'files-tokens-' + str(process_num) + '.tokens')
 
     global file_count
     file_count = 0
-    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, \
-            open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj, \
-            open(FILE_files_stats_file, 'a+') as FILE_stats_file:
+    with open(FILE_files_tokens_file, 'a+') as FILE_tokens, open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping, open(FILE_files_stats_file, 'a+') as FILE_stats:
         logging.info("Process %s starting", process_num)
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            process_one_project(process_num, str(proj_id), proj_path, base_file_id, 
-                                FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format)
+            process_one_project(process_num, str(proj_id), proj_path, base_file_id, FILE_tokens, FILE_bookkeeping, FILE_stats, logging, project_format)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
-    logging.info('Process %s finished. %s files in %ss.', 
-                 process_num, file_count, p_elapsed)
+    logging.info('Process %s finished. %s files in %ss.', process_num, file_count, p_elapsed)
 
     # Let parent know
     global_queue.put((process_num, file_count))
@@ -452,8 +425,8 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
   paths_batch = proj_paths[:batch]
   del proj_paths[:batch]
 
-  print "Starting new process %s" % (pid)
-  p = Process(name='Process '+str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format, ))
+  print("Starting new process %s" % (pid))
+  p = Process(name = 'Process ' + str(pid), target = process_projects, args = (pid, paths_batch, processes[pid][1], global_queue, project_format))
   processes[pid][0] = p
   p.start()
 
@@ -463,23 +436,17 @@ def kill_child(processes, pid, n_files_processed):
   if processes[pid][0] != None:
     processes[pid][0] = None
     processes[pid][1] += n_files_processed
-    
-    print "Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count)
+    print("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count))
 
 def active_process_count(processes):
-  count = 0
-  for p in processes:
-    if p[0] != None:
-      count +=1
-  return count
+  return len(filter(lambda p : p[0] != None, processes))
 
 if __name__ == '__main__':
-
   global project_format
   project_format = sys.argv[1]
 
   if project_format not in ['zip','leidos']:
-    print "ERROR - Please insert archive format, 'zip', 'leidos'!"
+    print("ERROR - Please insert archive format, 'zip', 'leidos'!")
     sys.exit()
 
   read_config()
@@ -489,33 +456,32 @@ if __name__ == '__main__':
   if FILE_priority_projects != None:
     with open(FILE_priority_projects) as f:
       for line in f:
-        line_split = line.strip('\n') # [:-1] to strip final character which is '\n'
+        line_split = line.strip('\n')
         prio_proj_paths.append(line_split)
     prio_proj_paths = zip(range(init_proj_id, len(prio_proj_paths)+init_proj_id), prio_proj_paths)
 
   proj_paths = []
+  print('\'',project_format,'\'','format')
   if project_format == 'leidos':
-    print '\'',project_format,'\'','format'
     with open(FILE_projects_list) as f:
       for line in f:
         prio = False
-        line_split = line.strip('\n') # [:-1] to strip final character which is '\n'
+        line_split = line.strip('\n')
         for p in prio_proj_paths:
           if p[1][0] == line_split:
             prio = True
             print "Project %s is in priority list" % line_split
         if not prio:
           proj_paths.append(line_split)
-    proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
   elif project_format == 'zip':
-    print '\'',project_format,'\'','format'
     with open(FILE_projects_list) as f:
       for line in f:
         proj_paths.append(line[:-1])
-    proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
+  proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
 
   if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-    print 'ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'
+    missing_files = filter(os.path.exists, [PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs])
+    print('ERROR - Folder [' + '] or ['.join(missing_files) + '] already exists!')
     sys.exit(1)
   else:
     os.makedirs(PATH_stats_file_folder)
@@ -538,19 +504,19 @@ if __name__ == '__main__':
     global_queue.put((i, 0))
 
   # Start the priority projects
-  print "*** Starting priority projects..."
+  print("*** Starting priority projects...")
   while len(prio_proj_paths) > 0:
     start_child(processes, global_queue, prio_proj_paths, 1, project_format)
 
   # Start all other projects
-  print "*** Starting regular projects..."
+  print("*** Starting regular projects...")
   while len(proj_paths) > 0:
     start_child(processes, global_queue, proj_paths, PROJECTS_BATCH, project_format)
 
-  print "*** No more projects to process. Waiting for children to finish..."
+  print("*** No more projects to process. Waiting for children to finish...")
   while active_process_count(processes) > 0:
     pid, n_files_processed = global_queue.get()
     kill_child(processes, pid, n_files_processed)
 
   p_elapsed = dt.datetime.now() - p_start
-  print "*** All done. %s files in %s" % (file_count, p_elapsed)
+  print("*** All done. %s files in %s" % (file_count, p_elapsed))
