@@ -225,6 +225,7 @@ def process_regular_folder(args, folder_path, files):
 
 def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
   zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
+  logging.info('Attempting to process_tgz_ball ' + tar_file)
   try:
     with tarfile.open(tar_file, 'r|*') as my_tar_file:
       for f in my_tar_file:
@@ -241,22 +242,22 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
         file_id = process_num * MULTIPLIER + base_file_id + file_count
         file_bytes = str(f.size)
         z_time = dt.datetime.now()
-        file_path = f.name
         try:
           myfile = my_tar_file.extractfile(f)
         except:
-          logging.warning('Unable to open file (1) <' + proj_id + ',' + str(file_id) + ',' + os.path.join(tar_file,file_path) + '> (process ' + str(process_num) + ')')
+          logging.warning('Unable to open file (1) <' + proj_id + ',' + str(file_id) + ',' + os.path.join(tar_file, f.name) + '> (process ' + str(process_num) + ')')
           break
         zip_time += (dt.datetime.now() - z_time).microseconds
 
         if myfile is None:
-          logging.warning('Unable to open file (2) <' + proj_id + ',' + str(file_id) + ',' + os.path.join(tar_file,file_path) + '> (process ' + str(process_num) + ')')
+          logging.warning('Unable to open file (2) <' + proj_id + ',' + str(file_id) + ',' + os.path.join(tar_file, f.name) + '> (process ' + str(process_num) + ')')
           break
 
         f_time = dt.datetime.now()
         file_string = myfile.read()
         file_time += (dt.datetime.now() - f_time).microseconds
 
+        file_path = f.name
         times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging)
         string_time += times[0]
         tokens_time += times[1]
@@ -288,12 +289,12 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
         try:
           my_zip_file = my_file.open(file.filename, 'r')
         except:
-          logging.warning('Unable to open file (1) <' + os.path.join(proj_path, file) + '> (process ' + str(process_num) + ')')
+          logging.warning('Unable to open file (1) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(process_num) + ')')
           break
         zip_time += (dt.datetime.now() - z_time).microseconds
 
         if my_zip_file is None:
-          logging.warning('Unable to open file (2) <' + os.path.join(proj_path,file) + '> (process ' + str(process_num) + ')')
+          logging.warning('Unable to open file (2) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(process_num) + ')')
           break
 
         f_time = dt.datetime.now()
@@ -302,7 +303,6 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
 
         file_path = file.filename
         times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging)
-
         string_time += times[0]
         tokens_time += times[1]
         write_time  += times[4]
