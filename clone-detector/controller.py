@@ -77,10 +77,10 @@ class ScriptController(object):
         print("SUCCESS: Search Completed on all nodes")
 
     def perform_step(self, state, cmd, params, cmd_shortcut, error_message):
-        returncode = EXIT_SUCCESS
+        return_code = EXIT_SUCCESS
         self.flush_state()
         if self.previous_run_state <= state:
-            returncode = self.run_command_wrapper(cmd, params, cmd_shortcut)
+            return_code = self.run_command_wrapper(cmd, params, cmd_shortcut)
         if return_code != EXIT_SUCCESS:
             raise ScriptControllerException(error_message)
         self.current_state += 1
