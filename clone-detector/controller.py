@@ -39,7 +39,9 @@ class ScriptController(object):
         if self.previous_run_state > STATE_EXECUTE_1:
             returncode = EXIT_SUCCESS
         else:
-            returncode = self.run_command_wrapper("execute.sh", "1", "execute_1", "error in execute.sh script")
+            returncode = self.run_command_wrapper("execute.sh", "1", "execute_1")
+            if returncode != EXIT_SUCCESS:
+                raise ScriptControllerException("error in execute.sh script")
         self.current_state += 1
         self.flush_state()
         # execute the init command
