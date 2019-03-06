@@ -41,9 +41,7 @@ class ScriptController(object):
         if self.previous_run_state > ScriptController.STATE_EXECUTE_1:
             returncode = ScriptController.EXIT_SUCCESS
         else:
-            command = self.full_script_path('execute.sh', "1")
-            command_params = command.split()
-            returncode = self.run_command(command_params, self.full_file_path("Log_execute_1.out"), self.full_file_path("Log_execute_1.err"))
+            run_command_wrapper("execute.sh", "1", "execute_1")
         self.current_state += 1
         if returncode == ScriptController.EXIT_SUCCESS:
             self.flush_state()
@@ -136,6 +134,12 @@ class ScriptController(object):
         else:
             print("{} doesn't exist, creating one with state EXECUTE_1".format(self.script_meta_file_name))
             return ScriptController.STATE_EXECUTE_1
+    
+    def run_command_wrapper(self, cmd, params, cmd_shortcut):
+        command = self.full_script_path(cmd, params)
+        out_file = self.full_file_path("Log_{}.out".format(cmd_shortcut))
+        err_file = self.full_file_path("Log_{}.err".format(cmd_shortcut))
+        returncode = self.run_command(command.split(), out_file, err_file)
 
     def run_command(self, cmd, outFile, errFile):
         print("running new command {}".format(" ".join(cmd)))
