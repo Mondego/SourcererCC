@@ -283,8 +283,8 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
       logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
       return
 
-  proj_url = 'NULL'
   if project_format == 'leidos':
+    proj_url = 'None'
     # Search for tar files with _code in them
     tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
     tar_files = [f for f in tar_files if '_code' in f]
@@ -296,6 +296,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
       tar_file = tar_files[0]
       times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
   elif project_format == 'zip':
+    proj_url = 'NULL'
     zip_file = proj_path
     times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
   zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (times if times is not None else (-1, -1, -1, -1, -1, -1, -1))
@@ -360,13 +361,13 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
 def kill_child(processes, pid, n_files_processed):
   global file_count
   file_count += n_files_processed
-  if processes[pid][0] is not None:
+  if processes[pid][0] != None:
     processes[pid][0] = None
     processes[pid][1] += n_files_processed
     print("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count))
 
 def active_process_count(processes):
-  return len(filter(lambda p : p[0] is not None, processes))
+  return len(filter(lambda p : p[0] != None, processes))
 
 if __name__ == '__main__':
   global project_format
