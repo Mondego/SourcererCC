@@ -5,15 +5,11 @@
 #rm -r SourcererCC/tokenizers/block-level/projects
 #mkdir SourcererCC/tokenizers/block-level/projects
 #mv cloneGithub/projects SourcererCC/tokenizers/block-level
-rm clone-detector/search_metadata.txt
 cd tokenizers/block-level/
 rm -rf blocks_tokens
 rm -rf bookkeeping_projs
-rm blocks.file
 rm -rf file_block_stats
 rm -rf logs
-rm extractJavaFunction.pyc
-rm extractPythonFunction.pyc
 python tokenizer.py zipblocks
 cat blocks_tokens/* > blocks.file
 cp blocks.file ../../clone-detector/input/dataset/
