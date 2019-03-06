@@ -51,18 +51,12 @@ class ScriptController(object):
             else:
                 if self.previous_run_state == ScriptController.STATE_INIT:
                     # last time the execution failed at init step. We need to replace the existing gtpm index  from the backup
-                    command = self.full_script_path("restore-gtpm.sh")
-                    command_params = command.split()
-                    returncode = self.run_command(command_params, self.full_file_path("Log_restore_gtpm.out"), self.full_file_path("Log_restore_gtpm.err"))
+                    returncode = self.run_command_wrapper("restore-gtpm.sh", "", "restore_gtpm")
                 else:
                     # take backup of existing gtpmindex before starting init
-                    command = self.full_script_path("backup-gtpm.sh")
-                    command_params = command.split()
-                    returncode = self.run_command(command_params, self.full_file_path("Log_backup_gtpm.out"), self.full_file_path("Log_backup_gtpm.err"))
+                    returncode = self.run_command_wrapper("backup-gtpm.sh", "", "backup_gtpm")
                 # run the init step
-                command = self.full_script_path("runnodes.sh", "init 1")
-                command_params = command.split()
-                returncode = self.run_command(command_params, self.full_file_path("Log_init.out"), self.full_file_path("Log_init.err"))
+                returncode = self.run_command_wrapper("runnodes.sh", "init 1", "init")
             self.current_state += 1
             if returncode == ScriptController.EXIT_SUCCESS:
                 self.flush_state()
@@ -70,9 +64,7 @@ class ScriptController(object):
                 if self.previous_run_state > ScriptController.STATE_INDEX:
                     returncode = ScriptController.EXIT_SUCCESS
                 else:
-                    command = self.full_script_path("runnodes.sh", "index 1")
-                    command_params = command.split()
-                    returncode = self.run_command(command_params, self.full_file_path("Log_index.out"), self.full_file_path("Log_index.err"))
+                    returncode = self.run_command_wrapper("runnodes.sh", "index 1", "index")
                 self.current_state += 1
                 if returncode == ScriptController.EXIT_SUCCESS:
                     self.flush_state()
@@ -80,9 +72,7 @@ class ScriptController(object):
                         returncode = ScriptController.EXIT_SUCCESS
                     else:
                         # execute move indexes
-                        command = self.full_script_path("move-index.sh")
-                        command_params = command.split()
-                        returncode = self.run_command(command_params, self.full_file_path("Log_move_index.out"), self.full_file_path("Log_move_index.err"))
+                        returncode = self.run_command_wrapper("move-index.sh", "", "move_index")
                     self.current_state += 1
                     if returncode == ScriptController.EXIT_SUCCESS:
                         self.flush_state()
@@ -90,18 +80,14 @@ class ScriptController(object):
                             returncode = ScriptController.EXIT_SUCCESS
                             # execute command to create the dir structure
                         else:
-                            command = self.full_script_path("execute.sh", "{}".format(self.params["num_nodes_search"]))
-                            command_params = command.split()
-                            returncode = self.run_command(command_params, self.full_file_path("Log_execute_{}.out".format(self.params["num_nodes_search"])), self.full_file_path("Log_execute_{}.err".format(self.params["num_nodes_search"])))
+                            returncode = self.run_command_wrapper("execute.sh", "{}".format(self.params["num_nodes_search"]), "execute_{}".format(self.params["num_nodes_search"]))
                         self.current_state += 1
                         if returncode == ScriptController.EXIT_SUCCESS:
                             self.flush_state()
                             if self.previous_run_state > ScriptController.STATE_SEARCH:
                                 returncode = ScriptController.EXIT_SUCCESS
                             else:
-                                command = self.full_script_path("runnodes.sh", "search {}".format(self.params["num_nodes_search"]))
-                                command_params = command.split()
-                                returncode = self.run_command(command_params, self.full_file_path("Log_search.out"), self.full_file_path("Log_search.err"))
+                                returncode = self.run_command_wrapper("runnodes.sh", "search {}".format(self.params["num_nodes_search"]), "search_{}".format(self.params["num_nodes_search"]))
                             self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
                             if returncode == ScriptController.EXIT_SUCCESS:
                                 self.flush_state()
