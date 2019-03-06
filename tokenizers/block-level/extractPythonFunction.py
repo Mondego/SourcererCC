@@ -14,7 +14,7 @@ def getFunctions(filestring, logging, file_path):
 
 	blocks_linenos = []
 
-	#print ast.dump(tree)
+	print(ast.dump(tree))
 	# ast.walk(tree): walk the tree recursively to find all FunctionDef,
 	# but now we only need level 1 functions
 	# in ast, lineno of a stmt start with 1
@@ -64,5 +64,3 @@ fileopen = open("test.py")
 file = fileopen.read()
 print getFunctions(file)
 '''
-		
-
