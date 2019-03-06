@@ -42,49 +42,44 @@ class ScriptController(object):
         else:
             returncode = self.run_command_wrapper("execute.sh", "1", "execute_1")
         self.current_state += 1
-        if returncode == ScriptController.EXIT_SUCCESS:
-            self.flush_state()
-            # execute the init command
-            if self.previous_run_state > ScriptController.STATE_INIT:
-                returncode = ScriptController.EXIT_SUCCESS
-            else:
-                if self.previous_run_state == ScriptController.STATE_INIT:
-                    # last time the execution failed at init step. We need to replace the existing gtpm index  from the backup
-                    returncode = self.run_command_wrapper("restore-gtpm.sh", "", "restore_gtpm")
-                else:
-                    # take backup of existing gtpmindex before starting init
-                    returncode = self.run_command_wrapper("backup-gtpm.sh", "", "backup_gtpm")
-                # run the init step
-                returncode = self.run_command_wrapper("runnodes.sh", "init 1", "init")
-            self.current_state += 1
-            if returncode == ScriptController.EXIT_SUCCESS:
-                # execute index
-                returncode = self.perform_step(ScriptController.STATE_INDEX, "runnodes.sh", "index 1", "index")
-                if returncode == ScriptController.EXIT_SUCCESS:
-                    # execute move indexes
-                    returncode = self.perform_step(ScriptController.STATE_MOVE_INDEX, "move-index.sh", "", "move_index")
-                    if returncode == ScriptController.EXIT_SUCCESS:
-                        # execute command to create the dir structure
-                        returncode = self.perform_step(ScriptController.STATE_EXECUTE_2, "execute.sh", "{}".format(self.num_nodes_search), "execute_{}".format(self.num_nodes_search))
-                        if returncode == ScriptController.EXIT_SUCCESS:
-                            returncode = self.perform_step(ScriptController.STATE_SEARCH, "runnodes.sh", "search {}".format(self.num_nodes_search), "search_{}".format(self.num_nodes_search))
-                            self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
-                            if returncode == ScriptController.EXIT_SUCCESS:
-                                self.flush_state()
-                                print("SUCCESS: Search Completed on all nodes")
-                            else:
-                                raise ScriptControllerException("One or more nodes failed during Step Search. \
-                                    Check Log_search.log for more details. grep for FAILED in the log file")
-                        else:
-                            raise ScriptControllerException("error in execute.sh script while preparing for the search step.")
-                    else:
-                        raise ScriptControllerException("error in move-index.sh script.")
-                else:
-                    raise ScriptControllerException("error during indexing.")
-            else:
-                raise ScriptControllerException("error during init.")
-        else:
+        if returncode != ScriptController.EXIT_SUCCESS:
             raise ScriptControllerException("error in execute.sh script while preparing for init step.")
+        self.flush_state()
+        # execute the init command
+        if self.previous_run_state > ScriptController.STATE_INIT:
+            returncode = ScriptController.EXIT_SUCCESS
+        elif self.previous_run_state == ScriptController.STATE_INIT:
+            # last time the execution failed at init step. We need to replace the existing gtpm index from the backup
+            returncode = self.run_command_wrapper("restore-gtpm.sh", "", "restore_gtpm")
+            # run the init step
+            returncode = self.run_command_wrapper("runnodes.sh", "init 1", "init")
+        else:
+            # take backup of existing gtpmindex before starting init
+            returncode = self.run_command_wrapper("backup-gtpm.sh", "", "backup_gtpm")
+            # run the init step
+            returncode = self.run_command_wrapper("runnodes.sh", "init 1", "init")
+        self.current_state += 1
+        if returncode != ScriptController.EXIT_SUCCESS:
+            raise ScriptControllerException("error during init.")
+        # execute index
+        returncode = self.perform_step(ScriptController.STATE_INDEX, "runnodes.sh", "index 1", "index")
+        if returncode != ScriptController.EXIT_SUCCESS:
+            raise ScriptControllerException("error during indexing.")
+        # execute move indexes
+        returncode = self.perform_step(ScriptController.STATE_MOVE_INDEX, "move-index.sh", "", "move_index")
+        if returncode != ScriptController.EXIT_SUCCESS:
+            raise ScriptControllerException("error in move-index.sh script.")
+        # execute command to create the dir structure
+        returncode = self.perform_step(ScriptController.STATE_EXECUTE_2, "execute.sh", "{}".format(self.num_nodes_search), "execute_{}".format(self.num_nodes_search))
+        if returncode != ScriptController.EXIT_SUCCESS:
+            raise ScriptControllerException("error in execute.sh script while preparing for the search step.")
+        returncode = self.perform_step(ScriptController.STATE_SEARCH, "runnodes.sh", "search {}".format(self.num_nodes_search), "search_{}".format(self.num_nodes_search))
+        self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
+        if returncode != ScriptController.EXIT_SUCCESS:
+            raise ScriptControllerException("One or more nodes failed during Step Search. \
+                Check Log_search.log for more details. grep for FAILED in the log file")
+        self.flush_state()
+        print("SUCCESS: Search Completed on all nodes")
 
     def perform_step(self, state, cmd, params, cmd_shortcut):
         returncode = ScriptController.EXIT_SUCCESS
