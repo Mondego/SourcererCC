@@ -48,12 +48,18 @@ class ScriptController(object):
         else:
             if self.previous_run_state == STATE_INIT:
                 # last time the execution failed at init step. We need to replace the existing gtpm index from the backup
-                returncode = self.run_command_wrapper("restore-gtpm.sh", "", "restore_gtpm", "error during restoring gtpm index")
+                returncode = self.run_command_wrapper("restore-gtpm.sh", "", "restore_gtpm")
+                if returncode != EXIT_SUCCESS:
+                    raise ScriptControllerException("error during restoring gtpm index")
             else:
                 # take backup of existing gtpmindex before starting init
-                returncode = self.run_command_wrapper("backup-gtpm.sh", "", "backup_gtpm", "error during taking backup")
+                returncode = self.run_command_wrapper("backup-gtpm.sh", "", "backup_gtpm")
+                if returncode != EXIT_SUCCESS:
+                    raise ScriptControllerException("error during taking backup")
             # run the init step
-            returncode = self.run_command_wrapper("runnodes.sh", "init 1", "init", "error during init")
+            returncode = self.run_command_wrapper("runnodes.sh", "init 1", "init")
+            if returncode != EXIT_SUCCESS:
+                raise ScriptControllerException("error during init")
         self.current_state += 1
 
         # execute index
