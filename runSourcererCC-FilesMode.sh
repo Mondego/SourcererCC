@@ -14,7 +14,7 @@ rm -rf file_block_stats
 rm -rf logs
 rm extractJavaFunction.pyc
 rm extractPythonFunction.pyc
-python tokenizer.py zip 2>/dev/null
+python tokenizer.py zip
 cat files_tokens/* > blocks.file
 cp blocks.file ../../clone-detector/input/dataset/
 cd ../../clone-detector
