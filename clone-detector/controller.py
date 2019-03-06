@@ -83,11 +83,7 @@ class ScriptController(object):
                             returncode = self.run_command_wrapper("execute.sh", "{}".format(self.params["num_nodes_search"]), "execute_{}".format(self.params["num_nodes_search"]))
                         self.current_state += 1
                         if returncode == ScriptController.EXIT_SUCCESS:
-                            self.flush_state()
-                            if self.previous_run_state > ScriptController.STATE_SEARCH:
-                                returncode = ScriptController.EXIT_SUCCESS
-                            else:
-                                returncode = self.run_command_wrapper("runnodes.sh", "search {}".format(self.params["num_nodes_search"]), "search_{}".format(self.params["num_nodes_search"]))
+                            returncode = self.perform_step(ScriptController.STATE_SEARCH, "runnodes.sh", "search {}".format(self.params["num_nodes_search"]), "search_{}".format(self.params["num_nodes_search"]))
                             self.current_state = ScriptController.STATE_EXECUTE_1 # go back to EXE 1 state
                             if returncode == ScriptController.EXIT_SUCCESS:
                                 self.flush_state()
@@ -105,6 +101,14 @@ class ScriptController(object):
                 raise ScriptControllerException("error during init.")
         else:
             raise ScriptControllerException("error in execute.sh script while preparing for init step.")
+
+    def perform_step(self, state, cmd, params, cmd_shortcut):
+        returncode = ScriptController.EXIT_SUCCESS
+        self.flush_state()
+        if self.previous_run_state <= state:
+            returncode = self.run_command_wrapper(cmd, params, cmd_shortcut)
+        self.current_state += 1
+        return returncode
 
     def flush_state(self):
         print("current state: {}".format(self.current_state))
