@@ -41,7 +41,7 @@ class ScriptController(object):
         if self.previous_run_state > ScriptController.STATE_EXECUTE_1:
             returncode = ScriptController.EXIT_SUCCESS
         else:
-            self.run_command_wrapper("execute.sh", "1", "execute_1")
+            returncode = run_command_wrapper("execute.sh", "1", "execute_1")
         self.current_state += 1
         if returncode == ScriptController.EXIT_SUCCESS:
             self.flush_state()
@@ -139,7 +139,7 @@ class ScriptController(object):
         command = self.full_script_path(cmd, params)
         out_file = self.full_file_path("Log_{}.out".format(cmd_shortcut))
         err_file = self.full_file_path("Log_{}.err".format(cmd_shortcut))
-        returncode = self.run_command(command.split(), out_file, err_file)
+        return self.run_command(command.split(), out_file, err_file)
 
     def run_command(self, cmd, outFile, errFile):
         print("running new command {}".format(" ".join(cmd)))
