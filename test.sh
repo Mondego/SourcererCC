@@ -16,7 +16,7 @@ cd ./t1/rprtr258-SourcererCC-copy/
 if [ -s "results.pairs" ]
 then
    echo "Blocks mode:"
-   cat results.pairs
+   cat results.pairs | sort
 else
    echo "Blocks mode found nothing"
    exit 1
@@ -26,7 +26,7 @@ cd ../../t2/rprtr258-SourcererCC-copy/
 if [ -s "results.pairs" ]
 then
    echo "Files mode:"
-   cat results.pairs
+   cat results.pairs | sort
 else
    echo "Files mode found nothing"
    exit 1
