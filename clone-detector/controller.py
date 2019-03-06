@@ -30,11 +30,10 @@ class ScriptController(object):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
 
     def full_script_path(self,string,param=""):
-        res = full_file_path(string)
-        if len(param) == 0:
-            return res
-        else:
-            return res + " " + param
+        res = self.full_file_path(string)
+        if len(param) != 0:
+            res += " " + param
+        return res
 
     def execute(self):
         # execute command
