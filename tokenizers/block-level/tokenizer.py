@@ -635,8 +635,14 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
 
   p_elapsed = dt.datetime.now() - p_start
   logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-  logging.info(' (%s): Total: %smicros | Zip: %s Read: %s Separators: %smicros Tokens: %smicros Write: %smicros Hash: %s regex: %s', 
-         process_num,  p_elapsed, zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+  logging.info(' (%s): Total: %s ms', process_num,  p_elapsed)
+  logging.info('     Zip: %s', zip_time)
+  logging.info('     Read: %s', file_time)
+  logging.info('     Separators: %s ms', string_time)
+  logging.info('     Tokens: %s ms', tokens_time)
+  logging.info('     Write: %s ms', write_time)
+  logging.info('     Hash: %s', hash_time)
+  logging.info('     regex: %s', regex_time)
 
 def process_projects(process_num, list_projects, base_file_id, global_queue, project_format):
     if platform.system() =='Windows':
