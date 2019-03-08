@@ -14,14 +14,13 @@ do
   replace_text="NODE_PREFIX=NODE_"$i
   replace_log4_text="NODE_"$i
 
-  echo $foldername
-  echo $replace_text
-  echo $replace_log4_text
+  echo "\e[32m[replacenodeprefix.sh] \e[0m" $foldername
+  echo "\e[32m[replacenodeprefix.sh] \e[0m" $replace_text
+  echo "\e[32m[replacenodeprefix.sh] \e[0m" $replace_log4_text
 
   # replace NODE_PREFIX declaration
   sed -i -e "s/$src_text/$replace_text/g" $foldername/sourcerer-cc.properties
 
-  # Workaround:
   # inline NODE_PREFIX usages
   sed -i -e "s/\${NODE_PREFIX}/NODE_$i/g" $foldername/sourcerer-cc.properties
 

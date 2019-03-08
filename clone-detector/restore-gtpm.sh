@@ -5,11 +5,11 @@ realpath() {
 }
 scriptPATH=$(realpath "$0")
 rootPATH=$(dirname $scriptPATH)
-echo "restoring gtpm indexes..."
+echo "\e[32m[restore-gtpm.sh] \e[0mrestoring gtpm indexes..."
 if [ -d "$rootPATH/gtpmindex" ]; then
    rm -rf $rootPATH/gtpmindex
 fi
 cp -r $rootPATH/backup_gtpm/gtpmindex $rootPATH/
 
-echo "gtpmindex restored "
+echo "\e[32m[restore-gtpm.sh] \e[0mgtpmindex restored "
 

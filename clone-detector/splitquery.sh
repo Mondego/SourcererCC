@@ -6,7 +6,6 @@ realpath() {
 }
 scriptPATH=$(realpath "$0")
 rootPATH=$(dirname $scriptPATH)
-echo "inside splitquery "
 queryfile="$rootPATH/input/dataset/blocks.file"
 num_files="${1:-2}"
 
@@ -18,6 +17,6 @@ total_lines=$(wc -l <${queryfile})
 split -l $lines_per_file $queryfile $rootPATH/query.
 
 # Debug information
-echo "Total lines     = ${total_lines}"
-echo "Lines  per file = ${lines_per_file}"    
+echo "\e[32m[splitquery.sh] \e[0mTotal lines     = ${total_lines}"
+echo "\e[32m[splitquery.sh] \e[0mLines  per file = ${lines_per_file}"    
 wc -l $rootPATH/query.*

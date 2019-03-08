@@ -5,15 +5,15 @@ realpath() {
 }
 scriptPATH=$(realpath "$0")
 rootPATH=$(dirname $scriptPATH)
-echo $rootPATH
+echo "\e[32m[execute.sh] \e[0m" $rootPATH
 rm -rf $rootPATH/NODE*
 num_nodes="${1:-2}"
 th="${2:-8}"
 queryfile="$rootPATH/input/dataset/blocks.file"
-echo "spliting query file $queryfile into $num_nodes parts"
+echo "\e[32m[execute.sh] \e[0mspliting query file $queryfile into $num_nodes parts"
 python $rootPATH/unevensplit.py $queryfile $num_nodes
-echo "moving files"
+echo "\e[32m[execute.sh] \e[0mmoving files"
 bash $rootPATH/preparequery.sh $num_nodes
-echo "done!"
+echo "\e[32m[execute.sh] \e[0mdone!"
 bash $rootPATH/replacenodeprefix.sh $num_nodes
 
