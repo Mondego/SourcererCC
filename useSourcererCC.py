@@ -8,6 +8,7 @@ def download_project(url):
 
 project_list = []
 os.makedirs("tokenizers/file-level/{}/".format(PROJECTS_DIRECTORY))
+# TODO: specify urls file in args
 with open("urls.txt") as urls_file:
     for url in urls_file:
         url = url.strip('\n')
