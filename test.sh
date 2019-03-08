@@ -53,3 +53,4 @@ ls -lR t1
 ls -lR t2
 diff -r rprtr258-SourcererCC-copy t1
 diff -r rprtr258-SourcererCC-copy t2
+exit 0
