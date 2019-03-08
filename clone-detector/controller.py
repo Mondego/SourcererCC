@@ -25,15 +25,6 @@ class ScriptController(object):
         self.current_state = STATE_EXECUTE_1  # default state
         self.previous_run_state = self.load_previous_state()
 
-    def full_file_path(self,string):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
-
-    def full_script_path(self,string,param = ""):
-        res = self.full_file_path(string)
-        if param != "":
-            res += " " + param
-        return res
-
     def execute(self):
         print("previous run state {}".format(self.previous_run_state))
         if self.previous_run_state > STATE_EXECUTE_1:
@@ -94,7 +85,7 @@ class ScriptController(object):
         command = self.full_script_path(cmd, params)
         return_code = self.run_command(command.split())
         if return_code != EXIT_SUCCESS:
-            raise ScriptControllerException("error during executing {}".format(" ".join(command)))
+            raise ScriptControllerException("error during executing {}".format(command))
         return return_code
 
     def run_command(self, cmd):
@@ -102,6 +93,15 @@ class ScriptController(object):
         p = subprocess.Popen(cmd, universal_newlines = True)
         p.communicate()
         return p.returncode
+
+    def full_file_path(self,string):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
+
+    def full_script_path(self,string,param = ""):
+        res = self.full_file_path(string)
+        if param != "":
+            res += " " + param
+        return res
 
 if __name__ == '__main__':
     numnodes = 2
