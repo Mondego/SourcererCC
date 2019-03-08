@@ -6,7 +6,7 @@ realpath() {
 }
 scriptPATH=$(realpath "$0")
 rootPATH=$(dirname $scriptPATH)
-echo "\e[32m[move-index.sh] \e[0mInstalling indexes..."
+printf "\e[32m[move-index.sh] \e[0mInstalling indexes...\n"
 
 if [ -d "$rootPATH/index" ]; then
     rm -rf $rootPATH/index
@@ -20,5 +20,5 @@ mv $rootPATH/NODE_1/index/shards/* $rootPATH/index
 mkdir $rootPATH/fwdindex
 mv $rootPATH/NODE_1/fwdindex/shards/* $rootPATH/fwdindex
 
-echo "\e[32m[move-index.sh] \e[0mIndexes installed"
+printf "\e[32m[move-index.sh] \e[0mIndexes installed\n"
 

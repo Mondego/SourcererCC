@@ -17,6 +17,6 @@ total_lines=$(wc -l <${queryfile})
 split -l $lines_per_file $queryfile $rootPATH/query.
 
 # Debug information
-echo "\e[32m[splitquery.sh] \e[0mTotal lines     = ${total_lines}"
-echo "\e[32m[splitquery.sh] \e[0mLines  per file = ${lines_per_file}"    
+printf "\e[32m[splitquery.sh] \e[0mTotal lines     = ${total_lines}\n"
+printf "\e[32m[splitquery.sh] \e[0mLines  per file = ${lines_per_file}\n"    
 wc -l $rootPATH/query.*

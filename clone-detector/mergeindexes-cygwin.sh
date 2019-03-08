@@ -2,10 +2,10 @@
 
 # Run this script after indexing with several nodes
 ant cdmerge
-echo "\e[32m[mergeindexes-cygwin.sh] \e[0mmerging..."
+printf "\e[32m[mergeindexes-cygwin.sh] \e[0mmerging...\n"
 unixPATH=$(pwd)
-echo "\e[32m[mergeindexes-cygwin.sh] \e[0m" $unixPATH
+printf "\e[32m[mergeindexes-cygwin.sh] \e[0m$unixPATH\n"
 p=$(cygpath -aw $unixPATH/sourcerer-cc.properties)
-echo "\e[32m[mergeindexes-cygwin.sh] \e[0m" $p
+printf "\e[32m[mergeindexes-cygwin.sh] \e[0m$p\n"
 java -Dproperties.location="$p" -Xms6g -Xmx6g -XX:+UseCompressedOops -jar dist/indexbased.IndexMerger.jar
 

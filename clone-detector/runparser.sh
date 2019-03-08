@@ -15,14 +15,14 @@ total_lines=$(wc -l <${input_file})
 split -l $lines_per_file $input_file numberedProjects.
 
 # Debug information
-echo "\e[32m[runparser.sh] \e[0mTotal lines     = ${total_lines}"
-echo "\e[32m[runparser.sh] \e[0mLines  per file = ${lines_per_file}"    
+printf "\e[32m[runparser.sh] \e[0mTotal lines     = ${total_lines}\n"
+printf "\e[32m[runparser.sh] \e[0mLines  per file = ${lines_per_file}\n"    
 wc -l numberedProjects.*
 
 ant cdparse
 
 for c in $(ls numberedProjects*)
 do
-	echo "\e[32m[runparser.sh] \e[0mrunning java -jar dist/parser.FileParser.jar $c"
+	printf "\e[32m[runparser.sh] \e[0mrunning java -jar dist/parser.FileParser.jar $c\n"
 	java -Xms1024M -Xmx1024M -Xss100M -jar dist/parser.FileParser.jar $c &
 done

@@ -9,7 +9,7 @@ for th in  8
 do
     for project in $(cat pro.txt)
   do
-    echo "\e[32m[runexp.sh] \e[0mexecuting runn.sh $loops $project $th"
+    printf "\e[32m[runexp.sh] \e[0mexecuting runn.sh $loops $project $th\n"
     bash runn.sh $loops $project $th
   done
 done

@@ -14,9 +14,9 @@ do
   replace_text="NODE_PREFIX=NODE_"$i
   replace_log4_text="NODE_"$i
 
-  echo "\e[32m[replacenodeprefix.sh] \e[0m" $foldername
-  echo "\e[32m[replacenodeprefix.sh] \e[0m" $replace_text
-  echo "\e[32m[replacenodeprefix.sh] \e[0m" $replace_log4_text
+  printf "\e[32m[replacenodeprefix.sh] \e[0m$foldername\n"
+  printf "\e[32m[replacenodeprefix.sh] \e[0m$replace_text\n"
+  printf "\e[32m[replacenodeprefix.sh] \e[0m$replace_log4_text\n"
 
   # replace NODE_PREFIX declaration
   sed -i -e "s/$src_text/$replace_text/g" $foldername/sourcerer-cc.properties

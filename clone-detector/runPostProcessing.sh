@@ -5,8 +5,8 @@
 ## get item count using ${arrayname[@]} ##
 for project in $(ls /Users/vaibhavsaini/Dropbox/clonedetection/projects/)
 do
-  echo "\e[32m[runPostProcessing.sh] \e[0mrunning java -jar dist/postprocessing.ClonesNamesAssembler.jar $project"
+  printf "\e[32m[runPostProcessing.sh] \e[0mrunning java -jar dist/postprocessing.ClonesNamesAssembler.jar $project\n"
   java -Xms13g -Xmx13g -jar dist/postprocessing.ClonesNamesAssembler.jar $project
-  echo "\e[32m[runPostProcessing.sh] \e[0mrunning java -jar dist/postprocessing.ClonesBugsAssembler.jar $project"
+  printf "\e[32m[runPostProcessing.sh] \e[0mrunning java -jar dist/postprocessing.ClonesBugsAssembler.jar $project\n"
   java -Xms13g -Xmx13g -jar dist/postprocessing.ClonesBugsAssembler.jar $project
 done
