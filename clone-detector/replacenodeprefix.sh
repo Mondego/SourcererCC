@@ -4,7 +4,7 @@ realpath() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 scriptPATH=$(realpath "$0")
-rootPATH=`dirname $scriptPATH`
+rootPATH=$(dirname $scriptPATH)
 num_nodes="${1:-0}"
 src_text="NODE_PREFIX=NODE"
 src_log4_text="NODE_"

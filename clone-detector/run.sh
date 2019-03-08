@@ -1,4 +1,5 @@
 #!/bin/bash
+
 loops="${1:-1}"
 prefix="${2:-codeclonedetection}"
 th="${3:-8}"

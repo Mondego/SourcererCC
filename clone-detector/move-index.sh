@@ -7,7 +7,7 @@ realpath() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 scriptPATH=$(realpath "$0")
-rootPATH=`dirname $scriptPATH`
+rootPATH=$(dirname $scriptPATH)
 echo "Installing indexes..."
 
 if [ -d "$rootPATH/index" ]; then
@@ -23,5 +23,4 @@ mkdir $rootPATH/fwdindex
 mv $rootPATH/NODE_1/fwdindex/shards/* $rootPATH/fwdindex
 
 echo "Indexes installed"
-
 

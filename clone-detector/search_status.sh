@@ -4,12 +4,12 @@ realpath() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 scriptPATH=$(realpath "$0")
-rootPATH=`dirname $scriptPATH`
-num=`cat search_metadata.txt`
+rootPATH=$(dirname $scriptPATH)
+num=$(cat search_metadata.txt)
 
 for i in $(seq 1 1 $num)
 do
- p=`cat SCC_LOGS/NODE_$i/scc.log | grep " RL " | tail -1 | cut -d" " -f8`
- t=`wc -l NODE_$i/query/query* | cut -d" " -f1`
+ p=$(cat SCC_LOGS/NODE_$i/scc.log | grep " RL " | tail -1 | cut -d" " -f8)
+ t=$(wc -l NODE_$i/query/query* | cut -d" " -f1)
  echo "NODE_$i : $p processed, out of $t."
 done

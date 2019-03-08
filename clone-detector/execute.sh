@@ -4,11 +4,10 @@ realpath() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 scriptPATH=$(realpath "$0")
-rootPATH=`dirname $scriptPATH`
+rootPATH=$(dirname $scriptPATH)
 echo $rootPATH
 rm -rf $rootPATH/NODE*
 num_nodes="${1:-2}"
-#num_nodes=$((num_nodes-1))
 th="${2:-8}"
 queryfile="$rootPATH/input/dataset/blocks.file"
 echo "spliting query file $queryfile into $num_nodes parts"
