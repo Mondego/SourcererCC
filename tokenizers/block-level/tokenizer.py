@@ -91,7 +91,6 @@ def read_config():
   proj_id_flag = config.getint('Config', 'init_proj_id')
 
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-
   final_stats  = 'ERROR'
   final_tokens = 'ERROR'
 
@@ -296,11 +295,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
 
   return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
 
-def process_file_contents(file_string, proj_id, file_id, container_path, 
-              file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
-  
-  logging.info('Attempting to process_file_contents '+os.path.join(container_path, file_path))
-
+def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
   global file_count
   file_count += 1
 
@@ -365,13 +360,9 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     ww_time = dt.datetime.now()
     FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
     w_time += (dt.datetime.now() - ww_time).microseconds
-
-  logging.info('Successfully ran process_file_contents '+os.path.join(container_path, file_path))
-
   return file_parsing_times + [w_time] # [s_time, t_time, w_time, hash_time, re_time]
 
-def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-            FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
+def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
   zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
   logging.info('Attempting to process_regular_folder '+proj_path)
@@ -426,15 +417,11 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
   logging.info('Successfully ran process_regular_folder '+zip_file)
   return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-      
-
-def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, 
-            FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
+def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
   zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
 
   try:
     with tarfile.open(tar_file,'r|*') as my_tar_file:
-
       for f in my_tar_file:
         if not f.isfile():
           continue
@@ -471,36 +458,23 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
         file_string = myfile.read()
         file_time += (dt.datetime.now() - f_time).microseconds
 
-        times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes,
-                        proj_url, FILE_tokens_file, FILE_stats_file, logging)
+        times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging)
         string_time += times[0]
         tokens_time += times[1]
         write_time  += times[4]
         hash_time   += times[2]
         regex_time  += times[3]
-
-#                if (file_count % 50) == 0:
-#                    logging.info('Zip: %s Read: %s Separators: %s Tokens: %s Write: %s Hash: %s regex: %s', 
-#                                 zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
-
   except Exception as e:
     logging.warning('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
     logging.warning(e)
     return
-
   return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-            FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
+def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
   zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-
-  logging.info('Attempting to process_zip_ball '+zip_file)
-
   try:
     with zipfile.ZipFile(proj_path,'r') as my_file:
-
       for file in my_file.infolist():
-
         if not os.path.splitext(file.filename)[1] in file_extensions:
           continue
 
@@ -542,22 +516,13 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
         write_time  += times[4]
         hash_time   += times[2]
         regex_time  += times[3]
-
-#                if (file_count % 50) == 0:
-#                    logging.info('Zip: %s Read: %s Separators: %s Tokens: %s Write: %s Hash: %s regex: %s', 
-#                                 zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
-
   except Exception as e:
     logging.warning('Unable to open zip on <'+proj_path+'> (process '+str(process_num)+')')
     logging.warning(e)
     return
-
-  logging.info('Successfully ran process_zip_ball '+zip_file)
   return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
-def process_one_project(process_num, proj_id, proj_path, base_file_id, 
-            FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format):
-
+def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format):
   p_start = dt.datetime.now()
 
   if project_format == 'leidos':
@@ -582,8 +547,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
       zip_time = 0
     else:
       tar_file = tar_files[0]
-      times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, 
-                   FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+      times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
     if times is not None:
       zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
     else:
