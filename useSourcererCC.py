@@ -15,5 +15,6 @@ with open("urls.txt") as urls_file:
         filename = "{}--{}.zip".format(user, project)
         open("tokenizers/file-level/{}/{}".format(PROJECTS_DIRECTORY, filename), "wb").write(project_content)
         project_list.append("{}/{}".format(PROJECTS_DIRECTORY, filename))
+        print("Downloaded {}/{}".format(user, project))
 
 open("tokenizers/file-level/project-list.txt", "w").write("\n".join(project_list))
