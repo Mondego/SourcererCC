@@ -1,4 +1,3 @@
-
 # Tutorial
 SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UCI")'s token-based code clone detector for very large code bases and Internet-scale project repositories. SourcererCC works at many levels of granularity such as detecting clones between files, methods, statements or blocks, in any language. This tutorial is for file-level clone detection on Java.
 
