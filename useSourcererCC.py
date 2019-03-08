@@ -7,8 +7,12 @@ def download_project(url):
     return requests.get(archive_url).content
 
 project_list = []
+import os
+
+print(os.path.realpath(__file__))
 with open("urls.txt") as urls_file:
     for url in urls_file:
+        break
         url = url.strip('\n')
         project_content = download_project(url)
         user, project = re.findall(r"https://github.com/(.*)/(.*)$", url)[0]
