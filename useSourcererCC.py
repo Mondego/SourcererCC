@@ -1,4 +1,4 @@
-import requests, re
+import requests, re, os
 
 PROJECTS_DIRECTORY = "tokenizer-sample-input"
 
@@ -13,7 +13,7 @@ with open("urls.txt") as urls_file:
         project_content = download_project(url)
         user, project = re.findall(r"https://github.com/(.*)/(.*)$", url)[0]
         filename = "{}--{}.zip".format(user, project)
-        open("tokenizers/file-level/{}/{}".format(PROJECTS_DIRECTORY, filename), "w+")
+        os.makedirs("tokenizers/file-level/{}/".format(PROJECTS_DIRECTORY),)
         open("tokenizers/file-level/{}/{}".format(PROJECTS_DIRECTORY, filename), "wb+").write(project_content)
         project_list.append("{}/{}".format(PROJECTS_DIRECTORY, filename))
         print("Downloaded {}/{}".format(user, project))
