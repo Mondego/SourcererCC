@@ -94,7 +94,7 @@ class ScriptController(object):
         command = self.full_script_path(cmd, params)
         return_code = self.run_command(command.split())
         if return_code != EXIT_SUCCESS:
-            raise ScriptControllerException("error during executing {}".format(" ".join(cmd)))
+            raise ScriptControllerException("error during executing {}".format(" ".join(command)))
         return return_code
 
     def run_command(self, cmd):
