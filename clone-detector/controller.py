@@ -102,7 +102,7 @@ class ScriptController(object):
     def run_command(self, cmd, outFile, errFile):
         print("running command {}".format(" ".join(cmd)))
         with open(outFile, "w") as fo, open(errFile, "w") as fe:
-            p = subprocess.Popen(cmd, stdout = fo, stderr = fe, universal_newlines = True)
+            p = subprocess.Popen(cmd, universal_newlines = True)
             p.communicate()
         return p.returncode
 
