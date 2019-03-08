@@ -46,14 +46,3 @@ else
    echo "Files mode:"
    cat results.pairs
 fi
-
-cd ../..
-echo
-tree rprtr258-SourcererCC-copy | while read line; do printf "\e[32m[rprtr258-SourcererCC-copy] \e[0m$line\n"; done
-echo
-tree t1 | while read line; do printf "\e[32m[t1] \e[0m$line\n"; done
-echo
-tree t2 | while read line; do printf "\e[32m[t1] \e[0m$line\n"; done
-#diff -r rprtr258-SourcererCC-copy t1
-#diff -r rprtr258-SourcererCC-copy t2
-exit 0
