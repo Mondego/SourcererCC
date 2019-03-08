@@ -5,6 +5,8 @@
 #rm -r SourcererCC/tokenizers/block-level/projects
 #mkdir SourcererCC/tokenizers/block-level/projects
 #mv cloneGithub/projects SourcererCC/tokenizers/block-level
+mkdir clone-detector/input/
+mkdir clone-detector/input/dataset/
 cd tokenizers/block-level/
 rm -rf blocks_tokens
 rm -rf bookkeeping_projs
