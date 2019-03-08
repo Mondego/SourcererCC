@@ -142,7 +142,8 @@ public class SearchManager {
             this.threadsToProcessFIQueue = Integer.parseInt(properties.getProperty("BTFIQ_THREADS", "1"));
             this.isSharding = Boolean.parseBoolean(properties.getProperty("IS_SHARDING"));
         } catch (NumberFormatException e) {
-            System.out.println("[ERROR] " + e.getMessage() + ", exiting now",e);
+            System.out.println("[ERROR] " + e.getMessage() + ", exiting now");
+            e.printStackTrace();
             System.exit(1);
         }
         if (SearchManager.ACTION.equals(ACTION_SEARCH)) {
@@ -539,7 +540,8 @@ public class SearchManager {
             System.out.println("[ERROR] " + "stacktrace: ", e);
         } catch (IOException e) {
             System.out.println("[ERROR] " + SearchManager.NODE_PREFIX + ", error in populateCompleteQueries IO" + e.getMessage());
-            System.out.println("[ERROR] " + "stacktrace: ", e);
+            System.out.println("[ERROR] " + "stacktrace: ");
+            e.printStackTrace();
         }
         System.out.println("lines to ignore in query file: " + SearchManager.QUERY_LINES_TO_IGNORE);
     }
