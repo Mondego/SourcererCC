@@ -2,7 +2,7 @@ language: python
 python:
   - "2.7"
 before_install:
-  - sudo apt-get install ant
+  - sudo apt-get install ant tree
 install:
   - pip install javalang
 script:
