@@ -48,4 +48,4 @@ python useSourcererCC.py
 #else
 #   echo "Files mode:"
 #   cat results.pairs
-fi
+#fi
