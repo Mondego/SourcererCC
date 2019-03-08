@@ -313,14 +313,10 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
     (file_hash,lines,LOC,SLOC) = final_stats
     file_url = proj_url + '/' + file_path.replace(' ','%20')
     file_path = os.path.join(container_path, file_path)
-
-    logging.warning('Finished step1 on process_file_contents');
-    
+ 
     # file stats start with a letter 'f'
     FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
     blocks_data = zip(range(10000,99999),blocks_data)
-
-    logging.warning('Finished step2 on process_file_contents');
 
     ww_time = dt.datetime.now()
 
@@ -364,8 +360,6 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
 
 def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
   zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-
-  logging.info('Attempting to process_regular_folder '+proj_path)
 
   result = [f for dp, dn, filenames in os.walk(proj_path) for f in filenames if (os.path.splitext(f)[1] in file_extensions)]
 
@@ -413,8 +407,6 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
     write_time  += times[4]
     hash_time   += times[2]
     regex_time  += times[3]
-
-  logging.info('Successfully ran process_regular_folder '+zip_file)
   return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
@@ -527,9 +519,6 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
 
   if project_format == 'leidos':
     proj_path, proj_url = proj_path
-
-    logging.info('Starting leidos project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-
     if not os.path.isdir(proj_path):
       logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
       return
@@ -560,8 +549,6 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
     
     proj_id = str(proj_id_flag) + proj_id
 
-    logging.info('Starting zip project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-
     if not os.path.isfile(proj_path):
       logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
       return
@@ -580,8 +567,6 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
     proj_url = 'NULL'
     
     proj_id = str(proj_id_flag) + proj_id
-
-    logging.info('Starting folder project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
 
     if not os.path.exists(proj_path):
       logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
@@ -635,8 +620,7 @@ def process_projects(process_num, list_projects, base_file_id, global_queue, pro
                                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
-    logging.info('Process %s finished. %s files in %ss.', 
-                 process_num, file_count, p_elapsed)
+    logging.info('Process %s finished. %s files in %ss.', process_num, file_count, p_elapsed)
 
     # Let parent know
     global_queue.put((process_num, file_count))

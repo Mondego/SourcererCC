@@ -5,7 +5,7 @@ realpath() {
 }
 scriptPATH=$(realpath "$0")
 rootPATH=$(dirname $scriptPATH)
-printf "\e[32m[execute.sh] \e[0m\n$rootPATH\n"
+printf "\e[32m[execute.sh] \e[0m$rootPATH\n"
 rm -rf $rootPATH/NODE*
 num_nodes="${1:-2}"
 th="${2:-8}"
