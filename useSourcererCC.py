@@ -7,17 +7,13 @@ def download_project(url):
     return requests.get(archive_url).content
 
 project_list = []
-import os
-
-print(os.path.realpath(__file__))
 with open("urls.txt") as urls_file:
     for url in urls_file:
-        break
         url = url.strip('\n')
         project_content = download_project(url)
         user, project = re.findall(r"https://github.com/(.*)/(.*)$", url)[0]
         filename = "{}--{}.zip".format(user, project)
-        open("tokenizers/file-level/{}/{}".format(PROJECTS_DIRECTORY, filename), "wb").write(project_content)
+        open("tokenizers/file-level/{}/{}".format(PROJECTS_DIRECTORY, filename), "wb+").write(project_content)
         project_list.append("{}/{}".format(PROJECTS_DIRECTORY, filename))
         print("Downloaded {}/{}".format(user, project))
 
