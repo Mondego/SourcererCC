@@ -49,11 +49,11 @@ fi
 
 cd ../..
 echo
-ls -lR rprtr258-SourcererCC-copy | while read line; do printf "\e[32m[rprtr258-SourcererCC-copy] \e[0m$line\n"; done
+tree rprtr258-SourcererCC-copy | while read line; do printf "\e[32m[rprtr258-SourcererCC-copy] \e[0m$line\n"; done
 echo
-ls -lR t1 | while read line; do printf "\e[32m[t1] \e[0m$line\n"; done
+tree t1 | while read line; do printf "\e[32m[t1] \e[0m$line\n"; done
 echo
-ls -lR t2 | while read line; do printf "\e[32m[t1] \e[0m$line\n"; done
+tree t2 | while read line; do printf "\e[32m[t1] \e[0m$line\n"; done
 #diff -r rprtr258-SourcererCC-copy t1
 #diff -r rprtr258-SourcererCC-copy t2
 exit 0
