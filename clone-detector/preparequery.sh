@@ -5,8 +5,8 @@ realpath() {
 }
 num_nodes="${1:-0}"
 scriptPATH=$(realpath "$0")
-rootPATH=`dirname $scriptPATH`
-echo "rootpath is : $rootPATH"
+rootPATH=$(dirname $scriptPATH)
+printf "\e[32m[preparequery.sh] \e[0mrootpath is : $rootPATH\n"
 for i in $(seq 1 1 $num_nodes)
 do
   foldername="$rootPATH/NODE_$i/query/"

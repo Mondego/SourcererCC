@@ -4,17 +4,16 @@ realpath() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 scriptPATH=$(realpath "$0")
-rootPATH=`dirname $scriptPATH`
-echo $rootPATH
+rootPATH=$(dirname $scriptPATH)
+printf "\e[32m[execute.sh] \e[0m$rootPATH\n"
 rm -rf $rootPATH/NODE*
 num_nodes="${1:-2}"
-#num_nodes=$((num_nodes-1))
 th="${2:-8}"
 queryfile="$rootPATH/input/dataset/blocks.file"
-echo "spliting query file $queryfile into $num_nodes parts"
+printf "\e[32m[execute.sh] \e[0mspliting query file $queryfile into $num_nodes parts\n"
 python $rootPATH/unevensplit.py $queryfile $num_nodes
-echo "moving files"
+printf "\e[32m[execute.sh] \e[0mmoving files\n"
 bash $rootPATH/preparequery.sh $num_nodes
-echo "done!"
+printf "\e[32m[execute.sh] \e[0mdone!\n"
 bash $rootPATH/replacenodeprefix.sh $num_nodes
 

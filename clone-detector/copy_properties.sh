@@ -1,4 +1,5 @@
 #!/bin/bash
+
 num_nodes="${1:-0}"
 for i in $(seq 1 1 $num_nodes)
 do
