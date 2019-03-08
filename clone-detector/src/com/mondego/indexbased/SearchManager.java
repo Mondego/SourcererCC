@@ -537,7 +537,8 @@ public class SearchManager {
                     SearchManager.NODE_PREFIX + ", " + filename + " not found");
         } catch (UnsupportedEncodingException e) {
             System.out.println("[ERROR] " + SearchManager.NODE_PREFIX + ", error in populateCompleteQueries" + e.getMessage());
-            System.out.println("[ERROR] " + "stacktrace: ", e);
+            System.out.println("[ERROR] " + "stacktrace: ");
+            e.printStackTrace();
         } catch (IOException e) {
             System.out.println("[ERROR] " + SearchManager.NODE_PREFIX + ", error in populateCompleteQueries IO" + e.getMessage());
             System.out.println("[ERROR] " + "stacktrace: ");
