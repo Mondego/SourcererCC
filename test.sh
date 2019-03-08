@@ -27,8 +27,7 @@ cat results.pairs
 #   cat results.pairs
 #fi
 
-#cd ../../t2/rprtr258-SourcererCC-copy/
-cd t2/rprtr258-SourcererCC-copy/
+cd ../../t2/rprtr258-SourcererCC-copy/
 python useSourcererCC.py
 ./runSourcererCC-FilesMode.sh | while read line; do printf "\e[32m[FilesMode.sh] \e[0m$line\n"; done
 sort -o results.pairs results.pairs
