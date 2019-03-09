@@ -165,7 +165,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
-  logging.info('Starting tokenize_blocks of %s' % (file_path))
   # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
   final_stats  = 'ERROR'
   final_tokens = 'ERROR'
@@ -375,7 +374,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
     my_file    = None
     file_bytes = None
     try:
-      my_file    = io.open(os.path.join(proj_path,file_path),encoding='ascii',errors='ignore')
+      my_file    = io.open(os.path.join(proj_path,file_path),encoding='urf-8',errors='ignore')
       file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
     except Exception as e:
       logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')' + str(e))

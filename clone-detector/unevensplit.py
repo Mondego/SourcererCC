@@ -60,8 +60,6 @@ class Spliter(object):
         print "base_x is ", self.base_x
         
 if __name__ == '__main__':
-    
-    
     input_file = sys.argv[1]
     split_count = int(sys.argv[2])
     params= {'split_count':split_count,
