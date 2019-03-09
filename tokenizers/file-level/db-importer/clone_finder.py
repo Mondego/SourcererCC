@@ -89,7 +89,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                 percentage_host_projects_counter[projectId] = 1
 
         if len(percentage_host_projects_counter) > 0:
-            # The key k (projects) should be the same between 
+            # The key k (projects) should be the same between
             # percentage_clone_projects_counter and percentage_host_projects_counter
             for k, v in percentage_host_projects_counter.iteritems():
                 percent_cloning = float(percentage_clone_projects_counter[k] * 100) / total_files

@@ -38,7 +38,7 @@ def copy_files(ids_set, folder_or_file, output_folder):
         if line.split(',')[1] in ids_set:
           # Next split is complicated to cut the string by quotation marks
           # (can't use only the commas because some paths do have them)
-          full_path = line.split('","')[0].split(',"')[1] 
+          full_path = line.split('","')[0].split(',"')[1]
           zip_path  = full_path[:full_path.find('.zip') + 4]
           file_path = full_path[full_path.find('.zip') + 5:]
 

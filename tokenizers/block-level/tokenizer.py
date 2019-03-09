@@ -644,7 +644,7 @@ def kill_child(processes, pid, n_files_processed):
   if processes[pid][0] != None:
     processes[pid][0] = None
     processes[pid][1] += n_files_processed
-    
+
     print("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count))
 
 def active_process_count(processes):

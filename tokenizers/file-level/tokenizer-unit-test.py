@@ -105,19 +105,19 @@ class TestParser(unittest.TestCase):
         self.assert_common_properties(tokens)
 
     def test_simple_file(self):
-        input = u"""#include GLFW_INCLUDE_GLU
-                   #include <GLFW/glfw3.h>
-                   #include <cstdio>
-                   
-                   /* Random function */
-                   static void glfw_key_callback(int key, int scancode, int action, int mod){
-                     if(glfw_key_callback){
-                       // Comment here
-                       input_event_queue->push(inputaction);   
-                     }
-                     printf("%s", "asciiじゃない文字");
-                   }""".encode("utf-8")
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        string = u"""#include GLFW_INCLUDE_GLU
+                     #include <GLFW/glfw3.h>
+                     #include <cstdio>
+
+                     /* Random function */
+                     static void glfw_key_callback(int key, int scancode, int action, int mod){
+                       if(glfw_key_callback){
+                         // Comment here
+                         input_event_queue->push(inputaction);   
+                       }
+                       printf("%s", "asciiじゃない文字");
+                     }""".encode("utf-8")
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 

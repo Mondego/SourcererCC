@@ -63,7 +63,7 @@ if __name__ == '__main__':
                 removeFile('config', projectName + "/.git/")
                 doBashCommand(goPath + "/siva unpack " + sivaDir + sivaFile)
                 removeFile(sivaFile, sivaDir)
-                
+
             os.chdir(projectName)
             for line in doBashCommand("git branch").split('\n'):
                 if ('HEAD' in line):

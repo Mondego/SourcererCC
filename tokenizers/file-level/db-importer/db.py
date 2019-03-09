@@ -177,7 +177,7 @@ class DB:
       self.connection.close()
     except Exception as err:
       self.logging.error('Error on DB.close()')
-      self.logging.error(e)
+      self.logging.error(err)
 
   def check_connection(self):
     try:
