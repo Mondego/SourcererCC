@@ -126,6 +126,7 @@ public class SearchManager {
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.ACTION = args[0];
+        int rcq_thread_count = 1;
         try {
             SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
 
@@ -133,7 +134,7 @@ public class SearchManager {
             this.qbq_thread_count = Integer.parseInt(properties.getProperty("QBQ_THREADS", "1"));
             this.qcq_thread_count = Integer.parseInt(properties.getProperty("QCQ_THREADS", "1"));
             this.vcq_thread_count = Integer.parseInt(properties.getProperty("VCQ_THREADS", "1"));
-            int rcq_thread_count = Integer.parseInt(properties.getProperty("RCQ_THREADS", "1"));
+            rcq_thread_count = Integer.parseInt(properties.getProperty("RCQ_THREADS", "1"));
             SearchManager.min_tokens = Integer.parseInt(properties.getProperty("MIN_TOKENS", "65"));
             SearchManager.max_tokens = Integer.parseInt(properties.getProperty("MAX_TOKENS", "500000"));
             this.threadsToProcessBagsToSortQueue = Integer.parseInt(properties.getProperty("BTSQ_THREADS", "1"));
