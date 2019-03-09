@@ -2,18 +2,18 @@
 # of files, defined below by [interval_size]. [filter_threshold] is the same small-file
 # filter defined for CC.
 
-#Usage: $python this-script.py list-of-tokenixed-files.tokens
+#Usage: $python this-script.py list-of-tokenized-files.tokens
 
 import sys
 
-file = sys.argv[1]
+filename = sys.argv[1]
 interval_size = 500000
 filter_threshold = 65
 
 res = dict()
 print '1 - Building dict'
 
-with open(file,'r') as tokens:
+with open(filename, 'r') as tokens:
 	for line in tokens:
 		left_side = line.split('@#@')[0]
 		n_tokens = left_side.split(',')[2]

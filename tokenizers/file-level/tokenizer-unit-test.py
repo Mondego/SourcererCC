@@ -39,10 +39,10 @@ class TestParser(unittest.TestCase):
                 self.assertTrue(REGEX.match(pair))
 
     def test_line_counts_1(self):
-        input = """ line 1
+        string = """ line 1
                     line 2
                     line 3 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,3)
@@ -50,11 +50,11 @@ class TestParser(unittest.TestCase):
         self.assertEqual(SLOC,3)
 
     def test_line_counts_2(self):
-        input = """ line 1
+        string = """ line 1
                     line 2
                     line 3
 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,3)
@@ -62,12 +62,12 @@ class TestParser(unittest.TestCase):
         self.assertEqual(SLOC,3)
 
     def test_line_counts_3(self):
-        input = """ line 1
+        string = """ line 1
 
                     // line 2
                     line 3 
                 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,5)
@@ -75,8 +75,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(SLOC,2)
 
     def test_comments(self):
-        input = "// Hello\n // World"
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        string = "// Hello\n // World"
+        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
@@ -89,8 +89,8 @@ class TestParser(unittest.TestCase):
         self.assert_common_properties(tokens)
 
     def test_multiline_comment(self):
-        input = '/* this is a \n comment */ /* Last one */ '
-        (final_stats, final_tokens, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        string = '/* this is a \n comment */ /* Last one */ '
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total, tokens_count_unique, _, tokens) = final_tokens
 

@@ -234,33 +234,33 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
   logging.info('Attempting to process_zip_ball ' + zip_file)
   try:
     with zipfile.ZipFile(proj_path,'r') as my_file:
-      for file in my_file.infolist():
-        if not os.path.splitext(file.filename)[1] in file_extensions:
+      for filename in my_file.infolist():
+        if not os.path.splitext(filename.filename)[1] in file_extensions:
           continue
         # This is very strange, but I did find some paths with newlines,
         # so I am simply ignoring them
-        if '\n' in file.filename:
+        if '\n' in filename.filename:
           continue
 
         file_id = process_num * MULTIPLIER + base_file_id + file_count
-        file_bytes = str(file.file_size)
+        file_bytes = str(filename.file_size)
         z_time = dt.datetime.now()
         try:
-          my_zip_file = my_file.open(file.filename, 'r')
+          my_zip_file = my_file.open(filefile.filename, 'r')
         except:
-          logging.warning('Unable to open file (1) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(process_num) + ')')
+          logging.warning('Unable to open file (1) <' + os.path.join(proj_path, filename.filename) + '> (process ' + str(process_num) + ')')
           break
         zip_time += (dt.datetime.now() - z_time).microseconds
 
         if my_zip_file is None:
-          logging.warning('Unable to open file (2) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(process_num) + ')')
+          logging.warning('Unable to open file (2) <' + os.path.join(proj_path, filename.filename) + '> (process ' + str(process_num) + ')')
           break
 
         f_time = dt.datetime.now()
         file_string = my_zip_file.read()
         file_time += (dt.datetime.now() - f_time).microseconds
 
-        file_path = file.filename
+        file_path = filename.filename
         times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging)
         string_time += times[0]
         tokens_time += times[1]
