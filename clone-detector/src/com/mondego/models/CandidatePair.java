@@ -1,17 +1,14 @@
 package com.mondego.models;
 
-
 public class CandidatePair {
-    QueryBlock queryBlock;
-    String candidateTokens;
-    CandidateSimInfo simInfo;
-    int computedThreshold;
-    int candidateSize;
-    long candidateId;
-    long functionIdCandidate;
-    public CandidatePair(QueryBlock queryBlock, String candidateTokens,
-            CandidateSimInfo simInfo, int computedThreshold, int candidateSize,
-            long functionIdCandidate, long candidateId) {
+    public QueryBlock queryBlock;
+    public String candidateTokens;
+    public CandidateSimInfo simInfo;
+    public int computedThreshold;
+    public int candidateSize;
+    public long candidateId;
+    public long functionIdCandidate;
+    public CandidatePair(QueryBlock queryBlock, String candidateTokens, CandidateSimInfo simInfo, int computedThreshold, int candidateSize, long functionIdCandidate, long candidateId) {
         super();
         this.queryBlock = queryBlock;
         this.candidateTokens = candidateTokens;
