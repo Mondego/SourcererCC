@@ -16,7 +16,7 @@ class Spliter(object):
     
     def split(self):
         """
-        splits the input file into split_count number of files. 
+        splits the input file into split_count number of files.
         """
         count=0
         line_limit = self.base_x
@@ -35,8 +35,8 @@ class Spliter(object):
                         file_count+=1
                         count =0
                         line_limit =line_limit + math.ceil(0.5*self.base_x)
-                        print "line_limit is ", line_limit 
-                        print "creating split ",file_count 
+                        print "line_limit is ", line_limit
+                        print "creating split ",file_count
                         self.outfile = open("query_{part}.file".format(part=file_count),'w')
                         self.outfile.write(row)
                     count+=1
@@ -58,7 +58,7 @@ class Spliter(object):
         # formula for S = x + x+.5x + x+2*.5x...x + (N-1)*.5x
         self.base_x= math.ceil(float(2*self.total_lines)/(float((self.split_count+1)*(self.split_count+2)/2) - 1))
         print "base_x is ", self.base_x
-        
+
 if __name__ == '__main__':
     input_file = sys.argv[1]
     split_count = int(sys.argv[2])

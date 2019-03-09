@@ -74,7 +74,7 @@ class ScriptController(object):
         else:
             print("{} doesn't exist, creating one with state EXECUTE_1".format(self.script_meta_file_name))
             return STATE_EXECUTE_1
-    
+
     def run_command_wrapper(self, cmd, params):
         command = self.full_script_path(cmd, params)
         return_code = self.run_command(command.split())

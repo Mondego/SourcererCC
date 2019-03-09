@@ -138,7 +138,7 @@ class DB:
     try:
       ## All cursors will be buffered by default
       self.connection = mysql.connector.connect(user=self.DB_user,password=self.DB_pass,host=self.host)
-      
+
       #Causes a commit operation after each SQL statement.
       #Carefull setting autocommit to True, but it's appropriate for MyISAM, where transactions are not applicable.
       #self.autocommit = True
@@ -188,8 +188,7 @@ class DB:
       self.logging.error(err)
       sys.exit(1)
 
-  def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, 
-               hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent, flush = False):
+  def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent, flush = False):
     if not flush:
       self.clones.append( clone_list % (cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, 
                         hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent) )
@@ -220,7 +219,7 @@ class DB:
     cursor = self.connection.cursor()
 
     if projectUrl is None:
-      projectUrl = 'NULL' 
+      projectUrl = 'NULL'
 
     try:
       cursor.execute(add_projects, (proj_id, self.sanitize_string(projectPath), self.sanitize_string(projectUrl)))

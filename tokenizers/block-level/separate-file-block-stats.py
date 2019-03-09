@@ -12,5 +12,5 @@ for file in os.listdir("file_block_stats"):
 						file_info.write(line)
 					else:
 						print "error", line
-		
+
 	print "Done with: ", readfile

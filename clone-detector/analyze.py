@@ -25,7 +25,7 @@ class Analyzer(object):
                     self.clone_groups[lhsFile] += 1
                 else:
                     self.clone_groups[lhsFile] = 1
-                
+
                 if rhsFile in self.clone_groups:
                     self.clone_groups[rhsFile] += 1
                 else:

@@ -66,7 +66,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
         with open(file, 'r') as csvfile:
           for entry in csvfile:
             entry_split = (entry[:-1]).split(',')
-            if len(entry_split) == 9: 
+            if len(entry_split) == 9:
               proj_id, file_id, path, url, file_hash, bytess, lines, loc, sloc = entry_split
 
             else: # Something went wrong with parsing
@@ -137,7 +137,7 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
         with open(file, 'r') as csvfile:
           for entry in csvfile:
             entry_split = (entry[:-1]).split(',')
-            if len(entry_split) == 8: 
+            if len(entry_split) == 8:
               proj_id, block_id, block_hash, lines, loc, sloc, starting_line, ending_line = entry_split
 
               b_id = block_id[:5]
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     #if len(sys.argv) >= 7:
     #    logging.info('### Importing output from tokenizer')
     #    #import_pairs(pairs_path)
-    
+
     db_object.close()
 
   except Exception as e:

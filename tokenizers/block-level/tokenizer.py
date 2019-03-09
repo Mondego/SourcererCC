@@ -527,9 +527,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
     if(len(tar_files) != 1):
       logging.warning('Tar not found on <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
       times = [0,0,0,0,0,0]
-      os.path.walk(proj_path, process_regular_folder, 
-             (process_num, proj_id, proj_path, proj_url, base_file_id, 
-              FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times))
+      os.path.walk(proj_path, process_regular_folder, (process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times))
       file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
       zip_time = 0
     else:
@@ -562,7 +560,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
 
   if project_format in ['folderblocks']:
     proj_url = 'NULL'
-    
+
     proj_id = str(proj_id_flag) + proj_id
 
     if not os.path.exists(proj_path):
@@ -613,8 +611,7 @@ def process_projects(process_num, list_projects, base_file_id, global_queue, pro
         logging.info("Process %s starting", process_num)
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            process_one_project(process_num, str(proj_id), proj_path, base_file_id, 
-                                FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format)
+            process_one_project(process_num, str(proj_id), proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
     logging.info('Process %s finished. %s files in %ss.', process_num, file_count, p_elapsed)
