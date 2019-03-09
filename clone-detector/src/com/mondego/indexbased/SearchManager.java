@@ -699,7 +699,7 @@ public class SearchManager {
             SearchManager.searcher.add(new CodeSearcher(Util.INDEX_DIR + "/" + shard.getId(), "tokens"));
         }
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR, "key");
-        if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
+        if ("NODE_1".equals(SearchManager.NODE_PREFIX)) {
             theInstance.readAndUpdateRunMetadata();
         }
     }

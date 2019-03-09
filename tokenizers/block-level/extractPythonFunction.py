@@ -59,10 +59,3 @@ def getFunctions(filestring, logging, file_path):
 	for string in strings:
 		string = string[:-1] # remove the last "\n"
 	return (blocks_linenos, strings)
-'''
-fileopen = open("test.py")
-file = fileopen.read()
-print getFunctions(file)
-'''
-		
-

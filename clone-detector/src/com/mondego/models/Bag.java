@@ -70,9 +70,7 @@ public class Bag extends LinkedHashSet<TokenFrequency>  { // TODO: why is this
         if (getClass() != obj.getClass())
             return false;
         Bag other = (Bag) obj;
-        if (id != other.id)
-            return false;
-        return true;
+        return id == other.id;
     }
 
     /**

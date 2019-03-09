@@ -215,7 +215,8 @@ if __name__ == "__main__":
             p = Process(name = 'Process ' + str(process_num), target = start_process, args = (process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, host))
             processes.append(p)
             p.start()
-        [p.join() for p in processes]
+        for p in processes:
+            p.join()
     except Exception as e:
         print 'Error in clone_finder.__main__'
         print e
