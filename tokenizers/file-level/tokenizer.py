@@ -404,7 +404,7 @@ if __name__ == '__main__':
   elif project_format == 'zip':
     with open(FILE_projects_list) as f:
       for line in f:
-        proj_paths.append(line[:-1])
+        proj_paths.append(line.strip("\n"))
   proj_paths = zip(range(1, len(proj_paths)+1), proj_paths)
 
   if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):

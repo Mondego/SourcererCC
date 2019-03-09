@@ -4,7 +4,7 @@ python:
 before_install:
   - sudo apt-get install ant
 install:
-  - pip install javalang
+  - pip install javalang requests
 script:
   - cd ..
   - cp SourcererCC/test.sh .

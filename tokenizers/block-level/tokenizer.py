@@ -374,7 +374,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
     my_file    = None
     file_bytes = None
     try:
-      my_file    = io.open(os.path.join(proj_path,file_path),encoding='ascii',errors='ignore')
+      my_file    = io.open(os.path.join(proj_path,file_path),encoding='urf-8',errors='ignore')
       file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
     except Exception as e:
       logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')' + str(e))
