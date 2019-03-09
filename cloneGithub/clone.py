@@ -7,7 +7,7 @@ from shlex import split
 
 def doBashCommand(bashCommand):
     process = subprocess.Popen((bashCommand).split(), stdout=subprocess.PIPE)
-    output, error = process.communicate()
+    output, _ = process.communicate()
     return output
 
 def removeFile(fileName, fileDir=os.path.realpath('.') + '/'):

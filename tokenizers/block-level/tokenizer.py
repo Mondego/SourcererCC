@@ -166,7 +166,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
   # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
   final_stats  = 'ERROR'
-  final_tokens = 'ERROR'
 
   file_hash = 'ERROR'
   lines     = 'ERROR'

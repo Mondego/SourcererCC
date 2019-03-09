@@ -33,7 +33,6 @@ def copy_files(ids_set, folder_or_file, output_folder):
   for p in paths:
     with open(p,'r') as file:
       for line in file:
-        line_split = line.split(',')
         if line.split(',')[1] in ids_set:
           # Next split is complicated to cut the string by quotation marks
           # (can't use only the commas because some paths do have them)

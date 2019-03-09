@@ -242,12 +242,10 @@ class DB:
     cursor = self.connection.cursor()
     try:
       try:
-        results = cursor.execute(add_files_stats_ignore_repetition % (slist))
+        cursor.execute(add_files_stats_ignore_repetition % (slist))
       except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_DUP_ENTRY:
-          # If the error is because the entry is a duplicate we wont't care about it
-          pass
-        else:
+        # If the error is because the entry is a duplicate we wont't care about it
+        if err.errno != errorcode.ER_DUP_ENTRY:
           raise err
     except Exception as err:
       self.logging.error('Failed to insert files stats with info: %s' % (','.join([fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash])) )
@@ -268,12 +266,10 @@ class DB:
     cursor = self.connection.cursor()
     try:
       try:
-        results = cursor.execute(add_blocks_stats_ignore_repetition % (slist))
+        cursor.execute(add_blocks_stats_ignore_repetition % (slist))
       except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_DUP_ENTRY:
-          # If the error is because the entry is a duplicate we wont't care about it
-          pass
-        else:
+        # If the error is because the entry is a duplicate we wont't care about it
+        if err.errno != errorcode.ER_DUP_ENTRY:
           raise err
     except Exception as err:
       self.logging.error('Failed to insert blocks stats with info: %s' % (','.join([blockHash, blockLines, blockLOC, blockSLOC, totalTokens, uniqueTokens, tokenHash])) )

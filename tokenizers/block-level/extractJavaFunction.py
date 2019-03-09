@@ -58,11 +58,10 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
 
     fqn = ("%s%s(%s)") % (package,name,args)
 
-    (init_line,b) = node.position
+    init_line = node.position[0]
     method_body = []
     closed = 0
     openned = 0
-
 
     for line in file_string_split[init_line-1:]:
       if len(line) == 0:
