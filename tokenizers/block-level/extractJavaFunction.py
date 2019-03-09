@@ -112,18 +112,3 @@ def check_repetition(node,name):
     return ''
   else:
     return '_'+str(before)
-
-if __name__ == "__main__":
-  # Read straight from a file, for testing purposes
-
-  FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
-  logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-
-  f = open(sys.argv[1],'r')
-  filestring = f.read()
-
-  (positions,strings) = getFunctions(filestring,sys.argv[1],logging)
-
-  i = 0
-  for elem in positions:
-    i += 1
