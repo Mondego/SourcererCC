@@ -27,36 +27,36 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
       package = 'JHawkDefaultPackage'
     else:
       package = package.name
-      #print package,'####'
+      print package,'####'
   except Exception as e:
     logging.warning("File " + file_path + " cannot be parsed. (1)" + str(e))
-    #logging.warning('Traceback:' + traceback.print_exc())
+    logging.warning('Traceback:' + traceback.print_exc())
     return (None, None, [])
 
   file_string_split = filestring.split('\n')
   nodes = itertools.chain(tree.filter(javalang.tree.ConstructorDeclaration), tree.filter(javalang.tree.MethodDeclaration))
 
   for path, node in nodes:
-    #print '---------------------------------------'
+    print '---------------------------------------'
     name = '.'+node.name
     for i, var in enumerate(reversed(path)):
-      #print var, i, len(path)-3
+      print var, i, len(path)-3
       if isinstance(var, javalang.tree.ClassDeclaration):
-        #print 'One Up:',var,var.name
+        print 'One Up:',var,var.name
         if len(path)-3 == i: #Top most
           name = '.'+var.name+check_repetition(var,var.name)+name
         else:
           name = '$'+var.name+check_repetition(var,var.name)+name
       if isinstance(var, javalang.tree.ClassCreator):
-        #print 'One Up:',var,var.type.name
+        print 'One Up:',var,var.type.name
         name = '$'+var.type.name+check_repetition(var,var.type.name)+name
       if isinstance(var, javalang.tree.InterfaceDeclaration):
-        #print 'One Up:',var,var.name
+        print 'One Up:',var,var.name
         name = '$'+var.name+check_repetition(var,var.name)+name
-    #print i,var,len(path)
-    #print path
-    #while len(path) != 0:
-    #  print path[:-1][-1]
+    print i,var,len(path)
+    print path
+    while len(path) != 0:
+      print path[:-1][-1]
     args = []
     for t in node.parameters:
       dims = []
@@ -68,29 +68,29 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
     args = ",".join(args)
 
     fqn = ("%s%s(%s)") % (package,name,args)
-    #print "->",fqn
+    print "->",fqn
 
     (init_line,b) = node.position
     method_body = []
     closed = 0
     openned = 0
 
-    #print '###################################################################################################'
-    #print (init_line,b)
-    #print 'INIT LINE -> ',file_string_split[init_line-1]
-    #print '---------------------'
+    print '###################################################################################################'
+    print (init_line,b)
+    print 'INIT LINE -> ',file_string_split[init_line-1]
+    print '---------------------'
 
     for line in file_string_split[init_line-1:]:
       if len(line) == 0:
         continue
-      #print '+++++++++++++++++++++++++++++++++++++++++++++++++++'
-      #print line
-      #print comment_inline_pattern
+      print '+++++++++++++++++++++++++++++++++++++++++++++++++++'
+      print line
+      print comment_inline_pattern
       line_re = re.sub(comment_inline_pattern, '', line, flags=re.MULTILINE)
       line_re = re.sub(re_string, '', line_re, flags=re.DOTALL)
 
-      #print line
-      #print '+++++++++++++++++++++++++++++++++++++++++++++++++++'
+      print line
+      print '+++++++++++++++++++++++++++++++++++++++++++++++++++'
 
       closed  += line_re.count('}')
       openned += line_re.count('{')
@@ -100,7 +100,7 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
       else:
         method_body.append(line)
 
-    #print '\n'.join(method_body)
+    print '\n'.join(method_body)
 
     end_line = init_line + len(method_body) - 1
     method_body = '\n'.join(method_body)
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
   i = 0
   for elem in positions:
-    #print '#### method at:',elem
-    #print strings[i]
-    #print '---------------------------------------------------------'
+    print '#### method at:',elem
+    print strings[i]
+    print '---------------------------------------------------------'
     i += 1
