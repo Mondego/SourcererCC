@@ -12,7 +12,6 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Scorer;
 import org.apache.lucene.util.BytesRef;
 
 public class CustomCollector extends Collector {
@@ -29,11 +28,6 @@ public class CustomCollector extends Collector {
     @Override
     public boolean acceptsDocsOutOfOrder() {
         return true;
-    }
-
-    @Override
-    public void collect(int doc) throws IOException {
-        Integer docId = doc + docBase;
     }
 
     @Override
