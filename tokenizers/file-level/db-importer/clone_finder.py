@@ -25,7 +25,7 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
                    WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(token_hashes.keys()) + "'", project_id)
         res = db_object.execute(query);
         logging.info(query)
-        for (file_id, projectId, fileHash, tokenHash) in res:
+        for (file_id, projectId, _, tokenHash) in res:
             pfiles = token_hashes[tokenHash]
             for f in pfiles:
                 if str(file_id) != str(f):
@@ -41,7 +41,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
         files_hashes = {} # {'file_id' : {'thash': thash, 'fhash': fhash}}
         token_hashes = {} # {token_hash : [file_id, file_id, ...]}, all files within this project 
 
-        query = "SELECT fileId, f.fileHash, tokenHash, totalTokens FROM files as f JOIN stats as s ON f.fileHash=s.fileHash WHERE projectId=%s;"  % (project_id)
+        query = "SELECT fileId, f.fileHash, tokenHash, totalTokens FROM files as f JOIN stats as s ON f.fileHash=s.fileHash WHERE projectId={};".format(project_id)
         res = db_object.execute(query);
         logging.info(query)
         for (file_id, fileHash, tokenHash, totalTokens, ) in res:
