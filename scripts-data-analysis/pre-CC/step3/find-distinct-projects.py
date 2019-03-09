@@ -1,9 +1,7 @@
 #Finds how many projects contribute to files with unique file-hash
 #Usage: $python this-script.py unique-file-hashes/unique-files-stats.stats
 
-import os
 import sys
-import csv
 
 set_projects = set()
 

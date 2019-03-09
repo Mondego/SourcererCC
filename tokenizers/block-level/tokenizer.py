@@ -1,5 +1,4 @@
 import logging
-import multiprocessing as mp
 from multiprocessing import Process, Value, Queue
 import re
 import os, platform
@@ -553,8 +552,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
       return
 
     zip_file = proj_path
-    times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+    times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
     if times is not None:
       zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
     else:

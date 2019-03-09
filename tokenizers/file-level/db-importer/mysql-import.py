@@ -40,7 +40,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
 
             if(len(entry_split) == 2):
               if flag == 'files-autoID':
-                ret = db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
+                db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
               else:
                 db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
             else:
@@ -53,13 +53,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
                 logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
                 logging.warning('Previous warning was solved')
 
-                #if flag == 'files-autoID':
-                #  proj_id = 'NULL'
-                if flag == 'files-autoID':
-                  ret = db.insert_project(proj_id,path,url)
-                else:
-                  db.insert_project(proj_id,path,url)
-
+                db.insert_project(proj_id,path,url)
               else:
                 logging.error('Problems parsing project: '+str(entry_split))
 

@@ -24,8 +24,6 @@ def curate_projects(db,file_mapping_path_url,logging):
 
       ## Change below accordingly
       java_path_cut   = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/java-projects/')
-      cpp_path_cut    = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/c++-projects/')
-      python_path_cut = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/python-projects/')
 
       new_path = ppath[java_path_cut:]
       cursor.execute("UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid))

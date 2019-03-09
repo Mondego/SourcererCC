@@ -4,7 +4,6 @@
 
 #Usage: $python this-script.py list-of-github-projects.txt > projects-with-github-meta.txt
 
-
 import sys
 import os
 import json
@@ -23,8 +22,8 @@ def good_meta(meta):
 #       print meta2
   return (len(meta) == 4) and ('ERROR' not in ''.join(meta))
 
-with open(sys.argv[1],'r') as file:
-  for line in file:
+with open(sys.argv[1],'r') as f:
+  for line in f:
     path = line.split(',')[0]
     meta = get_github_info(path)
     if good_meta(meta):

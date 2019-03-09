@@ -2,7 +2,6 @@
 #Usage: $python get-file-tokens-stats.py ../step3/distinct-file-hashes/distinct-files-tokens.tokens distinct-token-hashes/distinct-files-tokens.tokens
 
 import sys
-import os
 
 dict_hashes = dict()
 

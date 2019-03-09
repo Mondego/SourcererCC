@@ -1,12 +1,10 @@
 #Usage $python this-script.py
 
 import sys, os
-import collections
 import datetime
 from db import DB
 import logging
-import multiprocessing as mp
-from multiprocessing import Process, Value
+from multiprocessing import Process
 import traceback
 
 TOKEN_THRESHOLD = 1
@@ -27,7 +25,7 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
                    WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(token_hashes.keys()) + "'", project_id)
         res = db_object.execute(query);
         logging.info(query)
-        for (file_id, projectId, fileHash, tokenHash, ) in res:
+        for (file_id, projectId, fileHash, tokenHash) in res:
             pfiles = token_hashes[tokenHash]
             for f in pfiles:
                 if str(file_id) != str(f):
@@ -38,7 +36,6 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
         sys.exit(1)
 
 def find_clones_for_project(project_id, project_file_counts, db_object, debug):
-    result = []
     try:
         files_clones = {} # {'file_id' : set(('file_id', project_id),...))
         files_hashes = {} # {'file_id' : {'thash': thash, 'fhash': fhash}}
