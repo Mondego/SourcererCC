@@ -542,7 +542,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
 
   if project_format == 'zipblocks':
     proj_url = 'NULL'
-    
+
     proj_id = str(proj_id_flag) + proj_id
 
     if not os.path.isfile(proj_path):
@@ -568,8 +568,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
       return
 
     zip_file = proj_path
-    times = process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+    times = process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
     if times is not None:
       zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
     else:

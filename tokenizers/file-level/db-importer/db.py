@@ -190,8 +190,7 @@ class DB:
 
   def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent, flush = False):
     if not flush:
-      self.clones.append( clone_list % (cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, 
-                        hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent) )
+      self.clones.append(clone_list % (cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent))
       if len(self.clones) < PROJECT_CLONES_BUFFER_SIZE:
         return
 

@@ -20,7 +20,7 @@ class Spliter(object):
         """
         count=0
         line_limit = self.base_x
-        print "line_limit is ", line_limit 
+        print "line_limit is ", line_limit
         file_count=1
         try:
             print "creating split ",file_count
@@ -53,7 +53,7 @@ class Spliter(object):
                 pass
         print "total lines in the inputfile: {0} ".format(i+1)
         return i + 1
-    
+
     def find_base_x(self):
         # formula for S = x + x+.5x + x+2*.5x...x + (N-1)*.5x
         self.base_x= math.ceil(float(2*self.total_lines)/(float((self.split_count+1)*(self.split_count+2)/2) - 1))

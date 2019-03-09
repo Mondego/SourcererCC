@@ -19,7 +19,7 @@ if __name__ == '__main__':
     goPath = doBashCommand("go env GOPATH")[:-1] + "/bin"
     projectsNamesToSivaNames = {}
     i = 0
-    
+
     with open ('sivaFilesNames.txt','w') as  fout:
             with open('index2.csv', 'r') as fin:
                 with open('nameToLicense.txt', 'w') as fout2:

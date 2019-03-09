@@ -50,7 +50,7 @@ class ScriptController(object):
         # execute command to create the dir structure
         self.perform_step(STATE_EXECUTE_2, "execute.sh", "{}".format(self.num_nodes_search))
         self.perform_step(STATE_SEARCH, "runnodes.sh", "search {}".format(self.num_nodes_search))
-        
+
         self.flush_state()
         self.current_state = STATE_EXECUTE_1 # go back to EXE 1 state
         print("SUCCESS: Search Completed on all nodes")

@@ -20,8 +20,8 @@ logging.getLogger().addHandler(file_handler)
 
 def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
     try:
-        query = """SELECT fileId, projectId, f.fileHash, tokenHash FROM files as f 
-                   JOIN stats as s ON f.fileHash=s.fileHash 
+        query = """SELECT fileId, projectId, f.fileHash, tokenHash FROM files as f
+                   JOIN stats as s ON f.fileHash=s.fileHash
                    WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(token_hashes.keys()) + "'", project_id)
         res = db_object.execute(query);
         logging.info(query)
@@ -39,7 +39,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
     try:
         files_clones = {} # {'file_id' : set(('file_id', project_id),...))
         files_hashes = {} # {'file_id' : {'thash': thash, 'fhash': fhash}}
-        token_hashes = {} # {token_hash : [file_id, file_id, ...]}, all files within this project 
+        token_hashes = {} # {token_hash : [file_id, file_id, ...]}, all files within this project
 
         query = "SELECT fileId, f.fileHash, tokenHash, totalTokens FROM files as f JOIN stats as s ON f.fileHash=s.fileHash WHERE projectId=?;"
         res = db_object.execute(query, project_id);
@@ -94,7 +94,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
             for k, v in percentage_host_projects_counter.iteritems():
                 percent_cloning = float(percentage_clone_projects_counter[k] * 100) / total_files
                 percent_host = float(v * 100) / project_file_counts[k]
-                
+
                 # Don't store insignificant clones
                 if percent_cloning < 50 and percent_host < 50:
                     continue
@@ -113,7 +113,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
 
 def load_project_file_counts(db_object, project_file_counts):
     logging.debug("Loading project file counts...")
-    q = "SELECT projectId, COUNT(*) FROM files GROUP BY projectId;" 
+    q = "SELECT projectId, COUNT(*) FROM files GROUP BY projectId;"
     res = db_object.execute(q)
     logging.info(q)
     for (pid, total_files_host, ) in res:
@@ -148,7 +148,7 @@ if __name__ == "__main__":
         print('ERROR: Log file:', log_path, 'already exists')
         sys.exit(1)
     if len(sys.argv) < 4:
-        logging.error('Usage: clone-finder.py user passwd database (host|OPTIONAL)') 
+        logging.error('Usage: clone-finder.py user passwd database (host|OPTIONAL)')
         sys.exit(1)
 
     DB_user  = sys.argv[1]

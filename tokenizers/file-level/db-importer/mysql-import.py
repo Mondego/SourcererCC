@@ -26,7 +26,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
     logging.info('## Import into database')
 
     logging.info('## Importing projects')
-    # Insert projects 
+    # Insert projects
     for file in os.listdir(bookkeeping_file_path):
       if file.endswith('.projs'):
         file = os.path.join(bookkeeping_file_path,file)
@@ -307,9 +307,8 @@ if __name__ == "__main__":
     output_path = sys.argv[5]
   if len(sys.argv) >= 7:
     pairs_path  = sys.argv[6]
-  
-  try:
 
+  try:
     if len(sys.argv) >= 5:
       logging.info('Starting DB: '+DB_name+' with '+user+':'+passw)
       db_object = DB(user, DB_name, passw, logging)
