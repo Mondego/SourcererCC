@@ -24,7 +24,6 @@ import net.jmatrix.eproperties.EProperties;
 import net.jmatrix.eproperties.Key;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
 

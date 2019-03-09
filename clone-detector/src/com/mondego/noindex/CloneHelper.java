@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,7 +23,6 @@ import org.apache.lucene.document.Document;
 import com.mondego.indexbased.CustomCollectorFwdIndex;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.models.Bag;
-import com.mondego.models.CandidateProcessor;
 import com.mondego.models.QueryBlock;
 import com.mondego.models.Shard;
 import com.mondego.models.Token;

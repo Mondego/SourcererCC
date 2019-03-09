@@ -11,7 +11,6 @@ import org.apache.lucene.document.Document;
 
 import com.mondego.indexbased.DocumentMaker;
 import com.mondego.indexbased.SearchManager;
-import com.mondego.indexbased.WordFrequencyStore;
 
 public class InvertedIndexCreator implements IListener, Runnable {
     private DocumentMaker documentMaker;
