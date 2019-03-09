@@ -1,5 +1,4 @@
 import datetime as dt
-import time
 from optparse import OptionParser
 import sys, os
 import zipfile

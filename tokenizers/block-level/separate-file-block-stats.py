@@ -1,4 +1,4 @@
-import sys, os
+import os
 
 for file in os.listdir("file_block_stats"):
 	readfile = os.path.join("file_block_stats", file)

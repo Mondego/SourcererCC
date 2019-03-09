@@ -1,4 +1,4 @@
-import sys, os
+import sys
 import mysql.connector
 from mysql.connector import errorcode
 import logging

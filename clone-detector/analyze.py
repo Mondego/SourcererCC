@@ -1,10 +1,4 @@
-'''
-Created on Dec 20, 2016
-
-@author: vaibhavsaini
-'''
-import sys, os
-
+import sys
 
 class Analyzer(object):
     def __init__(self, inputfile):

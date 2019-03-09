@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 
 import re
-import os
-import collections
 import sys
 import unittest
 import tokenizer

@@ -1,4 +1,4 @@
-import sys, os, csv
+import sys, os
 from db import DB
 import logging
 import urllib

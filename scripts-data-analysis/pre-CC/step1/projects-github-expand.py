@@ -5,7 +5,6 @@
 #Usage: $python this-script.py list-of-github-projects.txt > projects-with-github-meta.txt
 
 import sys
-import os
 import json
 
 def get_github_info(path):

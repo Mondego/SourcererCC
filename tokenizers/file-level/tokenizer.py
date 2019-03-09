@@ -1,6 +1,5 @@
 import logging
-import multiprocessing as mp
-from multiprocessing import Process, Value, Queue
+from multiprocessing import Process, Queue
 import re
 import os, platform
 import collections
@@ -9,7 +8,6 @@ import sys
 import hashlib
 import datetime as dt
 import zipfile
-import javalang
 
 try:
   from configparser import ConfigParser
