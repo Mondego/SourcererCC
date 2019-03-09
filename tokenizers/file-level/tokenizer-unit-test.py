@@ -76,7 +76,7 @@ class TestParser(unittest.TestCase):
 
     def test_comments(self):
         string = "// Hello\n // World"
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 

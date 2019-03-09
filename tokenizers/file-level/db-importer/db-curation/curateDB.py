@@ -55,7 +55,7 @@ def curate_files(db,logging):
       db.check_connection()
 
       cursor.execute("SELECT fileId,projectId,relativePath,relativeUrl,fileHash FROM files WHERE fileId BETWEEN %s AND %s" % (ids_range,ids_range+100000))
-      for fid, pid, fpath, furl, _ in cursor.fetchall():
+      for fid, pid, fpath, _, _ in cursor.fetchall():
         if (count % 1000) == 0:
           logging.info("%s files curated" % count)
           db.connection.commit()
