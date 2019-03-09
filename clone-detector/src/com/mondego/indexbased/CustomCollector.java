@@ -38,7 +38,10 @@ public class CustomCollector extends Collector {
     public Map<Integer, Long> getCodeBlockIds() {
         return codeBlockIds;
     }
-
+    
+    @Override
+    public void collect(int doc) throws IOException {}
+    
     /**
      * @param codeBlockIds the codeBlockIds to set
      */
