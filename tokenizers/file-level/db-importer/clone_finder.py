@@ -44,9 +44,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
         files_hashes = {} # {'file_id' : {'thash': thash, 'fhash': fhash}}
         token_hashes = {} # {token_hash : [file_id, file_id, ...]}, all files within this project 
 
-        query = """SELECT fileId, f.fileHash, tokenHash, totalTokens FROM files as f 
-                   JOIN stats as s ON f.fileHash=s.fileHash 
-                   WHERE projectId=%s;"""  % (project_id)
+        query = "SELECT fileId, f.fileHash, tokenHash, totalTokens FROM files as f JOIN stats as s ON f.fileHash=s.fileHash WHERE projectId=%s;"  % (project_id)
         res = db_object.execute(query);
         logging.info(query)
         for (file_id, fileHash, tokenHash, totalTokens, ) in res:
@@ -74,7 +72,6 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
         project_file_set = {}
         clone_set = set()
         for fid, clones in files_clones.iteritems():
-            project_counted = False
             for clone in clones:
                 projectId = clone[1]
                 clone_set.add(clone)
@@ -110,9 +107,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                         print('Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]')
 
                 else:
-                    db_object.insert_projectClones(project_id, percentage_clone_projects_counter[k], total_files, float("{0:.2f}".format(percent_cloning)), 
-                                                   k, v, project_file_counts[k], 
-                                                   float("{0:.2f}".format(percent_host)))
+                    db_object.insert_projectClones(project_id, percentage_clone_projects_counter[k], total_files, float("{0:.2f}".format(percent_cloning)), k, v, project_file_counts[k], float("{0:.2f}".format(percent_host)))
     except Exception as e:
         print 'Error on find_clones_for_project'
         print e

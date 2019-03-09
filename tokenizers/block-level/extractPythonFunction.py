@@ -38,7 +38,6 @@ def getFunctions(filestring, logging, file_path):
 						#not the last one in stmt.body
 						end_lineno = stmt.body[idx+1].lineno-1
 					blocks_linenos.append((start_lineno, end_lineno))
-					
 		if isinstance(stmt, ast.FunctionDef):
 			start_lineno = None
 			end_lineno = None
