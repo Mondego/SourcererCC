@@ -1,6 +1,5 @@
 import sys, os, re
 import javalang
-import logging
 import traceback
 import itertools
 
