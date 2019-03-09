@@ -102,6 +102,7 @@ public class SearchManager {
     private int qbq_thread_count;
     private int qcq_thread_count;
     private int vcq_thread_count;
+    private int rcq_thread_count;
     private int threadsToProcessBagsToSortQueue;
     private int threadToProcessIIQueue;
     private int threadsToProcessFIQueue;
@@ -126,7 +127,6 @@ public class SearchManager {
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.ACTION = args[0];
-        int rcq_thread_count = 1;
         try {
             SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
 
@@ -134,7 +134,7 @@ public class SearchManager {
             this.qbq_thread_count = Integer.parseInt(properties.getProperty("QBQ_THREADS", "1"));
             this.qcq_thread_count = Integer.parseInt(properties.getProperty("QCQ_THREADS", "1"));
             this.vcq_thread_count = Integer.parseInt(properties.getProperty("VCQ_THREADS", "1"));
-            rcq_thread_count = Integer.parseInt(properties.getProperty("RCQ_THREADS", "1"));
+            this.rcq_thread_count = Integer.parseInt(properties.getProperty("RCQ_THREADS", "1"));
             SearchManager.min_tokens = Integer.parseInt(properties.getProperty("MIN_TOKENS", "65"));
             SearchManager.max_tokens = Integer.parseInt(properties.getProperty("MAX_TOKENS", "500000"));
             this.threadsToProcessBagsToSortQueue = Integer.parseInt(properties.getProperty("BTSQ_THREADS", "1"));
@@ -159,12 +159,12 @@ public class SearchManager {
                     + this.qbq_thread_count + " QCQ_THREADS: "
                     + this.qcq_thread_count + " VCQ_THREADS: "
                     + this.vcq_thread_count + " RCQ_THREADS: "
-                    + rcq_thread_count + System.lineSeparator());
+                    + this.rcq_thread_count + System.lineSeparator());
             SearchManager.queryLineQueue = new ThreadedChannel<String>(this.qlq_thread_count, QueryLineProcessor.class);
             SearchManager.queryBlockQueue = new ThreadedChannel<QueryBlock>(this.qbq_thread_count, CandidateSearcher.class);
             SearchManager.queryCandidatesQueue = new ThreadedChannel<QueryCandidates>(this.qcq_thread_count, CandidateProcessor.class);
             SearchManager.verifyCandidateQueue = new ThreadedChannel<CandidatePair>(this.vcq_thread_count, CloneValidator.class);
-            SearchManager.reportCloneQueue = new ThreadedChannel<ClonePair>(rcq_thread_count, CloneReporter.class);
+            SearchManager.reportCloneQueue = new ThreadedChannel<ClonePair>(this.rcq_thread_count, CloneReporter.class);
         } else if (SearchManager.ACTION.equals(ACTION_INDEX)) {
             indexerWriters = new ArrayList<IndexWriter>();
             this.createShards(true);
