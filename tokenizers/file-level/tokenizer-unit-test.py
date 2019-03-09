@@ -67,7 +67,7 @@ class TestParser(unittest.TestCase):
                     // line 2
                     line 3 
                 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,5)

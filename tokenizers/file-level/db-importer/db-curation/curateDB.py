@@ -27,7 +27,6 @@ def curate_projects(db,file_mapping_path_url,logging):
 
       new_path = ppath[java_path_cut:]
       cursor.execute("UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid))
-      # print "UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid)
       count += 1
   except Exception as e:
     logging.error('Problem curating projects: %s' % (e))
@@ -55,7 +54,7 @@ def curate_files(db,logging):
       db.check_connection()
 
       cursor.execute("SELECT fileId,projectId,relativePath,relativeUrl,fileHash FROM files WHERE fileId BETWEEN %s AND %s" % (ids_range,ids_range+100000))
-      for fid, pid, fpath, _, _ in cursor.fetchall():
+      for _, _, fpath, _, _ in cursor.fetchall():
         if (count % 1000) == 0:
           logging.info("%s files curated" % count)
           db.connection.commit()
@@ -66,7 +65,6 @@ def curate_files(db,logging):
         new_url = new_path[cut:]
 
         cursor.execute("UPDATE files SET relativePath=\"%s\", relativeUrl=\"%s\" WHERE fileId=%s LIMIT 1" % (new_path,new_url,fid))
-        #print fid,pid,new_path,new_url,fhash
 
         count += 1
       ids_range += 100000

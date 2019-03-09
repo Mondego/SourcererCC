@@ -1,4 +1,4 @@
-import sys, re
+import re
 import javalang
 import traceback
 import itertools

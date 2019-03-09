@@ -154,7 +154,6 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
 
 def process_regular_folder(args, folder_path, files):
   process_num, proj_id, _, proj_url, base_file_id, FILE_tokens_file, _, FILE_stats_file, logging, times = args
-  file_time = string_time = write_time = regex_time = 0
   all_files = files
   # Filter them by the correct extension
   aux = []
