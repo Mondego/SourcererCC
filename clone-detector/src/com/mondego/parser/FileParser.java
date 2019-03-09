@@ -28,7 +28,7 @@ public class FileParser {
     public long startFileIdCounter = 0;
     public long endFileIdCounter = 0;
     public long project_id = 0l;
-    public public static final int MIN_TOKEN_IN_FILE = 65;
+    public static final int MIN_TOKEN_IN_FILE = 65;
     public Writer parsedFileWriter = null;
     public Writer idFileWriter = null;
     public String parsedFilePath = "";
