@@ -25,23 +25,22 @@ import org.apache.commons.io.input.ReversedLinesFileReader;
 import com.mondego.utility.Util;
 
 public class FileParser {
-
-    long startFileIdCounter = 0;
-    long endFileIdCounter = 0;
-    long project_id = 0l;
-    public static final int MIN_TOKEN_IN_FILE = 65;
-    Writer parsedFileWriter = null;
-    Writer idFileWriter = null;
-    String parsedFilePath = "";
-    String idFilePath = "";
-    String datasetPath;
-    String bookkeepingPath;
-    String idGenFile;
-    String idGenFileStatus;
-    Set<String> processedProjects;
-    Set<String> processedFiles;
-    long maxIdProcessed;
-    String processName;
+    public long startFileIdCounter = 0;
+    public long endFileIdCounter = 0;
+    public long project_id = 0l;
+    public public static final int MIN_TOKEN_IN_FILE = 65;
+    public Writer parsedFileWriter = null;
+    public Writer idFileWriter = null;
+    public String parsedFilePath = "";
+    public String idFilePath = "";
+    public String datasetPath;
+    public String bookkeepingPath;
+    public String idGenFile;
+    public String idGenFileStatus;
+    public Set<String> processedProjects;
+    public Set<String> processedFiles;
+    public long maxIdProcessed;
+    public String processName;
 
     public FileParser(String processName) throws IOException {
         this.processName=processName;
