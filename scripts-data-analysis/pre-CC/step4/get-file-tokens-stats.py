@@ -5,8 +5,8 @@ import sys
 
 dict_hashes = dict()
 
-with open(sys.argv[1],'r') as file:
-  for line in file:
+with open(sys.argv[1],'r') as file_descr:
+  for line in file_descr:
     file_hash = (line.split('@#@')[0]).split(',')[4]
 
     if file_hash in dict_hashes:
@@ -20,8 +20,8 @@ files_maior_65 = 0
 total_number_unique_files = 0
 total_number_unique_files_maior_65 = 0
 
-with open(sys.argv[2],'r') as file:
-  for line in file:
+with open(sys.argv[2],'r') as file_descr:
+  for line in file_descr:
     total_tokens = int(line.split(',')[2])
     sum_total_tokens += total_tokens
 
@@ -44,5 +44,3 @@ print 'Number of token-distinct files :',len(dict_hashes)
 print '    from which these are unique:',total_number_unique_files
 print 'Number of files with 65+ tokens:',files_maior_65
 print '    from which these are unique:',total_number_unique_files_maior_65
-
-

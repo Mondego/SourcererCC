@@ -11,12 +11,12 @@ import os
 set_ids = set()
 lines = 0
 
-for file in os.listdir(sys.argv[1]):
-  if file.endswith('.stats'):
-    print 'Reading ',file
-    file = os.path.join(sys.argv[1],file)
-    print 'Searching on ',file
-    with open(file,'r') as file_book:
+for stats_file in os.listdir(sys.argv[1]):
+  if stats_file.endswith('.stats'):
+    print 'Reading ', stats_file
+    stats_file = os.path.join(sys.argv[1], stats_file)
+    print 'Searching on ', stats_file
+    with open(stats_file, 'r') as file_book:
       for line in file_book:
         file_id = line.split(',')[1]
         lines += 1
@@ -26,7 +26,7 @@ for file in os.listdir(sys.argv[1]):
           set_ids.add(file_id)
 
 print '## NUMBERS BELOW MUST MATCH ##'
-print 'Number of unique ids:',len(set_ids)
-print 'Number of files:     ',lines
+print 'Number of unique ids:', len(set_ids)
+print 'Number of files:     ', lines
 
 
