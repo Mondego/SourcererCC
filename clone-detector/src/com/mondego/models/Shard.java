@@ -20,16 +20,15 @@ import com.mondego.indexbased.SearchManager;
 import com.mondego.utility.BlockInfo;
 
 public class Shard {
-    int id;
-    int minSize, maxSize;
-    int minBagSizeToIndex;
-    int maxBagSizeToIndex;
-    IndexWriter invertedIndexWriter;
-    IndexWriter forwardIndexWriter;
+    public int id;
+    public int minSize, maxSize;
+    public int minBagSizeToIndex;
+    public int maxBagSizeToIndex;
+    public IndexWriter invertedIndexWriter;
+    public IndexWriter forwardIndexWriter;
     private static final Logger logger = LogManager.getLogger(Shard.class);
 
-    public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch,
-            boolean forWriting) {
+    public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch, boolean forWriting) {
         this.id = id;
         this.minSize = minBagSizeToSearch;
         this.maxSize = maxBagSizeToSearch;

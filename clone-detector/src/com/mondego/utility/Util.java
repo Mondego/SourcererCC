@@ -36,7 +36,7 @@ import com.mondego.models.Bag;
 import com.mondego.models.TokenFrequency;
 
 public class Util {
-    static Random rand = new Random(5);
+    public static Random rand = new Random(5);
     public static final String CSV_DELIMITER = "~";
     public static final String INDEX_DIR = SearchManager.ROOT_DIR + "index";
     public static final String INDEX_DIR_TEMP = SearchManager.ROOT_DIR + "index_temp";
@@ -53,7 +53,7 @@ public class Util {
     private static final Logger logger = LogManager.getLogger(Util.class);
 
     // This cache is shared by all threads that call sortBag
-    final static Map<String, Long> cache = lruCache(500000);
+    public final static Map<String, Long> cache = lruCache(500000);
 
     public static void sortBag(final Bag bag) {
         List<TokenFrequency> bagAsList = new ArrayList<TokenFrequency>(bag);

@@ -14,12 +14,11 @@ import java.util.Set;
 import com.mondego.utility.Util;
 
 public class ClonesNamesAssembler {
-
-    String projectName;
-    Map<Integer, String> idNameMap = new HashMap<Integer, String>();
-    Map<Integer, List<Integer>> cloneIdsMap = new HashMap<Integer, List<Integer>>();
-    Map<String, List<String>> cloneNameMap = new HashMap<String, List<String>>();
-    int linesWritten;
+    public String projectName;
+    public Map<Integer, String> idNameMap = new HashMap<Integer, String>();
+    public Map<Integer, List<Integer>> cloneIdsMap = new HashMap<Integer, List<Integer>>();
+    public Map<String, List<String>> cloneNameMap = new HashMap<String, List<String>>();
+    public int linesWritten;
     
     public static void main(String[] args) {
         System.out.println("start!");

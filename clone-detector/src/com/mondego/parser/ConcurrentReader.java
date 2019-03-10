@@ -9,19 +9,18 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
 public class ConcurrentReader {
-    long startId;
-    long endId;
-    String idFile;
+    public long startId;
+    public long endId;
+    public String idFile;
 
     public ConcurrentReader() throws FileNotFoundException {
-        this.startId=0;
-        this.endId=0;
+        this.startId = 0;
+        this.endId = 0;
         this.idFile = "idgen.txt";
         this.updateIds();
     }
 
     public void updateIds() throws FileNotFoundException {
-        
         File file = new File(this.idFile);
         FileLock lock = null;
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
@@ -34,13 +33,11 @@ public class ConcurrentReader {
             String line = new String(buffer.array());
             this.startId = Long.parseLong(line.trim())+100;
             this.endId = this.startId+ 200;
-            //System.out.println("start_id: "+ this.startId + ", end_id: "+ this.endId);
             ByteBuffer outBuffer = ByteBuffer.allocate(8);
             outBuffer.clear();
             String endidStr= this.endId+"";
             outBuffer.put(endidStr.getBytes());
             outBuffer.flip();
-            //System.out.println(new String(outBuffer.array()));
             channel.write(outBuffer,0);
             channel.force(false);
         } catch (IOException e) {
@@ -75,5 +72,4 @@ public class ConcurrentReader {
         ConcurrentReader cr = new ConcurrentReader();
         cr.printIds();
     }
-
 }

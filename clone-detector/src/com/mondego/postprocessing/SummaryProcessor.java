@@ -11,20 +11,20 @@ import java.util.Map;
 import com.mondego.utility.Util;
 
 public class SummaryProcessor {
-    int INDEX_PROJECT_NAME = 0;
-    int INDEX_TIME_WITH_FILTER = 1;
-    int INDEX_COMPARISION_WITH_FILTER = 3;
-    int INDEX_CLONES_COUNT = 5;
-    int INDEX_THRESHOLD = 6;
-    String TIME_WITH_FILTER = "TIME_WITH_FILTER";
-    String COMPARISION_WITH_FILTER = "COMPARISION_WITH_FILTER";
-    String CLONES_COUNT = "CLONES_COUNT";
-    String THRESHOLD = "THRESHOLD";
-    String inputDir;
+    public int INDEX_PROJECT_NAME = 0;
+    public int INDEX_TIME_WITH_FILTER = 1;
+    public int INDEX_COMPARISION_WITH_FILTER = 3;
+    public int INDEX_CLONES_COUNT = 5;
+    public int INDEX_THRESHOLD = 6;
+    public String TIME_WITH_FILTER = "TIME_WITH_FILTER";
+    public String COMPARISION_WITH_FILTER = "COMPARISION_WITH_FILTER";
+    public String CLONES_COUNT = "CLONES_COUNT";
+    public String THRESHOLD = "THRESHOLD";
+    public String inputDir;
+    public Map<String, SummaryProcessor.Project> projects;
     private Writer processedSummryWriter_time;
     private Writer processedSummryWriter_comparisions;
     private Writer processedSummryWriter_clones;
-    Map<String, SummaryProcessor.Project> projects;
 
     public SummaryProcessor() throws IOException {
         this.projects = new HashMap<String, SummaryProcessor.Project>();
