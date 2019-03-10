@@ -8,8 +8,6 @@ global found_parent
 re_string = re.escape("\"") + '.*?' + re.escape("\"")
 
 def getFunctions(filestring, logging, file_path, separators, comment_inline_pattern):
-  logging.info("Starting block-level parsing on " + file_path)
-
   method_string = []
   method_pos    = []
   method_name   = []
@@ -87,20 +85,19 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
 
   if (len(method_pos) != len(method_string)):
     logging.warning("File " + file_path + " cannot be parsed. (3)")
-    return (None,None,method_name)
+    return (None, None, method_name)
   else:
-    logging.warning("File " + file_path + " successfully parsed.")
-    return (method_pos,method_string,method_name)
+    return (method_pos, method_string ,method_name)
 
 def check_repetition(node,name):
   before = -1
   i = 0
-  for (obj,n,value) in found_parent:
+  for (obj, n, value) in found_parent:
     if obj is node:
       if value == -1:
         return ''
       else:
-        return '_'+str(value)
+        return '_' + str(value)
     else:
       i += 1
     if n == name:
