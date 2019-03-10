@@ -55,7 +55,6 @@ public class CandidateProcessor implements IListener, Runnable {
         }
         logger.debug(SearchManager.NODE_PREFIX + ", num candidates: " + codeBlockIds.entrySet().size() + ", query: " + queryBlock.getFunctionId() + "," + queryBlock.getId());
         for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
-            long startTime = System.nanoTime();
             Document doc = null;
             try {
                 doc = SearchManager.searcher.get(shard).getDocument(entry.getKey());
