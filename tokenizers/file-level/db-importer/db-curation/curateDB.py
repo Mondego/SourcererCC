@@ -54,7 +54,7 @@ def curate_files(db,logging):
     while(ids_range < max_file_id):
       db.check_connection()
 
-      cursor.execute("SELECT fileId, relativePath FROM files WHERE fileId BETWEEN %s AND %s" % (ids_range,ids_range+100000))
+      cursor.execute("SELECT fileId, relativePath FROM files WHERE fileId BETWEEN ? AND ?", ids_range, ids_range + 100000)
       for fid, fpath in cursor.fetchall():
         if (count % 1000) == 0:
           logging.info("%s files curated" % count)
@@ -65,7 +65,7 @@ def curate_files(db,logging):
         cut = new_path.find('/') + 1
         new_url = new_path[cut:]
 
-        cursor.execute("UPDATE files SET relativePath=\"%s\", relativeUrl=\"%s\" WHERE fileId=%s LIMIT 1" % (new_path,new_url,fid))
+        cursor.execute("UPDATE files SET relativePath=?, relativeUrl=? WHERE fileId = ? LIMIT 1", new_path, new_url, fid)
 
         count += 1
       ids_range += 100000
