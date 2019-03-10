@@ -317,7 +317,7 @@ public class SearchManager {
             theInstance.timeSearch = System.currentTimeMillis()
                     - timeStartSearch;
             signOffNode();
-            if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
+            if ("NODE_1".equals(SearchManager.NODE_PREFIX)) {
                 System.out.println("[DEBUG] " + "NODES COMPLETED SO FAR: " + getCompletedNodes());
                 while (true) {
                     if (allNodesCompleted()) {
