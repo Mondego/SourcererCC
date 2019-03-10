@@ -352,8 +352,8 @@ class DB:
     cursor = self.connection.cursor()
     try:
       cursor.execute("""SELECT Max(projectId) FROM projects;""")
-      (id,) = cursor.fetchone()
-      return id
+      (res,) = cursor.fetchone()
+      return res
     except Exception as err:
       self.logging.error('Failed to get max project id')
       self.logging.error(err)

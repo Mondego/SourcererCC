@@ -48,10 +48,10 @@ if __name__ == '__main__':
 
 
     sivaDirs = os.listdir(sivaDir)
-    for dir in sivaDirs:
-        if os.path.isdir(sivaDir + dir):
-            for file in os.listdir(sivaDir + dir):
-                shutil.copy(sivaDir + dir + '/' + file, sivaDir)
+    for folder in sivaDirs:
+        if os.path.isdir(sivaDir + folder):
+            for file in os.listdir(sivaDir + folder):
+                shutil.copy(sivaDir + folder + '/' + file, sivaDir)
 
     for project in projectsNamesToSivaNames.keys():
             projectName = projectsDir + project
