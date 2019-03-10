@@ -20,7 +20,6 @@ import org.apache.lucene.util.Version;
 
 import com.mondego.models.QueryBlock;
 import com.mondego.models.TokenInfo;
-import com.mondego.noindex.CloneHelper;
 
 public class CodeSearcher {
     private String indexDir;
