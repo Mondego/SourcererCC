@@ -22,8 +22,8 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
     try:
         query = """SELECT fileId, projectId, f.fileHash, tokenHash FROM files as f
                    JOIN stats as s ON f.fileHash=s.fileHash
-                   WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(token_hashes.keys()) + "'", project_id)
-        res = db_object.execute(query);
+                   WHERE tokenHash in (?) AND projectId >= ?;"""
+        res = db_object.execute(query, "'" + "','".join(token_hashes.keys()) + "'", project_id))
         logging.info(query)
         for (file_id, projectId, _, tokenHash) in res:
             pfiles = token_hashes[tokenHash]

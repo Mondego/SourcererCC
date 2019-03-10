@@ -26,8 +26,7 @@ def curate_projects(db,file_mapping_path_url,logging):
       java_path_cut   = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/java-projects/')
 
       new_path = ppath[java_path_cut:]
-      cursor.execute("UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid))
-      # print "UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid)
+      cursor.execute("UPDATE projects SET projectPath=?, projectUrl=? WHERE projectId=? LIMIT 1", new_path, map_path_url[new_path], pid)
       count += 1
   except Exception as e:
     logging.error('Problem curating projects: %s' % (e))
