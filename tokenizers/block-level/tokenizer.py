@@ -39,8 +39,6 @@ file_extensions = '.none'
 
 file_count = 0
 
-print('GO')
-
 def read_config():
   global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
   global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
@@ -229,7 +227,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         h_time = dt.datetime.now()
         m = hashlib.md5()
         try:
-          m.update(block_string)
+          m.update(block_string.encode('utf-8'))
         except Exception as e:
           logging.info('Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
         block_hash = m.hexdigest()
