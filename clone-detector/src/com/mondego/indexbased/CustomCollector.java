@@ -27,10 +27,7 @@ public class CustomCollector extends Collector {
     }
 
     @Override
-    public void collect(int doc) throws IOException {
-        Integer docId = doc + docBase;
-    }
-
+    public void collect(int doc) throws IOException {}
 
     @Override
     public void setNextReader(AtomicReaderContext context) throws IOException {
