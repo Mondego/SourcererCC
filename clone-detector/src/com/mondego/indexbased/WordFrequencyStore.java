@@ -36,7 +36,6 @@ public class WordFrequencyStore implements ITokensFileProcessor {
     private CloneHelper cloneHelper;
     private Map<String, Long> wordFreq;
     private int wfm_file_count = 0;
-    private CodeSearcher wfmSearcher = null;
     private IndexWriter wfmIndexWriter = null;
     private DocumentMaker wfmIndexer = null;
     private static final Logger logger = LogManager.getLogger(WordFrequencyStore.class);
@@ -146,7 +145,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
     private void flushToIndex() {
         logger.info("*** FLUSHING WFM TO INDEX *** " + this.wordFreq.size());
         long start = System.currentTimeMillis();
-        this.wfmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR, "key");
+        CodeSearcher wfmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR, "key");
         int count = 0;
         for (Entry<String, Long> entry : this.wordFreq.entrySet()) {
 
@@ -158,7 +157,7 @@ public class WordFrequencyStore implements ITokensFileProcessor {
             if (++count % 1000000 == 0)
                 logger.info("...flushed " + count);
         }
-        this.wfmSearcher.close();
+        wfmSearcher.close();
         try {
             this.wfmIndexWriter.forceMerge(1);
             this.wfmIndexWriter.commit();
