@@ -12,13 +12,10 @@ import org.apache.lucene.search.Scorer;
 public class CustomCollector extends Collector {
     private Map<Integer, Long> codeBlockIds;
     private int docBase;
-    private IndexSearcher searcher;
     private String searchTerm;
-    private int freqSearchTerm;
 
     public CustomCollector(IndexSearcher searcher) {
         this.codeBlockIds = new HashMap<Integer, Long>();
-        this.searcher = searcher;
     }
 
     @Override
@@ -53,7 +50,5 @@ public class CustomCollector extends Collector {
         this.searchTerm = searchTerm;
     }
 
-    public void setFreqOfSearchTerm(int frequency) {
-        this.freqSearchTerm = frequency;
-    }
+    public void setFreqOfSearchTerm(int frequency) {}
 }
