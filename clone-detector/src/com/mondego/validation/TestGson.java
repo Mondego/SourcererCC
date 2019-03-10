@@ -2,20 +2,16 @@ package com.mondego.validation;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
 public class TestGson {
-    public Map<String,String> idToCodeMap;
+    public Map<String, String> idToCodeMap;
     private String sep = "##\\+@\\+##";
     private String lineSep = "####@@@@####@@@@####";
     String codeFilename = "input/allcode/allcode.txt";
+
     public void populateMap() {
         this.idToCodeMap = new HashMap<String, String>();
         Scanner scan = null;
@@ -32,7 +28,7 @@ public class TestGson {
         try {
             for(String line : lines){
                 String[] parts = line.split(this.sep);
-                System.out.println("key: "+parts[0].trim());
+                System.out.println("key: " + parts[0].trim());
                 this.idToCodeMap.put(parts[0].trim(), parts[1]);
             }
         } finally {
