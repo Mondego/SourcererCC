@@ -10,8 +10,8 @@ import sys
 
 projects = set()
 
-with open(sys.argv[1], 'r') as project_file:
-  for line in project_file:
+with open(sys.argv[1],'r') as file:
+  for line in file:
     line_split = line[:-1].split(',')
     git_url = line_split[4]
     if git_url not in projects:
