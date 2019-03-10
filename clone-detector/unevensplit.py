@@ -45,8 +45,7 @@ class Spliter(object):
         except IOError, e:
             print "Error: {error}".format(error=e)
             sys.exit(1)
-                
-    
+
     def get_num_lines_in_input_file(self):
         with open(self.input_filename) as f:
             for i, _ in enumerate(f):

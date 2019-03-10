@@ -419,7 +419,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
         # Filter by the correct extension
         if not os.path.splitext(f.name)[1] in file_extensions:
           continue
-        
+
         # This is very strange, but I did find some paths with newlines,
         # so I am simply ignoring them
         if '\n' in file_path:

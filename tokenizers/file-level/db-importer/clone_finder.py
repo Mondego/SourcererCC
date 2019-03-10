@@ -75,7 +75,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                 if projectId not in project_file_set:
                     project_file_set[projectId] = set()
                 project_file_set[projectId].add(fid)
-                
+
         # How many of this project's files are present in each of the other project?
         for pid, file_list in project_file_set.iteritems():
             percentage_clone_projects_counter[pid] = len(file_list)
