@@ -185,7 +185,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       h_time = dt.datetime.now()
       m = hashlib.md5()
       try:
-        m.update(file_string)
+        m.update(file_string.encode('utf-8'))
       except Exception as e:
         logging.info('Error on tokenize_blocks (1) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
       file_hash = m.hexdigest()
