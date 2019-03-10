@@ -106,8 +106,6 @@ public class CloneValidator implements IListener, Runnable {
 
     private int updateSimilarityHelper(CandidateSimInfo simInfo, TokenInfo tokenInfo, int similarity, int candidatesTokenFreq) {
         simInfo.queryMatchPosition = tokenInfo.getPosition();
-        similarity += Math.min(tokenInfo.getFrequency(), candidatesTokenFreq);
-        // System.out.println("similarity: "+ similarity);
-        return similarity;
+        return similarity + Math.min(tokenInfo.getFrequency(), candidatesTokenFreq);
     }
 }
