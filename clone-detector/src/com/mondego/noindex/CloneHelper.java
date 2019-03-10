@@ -41,14 +41,12 @@ public class CloneHelper {
     private int numClonesFound;
     private float th;
     private final Integer MUL_FACTOR = 100;
-    private Map<String, Integer> globalIdentifierMap;
     private static final Logger logger = LogManager.getLogger(CloneHelper.class);
 
     public CloneHelper() {
         super();
         this.comparisions = 0;
         this.numClonesFound = 0;
-        this.globalIdentifierMap = new HashMap<String, Integer>();
     }
 
     /**
