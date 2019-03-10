@@ -54,8 +54,8 @@ class TestParser(unittest.TestCase):
                     line 2
                     line 3
 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash,lines,LOC,SLOC) = final_stats
+        (final_stats, _, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (_,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,3)
         self.assertEqual(LOC,3)
@@ -68,7 +68,7 @@ class TestParser(unittest.TestCase):
                     line 3 
                 """
         (final_stats, _, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash,lines,LOC,SLOC) = final_stats
+        (_,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,5)
         self.assertEqual(LOC,3)
