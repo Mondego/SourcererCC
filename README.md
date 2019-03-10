@@ -32,7 +32,7 @@ SourcererCC is a token-based clone detector. This means that source code must go
 The program needed to tokenize souce code can be found [here](https://github.com/Mondego/SourcererCC/tree/master/tokenizers/file-level). Start by looking at [config.ini](https://github.com/Mondego/SourcererCC/blob/master/tokenizers/file-level/config.ini) which sets the configuration for the tokenizer. You need to edit a few parameters (the parameters not covered here can be dismissed for now):
 
 Performance parameters:
-```
+```bash
 N_PROCESSES = 1
 ; How many projects does each process process at a time?
 PROJECTS_BATCH = 2
@@ -41,7 +41,7 @@ PROJECTS_BATCH = 2
 Where `N_PROCESSES` are active at any given time, and each one processes a batch of `PROJECTS_BATCH` projects.
 
 To set the input you can do:
-```
+```bash
 FILE_projects_list = this/is/a/path/paths.txt
 ```
 where `paths.txt` is a list of project paths, the projects we want to find clones on. A sample of a `paths.txt` file would look like this:
@@ -62,7 +62,7 @@ comment_close_tag = */
 File_extensions = .py
 ```
 And then run with:
-```
+```bash
 python tokenizer.py zip
 ```
 where `zip` is the extension of the individual projects in `FILE_projects_list = this/is/a/path/paths.txt`. 
@@ -86,14 +86,14 @@ For this step we will run SourcererCC, which can be found [here](https://github.
 
 Start with `files_tokens/` from the previous step:
 
-```
+```bash
 cat files_tokens/* > blocks.file
 cp blocks.file SourcererCC/clone-detector/input/dataset/
 ```
 
 Inside [clone-detector/](https://github.com/Mondego/SourcererCC/tree/master/clone-detector) it is worth looking at [sourcerer-cc.properties](https://github.com/Mondego/SourcererCC/blob/master/clone-detector/sourcerer-cc.properties), in particular at:
 
-```
+```bash
 # Ignore all files outside these bounds
 MIN_TOKENS=65
 MAX_TOKENS=500000
@@ -102,7 +102,7 @@ where you can set an upper and lower bound for file clone detection. You can dis
 
 To change the percentage of clone similarity, look at [runnodes.sh](https://github.com/Mondego/SourcererCC/blob/master/clone-detector/runnodes.sh#L9), line 9:
 
-```
+```bash
 threshold="${3:-8}"
 ```
 where `8` means clones will be flagged at 80% similarity (current setup), `7` at 70%, and so on.
@@ -110,12 +110,12 @@ The JVM parameters can be configured in the [same file](https://github.com/Monde
 
 Finally, run:
 
-```
+```bash
 python controller.py
 ```
 This tool splits the task by multiple nodes, which must be aggregated in the end:
 
-```
+```bash
 cat clone-detector/NODE_*/output8.0/query_* > results.pairs
 ```
 
@@ -129,7 +129,7 @@ generated in the tokenization phase. An example output is:
 
 In this case we have the clone pairs `(1,2)` and `(2,3)`. To know which file corresponds to `1`, we can look at the folder `files_stats/*` and look for the line with the unique id `1`.
 
-### I want to know more!
+### I want to know more
 
 That is great :+1: In the VM we refer to above you can find instructions and programs to import everything into an easily queryable database and perform statistic analysis on this information.
 Our [OOPSLA'17](https://dl.acm.org/citation.cfm?id=3133908) paper is a great way to understand out typical pipeline and which kind of results you can obtain.
