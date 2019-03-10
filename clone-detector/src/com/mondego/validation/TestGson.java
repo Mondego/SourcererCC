@@ -16,16 +16,12 @@ public class TestGson {
     private String sep = "##\\+@\\+##";
     private String lineSep = "####@@@@####@@@@####";
     String codeFilename = "input/allcode/allcode.txt";
-    //String testFile = "input/allcode/test.txt";
-    public void populateMap(){
-        
+    public void populateMap() {
         this.idToCodeMap = new HashMap<String, String>();
-        //System.out.println("reading file: " + this.codeFilename);
         Scanner scan = null;
         try {
             scan = new Scanner(new File(this.codeFilename));
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }  
         scan.useDelimiter("\\Z");  
@@ -35,7 +31,6 @@ public class TestGson {
         System.out.println("num lines: "+ lines.length);
         try {
             for(String line : lines){
-                //System.out.println("line is: "+line);
                 String[] parts = line.split(this.sep);
                 System.out.println("key: "+parts[0].trim());
                 this.idToCodeMap.put(parts[0].trim(), parts[1]);
@@ -44,21 +39,10 @@ public class TestGson {
             scan.close();
         }
     }
-    
-    
-    private void test(){
-        Gson gson =  new GsonBuilder().create();
-        String json = gson.toJson(this.idToCodeMap);
-        System.out.println(json);
-        Type typeOfHashMap = new TypeToken<Map<String, String>>() { }.getType();
-        Map<String, String> newMap = gson.fromJson(json, typeOfHashMap);
-        System.out.println(newMap);
-    }
-    
+
     public static void main(String[] args){
         TestGson testGson = new TestGson();
         testGson.populateMap();
-        //testGson.test();
         System.out.println(testGson.idToCodeMap.get("10050"));
     }
 }
