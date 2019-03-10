@@ -16,6 +16,6 @@ mkdir ../../clone-detector/input
 mkdir ../../clone-detector/input/dataset
 cp blocks.file ../../clone-detector/input/dataset/
 cd ../../clone-detector
-python controller.py 100 | while read line; do printf "\e[32m[controller.py 1] \e[0m$line\n"; done
+python controller.py 1 | while read line; do printf "\e[32m[controller.py 1] \e[0m$line\n"; done
 cd ..
 cat clone-detector/NODE_*/output8.0/query_* > results.pairs
