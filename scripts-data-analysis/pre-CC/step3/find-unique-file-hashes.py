@@ -18,7 +18,7 @@ dict_hashes_frequency = {}
 
 for filename in os.listdir(sys.argv[1]):
   if filename.endswith('.stats'):
-    filename = os.path.join(sys.argv[1],file)
+    filename = os.path.join(sys.argv[1],filename)
     print 'Searching on ',filename
     with open(filename,'r') as file_book:
       csv_reader = csv.reader(file_book, delimiter=',')
