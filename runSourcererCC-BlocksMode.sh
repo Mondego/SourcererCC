@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 #echo -n "" > tokenizers/block-level/project-list.txt
 #ls cloneGithub/projects | while read f; do echo projects/${f} >> SourcererCC/tokenizers/#block-level/project-list.txt; done;
 #rm -r SourcererCC/tokenizers/block-level/projects
