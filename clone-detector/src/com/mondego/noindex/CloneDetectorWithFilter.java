@@ -117,28 +117,17 @@ public class CloneDetectorWithFilter {
             cd.cloneHelper = cloneHelper;
             cd.init();
             cd.runExperiment();
-            /*System.out.println("unique clone pairs : " + cd.cloneSet.size());
-            List<String> cloneList = new ArrayList<String>(cd.cloneSet);
-            Collections.sort(cloneList);
-            for (String clonePair : cloneList){
-                System.out.println(clonePair);
-            }*/
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
             Util.closeOutputFile(cd.analysisWriter);
-            // Util.closeOutputFile(cd.prefixWriter);
         }
     }
 
     private void runExperiment() {
         try {
             System.out.println("running, please wait...");
-            this.cloneHelper.setClonesWriter(Util
-                    .openFile(this.OUTPUT_DIR_PREFIX + this.th
-                            / this.MUL_FACTOR + "/" + this.filePrefix
-                            + "clones_WITH_FILTER.txt", false));
+            this.cloneHelper.setClonesWriter(Util.openFile(this.OUTPUT_DIR_PREFIX + this.th / this.MUL_FACTOR + "/" + this.filePrefix + "clones_WITH_FILTER.txt", false));
             this.cloneHelper.setThreshold(this.threshold);
             Set<Bag> setA = new HashSet<Bag>();
             String repositoryDirectory = "input/dataset/";
@@ -382,18 +371,7 @@ public class CloneDetectorWithFilter {
                     .ceil((this.th * maxLength) / (10 * this.MUL_FACTOR));
             computedThreshold = computedThreshold_overlap;
         }
-        int prefixSize = (maxLength + 1) - computedThreshold;// this.computePrefixSize(maxLength);
-        /*
-         * if (bagA.getId() == 11892 && bagB.getId() == 11893) {
-         * System.out.println("DEBUG: prefix " + prefixSize + ", " +
-         * "computed threshold " + computedThreshold + ", bagA.size " +
-         * bagA.getSize() + "bagB.size " + bagB.getSize() + ", th " +
-         * (this.th/this.MUL_FACTOR) + ", threshold " + this.threshold +
-         * ", isJaccard " + this.useJaccardSimilarity + ", maxlength " +
-         * maxLength + ", maxlength*th " + (this.th * maxLength) /
-         * (10*this.MUL_FACTOR) + ", celi" + Math.ceil((this.th * maxLength) /
-         * (10*this.MUL_FACTOR))); }
-         */
+        int prefixSize = (maxLength + 1) - computedThreshold;
         boolean candidate = false;
         int matchCount = 0;
         if (hasPermission(LOC_FILTER_CANDIDATES)) {
@@ -406,15 +384,12 @@ public class CloneDetectorWithFilter {
                 return candidate;
             }
         } else {
-            return this.candidateHelper(prefixSize, minLength, bagA, bagB,
-                    matchCount, candidate, startTime, computedThreshold);
+            return this.candidateHelper(prefixSize, minLength, bagA, bagB, matchCount, candidate, startTime, computedThreshold);
         }
     }
 
-    private boolean candidateHelper(int prefixSize, int minLength, Bag bagA,
-            Bag bagB, int matchCount, boolean candidate, long startTime,
-            int computedThreshold) {
-        if (prefixSize <= minLength) { // optimization
+    private boolean candidateHelper(int prefixSize, int minLength, Bag bagA, Bag bagB, int matchCount, boolean candidate, long startTime, int computedThreshold) {
+        if (prefixSize <= minLength) {
             List<TokenFrequency> listA = this.bagToListMap.get(bagA.getId());
             List<TokenFrequency> listB = this.bagToListMap.get(bagB.getId());
             Iterator<TokenFrequency> listAItr = listA.iterator();
@@ -428,15 +403,9 @@ public class CloneDetectorWithFilter {
                 this.filterComparision += 1;
                 count = Math.min(tokenSeenInA, tokenSeenInB);
                 if (tokenFrequencyB.equals(tokenFrequencyA)) {
-
-                    matchCount += Math.min(tokenFrequencyA.getFrequency(),
-                            tokenFrequencyB.getFrequency());
-                    if (matchCount >= this.k_filter + 1) { // filter condition,
-                                                           // 1 is for the
-                                                           // original prefix
-                                                           // match, k
-                                                           // additional
-                                                           // matches required
+                    matchCount += Math.min(tokenFrequencyA.getFrequency(), tokenFrequencyB.getFrequency());
+                    // filter condition, 1 is for the original prefix match, k additional matches required
+                    if (matchCount >= this.k_filter + 1) {
                         this.numCandidates += 1;
                         candidate = true;
                         long stopTime = System.currentTimeMillis();
@@ -450,21 +419,11 @@ public class CloneDetectorWithFilter {
                             break;
                         }
                         this.candidateCumulativeTime += (stopTime - startTime);
-                        // TODO: optimize for location filter; send bagBItr
-                        // maybe?
-                        this.detectClones(listAItr, listBItr, bagB,
-                                computedThreshold, matchCount, bagA,
-                                tokenFrequencyA, tokenFrequencyB, tokenSeenInA,
-                                tokenSeenInB);
+                        this.detectClones(listAItr, listBItr, bagB, computedThreshold, matchCount, bagA, tokenFrequencyA, tokenFrequencyB, tokenSeenInA, tokenSeenInB);
                         return true;
                     } else {
-                        if (this.hasPermission(LOC_FILTER_CANDIDATES)) {
-                            if (!isSatisfylocFilter(bagA.getSize(),
-                                    bagB.getSize(), matchCount,
-                                    computedThreshold, tokenSeenInA,
-                                    tokenSeenInB)) {
-                                break;
-                            }
+                        if (this.hasPermission(LOC_FILTER_CANDIDATES) && !isSatisfylocFilter(bagA.getSize(), bagB.getSize(), matchCount, computedThreshold, tokenSeenInA, tokenSeenInB)) {
+                            break;
                         }
                         if (listBItr.hasNext() && listAItr.hasNext()) {
                             tokenFrequencyB = listBItr.next();

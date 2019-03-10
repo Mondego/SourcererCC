@@ -89,8 +89,7 @@ public class CloneHelper {
     }
 
     /**
-     * @param threshold
-     *            the threshold to set
+     * @param threshold the threshold to set
      */
     public void setThreshold(float threshold) {
         this.threshold = threshold;
@@ -101,21 +100,15 @@ public class CloneHelper {
      * Each Bag is a Map that has Token as a key and token's frequency in the
      * method as value. the method compares two sets and outputs the clones.
      * 
-     * @param setA
-     *            set of Bags
-     * @param setB
-     *            set of Bags
+     * @param setA set of Bags
+     * @param setB set of Bags
      */
     public void detectClones(Set<Bag> setA, Set<Bag> setB, boolean useJaccardSimilarity) {
-        // iterate on setA
         for (Bag bagInSetA : setA) {
             // compare this map with every map in setB and report clones
-            // iterate on setB
             for (Bag bagInSetB : setB) {
-                if (bagInSetA.getId() != bagInSetB.getId()) {
-                    if (bagInSetA.getId() < bagInSetB.getId()) {
-                        this.detectClones(bagInSetA, bagInSetB, useJaccardSimilarity);
-                    }
+                if (bagInSetA.getId() < bagInSetB.getId()) {
+                    this.detectClones(bagInSetA, bagInSetB, useJaccardSimilarity);
                 }
             }
         }
@@ -124,10 +117,8 @@ public class CloneHelper {
     /**
      * the method compares two maps and reports if they are clones.
      * 
-     * @param bagA
-     *            map of token as key and it's frequency in a method as value
-     * @param bagB
-     *            map of token as key and it's frequency in a method as value
+     * @param bagA map of token as key and it's frequency in a method as value
+     * @param bagB map of token as key and it's frequency in a method as value
      */
     public void detectClones(Bag bagA, Bag bagB, boolean useJaccardSimilarity) {
         int computedThreshold = 0;
@@ -140,9 +131,6 @@ public class CloneHelper {
             int computedThreshold_overlap = (int) Math.ceil((this.th * maxLength) / (10 * this.MUL_FACTOR));
             computedThreshold = computedThreshold_overlap;
         }
-        // threshold.
-        // System.out.println("threshold is "+ computedThreshold +
-        // " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
         // iterate on bagA
         int count = 0;
         for (TokenFrequency tokenFrequencyA : bagA) {
@@ -156,18 +144,15 @@ public class CloneHelper {
                     // report clone.
                     this.reportClone(bagA, bagB, this.previousBag);
                     this.previousBag = bagA;
-                    break; // no need to iterate on other keys clone has been
-                           // found
+                    // no need to iterate on other keys clone has been found
+                    break;
                 }
             }
         }
     }
 
     /**
-     * returns the string for the insuptSet.
-     * 
-     * @param inputSet
-     * @return String
+     * @return the string for the inputSet.
      */
     public String stringify(Set<Bag> inputSet) {
         String returnString = "";
