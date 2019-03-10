@@ -58,9 +58,10 @@ public class SearchManager {
     public static String QUERY_DIR_PATH;
     public static String DATASET_DIR;
     public static String WFM_DIR_PATH;
-    public static Writer clonesWriter; // writer to write the output
-    public static Writer recoveryWriter; // writes the lines processed during
-                                         // search. for recovery purpose.
+    // writer to write the output
+    public static Writer clonesWriter;
+    // writes the lines processed during search. for recovery purpose.
+    public static Writer recoveryWriter;
     public static float th; // args[2]
     private static final String ACTION_INIT = "init";
     public final static String ACTION_INDEX = "index";
@@ -76,9 +77,9 @@ public class SearchManager {
     private long timeTotal = 0;
     public static String ACTION;
     public boolean appendToExistingFile = true;
-    TestGson testGson;
+    public TestGson testGson;
     public static final Integer MUL_FACTOR = 100;
-    int deletemeCounter = 0;
+    public int deletemeCounter = 0;
     public static double ramBufferSizeMB = 100 * 1;
     private long bagsSortTime = 0;
     public static ThreadedChannel<String> queryLineQueue;

@@ -1,10 +1,10 @@
 package com.mondego.models;
 
 public class ClonePair {
-    long qid;
-    long cid;
-    long q_pid; // parent id of query
-    long c_pid; // parent id of candidate
+    public long qid;
+    public long cid;
+    public long q_pid; // parent id of query
+    public long c_pid; // parent id of candidate
 
     public ClonePair(long q_pid, long qid, long candidate_pid, long candidateId) {
         super();
