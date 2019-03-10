@@ -296,8 +296,7 @@ public class CloneDetectorWithFilter {
                     }
                 } else {
                     if (have_permission && !isSatisfylocFilter(bagA.getSize(), bagB.getSize() + tokenFrequencyB.getFrequency(), matchCount, computedThreshold, tokenSeenInA, tokenSeenInB)) {
-                            break;
-                        }
+                        break;
                     }
                     if (bagAItr.hasNext()) {
                         tokenFrequencyA = bagAItr.next();
