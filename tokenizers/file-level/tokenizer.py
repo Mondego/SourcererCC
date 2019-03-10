@@ -136,7 +136,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
   global file_count
 
-  logging.info('Attempting to process_file_contents '+os.path.join(container_path, file_path))
   file_count += 1
   (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
   (file_hash,lines,LOC,SLOC) = final_stats
@@ -149,7 +148,6 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
   ww_time = dt.datetime.now()
   FILE_tokens_file.write(','.join([proj_id, str(file_id), str(tokens_count_total), str(tokens_count_unique), token_hash + tokens]) + '\n')
   w_time += (dt.datetime.now() - ww_time).microseconds
-  logging.info('Successfully ran process_file_contents '+os.path.join(container_path, file_path))
   return file_parsing_times + [w_time] # [s_time, t_time, w_time, hash_time, re_time]
 
 def process_regular_folder(args, folder_path, files):
