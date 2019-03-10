@@ -8,8 +8,8 @@ flag = None
 
 def import_tokenizer_output_files_tokens(db, output_path, logging):
   bookkeeping_file_path = os.path.join(output_path,'bookkeeping_projs')
-  files_stats_path      = os.path.join(output_path,'files_stats')
-  files_tokens_path     = os.path.join(output_path,'files_tokens')
+  files_stats_path = os.path.join(output_path,'files_stats')
+  files_tokens_path = os.path.join(output_path,'files_tokens')
 
   try:
     logging.info('## Warming up token values')
@@ -158,7 +158,7 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
         logging.info('Getting info from '+file)
         with open(file, 'r') as csvfile:
           for line in csvfile:
-            pid, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
+            _, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
             token_info[fid] = [total_tokens, unique_tokens, thash]
 
     logging.info('## Importing SO blocks and stats')
