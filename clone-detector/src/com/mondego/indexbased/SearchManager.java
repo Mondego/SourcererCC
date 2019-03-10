@@ -118,14 +118,14 @@ public class SearchManager {
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.ACTION = args[0];
-        int qlq_thread_count;
-        int qbq_thread_count;
-        int qcq_thread_count;
-        int vcq_thread_count;
-        int rcq_thread_count;
-        int threadsToProcessBagsToSortQueue;
-        int threadToProcessIIQueue;
-        int threadsToProcessFIQueue;
+        int qlq_thread_count = -1;
+        int qbq_thread_count = -1;
+        int qcq_thread_count = -1;
+        int vcq_thread_count = -1;
+        int rcq_thread_count = -1;
+        int threadsToProcessBagsToSortQueue = -1;
+        int threadToProcessIIQueue = -1;
+        int threadsToProcessFIQueue = -1;
         try {
             SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
 
