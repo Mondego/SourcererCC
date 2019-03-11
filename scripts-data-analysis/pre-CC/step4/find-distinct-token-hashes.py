@@ -15,9 +15,9 @@ else:
 set_ids    = set()
 set_hashes = set()
 
-for file in os.listdir(sys.argv[1]):
-  if file.endswith(".tokens"):
-    file_path = os.path.join(sys.argv[1], file)
+for tokens_file in os.listdir(sys.argv[1]):
+  if tokens_file.endswith(".tokens"):
+    file_path = os.path.join(sys.argv[1], tokens_file)
     print 'Searching on ',file_path
     with open(file_path,'r') as file_book, open(os.path.join(PATH_distinct_token_hashes,'distinct-tokens.tokens'),'a+') as result_tokens:
       for line in file_book:
@@ -28,9 +28,9 @@ for file in os.listdir(sys.argv[1]):
           set_ids.add(line.split(',')[1])
 
 
-for file in os.listdir(sys.argv[2]):
-  if file.endswith(".stats"):
-    file_path = os.path.join(sys.argv[2], file)
+for stats_file in os.listdir(sys.argv[2]):
+  if stats_file.endswith(".stats"):
+    file_path = os.path.join(sys.argv[2], stats_file)
     print 'Searching on ',file_path
     with open(file_path,'r') as file_book, open(os.path.join(PATH_distinct_token_hashes,'distinct-tokens.stats'),'a+') as result_stats:
       for line in file_book:

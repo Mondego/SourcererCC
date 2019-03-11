@@ -20,22 +20,20 @@ import com.mondego.indexbased.SearchManager;
 import com.mondego.utility.BlockInfo;
 
 public class Shard {
-    int id;
-    int minSize, maxSize;
-    int minBagSizeToIndex;
-    int maxBagSizeToIndex;
-    IndexWriter invertedIndexWriter;
-    IndexWriter forwardIndexWriter;
+    public int id;
+    public int minSize, maxSize;
+    public int minBagSizeToIndex;
+    public int maxBagSizeToIndex;
+    public IndexWriter invertedIndexWriter;
+    public IndexWriter forwardIndexWriter;
     private static final Logger logger = LogManager.getLogger(Shard.class);
 
-    public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch,
-            boolean forWriting) {
+    public Shard(int id, int minBagSizeToSearch, int maxBagSizeToSearch, boolean forWriting) {
         this.id = id;
         this.minSize = minBagSizeToSearch;
         this.maxSize = maxBagSizeToSearch;
         this.minBagSizeToIndex = BlockInfo.getMinimumSimilarityThreshold(
                 minBagSizeToSearch, SearchManager.th);
-        ; // minBagSizeToSearch;
         this.maxBagSizeToIndex = BlockInfo.getMaximumSimilarityThreshold(
                 maxBagSizeToSearch, SearchManager.th);
         if (forWriting) {
@@ -80,15 +78,11 @@ public class Shard {
     }
 
     public void setInvertedIndexWriter() {
-        WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(
-                Version.LUCENE_46);
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
-                Version.LUCENE_46, whitespaceAnalyzer);
+        WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(Version.LUCENE_46);
+        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_46, whitespaceAnalyzer);
         indexWriterConfig.setRAMBufferSizeMB(SearchManager.ramBufferSizeMB);
         indexWriterConfig.setOpenMode(OpenMode.CREATE);
-        // index
-        TieredMergePolicy mergePolicy = (TieredMergePolicy) indexWriterConfig
-                .getMergePolicy();
+        TieredMergePolicy mergePolicy = (TieredMergePolicy)indexWriterConfig.getMergePolicy();
 
         mergePolicy.setNoCFSRatio(0);// what was this for?
         mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
@@ -97,8 +91,7 @@ public class Shard {
             FSDirectory dir = FSDirectory.open(new File(SearchManager.ROOT_DIR
                     + SearchManager.NODE_PREFIX + "/index/shards/" + this.id));
             if (SearchManager.invertedIndexDirectoriesOfShard.containsKey(id)) {
-                List<FSDirectory> dirs = SearchManager.invertedIndexDirectoriesOfShard
-                        .get(id);
+                List<FSDirectory> dirs = SearchManager.invertedIndexDirectoriesOfShard .get(id);
                 dirs.add(dir);
             } else {
                 List<FSDirectory> dirs = new ArrayList<FSDirectory>();
@@ -117,12 +110,10 @@ public class Shard {
 
     public void setForwardIndexWriter() {
         KeywordAnalyzer keywordAnalyzer = new KeywordAnalyzer();
-        IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(
-                Version.LUCENE_46, keywordAnalyzer);
+        IndexWriterConfig fwdIndexWriterConfig = new IndexWriterConfig(Version.LUCENE_46, keywordAnalyzer);
         fwdIndexWriterConfig.setRAMBufferSizeMB(SearchManager.ramBufferSizeMB);
         fwdIndexWriterConfig.setOpenMode(OpenMode.CREATE);
-        TieredMergePolicy mergePolicy = (TieredMergePolicy) fwdIndexWriterConfig
-                .getMergePolicy();
+        TieredMergePolicy mergePolicy = (TieredMergePolicy)fwdIndexWriterConfig.getMergePolicy();
 
         mergePolicy.setNoCFSRatio(0);// what was this for?
         mergePolicy.setMaxCFSSegmentSizeMB(0); // what was this for?
@@ -130,8 +121,7 @@ public class Shard {
             FSDirectory dir = FSDirectory.open(new File(SearchManager.ROOT_DIR
                     + SearchManager.NODE_PREFIX + "/fwdindex/shards/" + id));
             if (SearchManager.forwardIndexDirectoriesOfShard.containsKey(id)) {
-                List<FSDirectory> dirs = SearchManager.forwardIndexDirectoriesOfShard
-                        .get(id);
+                List<FSDirectory> dirs = SearchManager.forwardIndexDirectoriesOfShard.get(id);
                 dirs.add(dir);
             } else {
                 List<FSDirectory> dirs = new ArrayList<FSDirectory>();
@@ -160,14 +150,8 @@ public class Shard {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-        return "Shard [id=" + id + ", minBagSizeToIndex=" + minBagSizeToIndex
-                + ", maxBagSizeToIndex=" + maxBagSizeToIndex + "]";
+        return "Shard [id=" + id + ", minBagSizeToIndex=" + minBagSizeToIndex + ", maxBagSizeToIndex=" + maxBagSizeToIndex + "]";
     }
 }

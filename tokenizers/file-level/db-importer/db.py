@@ -1,4 +1,4 @@
-import sys, os
+import sys
 import mysql.connector
 from mysql.connector import errorcode
 import logging
@@ -138,7 +138,7 @@ class DB:
     try:
       ## All cursors will be buffered by default
       self.connection = mysql.connector.connect(user=self.DB_user,password=self.DB_pass,host=self.host)
-      
+
       #Causes a commit operation after each SQL statement.
       #Carefull setting autocommit to True, but it's appropriate for MyISAM, where transactions are not applicable.
       #self.autocommit = True
@@ -177,7 +177,7 @@ class DB:
       self.connection.close()
     except Exception as err:
       self.logging.error('Error on DB.close()')
-      self.logging.error(e)
+      self.logging.error(err)
 
   def check_connection(self):
     try:
@@ -188,11 +188,9 @@ class DB:
       self.logging.error(err)
       sys.exit(1)
 
-  def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, 
-               hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent, flush = False):
+  def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent, flush = False):
     if not flush:
-      self.clones.append( clone_list % (cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, 
-                        hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent) )
+      self.clones.append(clone_list % (cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles, hostAffectedPercent))
       if len(self.clones) < PROJECT_CLONES_BUFFER_SIZE:
         return
 
@@ -220,7 +218,7 @@ class DB:
     cursor = self.connection.cursor()
 
     if projectUrl is None:
-      projectUrl = 'NULL' 
+      projectUrl = 'NULL'
 
     try:
       cursor.execute(add_projects, (proj_id, self.sanitize_string(projectPath), self.sanitize_string(projectUrl)))
@@ -244,12 +242,10 @@ class DB:
     cursor = self.connection.cursor()
     try:
       try:
-        results = cursor.execute(add_files_stats_ignore_repetition % (slist))
+        cursor.execute(add_files_stats_ignore_repetition % (slist))
       except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_DUP_ENTRY:
-          # If the error is because the entry is a duplicate we wont't care about it
-          pass
-        else:
+        # If the error is because the entry is a duplicate we wont't care about it
+        if err.errno != errorcode.ER_DUP_ENTRY:
           raise err
     except Exception as err:
       self.logging.error('Failed to insert files stats with info: %s' % (','.join([fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash])) )
@@ -270,12 +266,10 @@ class DB:
     cursor = self.connection.cursor()
     try:
       try:
-        results = cursor.execute(add_blocks_stats_ignore_repetition % (slist))
+        cursor.execute(add_blocks_stats_ignore_repetition % (slist))
       except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_DUP_ENTRY:
-          # If the error is because the entry is a duplicate we wont't care about it
-          pass
-        else:
+        # If the error is because the entry is a duplicate we wont't care about it
+        if err.errno != errorcode.ER_DUP_ENTRY:
           raise err
     except Exception as err:
       self.logging.error('Failed to insert blocks stats with info: %s' % (','.join([blockHash, blockLines, blockLOC, blockSLOC, totalTokens, uniqueTokens, tokenHash])) )
@@ -358,8 +352,8 @@ class DB:
     cursor = self.connection.cursor()
     try:
       cursor.execute("""SELECT Max(projectId) FROM projects;""")
-      (id,) = cursor.fetchone()
-      return id
+      (res,) = cursor.fetchone()
+      return res
     except Exception as err:
       self.logging.error('Failed to get max project id')
       self.logging.error(err)

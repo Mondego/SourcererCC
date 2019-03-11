@@ -1,4 +1,4 @@
-import sys, os, csv
+import sys, os
 from db import DB
 import logging
 import urllib
@@ -8,29 +8,29 @@ flag = None
 
 def import_tokenizer_output_files_tokens(db, output_path, logging):
   bookkeeping_file_path = os.path.join(output_path,'bookkeeping_projs')
-  files_stats_path      = os.path.join(output_path,'files_stats')
-  files_tokens_path     = os.path.join(output_path,'files_tokens')
+  files_stats_path = os.path.join(output_path,'files_stats')
+  files_tokens_path = os.path.join(output_path,'files_tokens')
 
   try:
     logging.info('## Warming up token values')
     token_info = {}
-    for file in os.listdir(files_tokens_path):
-      if file.endswith('.tokens'):
-        file = os.path.join(files_tokens_path,file)
-        logging.info('Getting info from '+file)
+    for filename in os.listdir(files_tokens_path):
+      if filename.endswith('.tokens'):
+        filename = os.path.join(files_tokens_path, filename)
+        logging.info('Getting info from '+filename)
         with open(file, 'r') as csvfile:
           for line in csvfile:
-            pid, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
+            _, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
             token_info[fid] = [total_tokens, unique_tokens, thash]
 
     logging.info('## Import into database')
 
     logging.info('## Importing projects')
-    # Insert projects 
-    for file in os.listdir(bookkeeping_file_path):
-      if file.endswith('.projs'):
-        file = os.path.join(bookkeeping_file_path,file)
-        logging.info('Importing from '+file)
+    # Insert projects
+    for filename in os.listdir(bookkeeping_file_path):
+      if filename.endswith('.projs'):
+        filename = os.path.join(bookkeeping_file_path, filename)
+        logging.info('Importing from '+filename)
         with open(file, 'r') as csvfile:
           for line in csvfile:
             entry_split = (line[:-1]).split(',')
@@ -40,7 +40,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
 
             if(len(entry_split) == 2):
               if flag == 'files-autoID':
-                ret = db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
+                db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
               else:
                 db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
             else:
@@ -53,26 +53,20 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
                 logging.warning('String partitioned into:'+proj_id+'|'+path+'|'+url)
                 logging.warning('Previous warning was solved')
 
-                #if flag == 'files-autoID':
-                #  proj_id = 'NULL'
-                if flag == 'files-autoID':
-                  ret = db.insert_project(proj_id,path,url)
-                else:
-                  db.insert_project(proj_id,path,url)
-
+                db.insert_project(proj_id,path,url)
               else:
                 logging.error('Problems parsing project: '+str(entry_split))
 
     logging.info('## Importing files and stats')
     # Insert files and stats
-    for file in os.listdir(files_stats_path):
-      if file.endswith('.stats'):
-        file = os.path.join(files_stats_path,file)
-        logging.info('Importing from '+file)
-        with open(file, 'r') as csvfile:
+    for filename in os.listdir(files_stats_path):
+      if filename.endswith('.stats'):
+        filename = os.path.join(files_stats_path,filename)
+        logging.info('Importing from '+filename)
+        with open(filename, 'r') as csvfile:
           for entry in csvfile:
             entry_split = (entry[:-1]).split(',')
-            if len(entry_split) == 9: 
+            if len(entry_split) == 9:
               proj_id, file_id, path, url, file_hash, bytess, lines, loc, sloc = entry_split
 
             else: # Something went wrong with parsing
@@ -125,25 +119,25 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
 
     logging.info('## Warming up block token values')
     token_info = {}
-    for file in os.listdir(blocks_tokens_path):
-      if file.endswith('.tokens'):
-        file = os.path.join(blocks_tokens_path,file)
-        logging.info('Getting info from '+file)
-        with open(file, 'r') as csvfile:
+    for filename in os.listdir(blocks_tokens_path):
+      if filename.endswith('.tokens'):
+        filename = os.path.join(blocks_tokens_path,filename)
+        logging.info('Getting info from '+filename)
+        with open(filename, 'r') as csvfile:
           for line in csvfile:
-            pid, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
+            _, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
             token_info[fid] = [total_tokens, unique_tokens, thash]
 
     logging.info('## Importing blocks and stats')
     # Insert files and stats
-    for file in os.listdir(blocks_stats_path):
-      if file.endswith('.stats'):
-        file = os.path.join(blocks_stats_path,file)
-        logging.info('Importing from '+file)
-        with open(file, 'r') as csvfile:
+    for filename in os.listdir(blocks_stats_path):
+      if filename.endswith('.stats'):
+        filename = os.path.join(blocks_stats_path,filename)
+        logging.info('Importing from '+filename)
+        with open(filename, 'r') as csvfile:
           for entry in csvfile:
             entry_split = (entry[:-1]).split(',')
-            if len(entry_split) == 8: 
+            if len(entry_split) == 8:
               proj_id, block_id, block_hash, lines, loc, sloc, starting_line, ending_line = entry_split
 
               b_id = block_id[:5]
@@ -158,25 +152,25 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
 
     logging.info('## Warming up SO block token values')
     token_info = {}
-    for file in os.listdir(SO_blocks_tokens_path):
-      if file.endswith('.tokens'):
-        file = os.path.join(SO_blocks_tokens_path,file)
-        logging.info('Getting info from '+file)
-        with open(file, 'r') as csvfile:
+    for filename in os.listdir(SO_blocks_tokens_path):
+      if filename.endswith('.tokens'):
+        filename = os.path.join(SO_blocks_tokens_path, filename)
+        logging.info('Getting info from '+filename)
+        with open(filename, 'r') as csvfile:
           for line in csvfile:
-            pid, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
+            _, fid, total_tokens, unique_tokens, thash = line.split('@#@')[0].split(',')
             token_info[fid] = [total_tokens, unique_tokens, thash]
 
     logging.info('## Importing SO blocks and stats')
     # Insert files and stats
-    for file in os.listdir(SO_blocks_stats_path):
-      if file.endswith('.stats'):
-        file = os.path.join(SO_blocks_stats_path,file)
-        logging.info('Importing from '+file)
-        with open(file, 'r') as csvfile:
+    for filename in os.listdir(SO_blocks_stats_path):
+      if filename.endswith('.stats'):
+        filename = os.path.join(SO_blocks_stats_path, filename)
+        logging.info('Importing from '+filename)
+        with open(filename, 'r') as csvfile:
           for entry in csvfile:
             entry_split = (entry[:-1]).split(',')
-            if len(entry_split) == 8: 
+            if len(entry_split) == 8:
               post_id, block_id, block_hash, lines, loc, sloc, starting_line, ending_line = entry_split
 
               block_hash = block_hash[1:-1] # To remove surrounding quotation marks
@@ -189,14 +183,14 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
 
     logging.info('## Importing files and stats')
     # Insert files and stats
-    for file in os.listdir(files_stats_path):
-      if file.endswith('.stats'):
-        file = os.path.join(files_stats_path,file)
-        logging.info('Importing from '+file)
-        with open(file, 'r') as csvfile:
+    for filename in os.listdir(files_stats_path):
+      if filename.endswith('.stats'):
+        filename = os.path.join(files_stats_path, filename)
+        logging.info('Importing from '+filename)
+        with open(filename, 'r') as csvfile:
           for entry in csvfile:
             entry_split = (entry[:-1]).split(',')
-            if len(entry_split) == 9: 
+            if len(entry_split) == 9:
               proj_id, file_id, path, url, file_hash, bytess, lines, loc, sloc = entry_split
 
             else: # Something went wrong with parsing
@@ -228,12 +222,12 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
     db.flush_files_and_stats()
 
     logging.info('## Importing projects')
-    # Insert projects 
-    for file in os.listdir(bookkeeping_file_path):
-      if file.endswith('.projs'):
-        file = os.path.join(bookkeeping_file_path,file)
-        logging.info('Importing from '+file)
-        with open(file, 'r') as csvfile:
+    # Insert projects
+    for filename in os.listdir(bookkeeping_file_path):
+      if filename.endswith('.projs'):
+        filename = os.path.join(bookkeeping_file_path, filename)
+        logging.info('Importing from '+filename)
+        with open(filename, 'r') as csvfile:
           for line in csvfile:
             entry_split = (line[:-1]).split(',')
 
@@ -267,8 +261,8 @@ def import_pairs(db, pairs_path):
     pair_number = 0
 
     print '## Importing pairs from',pairs_path
-    with open(pairs_path, 'r') as file:
-      for line in file:
+    with open(pairs_path, 'r') as file_descr:
+      for line in file_descr:
         pair_number += 1
         line_split = line[:-1].split(',')
 
@@ -313,9 +307,8 @@ if __name__ == "__main__":
     output_path = sys.argv[5]
   if len(sys.argv) >= 7:
     pairs_path  = sys.argv[6]
-  
-  try:
 
+  try:
     if len(sys.argv) >= 5:
       logging.info('Starting DB: '+DB_name+' with '+user+':'+passw)
       db_object = DB(user, DB_name, passw, logging)
@@ -329,10 +322,10 @@ if __name__ == "__main__":
     #if len(sys.argv) >= 7:
     #    logging.info('### Importing output from tokenizer')
     #    #import_pairs(pairs_path)
-    
+
     db_object.close()
 
   except Exception as e:
     print 'Error on __main__'
     print e
-  
+

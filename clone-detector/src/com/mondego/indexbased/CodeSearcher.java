@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.mondego.indexbased;
 
 import java.io.File;
@@ -12,7 +9,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -24,16 +20,10 @@ import org.apache.lucene.util.Version;
 
 import com.mondego.models.QueryBlock;
 import com.mondego.models.TokenInfo;
-import com.mondego.noindex.CloneHelper;
 
-/**
- * @author vaibhavsaini
- * 
- */
 public class CodeSearcher {
     private String indexDir;
     private IndexSearcher searcher;
-    private Analyzer analyzer;
     private IndexReader reader;
     private QueryParser queryParser;
     private String field;
@@ -44,34 +34,20 @@ public class CodeSearcher {
         this.field = field;
         this.indexDir = indexDir;
         try {
-            this.reader = DirectoryReader.open(FSDirectory.open(new File(
-                    this.indexDir)));
+            this.reader = DirectoryReader.open(FSDirectory.open(new File(this.indexDir)));
         } catch (IOException e) {
-            logger.error("cant get the reader to index dir, exiting, "
-                    + indexDir);
+            logger.error("cant get the reader to index dir, exiting, " + indexDir);
             e.printStackTrace();
             System.exit(1);
         }
         this.searcher = new IndexSearcher(this.reader);
-        this.analyzer = new KeywordAnalyzer();//
-                //new WhitespaceAnalyzer(Version.LUCENE_46); // TODO: pass
-                                                                   // the
-                                                                   // analyzer
-                                                                   // as
-                                                                   // argument
-                                                                   // to
-                                                                   // constructor
-        new CloneHelper(); // i don't remember why we are making this object?
-        this.queryParser = new QueryParser(Version.LUCENE_46, this.field,
-                analyzer);
+        // TODO: pass  the analyzer as argument to constructor
+        Analyzer analyzer = new KeywordAnalyzer();
+        this.queryParser = new QueryParser(Version.LUCENE_46, this.field, analyzer);
     }
 
-    public void search(QueryBlock queryBlock, TermSearcher termSearcher)
-            throws IOException {
-        // List<String> tfsToRemove = new ArrayList<String>();
+    public void search(QueryBlock queryBlock, TermSearcher termSearcher) throws IOException {
         termSearcher.setReader(this.reader);
-        // System.out.println("setting reader: "+this.reader +
-        // Util.debug_thread());
         termSearcher.setQuerySize(queryBlock.getSize());
         termSearcher.setComputedThreshold(queryBlock.getComputedThreshold());
         int termsSeenInQuery = 0;
@@ -101,10 +77,6 @@ public class CodeSearcher {
             synchronized (this) {
                 query = queryParser.parse(doc.get("id"));
             }
-            /*
-             * System.out.println("Searching for: " + query.toString(this.field)
-             * + " : " + doc.get("id"));
-             */
             this.searcher.search(query, result);
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
             logger.warn("cannot parse (id): " + doc.get("id") + ". Ignoring this.");
@@ -119,10 +91,6 @@ public class CodeSearcher {
             synchronized (this) {
                 query = queryParser.parse(id);
             }
-            /*
-             * logger.warn("Searching for: " + query.toString(this.field)
-             * + " : " + doc.get("id"));
-             */
             this.searcher.search(query, result);
         } catch (org.apache.lucene.queryparser.classic.ParseException e) {
             logger.warn("cannot parse (" + id +"):" + id + ". Ignoring this.");
@@ -138,10 +106,6 @@ public class CodeSearcher {
             synchronized (this) {
                 query = queryParser.parse(key);
             }
-            /*
-             * System.out.println("Searching for: " + query.toString(this.field)
-             * + " : " + doc.get("id"));
-             */
             this.searcher.search(query, result);
             List<Integer> blocks = result.getBlocks();
             if (blocks.size() == 1) {
@@ -161,27 +125,13 @@ public class CodeSearcher {
         return frequency;
     }
 
-    /*
-     * public synchronized CustomCollectorFwdIndex search(Document doc, int i)
-     * throws IOException { CustomCollectorFwdIndex result = new
-     * CustomCollectorFwdIndex(); Query query; try { query =
-     * queryParser.parse(doc.get("id"));
-     * 
-     * System.out.println("Searching for: " + query.toString(this.field) + " : "
-     * + doc.get("id"));
-     * 
-     * this.searcher.search(query, result); } catch
-     * (org.apache.lucene.queryparser.classic.ParseException e) {
-     * System.out.println("cannot parse " + e.getMessage()); } return result; }
-     */
-
     public Document getDocument(long docId) throws IOException {
-	try {
-	    return this.searcher.doc((int) docId);
-	} catch (IllegalArgumentException e) {
-	    logger.warn(SearchManager.NODE_PREFIX + ", CodeSearcher on " + indexDir + ": invalid docId " + docId);
-	    return null;
-	}
+	    try {
+            return this.searcher.doc((int) docId);
+        } catch (IllegalArgumentException e) {
+            logger.warn(SearchManager.NODE_PREFIX + ", CodeSearcher on " + indexDir + ": invalid docId " + docId);
+            return null;
+        }
     }
 
     /**
@@ -192,19 +142,17 @@ public class CodeSearcher {
     }
 
     /**
-     * @param reader
-     *            the reader to set
+     * @param reader the reader to set
      */
     public void setReader(IndexReader reader) {
         this.reader = reader;
     }
 
     public void close() {
-	try {
-	    this.reader.close();
-	} catch (IOException e) {
-            logger.warn(e.getMessage());
-	}
+        try {
+            this.reader.close();
+        } catch (IOException e) {
+                logger.warn(e.getMessage());
+        }
     }
-
 }

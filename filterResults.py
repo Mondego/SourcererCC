@@ -22,12 +22,12 @@ def compareLisenses(license1, license2) :
       #      return True
     #return False
 
-def renameLicense(license):
+def renameLicense(my_license):
     basicLicenses = ['MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-3-Clause', 'BSD-2-Clause']
     for licenseType in basicLicenses:
-        if licenseType in license:
+        if licenseType in my_license:
             return licenseType
-    return license
+    return my_license
 
 cloneGroups = [[]]
 

@@ -1,6 +1,5 @@
 import logging
-import multiprocessing as mp
-from multiprocessing import Process, Value, Queue
+from multiprocessing import Process, Queue
 import re
 import os, platform
 import collections
@@ -39,8 +38,6 @@ comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
 file_extensions = '.none'
 
 file_count = 0
-
-print('GO')
 
 def read_config():
   global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
@@ -167,7 +164,6 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
   # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
   final_stats  = 'ERROR'
-  final_tokens = 'ERROR'
 
   file_hash = 'ERROR'
   lines     = 'ERROR'
@@ -187,7 +183,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       h_time = dt.datetime.now()
       m = hashlib.md5()
       try:
-        m.update(file_string)
+        m.update(file_string.encode('utf-8'))
       except Exception as e:
         logging.info('Error on tokenize_blocks (1) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
       file_hash = m.hexdigest()
@@ -231,7 +227,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         h_time = dt.datetime.now()
         m = hashlib.md5()
         try:
-          m.update(block_string)
+          m.update(block_string.encode('utf-8'))
         except Exception as e:
           logging.info('Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
         block_hash = m.hexdigest()
@@ -421,7 +417,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
         # Filter by the correct extension
         if not os.path.splitext(f.name)[1] in file_extensions:
           continue
-        
+
         # This is very strange, but I did find some paths with newlines,
         # so I am simply ignoring them
         if '\n' in file_path:
@@ -528,9 +524,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
     if(len(tar_files) != 1):
       logging.warning('Tar not found on <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
       times = [0,0,0,0,0,0]
-      os.path.walk(proj_path, process_regular_folder, 
-             (process_num, proj_id, proj_path, proj_url, base_file_id, 
-              FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times))
+      os.path.walk(proj_path, process_regular_folder, (process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times))
       file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
       zip_time = 0
     else:
@@ -545,7 +539,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
 
   if project_format == 'zipblocks':
     proj_url = 'NULL'
-    
+
     proj_id = str(proj_id_flag) + proj_id
 
     if not os.path.isfile(proj_path):
@@ -553,8 +547,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
       return
 
     zip_file = proj_path
-    times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+    times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
     if times is not None:
       zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
     else:
@@ -564,7 +557,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
 
   if project_format in ['folderblocks']:
     proj_url = 'NULL'
-    
+
     proj_id = str(proj_id_flag) + proj_id
 
     if not os.path.exists(proj_path):
@@ -572,8 +565,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
       return
 
     zip_file = proj_path
-    times = process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
+    times = process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
     if times is not None:
       zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
     else:
@@ -615,8 +607,7 @@ def process_projects(process_num, list_projects, base_file_id, global_queue, pro
         logging.info("Process %s starting", process_num)
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            process_one_project(process_num, str(proj_id), proj_path, base_file_id, 
-                                FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format)
+            process_one_project(process_num, str(proj_id), proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
     logging.info('Process %s finished. %s files in %ss.', process_num, file_count, p_elapsed)
@@ -646,7 +637,7 @@ def kill_child(processes, pid, n_files_processed):
   if processes[pid][0] != None:
     processes[pid][0] = None
     processes[pid][1] += n_files_processed
-    
+
     print("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count))
 
 def active_process_count(processes):

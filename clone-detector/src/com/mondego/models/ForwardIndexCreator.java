@@ -13,9 +13,9 @@ import com.mondego.indexbased.SearchManager;
 
 public class ForwardIndexCreator implements IListener, Runnable {
     private DocumentMaker documentMaker;
-    private Document document;
     private Bag bag;
     private static final Logger logger = LogManager.getLogger(ForwardIndexCreator.class);
+
     public ForwardIndexCreator(Bag bag) {
         super();
         this.documentMaker = new DocumentMaker();
@@ -40,17 +40,16 @@ public class ForwardIndexCreator implements IListener, Runnable {
     private void index(Bag bag) throws InterruptedException {
 	long startTime = System.nanoTime(); 
         List<Shard> shards = SearchManager.getShards(bag);
-        this.document = this.documentMaker.prepareDocumentForFwdIndex(bag);
+        Document document = this.documentMaker.prepareDocumentForFwdIndex(bag);
         for (Shard shard : shards) {
             try {
-                shard.getForwardIndexWriter().addDocument(this.document);
+                shard.getForwardIndexWriter().addDocument(document);
             } catch (IOException e) {
                 logger.error(SearchManager.NODE_PREFIX + ": error in indexing bag, " + bag);
                 e.printStackTrace();
             }
         }
-	long estimatedTime = System.nanoTime() - startTime;
-
+	    long estimatedTime = System.nanoTime() - startTime;
         logger.debug(SearchManager.NODE_PREFIX + " FI, Bag " + bag + " in " + estimatedTime/1000 + " micros");
     }
 

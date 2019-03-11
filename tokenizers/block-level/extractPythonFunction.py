@@ -38,7 +38,6 @@ def getFunctions(filestring, logging, file_path):
 						#not the last one in stmt.body
 						end_lineno = stmt.body[idx+1].lineno-1
 					blocks_linenos.append((start_lineno, end_lineno))
-					
 		if isinstance(stmt, ast.FunctionDef):
 			start_lineno = None
 			end_lineno = None
@@ -52,17 +51,10 @@ def getFunctions(filestring, logging, file_path):
 
 	#print blocks_linenos
 	strings = [""] * len(blocks_linenos)
-	for i, line in enumerate(filestring.split("\n")):	
+	for i, line in enumerate(filestring.split("\n")):
 		for j, linenos in enumerate(blocks_linenos):
 			if i+1 >= linenos[0] and i+1 <= linenos[1]:
 				strings[j] += line + "\n"
 	for string in strings:
 		string = string[:-1] # remove the last "\n"
 	return (blocks_linenos, strings)
-'''
-fileopen = open("test.py")
-file = fileopen.read()
-print getFunctions(file)
-'''
-		
-

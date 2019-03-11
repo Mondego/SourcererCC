@@ -9,9 +9,6 @@ import com.mondego.indexbased.SearchManager;
 
 public class QueryFileProcessor implements ITokensFileProcessor {
     private static final Logger logger = LogManager.getLogger(QueryFileProcessor.class);
-    public QueryFileProcessor() {
-    }
-
     @Override
     public void processLine(String line) {
         try {

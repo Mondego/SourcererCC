@@ -1,10 +1,4 @@
-'''
-Created on Dec 20, 2016
-
-@author: vaibhavsaini
-'''
-import sys, os
-
+import sys
 
 class Analyzer(object):
     def __init__(self, inputfile):
@@ -25,7 +19,7 @@ class Analyzer(object):
                     self.clone_groups[lhsFile] += 1
                 else:
                     self.clone_groups[lhsFile] = 1
-                
+
                 if rhsFile in self.clone_groups:
                     self.clone_groups[rhsFile] += 1
                 else:
@@ -40,7 +34,7 @@ class Analyzer(object):
         with open("results.txt", 'w') as resultfile:
             for key, val in sorted(dict_to_print.items(), key=lambda x:-x[1]):
                 resultfile.write("{key},{val}\n".format(key=key, val=val))
-            
+
 if __name__ == '__main__':
     pairs_file = sys.argv[1]
     analyzer = Analyzer(pairs_file)

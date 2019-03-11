@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 
 import re
-import os
-import collections
 import sys
 import unittest
 import tokenizer
@@ -44,8 +42,8 @@ class TestParser(unittest.TestCase):
         input = """ line 1
                     line 2
                     line 3 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash,lines,LOC,SLOC) = final_stats
+        (final_stats, _, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (_,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,3)
         self.assertEqual(LOC,3)
@@ -56,8 +54,8 @@ class TestParser(unittest.TestCase):
                     line 2
                     line 3
 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash,lines,LOC,SLOC) = final_stats
+        (final_stats, _, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (_,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,3)
         self.assertEqual(LOC,3)
@@ -69,8 +67,8 @@ class TestParser(unittest.TestCase):
                     // line 2
                     line 3 
                 """
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash,lines,LOC,SLOC) = final_stats
+        (final_stats, _, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (_,lines,LOC,SLOC) = final_stats
 
         self.assertEqual(lines,5)
         self.assertEqual(LOC,3)
@@ -78,9 +76,9 @@ class TestParser(unittest.TestCase):
 
     def test_comments(self):
         input = "// Hello\n // World"
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash,lines,LOC,SLOC) = final_stats
-        (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (_,lines,LOC,SLOC) = final_stats
+        (tokens_count_total,tokens_count_unique,_,tokens) = final_tokens
 
         self.assertEqual(lines,2)
         self.assertEqual(LOC,2)
@@ -92,9 +90,9 @@ class TestParser(unittest.TestCase):
 
     def test_multiline_comment(self):
         input = '/* this is a \n comment */ /* Last one */ '
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash,lines,LOC,SLOC) = final_stats
-        (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
+        (_,lines,LOC,SLOC) = final_stats
+        (tokens_count_total, tokens_count_unique, _, tokens) = final_tokens
 
         self.assertEqual(lines,2)
         self.assertEqual(LOC,2)
@@ -105,20 +103,20 @@ class TestParser(unittest.TestCase):
         self.assert_common_properties(tokens)
 
     def test_simple_file(self):
-        input = u"""#include GLFW_INCLUDE_GLU
-                   #include <GLFW/glfw3.h>
-                   #include <cstdio>
-                   
-                   /* Random function */
-                   static void glfw_key_callback(int key, int scancode, int action, int mod){
-                     if(glfw_key_callback){
-                       // Comment here
-                       input_event_queue->push(inputaction);   
-                     }
-                     printf("%s", "asciiじゃない文字");
-                   }""".encode("utf-8")
-        (final_stats, final_tokens, file_times) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash,lines,LOC,SLOC) = final_stats
+        string = u"""#include GLFW_INCLUDE_GLU
+                     #include <GLFW/glfw3.h>
+                     #include <cstdio>
+
+                     /* Random function */
+                     static void glfw_key_callback(int key, int scancode, int action, int mod){
+                       if(glfw_key_callback){
+                         // Comment here
+                         input_event_queue->push(inputaction);   
+                       }
+                       printf("%s", "asciiじゃない文字");
+                     }""".encode("utf-8")
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
+        (_, lines, LOC, SLOC) = final_stats
         (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
         self.assertEqual(lines,12)

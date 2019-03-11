@@ -1,10 +1,8 @@
 package com.mondego.models;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.RejectedExecutionException;
@@ -12,15 +10,11 @@ import java.util.concurrent.RejectedExecutionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mondego.indexbased.WordFrequencyStore;
-
 public class ThreadedChannel<E> {
-
     private ExecutorService executor;
     private Class<Runnable> workerType;
     private Semaphore semaphore;
-    private static final Logger logger = LogManager
-            .getLogger(ThreadedChannel.class);
+    private static final Logger logger = LogManager.getLogger(ThreadedChannel.class);
 
     public ThreadedChannel(int nThreads, Class clazz) {
         this.executor = Executors.newFixedThreadPool(nThreads);

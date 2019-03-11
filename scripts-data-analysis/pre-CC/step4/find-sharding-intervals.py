@@ -6,14 +6,14 @@
 
 import sys
 
-file = sys.argv[1]
+filename = sys.argv[1]
 interval_size = 500000
 filter_threshold = 65
 
 res = dict()
 print '1 - Building dict'
 
-with open(file,'r') as tokens:
+with open(filename, 'r') as tokens:
 	for line in tokens:
 		left_side = line.split('@#@')[0]
 		n_tokens = left_side.split(',')[2]
@@ -51,5 +51,3 @@ n_intervals += 1
 print 'Number of intervals:',n_intervals
 print '** COPY-PASTE LINE BELOW into sourcerercc.properties **'
 print 'SHARD_MAX_NUM_TOKENS='+','.join([str(i) for i in copy_paste_result])
-
-

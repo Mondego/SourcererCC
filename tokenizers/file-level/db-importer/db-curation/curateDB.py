@@ -1,4 +1,4 @@
-import sys, os
+import sys
 from db import DB
 import logging
 
@@ -16,7 +16,7 @@ def curate_projects(db,file_mapping_path_url,logging):
     db.check_connection()
     cursor = db.connection.cursor()
     cursor.execute("SELECT projectId,projectPath,projectUrl FROM projects")
-    for pid,ppath,purl in cursor.fetchall():
+    for pid, ppath, _ in cursor.fetchall():
       if (count % 1000) == 0:
         logging.info("%s projects curated" % count)
         db.connection.commit()
@@ -24,12 +24,9 @@ def curate_projects(db,file_mapping_path_url,logging):
 
       ## Change below accordingly
       java_path_cut   = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/java-projects/')
-      cpp_path_cut    = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/c++-projects/')
-      python_path_cut = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/python-projects/')
 
       new_path = ppath[java_path_cut:]
-      cursor.execute("UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid))
-      # print "UPDATE projects SET projectPath='%s', projectUrl='%s' WHERE projectId=%s LIMIT 1" % (new_path,map_path_url[new_path],pid)
+      cursor.execute("UPDATE projects SET projectPath=?, projectUrl=? WHERE projectId=? LIMIT 1", new_path, map_path_url[new_path], pid)
       count += 1
   except Exception as e:
     logging.error('Problem curating projects: %s' % (e))
@@ -56,8 +53,8 @@ def curate_files(db,logging):
     while(ids_range < max_file_id):
       db.check_connection()
 
-      cursor.execute("SELECT fileId,projectId,relativePath,relativeUrl,fileHash FROM files WHERE fileId BETWEEN %s AND %s" % (ids_range,ids_range+100000))
-      for fid,pid,fpath,furl,fhash in cursor.fetchall():
+      cursor.execute("SELECT fileId, relativePath FROM files WHERE fileId BETWEEN ? AND ?", ids_range, ids_range + 100000)
+      for fid, fpath in cursor.fetchall():
         if (count % 1000) == 0:
           logging.info("%s files curated" % count)
           db.connection.commit()
@@ -67,8 +64,7 @@ def curate_files(db,logging):
         cut = new_path.find('/') + 1
         new_url = new_path[cut:]
 
-        cursor.execute("UPDATE files SET relativePath=\"%s\", relativeUrl=\"%s\" WHERE fileId=%s LIMIT 1" % (new_path,new_url,fid))
-        #print fid,pid,new_path,new_url,fhash
+        cursor.execute("UPDATE files SET relativePath=?, relativeUrl=? WHERE fileId = ? LIMIT 1", new_path, new_url, fid)
 
         count += 1
       ids_range += 100000

@@ -10,23 +10,14 @@ import com.mondego.utility.Util;
 
 public class CloneBugPattern {
     private Writer outputWriter;
-    /**
-     * @param args
-     */
     private ClonesBugsAssembler assembler;
 
-    /**
-     * @param outputWriter
-     * @param assembler
-     */
     public CloneBugPattern() {
         super();
         this.assembler = new ClonesBugsAssembler();
-        ;
     }
 
     public static void main(String[] args) {
-        // TODO Auto-generated method stub
         CloneBugPattern bugPattern = new CloneBugPattern();
         if (args.length > 0) {
             bugPattern.assembler.setProjectName(args[0]);
@@ -35,13 +26,12 @@ public class CloneBugPattern {
             System.out.println(filename);
             try {
                 bugPattern.outputWriter = Util.openFile(filename, false);
-                String bugInfoFile = "input/findbug/findbugs-" + bugPattern.assembler.getProjectName()
-                        + ".csv"; //findbugs-cglib
+                //findbugs-cglib
+                String bugInfoFile = "input/findbug/findbugs-" + bugPattern.assembler.getProjectName()+ ".csv";
                 bugPattern.assembler.setBugInfoFile(bugInfoFile);
                 bugPattern.assembler.process();
                 bugPattern.createOutput();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 System.out
                 .println("error in file creation, exiting");
@@ -57,10 +47,10 @@ public class CloneBugPattern {
         }
     }
 
-    // 1)read clonesname.csv
+    // 1) read clonesname.csv
     // 2) read methodbugdensity.csv
     // 3) for a method and it's clones, get row from methodbugdensity and put
-    // that in outputfile
+    //    that in outputfile
     // 4) enter a blank line
 
     private void createOutput() {
@@ -93,12 +83,10 @@ public class CloneBugPattern {
         Map<String, String> bugsInfoMap = this.assembler.getMethodListing();
         if (bugsInfoMap.containsKey(method)) {
             sb.append(method + Util.CSV_DELIMITER + bugsInfoMap.get(method)+"\n");
-            //Util.writeToFile(this.outputWriter, sb.toString(), true);
             return true;
-        }else{
+        } else {
             sb.append(method +"\n");
+            return false;
         }
-        return false;
     }
-
 }

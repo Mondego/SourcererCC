@@ -1,13 +1,9 @@
-/**
- * 
- */
 package com.mondego.indexbased;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -23,21 +19,18 @@ import org.apache.lucene.document.Document;
 import com.mondego.models.CandidateSimInfo;
 import com.mondego.utility.Util;
 
-/**
- * @author vaibhavsaini
- * 
- */
 public class TermSearcher {
+    public List<Long> earlierDocs;
     private long queryId;
     private String searchTerm;
     private int freqTerm;
     private IndexReader reader;
-    List<Long> earlierDocs;
     private Map<Long, CandidateSimInfo> simMap;
     private int querySize;
     private int computedThreshold;
     private int shard;
     private static final Logger logger = LogManager.getLogger(TermSearcher.class);
+
     public TermSearcher(int shard, long qid) {
         this.earlierDocs = new ArrayList<Long>();
         this.simMap = new HashMap<Long, CandidateSimInfo>();

@@ -27,45 +27,39 @@ class ScriptController(object):
 
     def execute(self):
         print("previous run state {}".format(self.previous_run_state))
-        if self.previous_run_state > STATE_EXECUTE_1:
-            returncode = EXIT_SUCCESS
-        else:
-            returncode = self.run_command_wrapper("execute.sh", "1")
+        if self.previous_run_state <= STATE_EXECUTE_1:
+            self.run_command_wrapper("execute.sh", "1")
         self.current_state += 1
         self.flush_state()
         # execute the init command
-        if self.previous_run_state > STATE_INIT:
-            returncode = EXIT_SUCCESS
-        else:
+        if self.previous_run_state <= STATE_INIT:
             if self.previous_run_state == STATE_INIT:
                 # last time the execution failed at init step. We need to replace the existing gtpm index from the backup
-                returncode = self.run_command_wrapper("restore-gtpm.sh", "")
+                self.run_command_wrapper("restore-gtpm.sh", "")
             else:
                 # take backup of existing gtpmindex before starting init
-                returncode = self.run_command_wrapper("backup-gtpm.sh", "")
+                self.run_command_wrapper("backup-gtpm.sh", "")
             # run the init step
-            returncode = self.run_command_wrapper("runnodes.sh", "init 1")
+            self.run_command_wrapper("runnodes.sh", "init 1")
         self.current_state += 1
 
         # execute index
-        returncode = self.perform_step(STATE_INDEX, "runnodes.sh", "index 1")
+        self.perform_step(STATE_INDEX, "runnodes.sh", "index 1")
         # execute move indexes
-        returncode = self.perform_step(STATE_MOVE_INDEX, "move-index.sh", "")
+        self.perform_step(STATE_MOVE_INDEX, "move-index.sh", "")
         # execute command to create the dir structure
-        returncode = self.perform_step(STATE_EXECUTE_2, "execute.sh", "{}".format(self.num_nodes_search))
-        returncode = self.perform_step(STATE_SEARCH, "runnodes.sh", "search {}".format(self.num_nodes_search))
-        
+        self.perform_step(STATE_EXECUTE_2, "execute.sh", "{}".format(self.num_nodes_search))
+        self.perform_step(STATE_SEARCH, "runnodes.sh", "search {}".format(self.num_nodes_search))
+
         self.flush_state()
         self.current_state = STATE_EXECUTE_1 # go back to EXE 1 state
         print("SUCCESS: Search Completed on all nodes")
 
     def perform_step(self, state, cmd, params):
-        return_code = EXIT_SUCCESS
         self.flush_state()
         if self.previous_run_state <= state:
-            return_code = self.run_command_wrapper(cmd, params)
+            self.run_command_wrapper(cmd, params)
         self.current_state += 1
-        return return_code
 
     def flush_state(self):
         print ("flushing current state {}".format(self.current_state))
@@ -80,13 +74,12 @@ class ScriptController(object):
         else:
             print("{} doesn't exist, creating one with state EXECUTE_1".format(self.script_meta_file_name))
             return STATE_EXECUTE_1
-    
+
     def run_command_wrapper(self, cmd, params):
         command = self.full_script_path(cmd, params)
         return_code = self.run_command(command.split())
         if return_code != EXIT_SUCCESS:
             raise ScriptControllerException("error during executing {}".format(command))
-        return return_code
 
     def run_command(self, cmd):
         print("running command {}".format(" ".join(cmd)))
