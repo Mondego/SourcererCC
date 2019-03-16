@@ -109,46 +109,58 @@ def remove_comments(string, comment_open_close_pattern, comment_inline_pattern):
     return result_string, time
 
 
-def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-    file_hash, hash_time = hash_measuring_time(file_string)
+def tokenize_string(string):
+    tokenized_string = string
+    # Transform separators into spaces (remove them)
+    start_time = dt.datetime.now()
+    for x in separators:
+        tokenized_string = tokenized_string.replace(x, ' ')
+    end_time = dt.datetime.now()
+    time = (end_time - start_time).microseconds
 
-    file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
+    tokens_list = tokenized_string.split()  # Create a list of tokens
+    total_tokens = len(tokens_list)  # Total number of tokens
+    tokens_counter = collections.Counter(tokens_list)  # Count occurrences
+    tokens_bag = dict(tokens_counter)  # Converting Counter to dict, {token: occurences}
+    unique_tokens = len(tokens_bag)  # Unique number of tokens
+    return tokens_bag, total_tokens, unique_tokens, time
 
-    file_string, re_time = remove_comments(file_string, comment_open_close_pattern, comment_inline_pattern)
 
-    file_string = "\n".join([s for s in file_string.splitlines() if s.strip()]).strip()
+# SourcererCC formatting
+def format_tokens(tokens_bag):
+    start_time = dt.datetime.now()
+    tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in tokens_bag.items()])
+    end_time = dt.datetime.now()
+    time = (end_time - start_time).microseconds
+    return tokens, time
 
-    lines = count_lines(file_string)
-    lines_of_code = count_lines(file_string)
-    source_line_of_code = count_lines(file_string, False)
+
+def tokenize_file_string(string, comment_inline_pattern, comment_open_close_pattern, separators):
+    file_hash, hash_time = hash_measuring_time(string)
+
+    string = "".join([s for s in string.splitlines(True) if s.strip()])
+
+    lines = count_lines(string)
+
+    string, removing_comments_time = remove_comments(string, comment_open_close_pattern, comment_inline_pattern)
+
+    string = "\n".join([s for s in string.splitlines() if s.strip()]).strip()
+    lines_of_code = count_lines(string)
+
+    source_line_of_code = count_lines(string, False)
+
     final_stats = (file_hash, lines, lines_of_code, source_line_of_code)
 
-    # Rather a copy of the file string here for tokenization
-    file_string_for_tokenization = file_string
+    tokens_bag, tokens_count_total, tokens_count_unique, tokenization_time = tokenize_string(string)
 
-    # Transform separators into spaces (remove them)
-    s_time = dt.datetime.now()
-    for x in separators:
-        file_string_for_tokenization = file_string_for_tokenization.replace(x, ' ')
-    s_time = (dt.datetime.now() - s_time).microseconds
-
-    file_string_for_tokenization = file_string_for_tokenization.split()  # Create a list of tokens
-    tokens_count_total = len(file_string_for_tokenization)  # Total number of tokens
-    file_string_for_tokenization = collections.Counter(file_string_for_tokenization)  # Count occurrences
-    file_string_for_tokenization = dict(file_string_for_tokenization)  # Converting Counter to dict
-    tokens_count_unique = len(file_string_for_tokenization)  # Unique number of tokens
-
-    t_time = dt.datetime.now()
-    # SourcererCC formatting
-    tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in file_string_for_tokenization.items()])
-    t_time = (dt.datetime.now() - t_time).microseconds
+    tokens, formating_time = format_tokens(tokens_bag)
 
     tokens_hash, hash_delta_time = hash_measuring_time(tokens)
     hash_time += hash_delta_time
 
     final_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
 
-    return final_stats, final_tokens, [s_time, t_time, hash_time, re_time]
+    return final_stats, final_tokens, [tokenization_time, formating_time, hash_time, removing_comments_time]
 
 
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, file_path):
