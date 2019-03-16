@@ -1,17 +1,19 @@
-import logging
-from multiprocessing import Process, Queue
-import re
-import os, platform
 import collections
-import tarfile
-import sys
-import hashlib
 import datetime as dt
-import zipfile
-import extractPythonFunction
-import extractJavaFunction
+import hashlib
 import io
+import logging
+import os
+import platform
+import re
+import sys
+import tarfile
+import zipfile
 from configparser import ConfigParser
+from multiprocessing import Process, Queue
+
+import extractJavaFunction
+import extractPythonFunction
 
 MULTIPLIER = 50000000
 
@@ -134,15 +136,15 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
         file_string_for_tokenization = file_string_for_tokenization.replace(x, ' ')
     s_time = (dt.datetime.now() - s_time).microseconds
 
-    ##Create a list of tokens
+    # Create a list of tokens
     file_string_for_tokenization = file_string_for_tokenization.split()
-    ## Total number of tokens
+    # Total number of tokens
     tokens_count_total = len(file_string_for_tokenization)
-    ##Count occurrences
+    # Count occurrences
     file_string_for_tokenization = collections.Counter(file_string_for_tokenization)
-    ##Converting Counter to dict because according to StackOverflow is better
+    # Converting Counter to dict because according to StackOverflow is better
     file_string_for_tokenization = dict(file_string_for_tokenization)
-    ## Unique number of tokens
+    # Unique number of tokens
     tokens_count_unique = len(file_string_for_tokenization)
 
     t_time = dt.datetime.now()
@@ -233,7 +235,8 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 try:
                     m.update(block_string.encode('utf-8'))
                 except Exception as e:
-                    logging.info('Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
+                    logging.info(
+                        'Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
                 block_hash = m.hexdigest()
                 hash_time = (dt.datetime.now() - h_time).microseconds
                 block_lines = block_string.count('\n')
@@ -265,15 +268,15 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 for x in separators:
                     block_string_for_tokenization = block_string_for_tokenization.replace(x, ' ')
                 se_time += (dt.datetime.now() - s_time).microseconds
-                ##Create a list of tokens
+                # Create a list of tokens
                 block_string_for_tokenization = block_string_for_tokenization.split()
-                ## Total number of tokens
+                # Total number of tokens
                 tokens_count_total = len(block_string_for_tokenization)
-                ##Count occurrences
+                # Count occurrences
                 block_string_for_tokenization = collections.Counter(block_string_for_tokenization)
-                ##Converting Counter to dict because according to StackOverflow is better
+                # Converting Counter to dict because according to StackOverflow is better
                 block_string_for_tokenization = dict(block_string_for_tokenization)
-                ## Unique number of tokens
+                # Unique number of tokens
                 tokens_count_unique = len(block_string_for_tokenization)
                 t_time = dt.datetime.now()
                 # SourcererCC formatting
@@ -285,7 +288,8 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 try:
                     m.update(tokens.encode("utf-8"))
                 except Exception as e:
-                    logging.info('Error on tokenize_blocks (3) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
+                    logging.info(
+                        'Error on tokenize_blocks (3) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
                 hash_time += (dt.datetime.now() - h_time).microseconds
                 block_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
                 blocks_data.append((block_tokens, block_stats, experimental_values[i]))
@@ -310,7 +314,8 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
             return [0, 0, 0, 0, 0]
 
         if len(blocks_data) > 90000:
-            logging.warning('File ' + os.path.join(container_path, file_path) + ' has ' + str(len(blocks_data)) + ' blocks, more than 90000. Range MUST be increased.')
+            logging.warning('File ' + os.path.join(container_path, file_path) + ' has ' + str(
+                len(blocks_data)) + ' blocks, more than 90000. Range MUST be increased.')
             return [0, 0, 0, 0, 0]
 
         # write file stats
@@ -567,8 +572,8 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
             logging.warning('Tar not found on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             times = [0, 0, 0, 0, 0, 0]
             os.path.walk(proj_path, process_regular_folder, (
-            process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj,
-            FILE_stats_file, logging, times))
+                process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj,
+                FILE_stats_file, logging, times))
         else:
             tar_file = tar_files[0]
             times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id,
@@ -577,7 +582,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
         else:
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
-            -1, -1, -1, -1, -1, -1, -1)
+                -1, -1, -1, -1, -1, -1, -1)
 
         FILE_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
 
@@ -598,7 +603,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
         else:
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
-            -1, -1, -1, -1, -1, -1, -1)
+                -1, -1, -1, -1, -1, -1, -1)
 
         FILE_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
 
@@ -619,7 +624,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
         else:
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
-            -1, -1, -1, -1, -1, -1, -1)
+                -1, -1, -1, -1, -1, -1, -1)
 
         FILE_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
 
@@ -695,7 +700,7 @@ def kill_child(processes, pid, n_files_processed):
         processes[pid][1] += n_files_processed
 
         print("Process %s finished, %s files processed (%s). Current total: %s" % (
-        pid, n_files_processed, processes[pid][1], file_count))
+            pid, n_files_processed, processes[pid][1], file_count))
 
 
 def active_process_count(processes):

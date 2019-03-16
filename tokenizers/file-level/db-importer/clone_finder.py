@@ -87,7 +87,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
         # How many of the other projects files are present in this project?
         for clone in clone_set:
             projectId = clone[1]
-            if percentage_host_projects_counter.has_key(projectId):
+            if projectId in percentage_host_projects_counter.keys():
                 percentage_host_projects_counter[projectId] += 1
             else:
                 percentage_host_projects_counter[projectId] = 1

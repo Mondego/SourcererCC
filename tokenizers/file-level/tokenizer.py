@@ -110,15 +110,15 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     for x in separators:
         file_string_for_tokenization = file_string_for_tokenization.replace(x, ' ')
     s_time = (dt.datetime.now() - s_time).microseconds
-    ##Create a list of tokens
+    # Create a list of tokens
     file_string_for_tokenization = file_string_for_tokenization.split()
-    ## Total number of tokens
+    # Total number of tokens
     tokens_count_total = len(file_string_for_tokenization)
-    ##Count occurrences
+    # Count occurrences
     file_string_for_tokenization = collections.Counter(file_string_for_tokenization)
-    ##Converting Counter to dict because according to StackOverflow is better
+    # Converting Counter to dict because according to StackOverflow is better
     file_string_for_tokenization = dict(file_string_for_tokenization)
-    ## Unique number of tokens
+    # Unique number of tokens
     tokens_count_unique = len(file_string_for_tokenization)
     t_time = dt.datetime.now()
     # SourcererCC formatting
@@ -247,7 +247,8 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
 
 
 # noinspection PyUnusedLocal
-def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
+def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file,
+                     FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     logging.info('Attempting to process_zip_ball ' + zip_file)
     with zipfile.ZipFile(proj_path, 'r') as my_file:
@@ -312,8 +313,8 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
             logging.warning('Tar not found on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             times = [0, 0, 0, 0, 0, 0, 0]
             os.path.walk(proj_path, process_regular_folder, (
-            process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj,
-            FILE_stats_file, logging, times))
+                process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj,
+                FILE_stats_file, logging, times))
         else:
             tar_file = tar_files[0]
             times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id,
@@ -398,7 +399,7 @@ def kill_child(processes, pid, n_files_processed):
         processes[pid][0] = None
         processes[pid][1] += n_files_processed
         print("Process %s finished, %s files processed (%s). Current total: %s" % (
-        pid, n_files_processed, processes[pid][1], file_count))
+            pid, n_files_processed, processes[pid][1], file_count))
 
 
 def active_process_count(processes):

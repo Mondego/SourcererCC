@@ -23,7 +23,7 @@ def curate_projects(db, file_mapping_path_url, logging):
                 db.connection.commit()
                 # db.check_connection()
 
-            ## Change below accordingly
+            # Change below accordingly
             java_path_cut = len('/extra/lopes1/mondego-data/projects/di-stackoverflow-clone/github-repo/java-projects/')
 
             new_path = ppath[java_path_cut:]

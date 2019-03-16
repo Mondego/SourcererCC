@@ -200,8 +200,9 @@ class DB:
                              hostAffectedFiles, hostTotalFiles, hostAffectedPercent, flush=False):
         if not flush:
             self.clones.append(clone_list % (
-            cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles, hostTotalFiles,
-            hostAffectedPercent))
+                cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles,
+                hostTotalFiles,
+                hostAffectedPercent))
             if len(self.clones) < PROJECT_CLONES_BUFFER_SIZE:
                 return
 
@@ -245,7 +246,7 @@ class DB:
                                              uniqueTokens, tokenHash, flush=False):
         if not flush:
             self.files_stats.append(files_stats_list % (
-            fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash))
+                fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash))
             if len(self.files_stats) < FILES_STATS_BUFFER_SIZE:
                 return
 
@@ -417,7 +418,7 @@ class DB:
         try:
             try:
                 results = cursor.execute(add_stats_and_check_tokenHash_uniqueness, (
-                fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, tokenHash),
+                    fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, tokenHash),
                                          multi=True)
                 # Execute with multi=True returns a generator, therefore:
                 for cur in results:

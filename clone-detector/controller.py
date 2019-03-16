@@ -44,7 +44,6 @@ def run_command_wrapper(cmd, params):
         raise ScriptControllerException("error during executing {}".format(command))
 
 
-
 # Aim of this class is to run the scripts for SourcererCC with a single command
 class ScriptController(object):
     def __init__(self, num_nodes):

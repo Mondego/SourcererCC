@@ -27,7 +27,7 @@ if __name__ == '__main__':
         with open('index2.csv', 'r') as fin:
             with open('nameToLicense.txt', 'w') as fout2:
                 for row in csv.reader(fin, delimiter=','):
-                    ##ADD FILTERS FOR PROJECTS HERE
+                    # ADD FILTERS FOR PROJECTS HERE
                     if ((('Java\n' in row[3]) or ('Java,' in row[3]))
                             and (row[13] == ''
                                  or 'MIT' in row[13]
