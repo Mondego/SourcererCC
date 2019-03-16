@@ -94,8 +94,8 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
     file_hash = 'ERROR'
     lines = 'ERROR'
-    LOC = 'ERROR'
-    SLOC = 'ERROR'
+    lines_of_code = 'ERROR'
+    source_line_of_code = 'ERROR'
 
     h_time = dt.datetime.now()
     m = hashlib.md5()
@@ -108,9 +108,9 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
         lines += 1
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
 
-    LOC = file_string.count('\n')
+    lines_of_code = file_string.count('\n')
     if not file_string.endswith('\n'):
-        LOC += 1
+        lines_of_code += 1
 
     re_time = dt.datetime.now()
     # Remove tagged comments
@@ -121,11 +121,11 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
 
-    SLOC = file_string.count('\n')
+    source_line_of_code = file_string.count('\n')
     if file_string != '' and not file_string.endswith('\n'):
-        SLOC += 1
+        source_line_of_code += 1
 
-    final_stats = (file_hash, lines, LOC, SLOC)
+    final_stats = (file_hash, lines, lines_of_code, source_line_of_code)
 
     # Rather a copy of the file string here for tokenization
     file_string_for_tokenization = file_string

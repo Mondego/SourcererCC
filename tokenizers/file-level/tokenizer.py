@@ -1,14 +1,15 @@
-import logging
-from multiprocessing import Process, Queue
-import re
-import os, platform
 import collections
-import tarfile
-import sys
-import hashlib
 import datetime as dt
+import hashlib
+import logging
+import os
+import platform
+import re
+import sys
+import tarfile
 import zipfile
 from configparser import ConfigParser
+from multiprocessing import Process, Queue
 
 MULTIPLIER = 50000000
 
@@ -76,7 +77,7 @@ def read_config():
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-    final_stats = final_tokens = file_hash = lines = LOC = SLOC = 'ERROR'
+    final_stats = final_tokens = file_hash = lines = lines_of_code = source_lines_of_code = 'ERROR'
     h_time = dt.datetime.now()
     m = hashlib.md5()
     m.update(file_string.encode("utf-8"))
@@ -87,9 +88,9 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
         lines += 1
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
 
-    LOC = file_string.count('\n')
+    lines_of_code = file_string.count('\n')
     if not file_string.endswith('\n'):
-        LOC += 1
+        lines_of_code += 1
 
     re_time = dt.datetime.now()
     # Remove tagged comments
@@ -99,10 +100,10 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     re_time = (dt.datetime.now() - re_time).microseconds
 
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
-    SLOC = file_string.count('\n')
+    source_lines_of_code = file_string.count('\n')
     if file_string != '' and not file_string.endswith('\n'):
-        SLOC += 1
-    final_stats = (file_hash, lines, LOC, SLOC)
+        source_lines_of_code += 1
+    final_stats = (file_hash, lines, lines_of_code, source_lines_of_code)
     # Rather a copy of the file string here for tokenization
     file_string_for_tokenization = file_string
     # Transform separators into spaces (remove them)
@@ -212,7 +213,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
                 z_time = dt.datetime.now()
                 try:
                     myfile = my_tar_file.extractfile(f)
-                except:
+                except Exception as e:
                     logging.warning(
                         'Unable to open file (1) <' + proj_id + ',' + str(file_id) + ',' + os.path.join(tar_file,
                                                                                                         f.name) + '> (process ' + str(

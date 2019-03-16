@@ -128,10 +128,10 @@ class DB:
     # connection is a MySQLConnection object
     connection = None
 
-    def __init__(self, DB_user, DB_name, DB_pass, logging, host='localhost'):
-        self.DB_user = DB_user
-        self.DB_name = DB_name
-        self.DB_pass = DB_pass
+    def __init__(self, db_user, db_name, db_pass, logging, host='localhost'):
+        self.DB_user = db_user
+        self.DB_name = db_name
+        self.DB_pass = db_pass
         self.logging = logging
         self.host = host
 
@@ -150,13 +150,13 @@ class DB:
             # Causes a commit operation after each SQL statement. Carefull setting autocommit to True,
             # but it's appropriate for MyISAM, where transactions are not applicable. self.autocommit = True
 
-            self.connection.database = DB_name
+            self.connection.database = db_name
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_BAD_DB_ERROR:
-                logging.warning('Database %s does not exist. Creating it now' % DB_name)
+                logging.warning('Database %s does not exist. Creating it now' % db_name)
                 self.create_database()
             else:
-                logging.error('Cannot access DB %s with %s:%s' % (DB_name, DB_user, DB_pass))
+                logging.error('Cannot access DB %s with %s:%s' % (db_name, db_user, db_pass))
                 logging.error(err)
                 exit(1)
 
@@ -195,13 +195,13 @@ class DB:
             self.logging.error(err)
             sys.exit(1)
 
-    def insert_projectClones(self, cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId,
-                             hostAffectedFiles, hostTotalFiles, hostAffectedPercent, flush=False):
+    def insert_projectClones(self, clone_id, clone_cloned_files, clone_total_files, clone_cloning_percent, host_id,
+                             host_affected_files, host_total_files, host_affected_percent, flush=False):
         if not flush:
             self.clones.append(clone_list % (
-                cloneId, cloneClonedFiles, cloneTotalFiles, cloneCloningPercent, hostId, hostAffectedFiles,
-                hostTotalFiles,
-                hostAffectedPercent))
+                clone_id, clone_cloned_files, clone_total_files, clone_cloning_percent, host_id, host_affected_files,
+                host_total_files,
+                host_affected_percent))
             if len(self.clones) < PROJECT_CLONES_BUFFER_SIZE:
                 return
 
@@ -213,7 +213,7 @@ class DB:
             cursor.execute(add_projectClones % clist)
             return cursor.lastrowid
         except Exception as err:
-            self.logging.error('Failed to insert projectClone (clone %s, host %s)' % (cloneId, hostId))
+            self.logging.error('Failed to insert projectClone (clone %s, host %s)' % (clone_id, host_id))
             self.logging.error(err)
             sys.exit(1)
         finally:
@@ -224,28 +224,28 @@ class DB:
         if len(self.clones) > 0:
             self.insert_projectClones(None, None, None, None, None, None, None, None, flush=True)
 
-    def insert_project(self, proj_id, projectPath, projectUrl):
+    def insert_project(self, project_id, project_path, project_url):
         self.check_connection()
         cursor = self.connection.cursor()
 
-        if projectUrl is None:
-            projectUrl = 'NULL'
+        if project_url is None:
+            project_url = 'NULL'
 
         try:
-            cursor.execute(add_projects, (proj_id, sanitize_string(projectPath), sanitize_string(projectUrl)))
+            cursor.execute(add_projects, (project_id, sanitize_string(project_path), sanitize_string(project_url)))
             return cursor.lastrowid
         except Exception as err:
-            self.logging.error('Failed to insert project %s' % projectPath)
+            self.logging.error('Failed to insert project %s' % project_path)
             self.logging.error(err)
             sys.exit(1)
         finally:
             cursor.close()
 
-    def insert_files_stats_ignore_repetition(self, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens,
-                                             uniqueTokens, tokenHash, flush=False):
+    def insert_files_stats_ignore_repetition(self, file_hash, file_bytes, file_lines, file_lines_of_code, file_source_lines_of_code, total_tokens,
+                                             unique_tokens, token_hash, flush=False):
         if not flush:
             self.files_stats.append(files_stats_list % (
-                fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash))
+                file_hash, file_bytes, file_lines, file_lines_of_code, file_source_lines_of_code, total_tokens, unique_tokens, token_hash))
             if len(self.files_stats) < FILES_STATS_BUFFER_SIZE:
                 return
 
@@ -262,18 +262,18 @@ class DB:
                     raise err
         except Exception as err:
             self.logging.error('Failed to insert files stats with info: %s' % (
-                ','.join([fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash])))
+                ','.join([file_hash, file_bytes, file_lines, file_lines_of_code, file_source_lines_of_code, total_tokens, unique_tokens, token_hash])))
             self.logging.error(err)
             sys.exit(1)
         finally:
             cursor.close()
             self.files_stats = []
 
-    def insert_blocks_stats_ignore_repetition(self, blockHash, blockLines, blockLOC, blockSLOC, totalTokens,
-                                              uniqueTokens, tokenHash, flush=False):
+    def insert_blocks_stats_ignore_repetition(self, block_hash, block_lines, block_lines_of_code, block_source_lines_of_code, total_tokens,
+                                              unique_tokens, token_hash, flush=False):
         if not flush:
             self.blocks_stats.append(
-                blocks_stats_list % (blockHash, blockLines, blockLOC, blockSLOC, totalTokens, uniqueTokens, tokenHash))
+                blocks_stats_list % (block_hash, block_lines, block_lines_of_code, block_source_lines_of_code, total_tokens, unique_tokens, token_hash))
             if len(self.blocks_stats) < BLOCKS_STATS_BUFFER_SIZE:
                 return
 
@@ -289,31 +289,31 @@ class DB:
                     raise err
         except Exception as err:
             self.logging.error('Failed to insert blocks stats with info: %s' % (
-                ','.join([blockHash, blockLines, blockLOC, blockSLOC, totalTokens, uniqueTokens, tokenHash])))
+                ','.join([block_hash, block_lines, block_lines_of_code, block_source_lines_of_code, total_tokens, unique_tokens, token_hash])))
             self.logging.error(err)
             sys.exit(1)
         finally:
             cursor.close()
             self.blocks_stats = []
 
-    def insert_file(self, file_id, proj_id, file_path, file_url, file_hash, flush=False, autoID=False):
+    def insert_file(self, file_id, project_id, file_path, file_url, file_hash, flush=False, auto_id=False):
         if not flush:
             if file_url is None:
                 file_url = 'NONE'
             self.files.append(
-                files_list % (file_id, proj_id, sanitize_string(file_path), sanitize_string(file_url), file_hash))
+                files_list % (file_id, project_id, sanitize_string(file_path), sanitize_string(file_url), file_hash))
             if len(self.files) < FILES_BUFFER_SIZE:
                 return
 
         # Prepare the complete list
-        if autoID:
+        if auto_id:
             self.files = map(lambda t: (t[1], t[2], t[3], t[4]), self.files)
         flist = ','.join(self.files)
 
         self.check_connection()
         cursor = self.connection.cursor()
         try:
-            if autoID:
+            if auto_id:
                 cursor.execute(add_files_autoId % flist)
             else:
                 cursor.execute(add_files % flist)
@@ -380,14 +380,14 @@ class DB:
         finally:
             cursor.close()
 
-    def insert_CCPairs(self, projectId1, fileId1, projectId2, fileId2):
+    def insert_CCPairs(self, project_id1, file_id1, project_id2, file_id2):
         self.check_connection()
         cursor = self.connection.cursor()
         try:
-            cursor.execute(add_CCPairs, (projectId1, fileId1, projectId2, fileId2))
+            cursor.execute(add_CCPairs, (project_id1, file_id1, project_id2, file_id2))
             return cursor.lastrowid
         except Exception as err:
-            self.logging.error('Failed to insert CCPairs %s,%s,%s,%s' % (projectId1, fileId1, projectId2, fileId2))
+            self.logging.error('Failed to insert CCPairs %s,%s,%s,%s' % (project_id1, file_id1, project_id2, file_id2))
             self.logging.error(err)
             sys.exit(1)
         finally:
@@ -410,14 +410,14 @@ class DB:
             cursor.close()
 
     # Add a note here
-    def insert_stats_and_is_tokenHash_unique(self, fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens,
-                                             uniqueTokens, tokenHash):
+    def insert_stats_and_is_tokenHash_unique(self, file_hash, file_bytes, file_lines, file_lines_of_code, file_source_lines_of_code, total_tokens,
+                                             unique_tokens, token_hash):
         self.check_connection()
         cursor = self.connection.cursor()
         try:
             try:
                 results = cursor.execute(add_stats_and_check_tokenHash_uniqueness, (
-                    fileHash, fileBytes, fileLines, fileLOC, fileSLOC, totalTokens, uniqueTokens, tokenHash, tokenHash),
+                    file_hash, file_bytes, file_lines, file_lines_of_code, file_source_lines_of_code, total_tokens, unique_tokens, token_hash, token_hash),
                                          multi=True)
                 # Execute with multi=True returns a generator, therefore:
                 for cur in results:
@@ -433,7 +433,7 @@ class DB:
                 else:
                     raise err
         except Exception as err:
-            self.logging.error('Failed to insert stats for fileHash %s' % fileHash)
+            self.logging.error('Failed to insert stats for file_hash %s' % file_hash)
             self.logging.error(err)
             sys.exit(1)
         finally:
