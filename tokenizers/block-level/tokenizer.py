@@ -147,17 +147,17 @@ def process_tokenizer(string, comment_open_close_pattern, comment_inline_pattern
     string = "\n".join([s for s in string.splitlines() if s.strip()]).strip()
     source_lines_of_code = count_lines(string, False)
 
-    stats = (hashsum, lines, lines_of_code, source_lines_of_code)
-
     tokens_bag, tokens_count_total, tokens_count_unique, tokenization_time = tokenize_string(string, separators)  # get tokens bag
     tokens, format_time = format_tokens(tokens_bag)  # make formatted string with tokens
 
     tokens_hash, hash_delta_time = hash_measuring_time(tokens)
     hash_time += hash_delta_time
 
-    final_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
-
-    return stats, final_tokens, [tokenization_time, format_time, hash_time, remove_comments_time]
+    return {
+        "stats": (hashsum, lines, lines_of_code, source_lines_of_code),
+        "final_tokens": (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens),
+        "times": [tokenization_time, format_time, hash_time, remove_comments_time]
+    }
 
 
 # return value: (
@@ -166,7 +166,11 @@ def process_tokenizer(string, comment_open_close_pattern, comment_inline_pattern
 #   [tokenization_time, formatting_time, hash_time, removing_comments_time]
 # )
 def tokenize_file_string(string, comment_inline_pattern, comment_open_close_pattern, separators):
-    return process_tokenizer(string, comment_inline_pattern, comment_open_close_pattern, separators)
+    tmp = process_tokenizer(string, comment_inline_pattern, comment_open_close_pattern, separators)
+    final_stats = tmp["stats"]
+    final_tokens = tmp["final_tokens"]
+    [tokenization_time, formating_time, hash_time, removing_comments_time] = tmp["times"]
+    return final_stats, final_tokens, [tokenization_time, formating_time, hash_time, removing_comments_time]
 
 
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, file_path):
@@ -225,16 +229,17 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
 
                 tokens, t_time = format_tokens(tokens_bag)
 
-                block_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
-                blocks_data.append((block_tokens, block_stats, experimental_values[i]))
                 tokens_hash, hash_delta_time = hash_measuring_time(tokens.encode("utf-8"))
+                block_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
                 hash_time += hash_delta_time
 
                 re_time += r_time
                 se_time += s_time
                 token_time += t_time
+                blocks_data.append((block_tokens, block_stats, experimental_values[i]))
         except Exception as e:
-            print("[WARNING] " + 'Some error on tokenize_blocks for file %s. %s' % (file_path, e))
+            print("[WARNING] " + 'Some error on tokenize_blocks for file {}'.format(file_path))
+            print(e)
 
     return final_stats, blocks_data, [se_time, token_time, hash_time, re_time]
 
@@ -453,7 +458,7 @@ def process_projects(process_num, list_projects, base_file_id, global_queue, pro
     with open(file_files_tokens_file, 'a+') as tokens_file, \
             open(file_bookkeeping_proj_name, 'a+') as bookkeeping_file, \
             open(file_files_stats_file, 'a+') as stats_file:
-        print("[INFO] " + "Process %s starting".format(process_num))
+        print("[INFO] Process {} starting".format(process_num))
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
             process_one_project(process_num, str(proj_id), proj_path, base_file_id, tokens_file, bookkeeping_file, stats_file, project_format)
