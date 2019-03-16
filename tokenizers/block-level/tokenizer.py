@@ -543,20 +543,17 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-def process_one_project(process_num, proj_id, proj_path, base_file_id, file_tokens_file, file_bookkeeping_proj,
-                        file_stats_file, project_format):
+def process_one_project(process_num, proj_id, proj_path, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file, project_format):
     p_start = dt.datetime.now()
 
     if project_format == 'leidos':
         proj_path, proj_url = proj_path
         if not os.path.isdir(proj_path):
-            print("[WARNING] " + 
-                'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
+            print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             return
 
         # Search for tar files with _code in them
-        tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if
-                     os.path.isfile(os.path.join(proj_path, f))]
+        tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
         tar_files = [f for f in tar_files if '_code' in f]
         if len(tar_files) != 1:
             print("[WARNING] " + 'Tar not found on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
@@ -568,53 +565,41 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, file_toke
             tar_file = tar_files[0]
             times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id,
                                      file_tokens_file, file_bookkeeping_proj, file_stats_file)
-        if times is not None:
-            zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-        else:
-            zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
-                -1, -1, -1, -1, -1, -1, -1)
+        if times is None:
+            times = (-1, -1, -1, -1, -1, -1, -1)
+        zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
         file_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
-
-    if project_format == 'zipblocks':
+    elif project_format == 'zipblocks':
         proj_url = 'NULL'
-
         proj_id = str(proj_id_flag) + proj_id
 
         if not os.path.isfile(proj_path):
-            print("[WARNING] " + 
-                'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
+            print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             return
 
         zip_file = proj_path
-        times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file,
-                                 file_bookkeeping_proj, file_stats_file)
-        if times is not None:
-            zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-        else:
-            zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
-                -1, -1, -1, -1, -1, -1, -1)
+        times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file)
+        if times is None:
+            times = (-1, -1, -1, -1, -1, -1, -1)
+        zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
         file_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
 
-    if project_format in ['folderblocks']:
+    elif project_format == 'folderblocks':
         proj_url = 'NULL'
-
         proj_id = str(proj_id_flag) + proj_id
 
         if not os.path.exists(proj_path):
-            print("[WARNING] " + 
-                'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
+            print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             return
 
         zip_file = proj_path
         times = process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id,
                                        file_tokens_file, file_bookkeeping_proj, file_stats_file)
-        if times is not None:
-            zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-        else:
-            zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
-                -1, -1, -1, -1, -1, -1, -1)
+        if times is None:
+            times = (-1, -1, -1, -1, -1, -1, -1)
+        zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
 
         file_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
 
@@ -647,8 +632,7 @@ def process_projects(process_num, list_projects, base_file_id, global_queue, pro
         print("[INFO] " + "Process %s starting".format(process_num))
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            process_one_project(process_num, str(proj_id), proj_path, base_file_id, FILE_tokens_file,
-                                FILE_bookkeeping_proj, FILE_stats_file, project_format)
+            process_one_project(process_num, str(proj_id), proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, project_format)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
     print("[INFO] " + 'Process {} finished. {} files in {} s'.format(process_num, file_count, p_elapsed))
@@ -669,8 +653,7 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
     del proj_paths[:batch]
 
     print("Starting new process %s" % pid)
-    p = Process(name='Process ' + str(pid), target=process_projects,
-                args=(pid, paths_batch, processes[pid][1], global_queue, project_format,))
+    p = Process(name='Process ' + str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format,))
     processes[pid][0] = p
     p.start()
 
@@ -695,12 +678,16 @@ def active_process_count(processes):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: {} [MODE]".format(sys.argv[0]))
+        print("Where MODE is zipblocks or folderblocks")
+        exit(0)
 
     global project_format
-    project_format = sys.argv[1]  # 'zipblocks' or 'folderblocks' (when want the blocks inside files)
+    project_format = sys.argv[1]
 
     if project_format not in ['zipblocks', 'folderblocks']:
-        print("ERROR - Please insert archive format, 'zipblocks' or 'folderblocks'!")
+        print("MODE must be zipblocks or folderblocks")
         sys.exit()
 
     read_config()
@@ -716,23 +703,15 @@ if __name__ == '__main__':
 
     proj_paths = []
 
-    if project_format == 'zipblocks':  # zipblocks will diverge the process flow on process_file()
-        print('\'' + project_format + '\'' + 'format')
-        with open(FILE_projects_list) as f:
-            for line in f:
-                proj_paths.append(line[:-1])
-        proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
-    elif project_format == 'folderblocks':  # folderblocks will diverge the process flow on process_file()
-        print('\'' + project_format + '\'' + 'format')
-        with open(FILE_projects_list) as f:
-            for line in f:
-                proj_paths.append(line[:-1])
-        proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
+    with open(FILE_projects_list) as f:
+        for line in f:
+            proj_paths.append(line.strip("\n"))
+    proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
+    # it will diverge the process flow on process_file()
 
     if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(
             PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-        print(
-            'ERROR - Folder [' + PATH_stats_file_folder + '] or [' + PATH_bookkeeping_proj_folder + '] or [' + PATH_tokens_file_folder + '] or [' + PATH_logs + '] already exists!')
+        print('ERROR - Folder [{}] or [{}] or [{}] or [{}] already exists!'.format(PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs))
         sys.exit(1)
     else:
         os.makedirs(PATH_stats_file_folder)
