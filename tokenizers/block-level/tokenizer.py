@@ -277,42 +277,35 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     return final_stats, blocks_data, [se_time, token_time, hash_time, re_time]
 
 
-def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url,
-                          file_tokens_file, file_stats_file):
+def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file):
     global file_count
     file_count += 1
 
-    if (project_format == 'zipblocks') or (project_format == 'folderblocks'):
-        (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern,
-                                                                         comment_open_close_pattern, separators,
-                                                                         os.path.join(container_path, file_path))
+    if project_format in ['zipblocks', 'folderblocks']:
+        (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, os.path.join(container_path, file_path))
         if (final_stats is None) or (blocks_data is None) or (file_parsing_times is None):
             print("[WARNING] " + 'Problems tokenizing file ' + os.path.join(container_path, file_path))
             return [0, 0, 0, 0, 0]
 
         if len(blocks_data) > 90000:
-            print("[WARNING] " + 'File ' + os.path.join(container_path, file_path) + ' has ' + str(
-                len(blocks_data)) + ' blocks, more than 90000. Range MUST be increased.')
+            print("[WARNING] " + 'File ' + os.path.join(container_path, file_path) + ' has ' + str(len(blocks_data)) + ' blocks, more than 90000. Range MUST be increased.')
             return [0, 0, 0, 0, 0]
 
         # write file stats
-        (file_hash, lines, LOC, SLOC) = final_stats
         file_url = proj_url + '/' + file_path.replace(' ', '%20')
         file_path = os.path.join(container_path, file_path)
 
         # file stats start with a letter 'f'
-        file_stats_file.write('f' + ','.join(
-            [proj_id, str(file_id), '\"' + file_path + '\"', '\"' + file_url + '\"', '\"' + file_hash + '\"',
-             file_bytes, str(lines), str(LOC), str(SLOC)]) + '\n')
+        (file_hash, lines, LOC, SLOC) = final_stats
+        file_stats_file.write('f{},{},\"{}\",\"{}\",\"{}\",{},{},{},{}\n'.format(proj_id, file_id, file_path, file_url, file_hash, file_bytes, lines, LOC, SLOC))
         blocks_data = zip(range(10000, 99999), blocks_data)
 
         ww_time = dt.datetime.now()
-
         try:
             for relative_id, block_data in blocks_data:
 
                 (blocks_tokens, blocks_stats, experimental_values) = block_data
-                block_id = str(relative_id) + str(file_id)
+                block_id = "{}{}".format(relative_id, file_id)
 
                 (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
                 (tokens_count_total, tokens_count_unique, token_hash, tokens) = blocks_tokens
@@ -326,15 +319,11 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
                         [proj_id, block_id, str(tokens_count_total), str(tokens_count_unique),
                          token_hash + tokens]) + '\n')
                 else:
-                    file_tokens_file.write(','.join(
-                        [proj_id, block_id, str(tokens_count_total), str(tokens_count_unique), experimental_values,
-                         token_hash + tokens]) + '\n')
+                    file_tokens_file.write(','.join([proj_id, block_id, str(tokens_count_total), str(tokens_count_unique), experimental_values, token_hash + tokens]) + '\n')
             w_time = (dt.datetime.now() - ww_time).microseconds
         except Exception as e:
             print("[WARNING] " + 'Error on step3 of process_file_contents. ' + str(e))
-
     else:
-
         (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern,
                                                                          comment_open_close_pattern, separators)
 
@@ -357,30 +346,18 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
     return file_parsing_times + [w_time]  # [s_time, t_time, w_time, hash_time, re_time]
 
 
-# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
-def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file,
-                           file_bookkeeping_proj, file_stats_file):
+def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-
-    result = [f for dp, dn, filenames in os.walk(proj_path) for f in filenames if
-              (os.path.splitext(f)[1] in file_extensions)]
+    result = [f for dp, dn, filenames in os.walk(proj_path) for f in filenames if (os.path.splitext(f)[1] in file_extensions)]
 
     for file_path in result:
-        # This is very strange, but I did find some paths with newlines,
-        # so I am simply ignoring them
-        if '\n' in file_path:
-            continue
-
-        file_id = process_num * MULTIPLIER + base_file_id + file_count
-
         z_time = dt.datetime.now()
-        my_file = None
-        file_bytes = None
         try:
             my_file = io.open(os.path.join(proj_path, file_path), encoding='urf-8', errors='ignore')
             file_bytes = str(os.stat(os.path.join(proj_path, file_path)).st_size)
         except Exception as e:
-            print("[WARNING] " + 'Unable to open file (1) <' + file_path + '> (process ' + str(process_num) + ')' + str(e))
+            print("[WARNING] Unable to open file (1) <{}> (process {})".format(file_path, process_num))
+            print(e)
             continue
 
         zip_time += (dt.datetime.now() - z_time).microseconds
@@ -399,126 +376,98 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
             continue
 
         try:
-            times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
-                                          proj_url, file_tokens_file, file_stats_file)
+            file_id = process_num * MULTIPLIER + base_file_id + file_count
+            times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
         except Exception as e:
             print("[WARNING] " + 'Unable to process file %s. %s' % (os.path.join(proj_path, file_path), e))
             continue
 
         string_time += times[0]
         tokens_time += times[1]
-        write_time += times[4]
         hash_time += times[2]
         regex_time += times[3]
+        write_time += times[4]
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-# noinspection PyUnusedLocal
-def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file,
-                     file_bookkeeping_proj, file_stats_file):
+def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-
     try:
         with tarfile.open(tar_file, 'r|*') as my_tar_file:
-            for f in my_tar_file:
-                if not f.isfile():
+            for file in my_tar_file:
+                if not file.isfile():
                     continue
 
-                file_path = f.name
+                file_path = file.name
                 # Filter by the correct extension
-                if not os.path.splitext(f.name)[1] in file_extensions:
-                    continue
-
-                # This is very strange, but I did find some paths with newlines,
-                # so I am simply ignoring them
-                if '\n' in file_path:
+                if not os.path.splitext(file.name)[1] in file_extensions:
                     continue
 
                 file_id = process_num * MULTIPLIER + base_file_id + file_count
 
-                file_bytes = str(f.size)
-
                 z_time = dt.datetime.now()
                 try:
-                    myfile = my_tar_file.extractfile(f)
+                    myfile = my_tar_file.extractfile(file)
                 except:
-                    print("[WARNING] " + 
-                        'Unable to open file (1) <' + proj_id + ',' + str(file_id) + ',' + os.path.join(tar_file,
-                                                                                                        file_path) +
-                        '> (process ' + str(process_num) + ')')
+                    print("[WARNING] Unable to open file (1) <{},{},{}> (process {})".format(proj_id, file_id, os.path.join(tar_file, file_path), process_num))
                     continue
                 zip_time += (dt.datetime.now() - z_time).microseconds
 
                 if myfile is None:
-                    print("[WARNING] " + 
-                        'Unable to open file (2) <' + proj_id + ',' + str(file_id) + ',' + os.path.join(tar_file,
-                                                                                                        file_path) +
-                        '> (process ' + str(process_num) + ')')
+                    print("[WARNING] Unable to open file (2) <{},{},{}> (process {})".format(proj_id, file_id, os.path.join(tar_file, file_path), process_num))
                     continue
 
                 f_time = dt.datetime.now()
                 file_string = myfile.read()
                 file_time += (dt.datetime.now() - f_time).microseconds
 
-                times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes, proj_url,
-                                              file_tokens_file, file_stats_file)
+                file_bytes = str(file.size)
+                times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
                 string_time += times[0]
                 tokens_time += times[1]
-                write_time += times[4]
                 hash_time += times[2]
                 regex_time += times[3]
+                write_time += times[4]
     except Exception as e:
-        print("[WARNING] " + 'Unable to open tar on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
-        print("[WARNING] " + e)
+        print("[WARNING] Unable to open tar on <{},{}> (process {})".format(proj_id, proj_path, process_num))
+        print("[WARNING] {}".format(e))
         return
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
 # noinspection PyUnusedLocal,PyUnusedLocal
-def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file,
-                     file_bookkeeping_proj, file_stats_file):
+def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     with zipfile.ZipFile(proj_path, 'r') as my_file:
         for file in my_file.infolist():
             if not os.path.splitext(file.filename)[1] in file_extensions:
                 continue
 
-            file_path = file.filename
-
-            # This is very strange, but I did find some paths with newlines,
-            # so I am simply ignoring them
-            if '\n' in file_path:
-                continue
-
-            file_id = process_num * MULTIPLIER + base_file_id + file_count
-
-            file_bytes = str(file.file_size)
-
             z_time = dt.datetime.now()
             try:
                 my_zip_file = my_file.open(file.filename, 'r')
             except:
-                print("[WARNING] " + 'Unable to open file (1) <' + os.path.join(proj_path, file) + '> (process ' + str(
-                    process_num) + ')')
+                print("[WARNING] " + 'Unable to open file (1) <' + os.path.join(proj_path, file) + '> (process ' + str(process_num) + ')')
                 continue
             zip_time += (dt.datetime.now() - z_time).microseconds
 
             if my_zip_file is None:
-                print("[WARNING] " + 'Unable to open file (2) <' + os.path.join(proj_path, file) + '> (process ' + str(
-                    process_num) + ')')
+                print("[WARNING] " + 'Unable to open file (2) <' + os.path.join(proj_path, file) + '> (process ' + str(process_num) + ')')
                 continue
 
             f_time = dt.datetime.now()
             file_string = my_zip_file.read().decode("utf-8", 'ignore')
             file_time += (dt.datetime.now() - f_time).microseconds
 
-            times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
-                                          proj_url, file_tokens_file, file_stats_file)
+            file_id = process_num * MULTIPLIER + base_file_id + file_count
+            file_path = file.filename
+            file_bytes = str(file.file_size)
+            times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
             string_time += times[0]
             tokens_time += times[1]
-            write_time += times[4]
             hash_time += times[2]
             regex_time += times[3]
+            write_time += times[4]
 
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
