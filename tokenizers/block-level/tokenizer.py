@@ -266,8 +266,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 try:
                     m.update(tokens.encode("utf-8"))
                 except Exception as e:
-                    print("[INFO] " + 
-                        'Error on tokenize_blocks (3) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
+                    print("[INFO] Error on tokenize_blocks (3) (file,exception,input) ({},{},{})".format(file_path, e, file_string))
                 hash_time += (dt.datetime.now() - h_time).microseconds
                 block_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
                 blocks_data.append((block_tokens, block_stats, experimental_values[i]))
@@ -303,7 +302,6 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
         ww_time = dt.datetime.now()
         try:
             for relative_id, block_data in blocks_data:
-
                 (blocks_tokens, blocks_stats, experimental_values) = block_data
                 block_id = "{}{}".format(relative_id, file_id)
 
@@ -311,22 +309,17 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
                 (tokens_count_total, tokens_count_unique, token_hash, tokens) = blocks_tokens
 
                 # Adjust the blocks stats written to the files, file stats start with a letter 'b'
-                file_stats_file.write('b' + ','.join(
-                    [proj_id, block_id, '\"' + block_hash + '\"', str(block_lines), str(block_LOC), str(block_SLOC),
-                     str(start_line), str(end_line)]) + '\n')
-                if len(experimental_values) == 0:
-                    file_tokens_file.write(','.join(
-                        [proj_id, block_id, str(tokens_count_total), str(tokens_count_unique),
-                         token_hash + tokens]) + '\n')
-                else:
-                    file_tokens_file.write(','.join([proj_id, block_id, str(tokens_count_total), str(tokens_count_unique), experimental_values, token_hash + tokens]) + '\n')
+                file_stats_file.write('b,{},{},\"{}\",{},{},{},{},{}\n'.format(proj_id, block_id, block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line))
+                file_tokens_file.write(','.join([proj_id, block_id, str(tokens_count_total), str(tokens_count_unique)]))
+                if len(experimental_values) != 0:
+                    file_tokens_file.write("," + experimental_values)
+                file_tokens_file.write("," + token_hash + tokens + '\n')
             w_time = (dt.datetime.now() - ww_time).microseconds
         except Exception as e:
-            print("[WARNING] " + 'Error on step3 of process_file_contents. ' + str(e))
+            print("[WARNING] Error on step3 of process_file_contents")
+            print(e)
     else:
-        (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern,
-                                                                         comment_open_close_pattern, separators)
-
+        (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
         (file_hash, lines, LOC, SLOC) = final_stats
         (tokens_count_total, tokens_count_unique, token_hash, tokens) = final_tokens
 
@@ -375,8 +368,8 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
             print(e)
             continue
 
+        file_id = process_num * MULTIPLIER + base_file_id + file_count
         try:
-            file_id = process_num * MULTIPLIER + base_file_id + file_count
             times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
         except Exception as e:
             print("[WARNING] " + 'Unable to process file %s. %s' % (os.path.join(proj_path, file_path), e))
@@ -408,8 +401,9 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
                 z_time = dt.datetime.now()
                 try:
                     myfile = my_tar_file.extractfile(file)
-                except:
+                except Exception as e:
                     print("[WARNING] Unable to open file (1) <{},{},{}> (process {})".format(proj_id, file_id, os.path.join(tar_file, file_path), process_num))
+                    print(e)
                     continue
                 zip_time += (dt.datetime.now() - z_time).microseconds
 
@@ -435,7 +429,6 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-# noinspection PyUnusedLocal,PyUnusedLocal
 def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     with zipfile.ZipFile(proj_path, 'r') as my_file:
@@ -446,13 +439,14 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
             z_time = dt.datetime.now()
             try:
                 my_zip_file = my_file.open(file.filename, 'r')
-            except:
-                print("[WARNING] " + 'Unable to open file (1) <' + os.path.join(proj_path, file) + '> (process ' + str(process_num) + ')')
+            except Exception as e:
+                print("[WARNING] Unable to open file (1) <{}> (process {})".format(os.path.join(proj_path, file), process_num))
+                print(e)
                 continue
             zip_time += (dt.datetime.now() - z_time).microseconds
 
             if my_zip_file is None:
-                print("[WARNING] " + 'Unable to open file (2) <' + os.path.join(proj_path, file) + '> (process ' + str(process_num) + ')')
+                print("[WARNING] Unable to open file (2) <{}> (process {})".format(os.path.join(proj_path, file), process_num))
                 continue
 
             f_time = dt.datetime.now()
@@ -475,7 +469,7 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
 def process_one_project(process_num, proj_id, proj_path, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file, project_format):
     p_start = dt.datetime.now()
 
-    if project_format == 'leidos':
+    if project_format == 'leidos':  # unused?
         proj_path, proj_url = proj_path
         if not os.path.isdir(proj_path):
             print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
@@ -487,9 +481,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, file_toke
         if len(tar_files) != 1:
             print("[WARNING] " + 'Tar not found on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             times = [0, 0, 0, 0, 0, 0]
-            os.path.walk(proj_path, process_regular_folder, (
-                process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj,
-                file_stats_file, times))
+            os.path.walk(proj_path, process_regular_folder, (process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file, times))
         else:
             tar_file = tar_files[0]
             times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file)
@@ -516,7 +508,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, file_toke
     if times is None:
         times = (-1, -1, -1, -1, -1, -1, -1)
     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-    file_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
+    file_bookkeeping_proj.write("{},\"{}\",\"{}\"\n".format(proj_id, proj_path, proj_url))
 
     p_elapsed = dt.datetime.now() - p_start
     print("[INFO] " + 'Project finished <{},{}> (process {})'.format(proj_id, proj_path, process_num))
@@ -564,7 +556,7 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
     del proj_paths[:batch]
 
     print("Starting new process %s" % pid)
-    p = Process(name='Process ' + str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format,))
+    p = Process(name='Process ' + str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format))
     processes[pid][0] = p
     p.start()
 
@@ -581,11 +573,7 @@ def kill_child(processes, pid, n_files_processed):
 
 
 def active_process_count(processes):
-    count = 0
-    for p in processes:
-        if p[0] is not None:
-            count += 1
-    return count
+    return len([p for p in processes if p[0] is not None])
 
 
 if __name__ == '__main__':
