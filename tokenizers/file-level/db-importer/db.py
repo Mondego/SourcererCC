@@ -144,12 +144,11 @@ class DB:
         self.block_count = 0
 
         try:
-            ## All cursors will be buffered by default
+            # All cursors will be buffered by default
             self.connection = mysql.connector.connect(user=self.DB_user, password=self.DB_pass, host=self.host)
 
-            # Causes a commit operation after each SQL statement.
-            # Carefull setting autocommit to True, but it's appropriate for MyISAM, where transactions are not applicable.
-            # self.autocommit = True
+            # Causes a commit operation after each SQL statement. Carefull setting autocommit to True,
+            # but it's appropriate for MyISAM, where transactions are not applicable. self.autocommit = True
 
             self.connection.database = DB_name
         except mysql.connector.Error as err:
