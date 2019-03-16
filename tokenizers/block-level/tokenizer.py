@@ -159,7 +159,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, file_path, separators, comment_inline_pattern)
 
     if block_linenos is None:
-        print("[INFO] " + 'Returning None on tokenize_blocks for file %s.' % file_path)
+        print("[INFO] Returning None on tokenize_blocks for file {}".format(file_path))
         return None, None, None
     else:
         try:
@@ -168,17 +168,13 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
             try:
                 m.update(file_string.encode('utf-8'))
             except Exception as e:
-                print("[INFO] " + 
-                    'Error on tokenize_blocks (1) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
+                print("[INFO] Error on tokenize_blocks (1) (file,input) ({},{})".format(file_path, file_string))
+                print(e)
             file_hash = m.hexdigest()
             hash_time = (dt.datetime.now() - h_time).microseconds
-            lines = file_string.count('\n')
-            if not file_string.endswith('\n'):
-                lines += 1
+            lines = count_lines(file_string)
             file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
-            LOC = file_string.count('\n')
-            if not file_string.endswith('\n'):
-                LOC += 1
+            LOC = count_lines(file_string)
             r_time = dt.datetime.now()
             # Remove tagged comments
             file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
@@ -187,9 +183,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
             re_time = (dt.datetime.now() - r_time).microseconds
             file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
 
-            SLOC = file_string.count('\n')
-            if file_string != '' and not file_string.endswith('\n'):
-                SLOC += 1
+            SLOC = count_lines(file_string, False)
             final_stats = (file_hash, lines, LOC, SLOC)
 
             blocks_data = []
@@ -200,21 +194,12 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
             for i, block_string in enumerate(blocks):
                 (start_line, end_line) = block_linenos[i]
 
-                block_stats = 'ERROR'
-                block_tokens = 'ERROR'
-
-                block_hash = 'ERROR'
-                block_lines = 'ERROR'
-                block_LOC = 'ERROR'
-                block_SLOC = 'ERROR'
-
                 h_time = dt.datetime.now()
                 m = hashlib.md5()
                 try:
                     m.update(block_string.encode('utf-8'))
                 except Exception as e:
-                    print("[INFO] " + 
-                        'Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
+                    print("[INFO] Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)" % (file_path, e, file_string))
                 block_hash = m.hexdigest()
                 hash_time = (dt.datetime.now() - h_time).microseconds
                 block_lines = block_string.count('\n')
@@ -327,14 +312,11 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
         file_path = os.path.join(container_path, file_path)
 
         ww_time = dt.datetime.now()
-        file_stats_file.write(','.join(
-            [proj_id, str(file_id), '\"' + file_path + '\"', '\"' + file_url + '\"', '\"' + file_hash + '\"',
-             file_bytes, str(lines), str(LOC), str(SLOC)]) + '\n')
+        file_stats_file.write('{},{},\"{}\",\"{}\",\"{}\",{},{},{},{}\n'.format(proj_id, file_id, file_path, file_url, file_hash, file_bytes, lines, LOC, SLOC))
         w_time = (dt.datetime.now() - ww_time).microseconds
 
         ww_time = dt.datetime.now()
-        file_tokens_file.write(','.join(
-            [proj_id, str(file_id), str(tokens_count_total), str(tokens_count_unique), token_hash + tokens]) + '\n')
+        file_tokens_file.write(','.join([proj_id, str(file_id), str(tokens_count_total), str(tokens_count_unique), token_hash + tokens]) + '\n')
         w_time += (dt.datetime.now() - ww_time).microseconds
     return file_parsing_times + [w_time]  # [s_time, t_time, w_time, hash_time, re_time]
 
