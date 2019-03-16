@@ -149,13 +149,15 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, file_path):
     # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
-    final_stats = 'ERROR'
+    block_linenos = None
+    blocks = None
     experimental_values = ''
     if '.py' in file_extensions:
         (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, file_path)
     if '.java' in file_extensions:
         (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, file_path, separators, comment_inline_pattern)
 
+    final_stats = 'ERROR'
     if block_linenos is None:
         print("[INFO] Returning None on tokenize_blocks for file {}".format(file_path))
         return None, None, None
@@ -188,20 +190,14 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 block_lines = count_lines(block_string)
                 block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
 
-                block_LOC = block_string.count('\n')
-                if not block_string.endswith('\n'):
-                    block_LOC += 1
+                block_LOC = count_lines(block_string)
                 r_time = dt.datetime.now()
-                # Remove tagged comments
-                block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)
-                # Remove end of line comments
-                block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)
+                block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)  # Remove tagged comments
+                block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)  # Remove end of line comments
                 re_time += (dt.datetime.now() - r_time).microseconds
                 block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
 
-                block_SLOC = block_string.count('\n')
-                if block_string != '' and not block_string.endswith('\n'):
-                    block_SLOC += 1
+                block_SLOC = count_lines(block_string, False)
 
                 block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
                 # Rather a copy of the file string here for tokenization
@@ -212,24 +208,20 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 for x in separators:
                     block_string_for_tokenization = block_string_for_tokenization.replace(x, ' ')
                 se_time += (dt.datetime.now() - s_time).microseconds
-                # Create a list of tokens
-                block_string_for_tokenization = block_string_for_tokenization.split()
-                # Total number of tokens
-                tokens_count_total = len(block_string_for_tokenization)
-                # Count occurrences
-                block_string_for_tokenization = collections.Counter(block_string_for_tokenization)
-                # Converting Counter to dict because according to StackOverflow is better
-                block_string_for_tokenization = dict(block_string_for_tokenization)
-                # Unique number of tokens
-                tokens_count_unique = len(block_string_for_tokenization)
+                block_string_for_tokenization = block_string_for_tokenization.split()  # Create a list of tokens
+                tokens_count_total = len(block_string_for_tokenization)  # Total number of tokens
+                block_string_for_tokenization = collections.Counter(block_string_for_tokenization)  # Count occurrences
+                block_string_for_tokenization = dict(block_string_for_tokenization)  # Converting Counter to dict
+                tokens_count_unique = len(block_string_for_tokenization)  # Unique number of tokens
                 t_time = dt.datetime.now()
+
                 # SourcererCC formatting
                 tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in block_string_for_tokenization.items()])
                 token_time += (dt.datetime.now() - t_time).microseconds
 
                 tokens_hash, hash_delta_time = hash_measuring_time(tokens.encode("utf-8"))
                 hash_time += hash_delta_time
-                block_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
+                block_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
                 blocks_data.append((block_tokens, block_stats, experimental_values[i]))
         except Exception as e:
             print("[WARNING] " + 'Some error on tokenize_blocks for file %s. %s' % (file_path, e))
@@ -279,21 +271,6 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
         except Exception as e:
             print("[WARNING] Error on step3 of process_file_contents")
             print(e)
-    else:
-        (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
-        (file_hash, lines, LOC, SLOC) = final_stats
-        (tokens_count_total, tokens_count_unique, token_hash, tokens) = final_tokens
-
-        file_url = proj_url + '/' + file_path[7:].replace(' ', '%20')
-        file_path = os.path.join(container_path, file_path)
-
-        ww_time = dt.datetime.now()
-        file_stats_file.write('{},{},\"{}\",\"{}\",\"{}\",{},{},{},{}\n'.format(proj_id, file_id, file_path, file_url, file_hash, file_bytes, lines, LOC, SLOC))
-        w_time = (dt.datetime.now() - ww_time).microseconds
-
-        ww_time = dt.datetime.now()
-        file_tokens_file.write(','.join([proj_id, str(file_id), str(tokens_count_total), str(tokens_count_unique), token_hash + tokens]) + '\n')
-        w_time += (dt.datetime.now() - ww_time).microseconds
     return file_parsing_times + [w_time]  # [s_time, t_time, w_time, hash_time, re_time]
 
 
@@ -304,7 +281,7 @@ def process_regular_folder(process_num, proj_id, proj_path, proj_url, base_file_
     for file_path in result:
         z_time = dt.datetime.now()
         try:
-            my_file = io.open(os.path.join(proj_path, file_path), encoding='urf-8', errors='ignore')
+            my_file = io.open(os.path.join(proj_path, file_path), encoding='utf-8', errors='ignore')
             file_bytes = str(os.stat(os.path.join(proj_path, file_path)).st_size)
         except Exception as e:
             print("[WARNING] Unable to open file (1) <{}> (process {})".format(file_path, process_num))
@@ -341,7 +318,7 @@ def process_regular_folder(process_num, proj_id, proj_path, proj_url, base_file_
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
+def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     try:
         with tarfile.open(tar_file, 'r|*') as my_tar_file:
@@ -438,8 +415,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, file_toke
         if not os.path.exists(proj_path):
             print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             return
-        times = process_regular_folder(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file,
-                                       file_stats_file)
+        times = process_regular_folder(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_stats_file)
     if times is None:
         times = (-1, -1, -1, -1, -1, -1, -1)
     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
