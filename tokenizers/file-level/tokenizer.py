@@ -78,7 +78,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     final_stats = final_tokens = file_hash = lines = LOC = SLOC = 'ERROR'
     h_time = dt.datetime.now()
     m = hashlib.md5()
-    m.update(file_string)
+    m.update(file_string.encode("utf-8"))
     file_hash = m.hexdigest()
     hash_time = (dt.datetime.now() - h_time).microseconds
     lines = file_string.count('\n')
@@ -103,7 +103,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
         SLOC += 1
     final_stats = (file_hash, lines, LOC, SLOC)
     # Rather a copy of the file string here for tokenization
-    file_string_for_tokenization = file_string.decode('utf-8')
+    file_string_for_tokenization = file_string
     # Transform separators into spaces (remove them)
     s_time = dt.datetime.now()
     for x in separators:
@@ -126,7 +126,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     # MD5
     h_time = dt.datetime.now()
     m = hashlib.md5()
-    m.update(tokens)
+    m.update(tokens.encode("utf-8"))
     hash_time += (dt.datetime.now() - h_time).microseconds
     final_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
     return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
@@ -247,50 +247,51 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
                      FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     logging.info('Attempting to process_zip_ball ' + zip_file)
-    try:
-        with zipfile.ZipFile(proj_path, 'rb') as my_file:
-            for file in my_file.infolist():
-                if not os.path.splitext(file.filename)[1] in file_extensions:
-                    continue
-                # This is very strange, but I did find some paths with newlines,
-                # so I am simply ignoring them
-                if '\n' in file.filename:
-                    continue
+    # try:
+    with zipfile.ZipFile(proj_path, 'r'
+                                    '') as my_file:
+        for file in my_file.infolist():
+            if not os.path.splitext(file.filename)[1] in file_extensions:
+                continue
+            # This is very strange, but I did find some paths with newlines,
+            # so I am simply ignoring them
+            if '\n' in file.filename:
+                continue
 
-                file_id = process_num * MULTIPLIER + base_file_id + file_count
-                file_bytes = str(file.file_size)
-                z_time = dt.datetime.now()
-                try:
-                    my_zip_file = my_file.open(file.filename, 'r')
-                except:
-                    logging.warning(
-                        'Unable to open file (1) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(
-                            process_num) + ')')
-                    break
-                zip_time += (dt.datetime.now() - z_time).microseconds
+            file_id = process_num * MULTIPLIER + base_file_id + file_count
+            file_bytes = str(file.file_size)
+            z_time = dt.datetime.now()
+            try:
+                my_zip_file = my_file.open(file.filename, 'r')
+            except:
+                logging.warning(
+                    'Unable to open file (1) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(
+                        process_num) + ')')
+                break
+            zip_time += (dt.datetime.now() - z_time).microseconds
 
-                if my_zip_file is None:
-                    logging.warning(
-                        'Unable to open file (2) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(
-                            process_num) + ')')
-                    break
+            if my_zip_file is None:
+                logging.warning(
+                    'Unable to open file (2) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(
+                        process_num) + ')')
+                break
 
-                f_time = dt.datetime.now()
-                file_string = my_zip_file.read()
-                file_time += (dt.datetime.now() - f_time).microseconds
+            f_time = dt.datetime.now()
+            file_string = my_zip_file.read().decode("utf-8")
+            file_time += (dt.datetime.now() - f_time).microseconds
 
-                file_path = file.filename
-                times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url,
-                                              FILE_tokens_file, FILE_stats_file, logging)
-                string_time += times[0]
-                tokens_time += times[1]
-                write_time += times[4]
-                hash_time += times[2]
-                regex_time += times[3]
-    except Exception as e:
-        logging.warning('Unable to open zip on <' + proj_path + '> (process ' + str(process_num) + ')')
-        logging.warning(e)
-        return
+            file_path = file.filename
+            times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url,
+                                          FILE_tokens_file, FILE_stats_file, logging)
+            string_time += times[0]
+            tokens_time += times[1]
+            write_time += times[4]
+            hash_time += times[2]
+            regex_time += times[3]
+    # except Exception as e:
+    #     logging.warning('Unable to open zip on <' + proj_path + '> (process ' + str(process_num) + ')')
+    #     logging.warning(e)
+    #     return
     logging.info('Successfully ran process_zip_ball ' + zip_file)
     return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
@@ -404,7 +405,7 @@ def kill_child(processes, pid, n_files_processed):
 
 
 def active_process_count(processes):
-    return len(filter(lambda p: p[0] != None, processes))
+    return len(list(filter(lambda p: p[0] != None, processes)))
 
 
 if __name__ == '__main__':
