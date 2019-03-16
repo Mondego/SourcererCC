@@ -231,8 +231,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 try:
                     m.update(block_string.encode('utf-8'))
                 except Exception as e:
-                    logging.info(
-                        'Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
+                    logging.info('Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
                 block_hash = m.hexdigest()
                 hash_time = (dt.datetime.now() - h_time).microseconds
                 block_lines = block_string.count('\n')

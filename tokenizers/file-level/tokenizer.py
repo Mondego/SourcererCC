@@ -78,7 +78,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     final_stats = final_tokens = file_hash = lines = LOC = SLOC = 'ERROR'
     h_time = dt.datetime.now()
     m = hashlib.md5()
-    m.update(file_string.encode("utf-8"))
+    m.update(file_string)
     file_hash = m.hexdigest()
     hash_time = (dt.datetime.now() - h_time).microseconds
     lines = file_string.count('\n')
