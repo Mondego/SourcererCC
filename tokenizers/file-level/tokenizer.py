@@ -327,15 +327,15 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
 
     FILE_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
     p_elapsed = dt.datetime.now() - p_start
-    print("[INFO] " + 'Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-    print("[INFO] " + ' (%s): Total: %s ms', process_num, p_elapsed)
-    print("[INFO] " + '     Zip: %s', zip_time)
-    print("[INFO] " + '     Read: %s', file_time)
-    print("[INFO] " + '     Separators: %s ms', string_time)
-    print("[INFO] " + '     Tokens: %s ms', tokens_time)
-    print("[INFO] " + '     Write: %s ms', write_time)
-    print("[INFO] " + '     Hash: %s', hash_time)
-    print("[INFO] " + '     regex: %s', regex_time)
+    print("[INFO] " + 'Project finished <{},{}> (process {}))'.format(proj_id, proj_path, process_num))
+    print("[INFO] " + ' (%s): Total: {} ms'.format(process_num, p_elapsed))
+    print("[INFO] " + '     Zip: {}'.format(zip_time))
+    print("[INFO] " + '     Read: {}'.format(file_time))
+    print("[INFO] " + '     Separators: {} ms'.format(string_time))
+    print("[INFO] " + '     Tokens: {} ms'.format(tokens_time))
+    print("[INFO] " + '     Write: {} ms'.format(write_time))
+    print("[INFO] " + '     Hash: {}'.format(hash_time))
+    print("[INFO] " + '     regex: {}'.format(regex_time))
 
 
 def process_projects(process_num, list_projects, base_file_id, global_queue, project_format):
