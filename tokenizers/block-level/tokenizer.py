@@ -135,34 +135,38 @@ def format_tokens(tokens_bag):
     return tokens, time
 
 
-# return value: (
-#   (file_hash, lines, lines_of_code, source_lines_of_code),
-#   (tokens_count_total, tokens_count_unique, tokens_hash, formatted tokens),
-#   [tokenization_time, formatting_time, hash_time, removing_comments_time]
-# )
-def tokenize_file_string(string, comment_inline_pattern, comment_open_close_pattern, separators):
-    file_hash, hash_time = hash_measuring_time(string)
+def process_tokenizer(string, comment_open_close_pattern, comment_inline_pattern, separators):
+    hashsum, hash_time = hash_measuring_time(string)
 
-    string = "\n".join([s for s in string.splitlines() if s.strip()])
     lines = count_lines(string)
 
-    string, removing_comments_time = remove_comments(string, comment_open_close_pattern, comment_inline_pattern)
-    string = "\n".join([s for s in string.splitlines() if s.strip()]).strip()
+    string = "\n".join([s for s in string.splitlines() if s.strip()])
     lines_of_code = count_lines(string)
 
+    string, remove_comments_time = remove_comments(string, comment_open_close_pattern, comment_inline_pattern)
+    string = "\n".join([s for s in string.splitlines() if s.strip()]).strip()
     source_lines_of_code = count_lines(string, False)
 
-    final_stats = (file_hash, lines, lines_of_code, source_lines_of_code)
+    stats = (hashsum, lines, lines_of_code, source_lines_of_code)
 
     tokens_bag, tokens_count_total, tokens_count_unique, tokenization_time = tokenize_string(string, separators)  # get tokens bag
-    tokens, formating_time = format_tokens(tokens_bag)  # make formatted string with tokens
+    tokens, format_time = format_tokens(tokens_bag)  # make formatted string with tokens
 
     tokens_hash, hash_delta_time = hash_measuring_time(tokens)
     hash_time += hash_delta_time
 
     final_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
 
-    return final_stats, final_tokens, [tokenization_time, formating_time, hash_time, removing_comments_time]
+    return stats, final_tokens, [tokenization_time, format_time, hash_time, remove_comments_time]
+
+
+# return value: (
+#   (file_hash, lines, lines_of_code, source_lines_of_code),
+#   (tokens_count_total, tokens_count_unique, tokens_hash, formatted tokens),
+#   [tokenization_time, formatting_time, hash_time, removing_comments_time]
+# )
+def tokenize_file_string(string, comment_inline_pattern, comment_open_close_pattern, separators):
+    return process_tokenizer(string, comment_inline_pattern, comment_open_close_pattern, separators)
 
 
 def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, file_path):
@@ -205,32 +209,30 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 (start_line, end_line) = block_linenos[i]
 
                 block_hash, hash_time = hash_measuring_time(block_string.encode("utf-8"))
+
                 block_lines = count_lines(block_string)
-                block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
 
+                block_string = "\n".join([s for s in block_string.splitlines() if s.strip()])
                 block_LOC = count_lines(block_string)
-                r_time = dt.datetime.now()
-                block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)  # Remove tagged comments
-                block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)  # Remove end of line comments
-                re_time += (dt.datetime.now() - r_time).microseconds
-                block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
 
+                block_string, r_time = remove_comments(block_string, comment_open_close_pattern, comment_inline_pattern)
+                block_string = "\n".join([s for s in block_string.splitlines() if s.strip()]).strip()
                 block_SLOC = count_lines(block_string, False)
 
                 block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
 
-                block_string_for_tokenization, tokens_count_total, tokens_count_unique, s_time = tokenize_string(block_string, separators)
-                se_time += s_time
+                tokens_bag, tokens_count_total, tokens_count_unique, s_time = tokenize_string(block_string, separators)
 
-                t_time = dt.datetime.now()
-                # SourcererCC formatting
-                tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in block_string_for_tokenization.items()])
-                token_time += (dt.datetime.now() - t_time).microseconds
+                tokens, t_time = format_tokens(tokens_bag)
 
-                tokens_hash, hash_delta_time = hash_measuring_time(tokens.encode("utf-8"))
-                hash_time += hash_delta_time
                 block_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
                 blocks_data.append((block_tokens, block_stats, experimental_values[i]))
+                tokens_hash, hash_delta_time = hash_measuring_time(tokens.encode("utf-8"))
+                hash_time += hash_delta_time
+
+                re_time += r_time
+                se_time += s_time
+                token_time += t_time
         except Exception as e:
             print("[WARNING] " + 'Some error on tokenize_blocks for file %s. %s' % (file_path, e))
 
