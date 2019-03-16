@@ -342,18 +342,15 @@ def process_projects(process_num, list_projects, base_file_id, global_queue, pro
     if platform.system() == 'Windows':
         read_config()
 
-    # Logging code
-    FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
-
-    FILE_files_stats_file = os.path.join(PATH_stats_file_folder, 'files-stats-' + str(process_num) + '.stats')
-    FILE_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,
+    file_files_stats_file = os.path.join(PATH_stats_file_folder, 'files-stats-' + str(process_num) + '.stats')
+    file_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,
                                               'bookkeeping-proj-' + str(process_num) + '.projs')
-    FILE_files_tokens_file = os.path.join(PATH_tokens_file_folder, 'files-tokens-' + str(process_num) + '.tokens')
+    file_files_tokens_file = os.path.join(PATH_tokens_file_folder, 'files-tokens-' + str(process_num) + '.tokens')
 
     global file_count
     file_count = 0
-    with open(FILE_files_tokens_file, 'a+') as FILE_tokens, open(FILE_bookkeeping_proj_name,
-                                                                 'a+') as FILE_bookkeeping, open(FILE_files_stats_file,
+    with open(file_files_tokens_file, 'a+') as FILE_tokens, open(file_bookkeeping_proj_name,
+                                                                 'a+') as FILE_bookkeeping, open(file_files_stats_file,
                                                                                                  'a+') as FILE_stats:
         print("[INFO] " + "Process %s starting", process_num)
         p_start = dt.datetime.now()
