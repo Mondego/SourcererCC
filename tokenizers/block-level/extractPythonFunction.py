@@ -53,7 +53,7 @@ def getFunctions(filestring, logging, file_path):
 	strings = [""] * len(blocks_linenos)
 	for i, line in enumerate(filestring.split("\n")):
 		for j, linenos in enumerate(blocks_linenos):
-			if i+1 >= linenos[0] and i+1 <= linenos[1]:
+			if linenos[0] <= i+1 <= linenos[1]:
 				strings[j] += line + "\n"
 	for string in strings:
 		string = string[:-1] # remove the last "\n"

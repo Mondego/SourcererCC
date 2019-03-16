@@ -1,5 +1,6 @@
 import sys
 
+
 class Analyzer(object):
     def __init__(self, inputfile):
         self.clonesFilename = inputfile
@@ -32,8 +33,9 @@ class Analyzer(object):
     def print_dict(self, dict_to_print):
         print("clones of each file:")
         with open("results.txt", 'w') as resultfile:
-            for key, val in sorted(dict_to_print.items(), key=lambda x:-x[1]):
+            for key, val in sorted(dict_to_print.items(), key=lambda x: -x[1]):
                 resultfile.write("{key},{val}\n".format(key=key, val=val))
+
 
 if __name__ == '__main__':
     pairs_file = sys.argv[1]

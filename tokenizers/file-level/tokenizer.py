@@ -243,13 +243,10 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
     return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
 
-def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file,
-                     FILE_bookkeeping_proj, FILE_stats_file, logging):
+def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     logging.info('Attempting to process_zip_ball ' + zip_file)
-    # try:
-    with zipfile.ZipFile(proj_path, 'r'
-                                    '') as my_file:
+    with zipfile.ZipFile(proj_path, 'r') as my_file:
         for file in my_file.infolist():
             if not os.path.splitext(file.filename)[1] in file_extensions:
                 continue
@@ -288,10 +285,6 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
             write_time += times[4]
             hash_time += times[2]
             regex_time += times[3]
-    # except Exception as e:
-    #     logging.warning('Unable to open zip on <' + proj_path + '> (process ' + str(process_num) + ')')
-    #     logging.warning(e)
-    #     return
     logging.info('Successfully ran process_zip_ball ' + zip_file)
     return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
 
@@ -397,7 +390,7 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
 def kill_child(processes, pid, n_files_processed):
     global file_count
     file_count += n_files_processed
-    if processes[pid][0] != None:
+    if processes[pid][0] is not None:
         processes[pid][0] = None
         processes[pid][1] += n_files_processed
         print("Process %s finished, %s files processed (%s). Current total: %s" % (
@@ -405,7 +398,7 @@ def kill_child(processes, pid, n_files_processed):
 
 
 def active_process_count(processes):
-    return len(list(filter(lambda p: p[0] != None, processes)))
+    return len(list(filter(lambda p: p[0] is not None, processes)))
 
 
 if __name__ == '__main__':
@@ -420,7 +413,7 @@ if __name__ == '__main__':
     p_start = dt.datetime.now()
 
     prio_proj_paths = []
-    if FILE_priority_projects != None:
+    if FILE_priority_projects is not None:
         with open(FILE_priority_projects) as f:
             for line in f:
                 line_split = line.strip('\n')

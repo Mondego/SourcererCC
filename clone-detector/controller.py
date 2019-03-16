@@ -14,8 +14,10 @@ STATE_MOVE_INDEX = 3
 STATE_EXECUTE_2 = 4
 STATE_SEARCH = 5
 
+
 class ScriptControllerException(Exception):
     pass
+
 
 # Aim of this class is to run the scripts for SourcererCC with a single command
 class ScriptController(object):
@@ -52,7 +54,7 @@ class ScriptController(object):
         self.perform_step(STATE_SEARCH, "runnodes.sh", "search {}".format(self.num_nodes_search))
 
         self.flush_state()
-        self.current_state = STATE_EXECUTE_1 # go back to EXE 1 state
+        self.current_state = STATE_EXECUTE_1  # go back to EXE 1 state
         print("SUCCESS: Search Completed on all nodes")
 
     def perform_step(self, state, cmd, params):
@@ -62,7 +64,7 @@ class ScriptController(object):
         self.current_state += 1
 
     def flush_state(self):
-        print ("flushing current state {}".format(self.current_state))
+        print("flushing current state {}".format(self.current_state))
         with open(self.script_meta_file_name, "w") as f:
             f.write("{}\n".format(self.current_state))
 
@@ -83,18 +85,19 @@ class ScriptController(object):
 
     def run_command(self, cmd):
         print("running command {}".format(" ".join(cmd)))
-        p = subprocess.Popen(cmd, universal_newlines = True)
+        p = subprocess.Popen(cmd, universal_newlines=True)
         p.communicate()
         return p.returncode
 
-    def full_file_path(self,string):
+    def full_file_path(self, string):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), string)
 
-    def full_script_path(self,string,param = ""):
+    def full_script_path(self, string, param=""):
         res = self.full_file_path(string)
         if param != "":
             res += " " + param
         return res
+
 
 if __name__ == '__main__':
     numnodes = 2

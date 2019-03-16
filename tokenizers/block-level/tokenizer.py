@@ -688,7 +688,7 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
 def kill_child(processes, pid, n_files_processed):
     global file_count
     file_count += n_files_processed
-    if processes[pid][0] != None:
+    if processes[pid][0] is not None:
         processes[pid][0] = None
         processes[pid][1] += n_files_processed
 
@@ -699,7 +699,7 @@ def kill_child(processes, pid, n_files_processed):
 def active_process_count(processes):
     count = 0
     for p in processes:
-        if p[0] != None:
+        if p[0] is not None:
             count += 1
     return count
 
@@ -717,7 +717,7 @@ if __name__ == '__main__':
     p_start = dt.datetime.now()
 
     prio_proj_paths = []
-    if FILE_priority_projects != None:
+    if FILE_priority_projects is not None:
         with open(FILE_priority_projects) as f:
             for line in f:
                 line_split = line[:-1].split(',')  # [:-1] to strip final character which is '\n'
