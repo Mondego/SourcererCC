@@ -1,11 +1,13 @@
 # Usage $python this-script.py
 
-import sys, os
 import datetime
-from db import DB
 import logging
-from multiprocessing import Process
+import os
+import sys
 import traceback
+from multiprocessing import Process
+
+from db import DB
 
 TOKEN_THRESHOLD = 1
 N_PROCESSES = 2
@@ -44,10 +46,10 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
         token_hashes = {}  # {token_hash : [file_id, file_id, ...]}, all files within this project
 
         query = "SELECT fileId, f.fileHash, tokenHash, totalTokens FROM files as f JOIN stats as s ON f.fileHash=s.fileHash WHERE projectId=?;"
-        res = db_object.execute(query, project_id);
+        res = db_object.execute(query, project_id)
         logging.info(query)
         for (file_id, fileHash, tokenHash, totalTokens,) in res:
-            if (totalTokens > TOKEN_THRESHOLD):
+            if totalTokens > TOKEN_THRESHOLD:
                 files_clones.setdefault(str(file_id), set())
                 files_hashes.setdefault(str(file_id), {'fhash': fileHash, 'thash': tokenHash})
                 if tokenHash not in token_hashes:
@@ -216,7 +218,7 @@ if __name__ == "__main__":
         processes = []
         for process_num in range(N_PROCESSES):
             p = Process(name='Process ' + str(process_num), target=start_process, args=(
-            process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, host))
+                process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, host))
             processes.append(p)
             p.start()
         for p in processes:

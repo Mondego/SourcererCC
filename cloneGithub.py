@@ -7,7 +7,7 @@ from shlex import split
 
 
 def doBashCommand(bashCommand):
-    process = subprocess.Popen((bashCommand).split(), stdout=subprocess.PIPE)
+    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, _ = process.communicate()
     return output
 
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     projectsNamesToSivaNames = {}
     i = 0
 
-    with open('sivaFilesNames.txt', 'w') as  fout:
+    with open('sivaFilesNames.txt', 'w') as fout:
         with open('index2.csv', 'r') as fin:
             with open('nameToLicense.txt', 'w') as fout2:
                 for row in csv.reader(fin, delimiter=','):
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
         os.chdir(projectName)
         for line in doBashCommand("git branch").split('\n'):
-            if ('HEAD' in line):
+            if 'HEAD' in line:
                 doBashCommand("git checkout " + line)
                 break
         os.chdir(projectsDir)

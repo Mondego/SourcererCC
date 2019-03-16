@@ -1,12 +1,14 @@
 import ast
 
+
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def getFunctions(filestring, logging, file_path):
 	tree = None
 	try:
 		tree = ast.parse(filestring)
 	except Exception as e:
 		logging.warning("File " + file_path + " cannot be parsed. " + str(e))
-		return (None, None)
+		return None, None
 
 	linecount = filestring.count("\n")
 	if not filestring.endswith("\n"):
@@ -57,4 +59,4 @@ def getFunctions(filestring, logging, file_path):
 				strings[j] += line + "\n"
 	for string in strings:
 		string = string[:-1] # remove the last "\n"
-	return (blocks_linenos, strings)
+	return blocks_linenos, strings

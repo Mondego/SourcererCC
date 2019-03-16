@@ -7,7 +7,10 @@ class Spliter(object):
         self.split_count = params['split_count']
         self.input_filename = params['input_filename']
         self.total_lines = self.get_num_lines_in_input_file()
-        self.find_base_x()
+        # formula for S = x + x+.5x + x+2*.5x...x + (N-1)*.5x
+        self.base_x = math.ceil(
+            float(2 * self.total_lines) / (float((self.split_count + 1) * (self.split_count + 2) / 2) - 1))
+        print("base_x is ", self.base_x)
 
     def split(self):
         """
@@ -48,12 +51,6 @@ class Spliter(object):
                 res += 1
         print("total lines in the inputfile: {0} ".format(res + 1))
         return res + 1
-
-    def find_base_x(self):
-        # formula for S = x + x+.5x + x+2*.5x...x + (N-1)*.5x
-        self.base_x = math.ceil(
-            float(2 * self.total_lines) / (float((self.split_count + 1) * (self.split_count + 2) / 2) - 1))
-        print("base_x is ", self.base_x)
 
 
 if __name__ == '__main__':

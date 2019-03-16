@@ -74,6 +74,7 @@ def read_config():
     init_proj_id = config.getint('Config', 'init_proj_id')
 
 
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
     final_stats = final_tokens = file_hash = lines = LOC = SLOC = 'ERROR'
     h_time = dt.datetime.now()
@@ -129,9 +130,10 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     m.update(tokens.encode("utf-8"))
     hash_time += (dt.datetime.now() - h_time).microseconds
     final_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
-    return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
+    return final_stats, final_tokens, [s_time, t_time, hash_time, re_time]
 
 
+# noinspection PyUnusedLocal
 def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url,
                           FILE_tokens_file, FILE_stats_file, logging):
     global file_count
@@ -187,6 +189,7 @@ def process_regular_folder(args, folder_path, files):
             times[5] += times_c[3]
 
 
+# noinspection PyUnusedLocal
 def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file,
                      FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
@@ -240,9 +243,10 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
         logging.warning('Unable to open tar on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
         logging.warning(e)
         return
-    return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+    return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
+# noinspection PyUnusedLocal
 def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     logging.info('Attempting to process_zip_ball ' + zip_file)
@@ -286,7 +290,7 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
             hash_time += times[2]
             regex_time += times[3]
     logging.info('Successfully ran process_zip_ball ' + zip_file)
-    return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+    return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
 def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj,
@@ -304,7 +308,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
         tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if
                      os.path.isfile(os.path.join(proj_path, f))]
         tar_files = [f for f in tar_files if '_code' in f]
-        if (len(tar_files) != 1):
+        if len(tar_files) != 1:
             logging.warning('Tar not found on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             times = [0, 0, 0, 0, 0, 0, 0]
             os.path.walk(proj_path, process_regular_folder, (
@@ -380,7 +384,7 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
     paths_batch = proj_paths[:batch]
     del proj_paths[:batch]
 
-    print("Starting new process %s" % (pid))
+    print("Starting new process %s" % pid)
     p = Process(name='Process ' + str(pid), target=process_projects,
                 args=(pid, paths_batch, processes[pid][1], global_queue, project_format))
     processes[pid][0] = p

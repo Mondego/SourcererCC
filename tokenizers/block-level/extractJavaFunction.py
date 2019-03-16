@@ -7,6 +7,8 @@ global found_parent
 
 re_string = re.escape("\"") + '.*?' + re.escape("\"")
 
+
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def getFunctions(filestring, logging, file_path, separators, comment_inline_pattern):
   method_string = []
   method_pos    = []
@@ -27,7 +29,7 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
   except Exception as e:
     logging.warning("File " + file_path + " cannot be parsed. (1)" + str(e))
     logging.warning('Traceback:' + traceback.print_exc())
-    return (None, None, [])
+    return None, None, []
 
   file_string_split = filestring.split('\n')
   nodes = itertools.chain(tree.filter(javalang.tree.ConstructorDeclaration), tree.filter(javalang.tree.MethodDeclaration))
@@ -54,7 +56,7 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
       args.append(t.type.name+dims)
     args = ",".join(args)
 
-    fqn = ("%s%s(%s)") % (package,name,args)
+    fqn = "%s%s(%s)" % (package, name, args)
 
     init_line = node.position[0]
     method_body = []
@@ -83,11 +85,11 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
 
     method_name.append(fqn)
 
-  if (len(method_pos) != len(method_string)):
+  if len(method_pos) != len(method_string):
     logging.warning("File " + file_path + " cannot be parsed. (3)")
-    return (None, None, method_name)
+    return None, None, method_name
   else:
-    return (method_pos, method_string ,method_name)
+    return method_pos, method_string , method_name
 
 def check_repetition(node,name):
   before = -1

@@ -38,13 +38,13 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
             proj_id = entry_split[0]
             del entry_split[0]
 
-            if(len(entry_split) == 2):
+            if len(entry_split) == 2:
               if flag == 'files-autoID':
                 db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
               else:
                 db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
             else:
-              if (len(entry_split) % 2 != 0):
+              if len(entry_split) % 2 != 0:
                 logging.warning('Problems parsing project: '+str(entry_split))
                 path = ','.join(entry_split[:len(entry_split)/2])
                 path = path[1:-1]
@@ -79,7 +79,7 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
               bytess    = entry_split[-1:][0]; del entry_split[-1:]
               file_hash = entry_split[-1:][0]; del entry_split[-1:]
 
-              if (len(entry_split) % 2 != 0):
+              if len(entry_split) % 2 != 0:
                 logging.error('Problems parsing file: '+str(entry_split))
                 continue
               else:
@@ -203,7 +203,7 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
               bytess    = entry_split[-1:][0]; del entry_split[-1:]
               file_hash = entry_split[-1:][0]; del entry_split[-1:]
 
-              if (len(entry_split) % 2 != 0):
+              if len(entry_split) % 2 != 0:
                 logging.error('Problems parsing file: '+str(entry_split))
                 continue
               else:
@@ -234,10 +234,10 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
             proj_id = entry_split[0]
             del entry_split[0]
 
-            if(len(entry_split) == 2):
+            if len(entry_split) == 2:
               db.insert_project(proj_id,entry_split[0][1:-1],entry_split[1][1:-1])
             else:
-              if (len(entry_split) % 2 != 0):
+              if len(entry_split) % 2 != 0:
                 logging.warning('Problems parsing project: '+str(entry_split))
                 path = ','.join(entry_split[:len(entry_split)/2])
                 path = path[1:-1]

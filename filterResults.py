@@ -11,7 +11,7 @@ def compareLisenseLists(licenses1, licenses2):
 def compareLisenses(license1, license2):
     license1 = renameLicense(license1)
     license2 = renameLicense(license2)
-    if (license1 == license2):
+    if license1 == license2:
         return True
     return False
     # for l in licensesCompatibility[license1]:
