@@ -139,8 +139,8 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in file_string_for_tokenization.items()])
     t_time = (dt.datetime.now() - t_time).microseconds
 
-    tokens_hash, hash_delta = hash_measuring_time(tokens)
-    hash_time += hash_delta
+    tokens_hash, hash_delta_time = hash_measuring_time(tokens)
+    hash_time += hash_delta_time
 
     final_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
 
@@ -226,14 +226,9 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 # SourcererCC formatting
                 tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in block_string_for_tokenization.items()])
                 token_time += (dt.datetime.now() - t_time).microseconds
-                # MD5
-                h_time = dt.datetime.now()
-                m = hashlib.md5()
-                try:
-                    m.update(tokens.encode("utf-8"))
-                except Exception as e:
-                    print("[INFO] Error on tokenize_blocks (3) (file,exception,input) ({},{},{})".format(file_path, e, file_string))
-                hash_time += (dt.datetime.now() - h_time).microseconds
+
+                tokens_hash, hash_delta_time = hash_measuring_time(tokens.encode("utf-8"))
+                hash_time += hash_delta_time
                 block_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
                 blocks_data.append((block_tokens, block_stats, experimental_values[i]))
         except Exception as e:
