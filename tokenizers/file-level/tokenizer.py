@@ -121,7 +121,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     tokens_count_unique = len(file_string_for_tokenization)
     t_time = dt.datetime.now()
     # SourcererCC formatting
-    tokens = ','.join(['{}@@::@@{}'.format(k.encode('utf-8'), v) for k, v in file_string_for_tokenization.iteritems()])
+    tokens = ','.join(['{}@@::@@{}'.format(k.encode('utf-8'), v) for k, v in file_string_for_tokenization.items()])
     t_time = (dt.datetime.now() - t_time).microseconds
     # MD5
     h_time = dt.datetime.now()
