@@ -193,49 +193,25 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
             lines = count_lines(file_string)
             file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
             LOC = count_lines(file_string)
-            r_time = dt.datetime.now()
-            # Remove tagged comments
-            file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
-            # Remove end of line comments
-            file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
-            re_time = (dt.datetime.now() - r_time).microseconds
+            file_string, re_time = remove_comments(file_string, comment_open_close_pattern, comment_inline_pattern)
             file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
 
             SLOC = count_lines(file_string, False)
             final_stats = (file_hash, lines, LOC, SLOC)
 
             blocks_data = []
-            s_time = dt.datetime.now()
-            se_time = (dt.datetime.now() - s_time).microseconds
-            t_time = dt.datetime.now()
-            token_time = (dt.datetime.now() - t_time).microseconds
+            se_time = 0
+            token_time = 0
             for i, block_string in enumerate(blocks):
                 (start_line, end_line) = block_linenos[i]
 
-                block_hash, hash_time = hash_measuring_time(block_string.encode("utf-8"))
+                tmp = process_tokenizer(block_string, comment_open_close_pattern, comment_inline_pattern, separators)
+                block_tokens = tmp["final_tokens"]
+                block_stats = (*tmp["stats"], start_line, end_line)
 
-                block_lines = count_lines(block_string)
-
-                block_string = "\n".join([s for s in block_string.splitlines() if s.strip()])
-                block_LOC = count_lines(block_string)
-
-                block_string, r_time = remove_comments(block_string, comment_open_close_pattern, comment_inline_pattern)
-                block_string = "\n".join([s for s in block_string.splitlines() if s.strip()]).strip()
-                block_SLOC = count_lines(block_string, False)
-
-                block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
-
-                tokens_bag, tokens_count_total, tokens_count_unique, s_time = tokenize_string(block_string, separators)
-
-                tokens, t_time = format_tokens(tokens_bag)
-
-                tokens_hash, hash_delta_time = hash_measuring_time(tokens.encode("utf-8"))
-                block_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
-                hash_time += hash_delta_time
-
-                re_time += r_time
-                se_time += s_time
-                token_time += t_time
+                se_time += tmp["times"][0]
+                token_time += tmp["times"][1]
+                re_time += tmp["times"][3]
                 blocks_data.append((block_tokens, block_stats, experimental_values[i]))
         except Exception as e:
             print("[WARNING] " + 'Some error on tokenize_blocks for file {}'.format(file_path))
