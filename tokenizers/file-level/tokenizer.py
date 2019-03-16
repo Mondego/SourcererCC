@@ -328,7 +328,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
     FILE_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
     p_elapsed = dt.datetime.now() - p_start
     print("[INFO] " + 'Project finished <{},{}> (process {}))'.format(proj_id, proj_path, process_num))
-    print("[INFO] " + ' (%s): Total: {} ms'.format(process_num, p_elapsed))
+    print("[INFO] " + ' ({}): Total: {} ms'.format(process_num, p_elapsed))
     print("[INFO] " + '     Zip: {}'.format(zip_time))
     print("[INFO] " + '     Read: {}'.format(file_time))
     print("[INFO] " + '     Separators: {} ms'.format(string_time))
