@@ -2,7 +2,6 @@ import collections
 import datetime as dt
 import hashlib
 import os
-import platform
 import re
 import sys
 import tarfile
@@ -74,7 +73,6 @@ def read_config():
     init_proj_id = config.getint('Config', 'init_proj_id')
 
 
-# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def tokenize_files(file_string):
     final_stats = final_tokens = file_hash = lines = lines_of_code = source_lines_of_code = 'ERROR'
     h_time = dt.datetime.now()
@@ -133,7 +131,6 @@ def tokenize_files(file_string):
     return final_stats, final_tokens, [s_time, t_time, hash_time, re_time]
 
 
-# noinspection PyUnusedLocal
 def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file):
     global file_count
 
@@ -187,7 +184,6 @@ def process_regular_folder(args, folder_path, files):
             times[5] += times_c[3]
 
 
-# noinspection PyUnusedLocal
 def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file,
                      FILE_bookkeeping_proj, FILE_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
@@ -199,10 +195,6 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
                     continue
                 # Filter by the correct extension
                 if not os.path.splitext(f.name)[1] in file_extensions:
-                    continue
-                # This is very strange, but I did find some paths with newlines,
-                # so I am simply ignoring them
-                if '\n' in f.name:
                     continue
 
                 file_id = process_num * MULTIPLIER + base_file_id + file_count
@@ -244,7 +236,6 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-# noinspection PyUnusedLocal
 def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file,
                      FILE_bookkeeping_proj, FILE_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
@@ -252,10 +243,6 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
     with zipfile.ZipFile(proj_path, 'r') as my_file:
         for file in my_file.infolist():
             if not os.path.splitext(file.filename)[1] in file_extensions:
-                continue
-            # This is very strange, but I did find some paths with newlines,
-            # so I am simply ignoring them
-            if '\n' in file.filename:
                 continue
 
             file_id = process_num * MULTIPLIER + base_file_id + file_count
@@ -265,15 +252,12 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
                 my_zip_file = my_file.open(file.filename, 'r')
             except:
                 print("[WARNING] " + 
-                    'Unable to open file (1) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(
-                        process_num) + ')')
+                    'Unable to open file (1) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(process_num) + ')')
                 break
             zip_time += (dt.datetime.now() - z_time).microseconds
 
             if my_zip_file is None:
-                print("[WARNING] " + 
-                    'Unable to open file (2) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(
-                        process_num) + ')')
+                print("[WARNING] " + 'Unable to open file (2) <' + os.path.join(proj_path, file.filename) + '> (process ' + str(process_num) + ')')
                 break
 
             f_time = dt.datetime.now()
@@ -339,9 +323,6 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
 
 
 def process_projects(process_num, list_projects, base_file_id, global_queue, project_format):
-    if platform.system() == 'Windows':
-        read_config()
-
     file_files_stats_file = os.path.join(PATH_stats_file_folder, 'files-stats-' + str(process_num) + '.stats')
     file_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,
                                               'bookkeeping-proj-' + str(process_num) + '.projs')
@@ -435,11 +416,8 @@ if __name__ == '__main__':
                 proj_paths.append(line.strip("\n"))
     proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
 
-    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(
-            PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-        missing_files = filter(os.path.exists,
-                               [PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder,
-                                PATH_logs])
+    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
+        missing_files = filter(os.path.exists, [PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs])
         print('ERROR - Folder [' + '] or ['.join(missing_files) + '] already exists!')
         sys.exit(1)
     else:

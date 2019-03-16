@@ -3,7 +3,6 @@ import datetime as dt
 import hashlib
 import io
 import os
-import platform
 import re
 import sys
 import tarfile
