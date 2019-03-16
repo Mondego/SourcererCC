@@ -109,7 +109,7 @@ def remove_comments(string, comment_open_close_pattern, comment_inline_pattern):
     return result_string, time
 
 
-def tokenize_string(string):
+def tokenize_string(string, separators):
     tokenized_string = string
     # Transform separators into spaces (remove them)
     start_time = dt.datetime.now()
@@ -135,25 +135,27 @@ def format_tokens(tokens_bag):
     return tokens, time
 
 
+# return value: (
+#   (file_hash, lines, lines_of_code, source_lines_of_code),
+#   (tokens_count_total, tokens_count_unique, tokens_hash, formatted tokens),
+#   [tokenization_time, formatting_time, hash_time, removing_comments_time]
+# )
 def tokenize_file_string(string, comment_inline_pattern, comment_open_close_pattern, separators):
     file_hash, hash_time = hash_measuring_time(string)
 
-    string = "".join([s for s in string.splitlines(True) if s.strip()])
-
+    string = "\n".join([s for s in string.splitlines() if s.strip()])
     lines = count_lines(string)
 
     string, removing_comments_time = remove_comments(string, comment_open_close_pattern, comment_inline_pattern)
-
     string = "\n".join([s for s in string.splitlines() if s.strip()]).strip()
     lines_of_code = count_lines(string)
 
-    source_line_of_code = count_lines(string, False)
+    source_lines_of_code = count_lines(string, False)
 
-    final_stats = (file_hash, lines, lines_of_code, source_line_of_code)
+    final_stats = (file_hash, lines, lines_of_code, source_lines_of_code)
 
-    tokens_bag, tokens_count_total, tokens_count_unique, tokenization_time = tokenize_string(string)
-
-    tokens, formating_time = format_tokens(tokens_bag)
+    tokens_bag, tokens_count_total, tokens_count_unique, tokenization_time = tokenize_string(string, separators)  # get tokens bag
+    tokens, formating_time = format_tokens(tokens_bag)  # make formatted string with tokens
 
     tokens_hash, hash_delta_time = hash_measuring_time(tokens)
     hash_time += hash_delta_time
@@ -216,21 +218,11 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 block_SLOC = count_lines(block_string, False)
 
                 block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
-                # Rather a copy of the file string here for tokenization
-                block_string_for_tokenization = block_string
 
-                # Transform separators into spaces (remove them)
-                s_time = dt.datetime.now()
-                for x in separators:
-                    block_string_for_tokenization = block_string_for_tokenization.replace(x, ' ')
-                se_time += (dt.datetime.now() - s_time).microseconds
-                block_string_for_tokenization = block_string_for_tokenization.split()  # Create a list of tokens
-                tokens_count_total = len(block_string_for_tokenization)  # Total number of tokens
-                block_string_for_tokenization = collections.Counter(block_string_for_tokenization)  # Count occurrences
-                block_string_for_tokenization = dict(block_string_for_tokenization)  # Converting Counter to dict
-                tokens_count_unique = len(block_string_for_tokenization)  # Unique number of tokens
+                block_string_for_tokenization, tokens_count_total, tokens_count_unique, s_time = tokenize_string(block_string, separators)
+                se_time += s_time
+
                 t_time = dt.datetime.now()
-
                 # SourcererCC formatting
                 tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in block_string_for_tokenization.items()])
                 token_time += (dt.datetime.now() - t_time).microseconds
