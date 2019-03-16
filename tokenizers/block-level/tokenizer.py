@@ -339,7 +339,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
     return file_parsing_times + [w_time]  # [s_time, t_time, w_time, hash_time, re_time]
 
 
-def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
+def process_regular_folder(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     result = [f for dp, dn, filenames in os.walk(proj_path) for f in filenames if (os.path.splitext(f)[1] in file_extensions)]
 
@@ -370,7 +370,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
 
         file_id = process_num * MULTIPLIER + base_file_id + file_count
         try:
-            times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
+            times = process_file_contents(file_string, proj_id, file_id, proj_path, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
         except Exception as e:
             print("[WARNING] " + 'Unable to process file %s. %s' % (os.path.join(proj_path, file_path), e))
             continue
@@ -429,7 +429,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
+def process_zip_ball(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     with zipfile.ZipFile(proj_path, 'r') as my_file:
         for file in my_file.infolist():
@@ -456,7 +456,7 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
             file_id = process_num * MULTIPLIER + base_file_id + file_count
             file_path = file.filename
             file_bytes = str(file.file_size)
-            times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
+            times = process_file_contents(file_string, proj_id, file_id, proj_path, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
             string_time += times[0]
             tokens_time += times[1]
             hash_time += times[2]
@@ -469,42 +469,19 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
 def process_one_project(process_num, proj_id, proj_path, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file, project_format):
     p_start = dt.datetime.now()
 
-    if project_format == 'leidos':  # unused?
-        proj_path, proj_url = proj_path
-        if not os.path.isdir(proj_path):
-            print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
-            return
-
-        # Search for tar files with _code in them
-        tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
-        tar_files = [f for f in tar_files if '_code' in f]
-        if len(tar_files) != 1:
-            print("[WARNING] " + 'Tar not found on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
-            times = [0, 0, 0, 0, 0, 0]
-            os.path.walk(proj_path, process_regular_folder, (process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file, times))
-        else:
-            tar_file = tar_files[0]
-            times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file)
-    elif project_format == 'zipblocks':
-        proj_url = 'NULL'
-        proj_id = str(proj_id_flag) + proj_id
-
+    proj_url = 'NULL'
+    proj_id = str(proj_id_flag) + proj_id
+    if project_format == 'zipblocks':
         if not os.path.isfile(proj_path):
             print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             return
-
-        zip_file = proj_path
-        times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file)
+        times = process_zip_ball(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file)
     elif project_format == 'folderblocks':
-        proj_url = 'NULL'
-        proj_id = str(proj_id_flag) + proj_id
-
         if not os.path.exists(proj_path):
             print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             return
-
-        zip_file = proj_path
-        times = process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file)
+        times = process_regular_folder(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file,
+                                       file_stats_file)
     if times is None:
         times = (-1, -1, -1, -1, -1, -1, -1)
     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
@@ -555,7 +532,7 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
     paths_batch = proj_paths[:batch]
     del proj_paths[:batch]
 
-    print("Starting new process %s" % pid)
+    print("Starting new process {}".format(pid))
     p = Process(name='Process ' + str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format))
     processes[pid][0] = p
     p.start()
@@ -567,9 +544,7 @@ def kill_child(processes, pid, n_files_processed):
     if processes[pid][0] is not None:
         processes[pid][0] = None
         processes[pid][1] += n_files_processed
-
-        print("Process %s finished, %s files processed (%s). Current total: %s" % (
-            pid, n_files_processed, processes[pid][1], file_count))
+        print("Process {} finished, {} files processed {}. Current total: {}".format(pid, n_files_processed, processes[pid][1], file_count))
 
 
 def active_process_count(processes):
