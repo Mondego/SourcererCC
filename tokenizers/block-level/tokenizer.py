@@ -192,7 +192,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     if block_linenos is None:
         print("[INFO] Returning None on tokenize_blocks for file {}".format(file_path))
         return None, None, None
-    
+
     se_time = 0
     token_time = 0
     blocks_data = []
@@ -203,7 +203,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     for i, block_string in enumerate(blocks):
         (start_line, end_line) = block_linenos[i]
 
-        tmp = process_tokenizer(block_string, comment_open_close_pattern, comment_inline_pattern, separators)
+        tmp = process_tokenizer(block_string.encode("utf-8"), comment_open_close_pattern, comment_inline_pattern, separators)
         block_tokens = tmp["final_tokens"]
         block_stats = (*tmp["stats"], start_line, end_line)
 
