@@ -36,6 +36,16 @@ file_extensions = '.none'
 file_count = 0
 
 
+def hash_measuring_time(data):
+    start_time = dt.datetime.now()
+    m = hashlib.md5()
+    m.update(data)
+    hash = m.hexdigest()
+    end_time = dt.datetime.now()
+    time = (end_time - start_time).microseconds
+    return hash, time
+
+
 def read_config():
     global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
     global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
@@ -91,11 +101,7 @@ def count_lines(string, count_empty = True):
 
 
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-    h_time = dt.datetime.now()
-    m = hashlib.md5()
-    m.update(file_string)
-    file_hash = m.hexdigest()
-    hash_time = (dt.datetime.now() - h_time).microseconds
+    file_hash, hash_time = hash_measuring_time(file_string)
 
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
 
@@ -122,28 +128,21 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
         file_string_for_tokenization = file_string_for_tokenization.replace(x, ' ')
     s_time = (dt.datetime.now() - s_time).microseconds
 
-    # Create a list of tokens
-    file_string_for_tokenization = file_string_for_tokenization.split()
-    # Total number of tokens
-    tokens_count_total = len(file_string_for_tokenization)
-    # Count occurrences
-    file_string_for_tokenization = collections.Counter(file_string_for_tokenization)
-    # Converting Counter to dict because according to StackOverflow is better
-    file_string_for_tokenization = dict(file_string_for_tokenization)
-    # Unique number of tokens
-    tokens_count_unique = len(file_string_for_tokenization)
+    file_string_for_tokenization = file_string_for_tokenization.split()  # Create a list of tokens
+    tokens_count_total = len(file_string_for_tokenization)  # Total number of tokens
+    file_string_for_tokenization = collections.Counter(file_string_for_tokenization)  # Count occurrences
+    file_string_for_tokenization = dict(file_string_for_tokenization)  # Converting Counter to dict
+    tokens_count_unique = len(file_string_for_tokenization)  # Unique number of tokens
 
     t_time = dt.datetime.now()
     # SourcererCC formatting
     tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in file_string_for_tokenization.items()])
     t_time = (dt.datetime.now() - t_time).microseconds
 
-    h_time = dt.datetime.now()
-    m = hashlib.md5()
-    m.update(tokens)
-    hash_time += (dt.datetime.now() - h_time).microseconds
+    tokens_hash, hash_delta = hash_measuring_time(tokens)
+    hash_time += hash_delta
 
-    final_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
+    final_tokens = (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens)
 
     return final_stats, final_tokens, [s_time, t_time, hash_time, re_time]
 
@@ -162,15 +161,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         return None, None, None
     else:
         try:
-            h_time = dt.datetime.now()
-            m = hashlib.md5()
-            try:
-                m.update(file_string.encode('utf-8'))
-            except Exception as e:
-                print("[INFO] Error on tokenize_blocks (1) (file,input) ({},{})".format(file_path, file_string))
-                print(e)
-            file_hash = m.hexdigest()
-            hash_time = (dt.datetime.now() - h_time).microseconds
+            file_hash, hash_time = hash_measuring_time(file_string.encode("utf-8"))
             lines = count_lines(file_string)
             file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
             LOC = count_lines(file_string)
@@ -193,17 +184,8 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
             for i, block_string in enumerate(blocks):
                 (start_line, end_line) = block_linenos[i]
 
-                h_time = dt.datetime.now()
-                m = hashlib.md5()
-                try:
-                    m.update(block_string.encode('utf-8'))
-                except Exception as e:
-                    print("[INFO] Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)" % (file_path, e, file_string))
-                block_hash = m.hexdigest()
-                hash_time = (dt.datetime.now() - h_time).microseconds
-                block_lines = block_string.count('\n')
-                if not block_string.endswith('\n'):
-                    block_lines += 1
+                block_hash, hash_time = hash_measuring_time(block_string.encode("utf-8"))
+                block_lines = count_lines(block_string)
                 block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
 
                 block_LOC = block_string.count('\n')

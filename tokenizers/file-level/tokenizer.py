@@ -40,8 +40,8 @@ def read_config():
     global init_file_id
     global init_proj_id
 
-    # instantiate
     config = ConfigParser()
+
     # parse existing file
     try:
         config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
@@ -73,21 +73,23 @@ def read_config():
     init_proj_id = config.getint('Config', 'init_proj_id')
 
 
+def count_lines(string, count_empty = True):
+    result = string.count('\n')
+    if not string.endswith('\n') and (count_empty or string != ""):
+        result += 1
+    return result
+
+
 def tokenize_files(file_string):
-    final_stats = final_tokens = file_hash = lines = lines_of_code = source_lines_of_code = 'ERROR'
     h_time = dt.datetime.now()
     m = hashlib.md5()
     m.update(file_string.encode("utf-8"))
     file_hash = m.hexdigest()
     hash_time = (dt.datetime.now() - h_time).microseconds
-    lines = file_string.count('\n')
-    if not file_string.endswith('\n'):
-        lines += 1
+    lines = count_lines(file_string)
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
 
-    lines_of_code = file_string.count('\n')
-    if not file_string.endswith('\n'):
-        lines_of_code += 1
+    lines_of_code = count_lines(file_string)
 
     re_time = dt.datetime.now()
     # Remove tagged comments
