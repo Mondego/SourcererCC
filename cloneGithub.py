@@ -7,7 +7,7 @@ from shlex import split
 
 
 def doBashCommand(bashCommand):
-    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE, shell=False)
     output, _ = process.communicate()
     return output
 
