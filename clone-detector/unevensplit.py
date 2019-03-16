@@ -41,11 +41,12 @@ class Spliter(object):
             sys.exit(1)
 
     def get_num_lines_in_input_file(self):
+        res = 0
         with open(self.input_filename) as f:
             for i, _ in enumerate(f):
-                pass
-        print("total lines in the inputfile: {0} ".format(i+1))
-        return i + 1
+                res += 1
+        print("total lines in the inputfile: {0} ".format(res + 1))
+        return res + 1
 
     def find_base_x(self):
         # formula for S = x + x+.5x + x+2*.5x...x + (N-1)*.5x
