@@ -135,9 +135,7 @@ def format_tokens(tokens_bag):
     return tokens, time
 
 
-def process_tokenizer(string, comment_open_close_pattern, comment_inline_pattern, separators):
-    hashsum, hash_time = hash_measuring_time(string)
-
+def get_lines_stats(string, comment_open_close_pattern, comment_inline_pattern):
     lines = count_lines(string)
 
     string = "\n".join([s for s in string.splitlines() if s.strip()])
@@ -146,6 +144,14 @@ def process_tokenizer(string, comment_open_close_pattern, comment_inline_pattern
     string, remove_comments_time = remove_comments(string, comment_open_close_pattern, comment_inline_pattern)
     string = "\n".join([s for s in string.splitlines() if s.strip()]).strip()
     source_lines_of_code = count_lines(string, False)
+
+    return string, lines, lines_of_code, source_lines_of_code, remove_comments_time
+
+
+def process_tokenizer(string, comment_open_close_pattern, comment_inline_pattern, separators):
+    hashsum, hash_time = hash_measuring_time(string)
+
+    string, lines, lines_of_code, source_lines_of_code, remove_comments_time = get_lines_stats(string, comment_open_close_pattern, comment_inline_pattern)
 
     tokens_bag, tokens_count_total, tokens_count_unique, tokenization_time = tokenize_string(string, separators)  # get tokens bag
     tokens, format_time = format_tokens(tokens_bag)  # make formatted string with tokens
@@ -183,40 +189,28 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     if '.java' in file_extensions:
         (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, file_path, separators, comment_inline_pattern)
 
-    final_stats = 'ERROR'
     if block_linenos is None:
         print("[INFO] Returning None on tokenize_blocks for file {}".format(file_path))
         return None, None, None
-    else:
-        try:
-            file_hash, hash_time = hash_measuring_time(file_string.encode("utf-8"))
-            lines = count_lines(file_string)
-            file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
-            LOC = count_lines(file_string)
-            file_string, re_time = remove_comments(file_string, comment_open_close_pattern, comment_inline_pattern)
-            file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
+    
+    se_time = 0
+    token_time = 0
+    blocks_data = []
+    file_hash, hash_time = hash_measuring_time(file_string.encode("utf-8"))
+    file_string, lines, LOC, SLOC, re_time = get_lines_stats(file_string, comment_open_close_pattern, comment_inline_pattern)
+    final_stats = (file_hash, lines, LOC, SLOC)
 
-            SLOC = count_lines(file_string, False)
-            final_stats = (file_hash, lines, LOC, SLOC)
+    for i, block_string in enumerate(blocks):
+        (start_line, end_line) = block_linenos[i]
 
-            blocks_data = []
-            se_time = 0
-            token_time = 0
-            for i, block_string in enumerate(blocks):
-                (start_line, end_line) = block_linenos[i]
+        tmp = process_tokenizer(block_string, comment_open_close_pattern, comment_inline_pattern, separators)
+        block_tokens = tmp["final_tokens"]
+        block_stats = (*tmp["stats"], start_line, end_line)
 
-                tmp = process_tokenizer(block_string, comment_open_close_pattern, comment_inline_pattern, separators)
-                block_tokens = tmp["final_tokens"]
-                block_stats = (*tmp["stats"], start_line, end_line)
-
-                se_time += tmp["times"][0]
-                token_time += tmp["times"][1]
-                re_time += tmp["times"][3]
-                blocks_data.append((block_tokens, block_stats, experimental_values[i]))
-        except Exception as e:
-            print("[WARNING] " + 'Some error on tokenize_blocks for file {}'.format(file_path))
-            print(e)
-
+        se_time += tmp["times"][0]
+        token_time += tmp["times"][1]
+        re_time += tmp["times"][3]
+        blocks_data.append((block_tokens, block_stats, experimental_values[i]))
     return final_stats, blocks_data, [se_time, token_time, hash_time, re_time]
 
 
