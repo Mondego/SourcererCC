@@ -47,7 +47,7 @@ class Spliter(object):
     def get_num_lines_in_input_file(self):
         res = 0
         with open(self.input_filename) as f:
-            for i, _ in enumerate(f):
+            for _ in f:
                 res += 1
         print("total lines in the inputfile: {0} ".format(res + 1))
         return res + 1
