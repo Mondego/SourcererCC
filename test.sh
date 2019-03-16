@@ -3,7 +3,7 @@
 set -e
 
 cd SourcererCC/
-python useSourcererCC.py
+./downloadRepos.py
 cd ..
 mkdir test
 
