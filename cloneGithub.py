@@ -7,7 +7,7 @@ from shlex import split
 
 
 def doBashCommand(bashCommand):
-    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE, shell=False)
+    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, _ = process.communicate()
     return output
 
@@ -23,21 +23,19 @@ if __name__ == '__main__':
     projectsNamesToSivaNames = {}
     i = 0
 
-    with open('sivaFilesNames.txt', 'w') as fout:
-        with open('index2.csv', 'r') as fin:
-            with open('nameToLicense.txt', 'w') as fout2:
-                for row in csv.reader(fin, delimiter=','):
-                    # ADD FILTERS FOR PROJECTS HERE
-                    if ((('Java\n' in row[3]) or ('Java,' in row[3]))
-                            and (row[13] == ''
-                                 or 'MIT' in row[13]
-                                 or 'GPL' in row[13]
-                                 or 'Apache' in row[13]
-                                 or 'BSD' in row[13])):
-                        i = i + 1
-                        fout2.write(row[0][19:].replace('/', '_') + ";" + row[13] + '\n')
-                        projectsNamesToSivaNames[row[0][19:].replace('/', '_')] = row[1]
-                        fout.write(row[1].replace(',', '\n') + '\n')
+    with open('sivaFilesNames.txt', 'w') as fout, open('index2.csv', 'r') as fin, open('nameToLicense.txt', 'w') as fout2:
+        for row in csv.reader(fin, delimiter=','):
+            # ADD FILTERS FOR PROJECTS HERE
+            if (('Java,' in row[3])
+                    and (row[13] == ''
+                         or 'MIT' in row[13]
+                         or 'GPL' in row[13]
+                         or 'Apache' in row[13]
+                         or 'BSD' in row[13])):
+                i = i + 1
+                fout2.write(row[0][19:].replace('/', '_') + ";" + row[13] + '\n')
+                projectsNamesToSivaNames[row[0][19:].replace('/', '_')] = row[1]
+                fout.write(row[1].replace(',', '\n') + '\n')
     p1 = subprocess.Popen(split("cat sivaFilesNames.txt"), stdout=subprocess.PIPE)
     p2 = subprocess.Popen(split(goPath + "/pga get -i -v"), stdin=p1.stdout)
     p2.communicate()
