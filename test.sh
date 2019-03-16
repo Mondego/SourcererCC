@@ -3,7 +3,7 @@
 set -e
 
 cd SourcererCC/
-./downloadRepos.py urls.txt
+./downloadRepos.py urls_reduced.txt
 cd ..
 mkdir test
 
