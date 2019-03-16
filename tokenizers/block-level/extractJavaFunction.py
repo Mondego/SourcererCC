@@ -9,7 +9,7 @@ re_string = re.escape("\"") + '.*?' + re.escape("\"")
 
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
-def getFunctions(filestring, logging, file_path, separators, comment_inline_pattern):
+def getFunctions(filestring, file_path, separators, comment_inline_pattern):
     method_string = []
     method_pos = []
     method_name = []
@@ -27,8 +27,8 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
         else:
             package = package.name
     except Exception as e:
-        logging.warning("File " + file_path + " cannot be parsed. (1)" + str(e))
-        logging.warning('Traceback:' + traceback.print_exc())
+        print("[WARNING] " + "File " + file_path + " cannot be parsed. (1)" + str(e))
+        print("[WARNING] " + 'Traceback:' + traceback.print_exc())
         return None, None, []
 
     file_string_split = filestring.split('\n')
@@ -87,7 +87,7 @@ def getFunctions(filestring, logging, file_path, separators, comment_inline_patt
         method_name.append(fqn)
 
     if len(method_pos) != len(method_string):
-        logging.warning("File " + file_path + " cannot be parsed. (3)")
+        print("[WARNING] " + "File " + file_path + " cannot be parsed. (3)")
         return None, None, method_name
     else:
         return method_pos, method_string, method_name

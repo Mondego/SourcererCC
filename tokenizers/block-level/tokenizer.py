@@ -414,7 +414,8 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
             file_string = my_file.read()
             file_time += (dt.datetime.now() - f_time).microseconds
         except Exception as e:
-            print("[WARNING] " + 'Unable to read contents of file %s. %s ' % (os.path.join(proj_path, file_path), e))
+            print("[WARNING] " + 'Unable to read contents of file %s' % (os.path.join(proj_path, file_path)))
+            print(e)
             continue
 
         try:
@@ -527,20 +528,17 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
                     process_num) + ')')
                 continue
 
-            try:
-                f_time = dt.datetime.now()
-                file_string = my_zip_file.read().decode("utf-8", 'ignore')
-                file_time += (dt.datetime.now() - f_time).microseconds
+            f_time = dt.datetime.now()
+            file_string = my_zip_file.read().decode("utf-8", 'ignore')
+            file_time += (dt.datetime.now() - f_time).microseconds
 
-                times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
-                                              proj_url, file_tokens_file, file_stats_file)
-                string_time += times[0]
-                tokens_time += times[1]
-                write_time += times[4]
-                hash_time += times[2]
-                regex_time += times[3]
-            except Exception as e:
-                print("[WARNING] " + 'Unable to read contents of file %s' % (os.path.join(proj_path, str(file))))
+            times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
+                                          proj_url, file_tokens_file, file_stats_file)
+            string_time += times[0]
+            tokens_time += times[1]
+            write_time += times[4]
+            hash_time += times[2]
+            regex_time += times[3]
 
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
