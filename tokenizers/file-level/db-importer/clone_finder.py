@@ -31,8 +31,8 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
                 if str(file_id) != str(f):
                     files_clones[f].add((str(file_id), projectId))
     except Exception as e:
-        print 'Error on findAllTokenHashClones'
-        print e
+        print('Error on findAllTokenHashClones')
+        print(e)
         sys.exit(1)
 
 def find_clones_for_project(project_id, project_file_counts, db_object, debug):
@@ -106,8 +106,8 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                 else:
                     db_object.insert_projectClones(project_id, percentage_clone_projects_counter[k], total_files, float("{0:.2f}".format(percent_cloning)), k, v, project_file_counts[k], float("{0:.2f}".format(percent_host)))
     except Exception as e:
-        print 'Error on find_clones_for_project'
-        print e
+        print('Error on find_clones_for_project')
+        print(e)
         traceback.print_exc()
         sys.exit(1)
 

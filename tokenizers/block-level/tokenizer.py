@@ -282,10 +282,9 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
                 h_time = dt.datetime.now()
                 m = hashlib.md5()
                 try:
-                    m.update(tokens)
+                    m.update(tokens.encode("utf-8"))
                 except Exception as e:
-                    logging.info(
-                        'Error on tokenize_blocks (3) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
+                    logging.info('Error on tokenize_blocks (3) (file,exception,input) (%s,%s,%s)' % (file_path, e, file_string))
                 hash_time += (dt.datetime.now() - h_time).microseconds
                 block_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
                 blocks_data.append((block_tokens, block_stats, experimental_values[i]))
