@@ -100,19 +100,23 @@ def count_lines(string, count_empty = True):
     return result
 
 
+def remove_comments(string, comment_open_close_pattern, comment_inline_pattern):
+    start_time = dt.datetime.now()
+    result_string = re.sub(comment_open_close_pattern, '', string, flags=re.DOTALL)  # Remove tagged comments
+    result_string = re.sub(comment_inline_pattern, '', result_string, flags=re.MULTILINE)  # Remove end of line comments
+    end_time = dt.datetime.now()
+    time = (end_time - start_time).microseconds
+    return result_string, time
+
+
 def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
     file_hash, hash_time = hash_measuring_time(file_string)
 
     file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
 
-    re_time = dt.datetime.now()
-    # Remove tagged comments
-    file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
-    # Remove end of line comments
-    file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
-    re_time = (dt.datetime.now() - re_time).microseconds
+    file_string, re_time = remove_comments(file_string, comment_open_close_pattern, comment_inline_pattern)
 
-    file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
+    file_string = "\n".join([s for s in file_string.splitlines() if s.strip()]).strip()
 
     lines = count_lines(file_string)
     lines_of_code = count_lines(file_string)
