@@ -443,7 +443,7 @@ if __name__ == '__main__':
         with open(FILE_projects_list) as f:
             for line in f:
                 proj_paths.append(line.strip("\n"))
-    proj_paths = zip(range(1, len(proj_paths) + 1), proj_paths)
+    proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
 
     if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(
             PATH_tokens_file_folder) or os.path.exists(PATH_logs):
@@ -479,7 +479,7 @@ if __name__ == '__main__':
 
     # Start all other projects
     print("*** Starting regular projects...")
-    while len(list(proj_paths)) > 0:
+    while len(proj_paths) > 0:
         start_child(processes, global_queue, proj_paths, PROJECTS_BATCH, project_format)
 
     print("*** No more projects to process. Waiting for children to finish...")
