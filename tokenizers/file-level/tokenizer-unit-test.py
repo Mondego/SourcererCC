@@ -5,18 +5,14 @@ import sys
 import unittest
 import tokenizer
 import hashlib
-
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser # ver. < 3.0
+from configparser import ConfigParser
 
 config = ConfigParser()
 # parse existing file
 try:
     config.read('config.ini')
 except IOError:
-    print 'ERROR - Config settings not found. Usage: $python this-script.py config.ini'
+    print('ERROR - Config settings not found. Usage: $python this-script.py config.ini')
     sys.exit()
 
 separators = config.get('Language', 'separators').strip('"').split(' ')
@@ -137,4 +133,3 @@ class TestParser(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

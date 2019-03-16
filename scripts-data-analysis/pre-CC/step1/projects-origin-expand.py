@@ -31,7 +31,7 @@ def find_origin(path):
 with open(sys.argv[1],'r') as projects:
         for line in projects:
                 p = line[:-1]
-                print p+','+find_origin(p)
+                print(p+','+find_origin(p))
 
 
 

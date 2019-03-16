@@ -260,7 +260,7 @@ def import_pairs(db, pairs_path):
     commit_interval = 1000
     pair_number = 0
 
-    print '## Importing pairs from',pairs_path
+    print('## Importing pairs from',pairs_path)
     with open(pairs_path, 'r') as file_descr:
       for line in file_descr:
         pair_number += 1
@@ -269,11 +269,11 @@ def import_pairs(db, pairs_path):
         db.insert_CCPairs(line_split[0], line_split[1], line_split[2], line_split[3])
 
         if pair_number%commit_interval == 0:
-          print '    ',pair_number,'pairs committed'
+          print('    ',pair_number,'pairs committed')
 
   except Exception as e:
-    print 'Error accessing Database'
-    print e
+    print('Error accessing Database')
+    print(e)
     sys.exit(1)
 
 if __name__ == "__main__":
@@ -281,9 +281,9 @@ if __name__ == "__main__":
     logging.error('Usage: python mysql-import.py blocks|files user passwd database [output_path] [pairs_path]')
     sys.exit(1)
 
-  flag    = sys.argv[1]
-  user    = sys.argv[2]
-  passw   = sys.argv[3]
+  flag = sys.argv[1]
+  user = sys.argv[2]
+  passw = sys.argv[3]
   DB_name = sys.argv[4]
 
   if flag not in ['blocks','files','files-autoID']:
@@ -293,7 +293,7 @@ if __name__ == "__main__":
   log_path = 'LOG-db-importer.log'
 
   if os.path.isfile(log_path):
-    print 'ERROR: Log file:',log_path,'already exists'
+    print('ERROR: Log file:',log_path,'already exists')
     sys.exit(1)
 
   FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
@@ -315,17 +315,13 @@ if __name__ == "__main__":
     if len(sys.argv) >= 6:
       if flag == 'blocks':
         logging.info('### Importing blocks output from tokenizer')
-        import_tokenizer_output_blocks_tokens(db_object,output_path,logging)
+        import_tokenizer_output_blocks_tokens(db_object, output_path,logging)
       if flag == 'files' or flag == 'files-autoID':
         logging.info('### Importing files output from tokenizer')
         import_tokenizer_output_files_tokens(db_object,output_path,logging)
-    #if len(sys.argv) >= 7:
-    #    logging.info('### Importing output from tokenizer')
-    #    #import_pairs(pairs_path)
-
     db_object.close()
 
   except Exception as e:
-    print 'Error on __main__'
-    print e
+    print('Error on __main__')
+    print(e)
 

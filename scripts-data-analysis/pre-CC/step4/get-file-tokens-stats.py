@@ -36,11 +36,11 @@ with open(sys.argv[2],'r') as file_descr:
       if dict_hashes[file_hash] == 1:
         total_number_unique_files_maior_65 += 1
 
-print '***** Tokens stats *****'
-print 'Absolute number of tokens:      ',sum_total_tokens
-print 'Number of tokens for files 65+: ',sum_tokens_maior_65
-print '***** Files  stats *****'
-print 'Number of token-distinct files :',len(dict_hashes)
-print '    from which these are unique:',total_number_unique_files
-print 'Number of files with 65+ tokens:',files_maior_65
-print '    from which these are unique:',total_number_unique_files_maior_65
+print('***** Tokens stats *****')
+print('Absolute number of tokens:      ',sum_total_tokens)
+print('Number of tokens for files 65+: ',sum_tokens_maior_65)
+print('***** Files  stats *****')
+print('Number of token-distinct files :',len(dict_hashes))
+print('    from which these are unique:',total_number_unique_files)
+print('Number of files with 65+ tokens:',files_maior_65)
+print('    from which these are unique:',total_number_unique_files_maior_65)

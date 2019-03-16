@@ -16,6 +16,6 @@ with open(sys.argv[1],'r') as file_descr:
     git_url = line_split[4]
     if git_url not in projects:
       projects.add(git_url)
-      print line.strip('\n')
+      print(line.strip('\n'))
 
 

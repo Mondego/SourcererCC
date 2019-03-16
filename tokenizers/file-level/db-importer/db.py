@@ -289,7 +289,7 @@ class DB:
 
     # Prepare the complete list
     if autoID:
-      self.files = map(lambda (a, b, c, d, e): (b, c, d, e), self.files)
+      self.files = map(lambda t: (t[1], t[2], t[3], t[4]), self.files)
     flist = ','.join(self.files)
 
     self.check_connection()

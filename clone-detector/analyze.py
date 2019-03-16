@@ -26,8 +26,8 @@ class Analyzer(object):
                     self.clone_groups[rhsFile] = 1
                 count += 1
                 if (count % print_per_k) == 0:
-                    print "rows processed: ", count
-        print "rows processed: ", count
+                    print("rows processed: ", count)
+        print("rows processed: ", count)
 
     def print_dict(self, dict_to_print):
         print("clones of each file:")
@@ -41,4 +41,4 @@ if __name__ == '__main__':
     # analyzer.get_count_of_distinct_files_that_have_clones()
     analyzer.populate_distinct_clone_groups_count()
     analyzer.print_dict(analyzer.clone_groups)
-    print "count of distinct files that have clones", len(analyzer.clone_groups.keys())
+    print("count of distinct files that have clones", len(analyzer.clone_groups.keys()))

@@ -57,7 +57,7 @@ if __name__ == '__main__':
     split_count = int(sys.argv[2])
     params= {'split_count':split_count,
              'input_filename' : input_file}
-    print "spliting {inputfile} in {count} chunks".format(inputfile=input_file,count=split_count)
+    print("spliting {inputfile} in {count} chunks".format(inputfile=input_file,count=split_count))
     splitter = Spliter(params)
     splitter.split()
-    print "splitting done!"
+    print("splitting done!")
