@@ -126,7 +126,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
     # MD5
     h_time = dt.datetime.now()
     m = hashlib.md5()
-    m.update(tokens.encode("utf-8"))
+    m.update(tokens)
     hash_time += (dt.datetime.now() - h_time).microseconds
     final_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@' + tokens)
     return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
