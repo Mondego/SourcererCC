@@ -6,15 +6,15 @@ import sys
 import shutil
 
 
-def download_project(url: str):
+def download_project(url):
     archive_url = "{}/archive/master.zip".format(url)
     return requests.get(archive_url).content
 
 
-def save_project(url: str, projects_dir: str) -> str:
+def save_project(url, projects_dir):
     project_content = download_project(url)
     user, project = re.findall(r"https://github.com/(.*)/(.*)$", url)[0]
-    filename: str = "{}--{}.zip".format(user, project)
+    filename = "{}--{}.zip".format(user, project)
     open("{}/{}".format(projects_dir, filename), "wb+").write(project_content)
     return filename
 

@@ -3,8 +3,8 @@
 set -e
 
 cd SourcererCC/
-./downloadRepos.py urls_reduced.txt "tokenizers/file-level/tokenizer-sample-input/"
-./downloadRepos.py urls_reduced.txt "tokenizers/block-level/tokenizer-sample-input/"
+./downloadRepos.py urls_reduced.txt "tokenizers/file-level/" "tokenizer-sample-input"
+./downloadRepos.py urls_reduced.txt "tokenizers/block-level/" "tokenizer-sample-input"
 cd ..
 mkdir test
 
