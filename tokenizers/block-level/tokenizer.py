@@ -36,10 +36,10 @@ file_extensions = '.none'
 file_count = 0
 
 
-def hash_measuring_time(data):
+def hash_measuring_time(string):
     start_time = dt.datetime.now()
     m = hashlib.md5()
-    m.update(data)
+    m.update(string.encode("utf-8"))
     hash = m.hexdigest()
     end_time = dt.datetime.now()
     time = (end_time - start_time).microseconds
@@ -196,14 +196,14 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     se_time = 0
     token_time = 0
     blocks_data = []
-    file_hash, hash_time = hash_measuring_time(file_string.encode("utf-8"))
+    file_hash, hash_time = hash_measuring_time(file_string)
     file_string, lines, LOC, SLOC, re_time = get_lines_stats(file_string, comment_open_close_pattern, comment_inline_pattern)
     final_stats = (file_hash, lines, LOC, SLOC)
 
     for i, block_string in enumerate(blocks):
         (start_line, end_line) = block_linenos[i]
 
-        tmp = process_tokenizer(block_string.encode("utf-8"), comment_open_close_pattern, comment_inline_pattern, separators)
+        tmp = process_tokenizer(block_string, comment_open_close_pattern, comment_inline_pattern, separators)
         block_tokens = tmp["final_tokens"]
         block_stats = (*tmp["stats"], start_line, end_line)
 
@@ -349,7 +349,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-def process_zip_ball(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file):
+def process_zip_ball(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     with zipfile.ZipFile(proj_path, 'r') as my_file:
         for file in my_file.infolist():
@@ -395,7 +395,8 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, file_toke
         if not os.path.isfile(proj_path):
             print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             return
-        times = process_zip_ball(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file)
+        times = process_zip_ball(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file,
+                                 file_stats_file)
     elif project_format == 'folderblocks':
         if not os.path.exists(proj_path):
             print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
