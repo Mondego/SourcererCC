@@ -4,7 +4,6 @@ import logging
 
 
 def curate_projects(db, file_mapping_path_url, logging):
-    global cursor
     map_path_url = dict()
     with open(file_mapping_path_url, 'r') as file:
         for line in file:
