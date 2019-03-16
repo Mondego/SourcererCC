@@ -644,7 +644,7 @@ def process_projects(process_num, list_projects, base_file_id, global_queue, pro
     with open(file_files_tokens_file, 'a+') as FILE_tokens_file, \
             open(file_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj, \
             open(file_files_stats_file, 'a+') as FILE_stats_file:
-        print("[INFO] " + "Process %s starting", process_num)
+        print("[INFO] " + "Process %s starting".format(process_num))
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
             process_one_project(process_num, str(proj_id), proj_path, base_file_id, FILE_tokens_file,
