@@ -248,7 +248,7 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     logging.info('Attempting to process_zip_ball ' + zip_file)
     try:
-        with zipfile.ZipFile(proj_path, 'r') as my_file:
+        with zipfile.ZipFile(proj_path, 'rb') as my_file:
             for file in my_file.infolist():
                 if not os.path.splitext(file.filename)[1] in file_extensions:
                     continue
