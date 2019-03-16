@@ -479,7 +479,7 @@ if __name__ == '__main__':
 
     # Start all other projects
     print("*** Starting regular projects...")
-    while len(proj_paths) > 0:
+    while len(list(proj_paths)) > 0:
         start_child(processes, global_queue, proj_paths, PROJECTS_BATCH, project_format)
 
     print("*** No more projects to process. Waiting for children to finish...")
