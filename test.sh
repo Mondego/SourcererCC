@@ -2,12 +2,15 @@
 # move to folder with SourcererCC/ and results will be in test/*
 set -e
 
+cd SourcererCC/
+./downloadRepos.py urls_reduced.txt "tokenizers/file-level/" "tokenizer-sample-input"
+./downloadRepos.py urls_reduced.txt "tokenizers/block-level/" "tokenizer-sample-input"
+cd ..
 mkdir test
 
 mkdir test/t1
 cp SourcererCC/ test/t1/ -r
 cd test/t1/SourcererCC/
-python useSourcererCC.py
 ./runSourcererCC-BlocksMode.sh | while read line; do printf "\e[32m[BlocksMode.sh] \e[0m$line\n"; done
 sort -o results.pairs results.pairs
 cat results.pairs
@@ -30,7 +33,6 @@ cd ../../..
 mkdir test/t2
 cp SourcererCC/ test/t2/ -r
 cd test/t2/SourcererCC/
-python useSourcererCC.py
 ./runSourcererCC-FilesMode.sh | while read line; do printf "\e[32m[FilesMode.sh] \e[0m$line\n"; done
 sort -o results.pairs results.pairs
 cat results.pairs

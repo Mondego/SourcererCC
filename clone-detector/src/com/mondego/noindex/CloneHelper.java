@@ -9,13 +9,10 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.AbstractMap;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,7 +21,6 @@ import org.apache.lucene.document.Document;
 import com.mondego.indexbased.CustomCollectorFwdIndex;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.models.Bag;
-import com.mondego.models.CandidateProcessor;
 import com.mondego.models.QueryBlock;
 import com.mondego.models.Shard;
 import com.mondego.models.Token;
@@ -32,51 +28,35 @@ import com.mondego.models.TokenFrequency;
 import com.mondego.models.TokenInfo;
 import com.mondego.utility.Util;
 
-/**
- * 
- */
-
-/**
- * @author vaibhavsaini
- * 
- */
 public class CloneHelper {
-    private Writer clonesWriter; // writer to write the output
-    private Bag previousBag; // the previous bag whose clones we were finding in
-                             // other set
-    private float threshold; // threshold for matching the clones.e.g. 80% or
-                             // 90%
+    // writer to write the output
+    private Writer clonesWriter;
+    // the previous bag whose clones we were finding in other set
+    private Bag previousBag;
+    // threshold for matching the clones.e.g. 80% or 90%
+    private float threshold;
     private long comparisions;
     private int numClonesFound;
     private float th;
     private final Integer MUL_FACTOR = 100;
-    private Map<String, Integer> globalIdentifierMap;
     private static final Logger logger = LogManager.getLogger(CloneHelper.class);
-    /**
-     * 
-     */
+
     public CloneHelper() {
         super();
         this.comparisions = 0;
         this.numClonesFound = 0;
-        this.globalIdentifierMap = new HashMap<String, Integer>();
     }
 
     /**
      * outputs the bagB as a clone of bagA
-     * 
-     * @param bagA
-     * @param bagB
      */
     public void reportClone(Bag bagA, Bag bagB, Bag previousBag) {
         this.numClonesFound += 1;
-        if (bagA.equals(previousBag)) { // TODO: can be optimized if we do not
-                                        // compare here
-            // System.out.println("equal");
+        // TODO: can be optimized if we do not compare here
+        if (bagA.equals(previousBag)) {
             Util.writeToFile(this.clonesWriter, " ," + bagB.getId(), false);
         } else {
             // start a new line
-            // System.out.println("different");
             Util.writeToFile(this.clonesWriter, "", true);
             Util.writeToFile(this.clonesWriter, "Clones of Bag " + bagA.getId(), true);
             Util.writeToFile(this.clonesWriter, bagB.getId() + "", false);
@@ -91,8 +71,7 @@ public class CloneHelper {
     }
 
     /**
-     * @param threshold
-     *            the threshold to set
+     * @param threshold the threshold to set
      */
     public void setThreshold(float threshold) {
         this.threshold = threshold;
@@ -103,21 +82,15 @@ public class CloneHelper {
      * Each Bag is a Map that has Token as a key and token's frequency in the
      * method as value. the method compares two sets and outputs the clones.
      * 
-     * @param setA
-     *            set of Bags
-     * @param setB
-     *            set of Bags
+     * @param setA set of Bags
+     * @param setB set of Bags
      */
     public void detectClones(Set<Bag> setA, Set<Bag> setB, boolean useJaccardSimilarity) {
-        // iterate on setA
         for (Bag bagInSetA : setA) {
             // compare this map with every map in setB and report clones
-            // iterate on setB
             for (Bag bagInSetB : setB) {
-                if (bagInSetA.getId() != bagInSetB.getId()) {
-                    if (bagInSetA.getId() < bagInSetB.getId()) {
-                        this.detectClones(bagInSetA, bagInSetB, useJaccardSimilarity);
-                    }
+                if (bagInSetA.getId() < bagInSetB.getId()) {
+                    this.detectClones(bagInSetA, bagInSetB, useJaccardSimilarity);
                 }
             }
         }
@@ -126,26 +99,19 @@ public class CloneHelper {
     /**
      * the method compares two maps and reports if they are clones.
      * 
-     * @param bagA
-     *            map of token as key and it's frequency in a method as value
-     * @param bagB
-     *            map of token as key and it's frequency in a method as value
+     * @param bagA map of token as key and it's frequency in a method as value
+     * @param bagB map of token as key and it's frequency in a method as value
      */
     public void detectClones(Bag bagA, Bag bagB, boolean useJaccardSimilarity) {
         int computedThreshold = 0;
         if (useJaccardSimilarity) {
-            int computedThreshold_jaccard = (int) Math
-                    .ceil((this.th * (bagA.getSize() + bagB.getSize())) / (10 * this.MUL_FACTOR + this.th));
+            int computedThreshold_jaccard = (int) Math.ceil((this.th * (bagA.getSize() + bagB.getSize())) / (10 * this.MUL_FACTOR + this.th));
             computedThreshold = computedThreshold_jaccard;
         } else {
             int maxLength = Math.max(bagA.getSize(), bagB.getSize());
             int computedThreshold_overlap = (int) Math.ceil((this.th * maxLength) / (10 * this.MUL_FACTOR));
             computedThreshold = computedThreshold_overlap;
         }
-        // threshold.
-        // System.out.println("threshold is "+ computedThreshold +
-        // " bagA: "+bagA.getId()+ " bagB: "+bagB.getId());
-        // iterate on bagA
         int count = 0;
         for (TokenFrequency tokenFrequencyA : bagA) {
             // search this token in bagB
@@ -155,21 +121,17 @@ public class CloneHelper {
                 // token found.
                 count += Math.min(tokenFrequencyA.getFrequency(), tokenFrequencyB.getFrequency());
                 if (count >= computedThreshold) {
-                    // report clone.
                     this.reportClone(bagA, bagB, this.previousBag);
                     this.previousBag = bagA;
-                    break; // no need to iterate on other keys clone has been
-                           // found
+                    // no need to iterate on other keys clone has been found
+                    break;
                 }
             }
         }
     }
 
     /**
-     * returns the string for the insuptSet.
-     * 
-     * @param inputSet
-     * @return String
+     * @return the string for the inputSet.
      */
     public String stringify(Set<Bag> inputSet) {
         String returnString = "";
@@ -190,8 +152,9 @@ public class CloneHelper {
                 Bag bag = new Bag(Long.parseLong(bagId));
                 bag.setFunctionId(Long.parseLong(functionId));
                 bag.setSize(bagSize);
+                // ignore this bag, do not process it further
                 if (bag.getSize() < SearchManager.min_tokens || bag.getSize() > SearchManager.max_tokens) {
-                    return bag; // ignore this bag, do not process it further
+                    return bag;
                 }
                 String tokenString = bagAndTokens[1];
                 this.parseAndPopulateBag(bag, tokenString);
@@ -199,7 +162,6 @@ public class CloneHelper {
             } else {
                 throw new ParseException("parsing error at string: " + s, 0);
             }
-
         } catch (ArrayIndexOutOfBoundsException e) {
             logger.error(e.getMessage() + " possible parsing error at string: " + s);
             logger.error("ignoring this block");
@@ -225,8 +187,6 @@ public class CloneHelper {
                     bag.add(tokenFrequency);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     logger.error("EXCEPTION CAUGHT, token: " + token);
-                    // System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
-                    // tokenAndFreq[1]);
                     logger.error("EXCEPTION CAUGHT: " + inputString);
                 } catch (NumberFormatException e) {
                     logger.error("EXCEPTION CAUGHT: " + inputString + " " + e.getMessage());
@@ -235,28 +195,6 @@ public class CloneHelper {
         }
         scanner.close();
     }
-
-
-    /*
-     * public QueryBlock deserialiseToQueryBlock(String s, List<Entry<String,
-     * TokenInfo>> listOfTokens) throws ParseException { try { if (null != s &&
-     * s.trim().length() > 0) { String[] bagAndTokens = s.split("@#@"); String[]
-     * functionIdAndBagId = bagAndTokens[0].split(","); String functionId =
-     * functionIdAndBagId[0]; String bagId = functionIdAndBagId[1]; // int size
-     * = Integer.parseInt(functionIdAndBagId[2]); // QueryBlock queryBlock = new
-     * // QueryBlock(Long.parseLong((bagId))); //
-     * queryBlock.setFunctionId(Long.parseLong(functionId)); String tokenString
-     * = bagAndTokens[1]; int queryBlockSize = this.parseAndPopulateQueryBlock(
-     * listOfTokens, tokenString,",","@@::@@"); QueryBlock queryBlock = new
-     * QueryBlock(Long.parseLong((bagId)), queryBlockSize); try {
-     * queryBlock.setFunctionId(Long.parseLong(functionId)); } catch
-     * (NumberFormatException e) { throw e; } return queryBlock; } } catch
-     * (ArrayIndexOutOfBoundsException e) {
-     * System.out.println("EXCEPTION CAUGHT, string: " + s); } catch
-     * (NumberFormatException e) { System.out.println(e.getMessage() +
-     * ", ignoring query: " + s); } throw new ParseException("parsing error",
-     * 0); }
-     */
 
     public QueryBlock getSortedQueryBlock(String s, List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
         try {
@@ -268,20 +206,18 @@ public class CloneHelper {
                 QueryBlock queryBlock = null;
                 try {
                     int bagSize = Integer.parseInt(bagMetadata[2]);
+                    // do not process it further. we need to discard this query
                     if (bagSize < SearchManager.min_tokens || bagSize > SearchManager.max_tokens) {
-                        return null; // do not process it further. we need
-                                           // to discard this query
+                        return null;
                     }
                     queryBlock = new QueryBlock(Long.parseLong((bagId)), bagSize);
                     queryBlock.setFunctionId(Long.parseLong(functionId));
-		    Shard shard = SearchManager.getShard(queryBlock);
-		    if (shard == null) {
-			logger.warn(SearchManager.NODE_PREFIX + " unable to find shard for query block " + queryBlock);
-			return null;
-		    }
-
-		    queryBlock.setShardId(shard.getId()); 
-
+                    Shard shard = SearchManager.getShard(queryBlock);
+                    if (shard == null) {
+                        logger.warn(SearchManager.NODE_PREFIX + " unable to find shard for query block " + queryBlock);
+                        return null;
+                    }
+                    queryBlock.setShardId(shard.getId()); 
                 } catch (NumberFormatException e) {
                     throw e;
                 }
@@ -300,7 +236,6 @@ public class CloneHelper {
                 } else {
                     logger.warn("warning! " + bagId + " not in fwdindex, cant get query string");
                 }
-
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             logger.error("EXCEPTION CAUGHT, string: " + s);
@@ -312,9 +247,7 @@ public class CloneHelper {
         throw new ParseException("parsing error", 0);
     }
 
-    private void parseAndPopulateQueryBlock(List<Entry<String, TokenInfo>> listOfTokens, String inputString,
-            String delimeterTokenFreq, String delimeterTokenAndFreq) {
-        // int queryBlockSize = 0;
+    private void parseAndPopulateQueryBlock(List<Entry<String, TokenInfo>> listOfTokens, String inputString, String delimeterTokenFreq, String delimeterTokenAndFreq) {
         Scanner scanner = new Scanner(inputString);
         scanner.useDelimiter(delimeterTokenFreq);
         String tokenFreq = null;
@@ -327,15 +260,10 @@ public class CloneHelper {
             if (tokenStr.length() > 0) {
                 try {
                     TokenInfo tokenInfo = new TokenInfo(Integer.parseInt(tokenAndFreq[1]));
-                    Entry<String, TokenInfo> entry = new AbstractMap.SimpleEntry<String, TokenInfo>(tokenStr,
-                            tokenInfo);
+                    Entry<String, TokenInfo> entry = new AbstractMap.SimpleEntry<String, TokenInfo>(tokenStr, tokenInfo);
                     listOfTokens.add(entry);
-                    // queryBlockSize += tokenInfo.getFrequency();
-
                 } catch (ArrayIndexOutOfBoundsException e) {
                     logger.error("EXCEPTION CAUGHT, token: " + tokenStr + "," + e.getMessage());
-                    // System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
-                    // tokenAndFreq[1]);
                     logger.error("EXCEPTION CAUGHT, inputString : " + inputString + "," + e.getMessage());
                 } catch (NumberFormatException e) {
                     logger.error("EXCEPTION CAUGHT, inputString : " + inputString + "," + e.getMessage());
@@ -358,8 +286,7 @@ public class CloneHelper {
     }
 
     /**
-     * @param clonesWriter
-     *            the clonesWriter to set
+     * @param clonesWriter the clonesWriter to set
      */
     public void setClonesWriter(Writer clonesWriter) {
         this.clonesWriter = clonesWriter;
@@ -384,31 +311,18 @@ public class CloneHelper {
                 bagsSet.add(this.deserialise(line));
             }
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
             try {
                 br.close();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
-
-    }
-
-    private Integer getMappedInteger(String token) {
-        if (this.globalIdentifierMap.containsKey(token)) {
-            return this.globalIdentifierMap.get(token);
-        }
-        int size = this.globalIdentifierMap.size();
-        this.globalIdentifierMap.put(token, size);
-        return size;
     }
 
     /**
@@ -419,8 +333,7 @@ public class CloneHelper {
     }
 
     /**
-     * @param comparisions
-     *            the comparisions to set
+     * @param comparisions the comparisions to set
      */
     public void setComparisions(long comparisions) {
         this.comparisions = comparisions;
@@ -434,8 +347,7 @@ public class CloneHelper {
     }
 
     /**
-     * @param numClonesFound
-     *            the numClonesFound to set
+     * @param numClonesFound the numClonesFound to set
      */
     public void setNumClonesFound(int numClonesFound) {
         this.numClonesFound = numClonesFound;
@@ -443,7 +355,6 @@ public class CloneHelper {
 
     public void setTh(float th) {
         this.th = th;
-
     }
 
     public void parseInputDirAndPopulateSet(File dir, Set<Bag> setA) {
@@ -451,5 +362,4 @@ public class CloneHelper {
             this.parseInputFileAndPopulateSet(filename, setA);
         }
     }
-
 }

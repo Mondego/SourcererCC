@@ -1,22 +1,17 @@
-import logging
-import multiprocessing as mp
-from multiprocessing import Process, Value, Queue
-import re
-import os, platform
 import collections
-import tarfile
-import sys
-import hashlib
 import datetime as dt
-import zipfile
-import extractPythonFunction
-import extractJavaFunction
+import hashlib
 import io
+import os
+import re
+import sys
+import tarfile
+import zipfile
+from configparser import ConfigParser
+from multiprocessing import Process, Queue
 
-try:
-  from configparser import ConfigParser
-except ImportError:
-  from ConfigParser import ConfigParser # ver. < 3.0
+import extractJavaFunction
+import extractPythonFunction
 
 MULTIPLIER = 50000000
 
@@ -40,695 +35,508 @@ file_extensions = '.none'
 
 file_count = 0
 
-print('GO')
+
+def hash_measuring_time(string):
+    start_time = dt.datetime.now()
+    m = hashlib.md5()
+    m.update(string.encode("utf-8"))
+    hash = m.hexdigest()
+    end_time = dt.datetime.now()
+    time = (end_time - start_time).microseconds
+    return hash, time
+
 
 def read_config():
-  global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
-  global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
-  global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
-  global file_extensions
-  
-  global init_file_id
-  global init_proj_id
+    global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
+    global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
+    global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
+    global file_extensions
 
-  global proj_id_flag
+    global init_file_id
+    global init_proj_id
+    global proj_id_flag
 
-  # instantiate
-  config = ConfigParser()
+    config = ConfigParser()
 
-  # parse existing file
-  try:
-    config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)) , 'config.ini'))
-  except IOError:
-    print('ERROR - Config settings not found. Usage: $python this-script.py config-file.ini')
-    sys.exit()
-
-  # Get info from config.ini into global variables
-  N_PROCESSES = config.getint('Main', 'N_PROCESSES')
-  PROJECTS_BATCH = config.getint('Main', 'PROJECTS_BATCH')
-  FILE_projects_list = config.get('Main', 'FILE_projects_list')
-  if config.has_option('Main', 'FILE_priority_projects'):
-    FILE_priority_projects = config.get('Main', 'FILE_priority_projects')
-  PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
-  PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
-  PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
-  PATH_logs = config.get('Folders/Files', 'PATH_logs')
-
-  # Reading Language settings
-  separators = "; . [ ] ( ) ~ ! - + & * / % < > ^ | ? { } = # , \" \\ : $ ' ` @" #config.get('Language', 'separators').strip('"').split(' ')
-  comment_inline = re.escape(config.get('Language', 'comment_inline'))
-  comment_inline_pattern = comment_inline + '.*?$'
-  comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
-  comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
-  comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
-  file_extensions = config.get('Language', 'File_extensions').split(' ')
-
-  # Reading config settings
-  init_file_id = config.getint('Config', 'init_file_id')
-  init_proj_id = config.getint('Config', 'init_proj_id')
-
-  # flag before proj_id
-  proj_id_flag = config.getint('Config', 'init_proj_id')
-
-def tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators):
-  final_stats  = 'ERROR'
-  final_tokens = 'ERROR'
-
-  file_hash = 'ERROR'
-  lines     = 'ERROR'
-  LOC       = 'ERROR'
-  SLOC      = 'ERROR'
-
-  h_time = dt.datetime.now()
-  m = hashlib.md5()
-  m.update(file_string)
-  file_hash = m.hexdigest()
-  hash_time = (dt.datetime.now() - h_time).microseconds
-  
-  lines = file_string.count('\n')
-  if not file_string.endswith('\n'):
-    lines += 1
-  file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
-
-  LOC = file_string.count('\n')
-  if not file_string.endswith('\n'):
-    LOC += 1
-
-  re_time = dt.datetime.now()
-  # Remove tagged comments
-  file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
-  # Remove end of line comments
-  file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
-  re_time = (dt.datetime.now() - re_time).microseconds
-
-  file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
-
-  SLOC = file_string.count('\n')
-  if file_string != '' and not file_string.endswith('\n'):
-    SLOC += 1
-
-  final_stats = (file_hash,lines,LOC,SLOC)
-
-  # Rather a copy of the file string here for tokenization
-  file_string_for_tokenization = file_string
-
-  #Transform separators into spaces (remove them)
-  s_time = dt.datetime.now()
-  for x in separators:
-    file_string_for_tokenization = file_string_for_tokenization.replace(x,' ')
-  s_time = (dt.datetime.now() - s_time).microseconds
-
-  ##Create a list of tokens
-  file_string_for_tokenization = file_string_for_tokenization.split()
-  ## Total number of tokens
-  tokens_count_total = len(file_string_for_tokenization)
-  ##Count occurrences
-  file_string_for_tokenization = collections.Counter(file_string_for_tokenization)
-  ##Converting Counter to dict because according to StackOverflow is better
-  file_string_for_tokenization=dict(file_string_for_tokenization)
-  ## Unique number of tokens
-  tokens_count_unique = len(file_string_for_tokenization)
-
-  t_time = dt.datetime.now()
-  #SourcererCC formatting
-  tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in file_string_for_tokenization.iteritems()])
-  t_time = (dt.datetime.now() - t_time).microseconds
-
-  # MD5
-  h_time = dt.datetime.now()
-  m = hashlib.md5()
-  m.update(tokens)
-  hash_time += (dt.datetime.now() - h_time).microseconds
-
-  final_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
-
-  return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
-
-def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, file_path):
-  # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
-  final_stats  = 'ERROR'
-  final_tokens = 'ERROR'
-
-  file_hash = 'ERROR'
-  lines     = 'ERROR'
-  LOC       = 'ERROR'
-  SLOC      = 'ERROR'
-  experimental_values = ''
-  if '.py' in file_extensions:
-    (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, logging, file_path)
-  if '.java' in file_extensions:
-    (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, logging, file_path, separators, comment_inline_pattern)
-
-  if block_linenos is None:
-    logging.info('Returning None on tokenize_blocks for file %s.' % (file_path))
-    return (None, None, None)
-  else:
+    # parse existing file
     try:
-      h_time = dt.datetime.now()
-      m = hashlib.md5()
-      try:
-        m.update(file_string)
-      except Exception as e:
-        logging.info('Error on tokenize_blocks (1) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
-      file_hash = m.hexdigest()
-      hash_time = (dt.datetime.now() - h_time).microseconds
-      lines = file_string.count('\n')
-      if not file_string.endswith('\n'):
-        lines += 1
-      file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
-      LOC = file_string.count('\n')
-      if not file_string.endswith('\n'):
-        LOC += 1
-      r_time = dt.datetime.now()
-      # Remove tagged comments
-      file_string = re.sub(comment_open_close_pattern, '', file_string, flags=re.DOTALL)
-      # Remove end of line comments
-      file_string = re.sub(comment_inline_pattern, '', file_string, flags=re.MULTILINE)
-      re_time = (dt.datetime.now() - r_time).microseconds
-      file_string = "".join([s for s in file_string.splitlines(True) if s.strip()]).strip()
-    
-      SLOC = file_string.count('\n')
-      if file_string != '' and not file_string.endswith('\n'):
-        SLOC += 1
-      final_stats = (file_hash,lines,LOC,SLOC)
-   
-      blocks_data = []
-      s_time = dt.datetime.now()
-      se_time = (dt.datetime.now() - s_time).microseconds
-      t_time = dt.datetime.now()
-      token_time = (dt.datetime.now() - t_time).microseconds
-      for i, block_string in enumerate(blocks):
+        config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
+    except IOError:
+        print('ERROR - Config settings not found. Usage: $python this-script.py config-file.ini')
+        sys.exit()
+
+    # Get info from config.ini into global variables
+    N_PROCESSES = config.getint('Main', 'N_PROCESSES')
+    PROJECTS_BATCH = config.getint('Main', 'PROJECTS_BATCH')
+    FILE_projects_list = config.get('Main', 'FILE_projects_list')
+    if config.has_option('Main', 'FILE_priority_projects'):
+        FILE_priority_projects = config.get('Main', 'FILE_priority_projects')
+    PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
+    PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
+    PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
+    PATH_logs = config.get('Folders/Files', 'PATH_logs')
+
+    # Reading Language settings
+    separators = "; . [ ] ( ) ~ ! - + & * / % < > ^ | ? { } = # , \" \\ : $ ' ` @"
+    comment_inline = re.escape(config.get('Language', 'comment_inline'))
+    comment_inline_pattern = comment_inline + '.*?$'
+    comment_open_tag = re.escape(config.get('Language', 'comment_open_tag'))
+    comment_close_tag = re.escape(config.get('Language', 'comment_close_tag'))
+    comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
+    file_extensions = config.get('Language', 'File_extensions').split(' ')
+
+    # Reading config settings
+    init_file_id = config.getint('Config', 'init_file_id')
+    init_proj_id = config.getint('Config', 'init_proj_id')
+
+    # flag before proj_id
+    proj_id_flag = config.getint('Config', 'init_proj_id')
+
+
+def count_lines(string, count_empty = True):
+    result = string.count('\n')
+    if not string.endswith('\n') and (count_empty or string != ""):
+        result += 1
+    return result
+
+
+def remove_comments(string, comment_open_close_pattern, comment_inline_pattern):
+    start_time = dt.datetime.now()
+    result_string = re.sub(comment_open_close_pattern, '', string, flags=re.DOTALL)  # Remove tagged comments
+    result_string = re.sub(comment_inline_pattern, '', result_string, flags=re.MULTILINE)  # Remove end of line comments
+    end_time = dt.datetime.now()
+    time = (end_time - start_time).microseconds
+    return result_string, time
+
+
+def tokenize_string(string, separators):
+    tokenized_string = string
+    # Transform separators into spaces (remove them)
+    start_time = dt.datetime.now()
+    for x in separators:
+        tokenized_string = tokenized_string.replace(x, ' ')
+    end_time = dt.datetime.now()
+    time = (end_time - start_time).microseconds
+
+    tokens_list = tokenized_string.split()  # Create a list of tokens
+    total_tokens = len(tokens_list)  # Total number of tokens
+    tokens_counter = collections.Counter(tokens_list)  # Count occurrences
+    tokens_bag = dict(tokens_counter)  # Converting Counter to dict, {token: occurences}
+    unique_tokens = len(tokens_bag)  # Unique number of tokens
+    return tokens_bag, total_tokens, unique_tokens, time
+
+
+# SourcererCC formatting
+def format_tokens(tokens_bag):
+    start_time = dt.datetime.now()
+    tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in tokens_bag.items()])
+    end_time = dt.datetime.now()
+    time = (end_time - start_time).microseconds
+    return tokens, time
+
+
+def get_lines_stats(string, comment_open_close_pattern, comment_inline_pattern):
+    lines = count_lines(string)
+
+    string = "\n".join([s for s in string.splitlines() if s.strip()])
+    lines_of_code = count_lines(string)
+
+    string, remove_comments_time = remove_comments(string, comment_open_close_pattern, comment_inline_pattern)
+    string = "\n".join([s for s in string.splitlines() if s.strip()]).strip()
+    source_lines_of_code = count_lines(string, False)
+
+    return string, lines, lines_of_code, source_lines_of_code, remove_comments_time
+
+
+def process_tokenizer(string, comment_open_close_pattern, comment_inline_pattern, separators):
+    hashsum, hash_time = hash_measuring_time(string)
+
+    string, lines, lines_of_code, source_lines_of_code, remove_comments_time = get_lines_stats(string, comment_open_close_pattern, comment_inline_pattern)
+
+    tokens_bag, tokens_count_total, tokens_count_unique, tokenization_time = tokenize_string(string, separators)  # get tokens bag
+    tokens, format_time = format_tokens(tokens_bag)  # make formatted string with tokens
+
+    tokens_hash, hash_delta_time = hash_measuring_time(tokens)
+    hash_time += hash_delta_time
+
+    return {
+        "stats": (hashsum, lines, lines_of_code, source_lines_of_code),
+        "final_tokens": (tokens_count_total, tokens_count_unique, tokens_hash, '@#@' + tokens),
+        "times": [tokenization_time, format_time, hash_time, remove_comments_time]
+    }
+
+
+def tokenize_file_string(string, comment_inline_pattern, comment_open_close_pattern, separators):
+    tmp = process_tokenizer(string, comment_inline_pattern, comment_open_close_pattern, separators)
+    final_stats = tmp["stats"]
+    final_tokens = tmp["final_tokens"]
+    [tokenization_time, formating_time, hash_time, removing_comments_time] = tmp["times"]
+    return final_stats, final_tokens, [tokenization_time, formating_time, hash_time, removing_comments_time]
+
+
+def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, file_path):
+    # This function will return (file_stats, [(blocks_tokens,blocks_stats)], file_parsing_times]
+    block_linenos = None
+    blocks = None
+    experimental_values = ''
+    if '.py' in file_extensions:
+        (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, file_path)
+    if '.java' in file_extensions:
+        (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, file_path, separators, comment_inline_pattern)
+
+    if block_linenos is None:
+        print("[INFO] Returning None on tokenize_blocks for file {}".format(file_path))
+        return None, None, None
+
+    se_time = 0
+    token_time = 0
+    blocks_data = []
+    file_hash, hash_time = hash_measuring_time(file_string)
+    file_string, lines, LOC, SLOC, re_time = get_lines_stats(file_string, comment_open_close_pattern, comment_inline_pattern)
+    final_stats = (file_hash, lines, LOC, SLOC)
+
+    for i, block_string in enumerate(blocks):
         (start_line, end_line) = block_linenos[i]
-      
-        block_stats = 'ERROR'
-        block_tokens = 'ERROR'
-     
-        block_hash = 'ERROR'
-        block_lines = 'ERROR'
-        block_LOC = 'ERROR'
-        block_SLOC = 'ERROR'
-     
-        h_time = dt.datetime.now()
-        m = hashlib.md5()
-        try:
-          m.update(block_string)
-        except Exception as e:
-          logging.info('Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
-        block_hash = m.hexdigest()
-        hash_time = (dt.datetime.now() - h_time).microseconds
-        block_lines = block_string.count('\n')
-        if not block_string.endswith('\n'):
-          block_lines += 1
-        block_string = "".join([s for s in block_string.splitlines(True) if s.strip()])
-      
-        block_LOC = block_string.count('\n')
-        if not block_string.endswith('\n'):
-          block_LOC += 1
-        r_time = dt.datetime.now()
-        # Remove tagged comments
-        block_string = re.sub(comment_open_close_pattern, '', block_string, flags=re.DOTALL)
-        # Remove end of line comments
-        block_string = re.sub(comment_inline_pattern, '', block_string, flags=re.MULTILINE)
-        re_time += (dt.datetime.now() - r_time).microseconds
-        block_string = "".join([s for s in block_string.splitlines(True) if s.strip()]).strip()
-     
-        block_SLOC = block_string.count('\n')
-        if block_string != '' and not block_string.endswith('\n'):
-          block_SLOC += 1
-     
-        block_stats = (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line)
-        # Rather a copy of the file string here for tokenization
-        block_string_for_tokenization = block_string
-     
-        #Transform separators into spaces (remove them)
-        s_time = dt.datetime.now()
-        for x in separators:
-          block_string_for_tokenization = block_string_for_tokenization.replace(x,' ')
-        se_time += (dt.datetime.now() - s_time).microseconds
-        ##Create a list of tokens
-        block_string_for_tokenization = block_string_for_tokenization.split()
-        ## Total number of tokens
-        tokens_count_total = len(block_string_for_tokenization)
-        ##Count occurrences
-        block_string_for_tokenization = collections.Counter(block_string_for_tokenization)
-        ##Converting Counter to dict because according to StackOverflow is better
-        block_string_for_tokenization=dict(block_string_for_tokenization)
-        ## Unique number of tokens
-        tokens_count_unique = len(block_string_for_tokenization)
-        t_time = dt.datetime.now()
-        #SourcererCC formatting
-        tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
-        token_time += (dt.datetime.now() - t_time).microseconds
-        # MD5
-        h_time = dt.datetime.now()
-        m = hashlib.md5()
-        try:
-          m.update(tokens)
-        except Exception as e:
-          logging.info('Error on tokenize_blocks (3) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
-        hash_time += (dt.datetime.now() - h_time).microseconds
-        block_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
+
+        tmp = process_tokenizer(block_string, comment_open_close_pattern, comment_inline_pattern, separators)
+        block_tokens = tmp["final_tokens"]
+        block_stats = (*tmp["stats"], start_line, end_line)
+
+        se_time += tmp["times"][0]
+        token_time += tmp["times"][1]
+        re_time += tmp["times"][3]
         blocks_data.append((block_tokens, block_stats, experimental_values[i]))
-    except Exception as e:
-      logging.warning('Some error on tokenize_blocks for file %s. %s' % (file_path, e))
+    return final_stats, blocks_data, [se_time, token_time, hash_time, re_time]
 
-  return (final_stats, blocks_data, [se_time, token_time, hash_time, re_time])
 
-def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging):
-  global file_count
-  file_count += 1
+def process_file_contents(file_string, proj_id, file_id, container_path, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file):
+    global file_count
+    file_count += 1
 
-  if (project_format == 'zipblocks') or (project_format == 'folderblocks'):
-    (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, logging, os.path.join(container_path, file_path))
+    if not project_format in ['zipblocks', 'folderblocks']:
+        return [0] * 5
+    (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, os.path.join(container_path, file_path))
     if (final_stats is None) or (blocks_data is None) or (file_parsing_times is None):
-      logging.warning('Problems tokenizing file ' + os.path.join(container_path, file_path))
-      return [0, 0, 0, 0, 0]
-          
+        print("[WARNING] " + 'Problems tokenizing file ' + os.path.join(container_path, file_path))
+        return [0] * 5
+
     if len(blocks_data) > 90000:
-      logging.warning('File ' + os.path.join(container_path, file_path) + ' has ' + len(blocks_data) + ' blocks, more than 90000. Range MUST be increased.')
-      return [0, 0, 0, 0, 0]
-    
+        print("[WARNING] " + 'File ' + os.path.join(container_path, file_path) + ' has ' + str(len(blocks_data)) + ' blocks, more than 90000. Range MUST be increased.')
+        return [0] * 5
+
     # write file stats
-    (file_hash,lines,LOC,SLOC) = final_stats
-    file_url = proj_url + '/' + file_path.replace(' ','%20')
+    file_url = proj_url + '/' + file_path.replace(' ', '%20')
     file_path = os.path.join(container_path, file_path)
- 
+
     # file stats start with a letter 'f'
-    FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
-    blocks_data = zip(range(10000,99999),blocks_data)
+    (file_hash, lines, LOC, SLOC) = final_stats
+    file_stats_file.write('f{},{},\"{}\",\"{}\",\"{}\",{},{},{},{}\n'.format(proj_id, file_id, file_path, file_url, file_hash, file_bytes, lines, LOC, SLOC))
+    blocks_data = zip(range(10000, 99999), blocks_data)
 
     ww_time = dt.datetime.now()
-
     try:
-      for relative_id, block_data in blocks_data:
+        for relative_id, block_data in blocks_data:
+            (blocks_tokens, blocks_stats, experimental_values) = block_data
+            block_id = "{}{}".format(relative_id, file_id)
 
-        (blocks_tokens, blocks_stats, experimental_values) = block_data
-        block_id = str(relative_id)+str(file_id)
-  
-        (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
-        (tokens_count_total,tokens_count_unique,token_hash,tokens) = blocks_tokens
+            (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
+            (tokens_count_total, tokens_count_unique, token_hash, tokens) = blocks_tokens
 
-        # Adjust the blocks stats written to the files, file stats start with a letter 'b'
-        FILE_stats_file.write('b' + ','.join([proj_id,block_id,'\"'+block_hash+'\"', str(block_lines),str(block_LOC),str(block_SLOC),str(start_line),str(end_line)]) + '\n')
-        if len(experimental_values) == 0:
-          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-        else:
-          FILE_tokens_file.write(','.join([proj_id,block_id,str(tokens_count_total),str(tokens_count_unique),experimental_values,token_hash+tokens]) + '\n')
-      w_time = (dt.datetime.now() - ww_time).microseconds
+            # Adjust the blocks stats written to the files, file stats start with a letter 'b'
+            file_stats_file.write('b,{},{},\"{}\",{},{},{},{},{}\n'.format(proj_id, block_id, block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line))
+            file_tokens_file.write(','.join([proj_id, block_id, str(tokens_count_total), str(tokens_count_unique)]))
+            if len(experimental_values) != 0:
+                file_tokens_file.write("," + experimental_values)
+            file_tokens_file.write("," + token_hash + tokens + '\n')
+        w_time = (dt.datetime.now() - ww_time).microseconds
     except Exception as e:
-      logging.warning('Error on step3 of process_file_contents. '+str(e))
+        print("[WARNING] Error on step3 of process_file_contents")
+        print(e)
+    return file_parsing_times + [w_time]  # [s_time, t_time, w_time, hash_time, re_time]
 
-  else:
 
-    (final_stats, final_tokens, file_parsing_times) = tokenize_files(file_string, comment_inline_pattern, comment_open_close_pattern, separators)
-  
-    (file_hash,lines,LOC,SLOC) = final_stats
-    (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
+def process_regular_folder(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_stats_file):
+    zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
+    result = [f for dp, dn, filenames in os.walk(proj_path) for f in filenames if (os.path.splitext(f)[1] in file_extensions)]
 
-    file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
-    file_path = os.path.join(container_path, file_path)
-    
-    ww_time = dt.datetime.now()
-    FILE_stats_file.write(','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
-    w_time = (dt.datetime.now() - ww_time).microseconds
-
-    ww_time = dt.datetime.now()
-    FILE_tokens_file.write(','.join([proj_id,str(file_id),str(tokens_count_total),str(tokens_count_unique),token_hash+tokens]) + '\n')
-    w_time += (dt.datetime.now() - ww_time).microseconds
-  return file_parsing_times + [w_time] # [s_time, t_time, w_time, hash_time, re_time]
-
-def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
-  zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-
-  result = [f for dp, dn, filenames in os.walk(proj_path) for f in filenames if (os.path.splitext(f)[1] in file_extensions)]
-
-  for file_path in result:
-    # This is very strange, but I did find some paths with newlines,
-    # so I am simply ignoring them
-    if '\n' in file_path:
-      continue
-
-    file_id = process_num*MULTIPLIER + base_file_id + file_count
-
-    z_time = dt.datetime.now();
-    my_file    = None
-    file_bytes = None
-    try:
-      my_file    = io.open(os.path.join(proj_path,file_path),encoding='urf-8',errors='ignore')
-      file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
-    except Exception as e:
-      logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')' + str(e))
-      continue
-
-    zip_time += (dt.datetime.now() - z_time).microseconds
-
-    if my_file is None:
-      logging.warning('Unable to open file (2) <'+file_path+'> (process '+str(process_num)+')')
-      continue
-
-    try:
-      f_time      = dt.datetime.now()
-      file_string = my_file.read()
-      file_time   += (dt.datetime.now() - f_time).microseconds
-    except Exception as e:
-      logging.warning('Unable to read contents of file %s. %s ' % (os.path.join(proj_path,file_path),e))
-      continue
-
-    try:
-      times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
-                      proj_url, FILE_tokens_file, FILE_stats_file, logging)
-    except Exception as e:
-      logging.warning('Unable to process file %s. %s' % (os.path.join(proj_path,file_path),e))
-      continue
-
-    string_time += times[0]
-    tokens_time += times[1]
-    write_time  += times[4]
-    hash_time   += times[2]
-    regex_time  += times[3]
-  return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
-
-def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
-  zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-
-  try:
-    with tarfile.open(tar_file,'r|*') as my_tar_file:
-      for f in my_tar_file:
-        if not f.isfile():
-          continue
-        
-        file_path = f.name
-        # Filter by the correct extension
-        if not os.path.splitext(f.name)[1] in file_extensions:
-          continue
-        
-        # This is very strange, but I did find some paths with newlines,
-        # so I am simply ignoring them
-        if '\n' in file_path:
-          continue
-
-        file_id = process_num*MULTIPLIER + base_file_id + file_count
-
-        file_bytes=str(f.size)
-
-        z_time = dt.datetime.now();
+    for file_path in result:
+        z_time = dt.datetime.now()
         try:
-          myfile = my_tar_file.extractfile(f)
-        except:
-          logging.warning('Unable to open file (1) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+
-                  '> (process '+str(process_num)+')')
-          continue
-        zip_time += (dt.datetime.now() - z_time).microseconds
-
-        if myfile is None:
-          logging.warning('Unable to open file (2) <'+proj_id+','+str(file_id)+','+os.path.join(tar_file,file_path)+
-                  '> (process '+str(process_num)+')')
-          continue
-
-        f_time = dt.datetime.now()
-        file_string = myfile.read()
-        file_time += (dt.datetime.now() - f_time).microseconds
-
-        times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes, proj_url, FILE_tokens_file, FILE_stats_file, logging)
-        string_time += times[0]
-        tokens_time += times[1]
-        write_time  += times[4]
-        hash_time   += times[2]
-        regex_time  += times[3]
-  except Exception as e:
-    logging.warning('Unable to open tar on <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-    logging.warning(e)
-    return
-  return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
-
-def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging):
-  zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
-  try:
-    with zipfile.ZipFile(proj_path,'r') as my_file:
-      for file in my_file.infolist():
-        if not os.path.splitext(file.filename)[1] in file_extensions:
-          continue
-
-        file_path = file.filename
-
-        # This is very strange, but I did find some paths with newlines,
-        # so I am simply ignoring them
-        if '\n' in file_path:
-          continue
-
-        file_id = process_num*MULTIPLIER + base_file_id + file_count
-
-        file_bytes=str(file.file_size)
-
-        z_time = dt.datetime.now();
-        try:
-          my_zip_file = my_file.open(file.filename,'r')
-        except:
-          logging.warning('Unable to open file (1) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
-          continue
-        zip_time += (dt.datetime.now() - z_time).microseconds
-
-        if my_zip_file is None:
-          logging.warning('Unable to open file (2) <'+os.path.join(proj_path,file)+'> (process '+str(process_num)+')')
-          continue
-
-        try:
-          f_time      = dt.datetime.now()
-          file_string = my_zip_file.read().decode("utf-8",'ignore')
-          file_time   += (dt.datetime.now() - f_time).microseconds
-
-          times = process_file_contents(file_string, proj_id, file_id, zip_file, file_path, file_bytes,
-                          proj_url, FILE_tokens_file, FILE_stats_file, logging)
+            my_file = io.open(os.path.join(proj_path, file_path), encoding='utf-8', errors='ignore')
+            file_bytes = str(os.stat(os.path.join(proj_path, file_path)).st_size)
         except Exception as e:
-          logging.warning('Unable to read contents of file %s' % (os.path.join(proj_path,file)))
+            print("[WARNING] Unable to open file (1) <{}> (process {})".format(file_path, process_num))
+            print(e)
+            continue
+
+        zip_time += (dt.datetime.now() - z_time).microseconds
+
+        if my_file is None:
+            print("[WARNING] " + 'Unable to open file (2) <' + file_path + '> (process ' + str(process_num) + ')')
+            continue
+
+        try:
+            f_time = dt.datetime.now()
+            file_string = my_file.read()
+            file_time += (dt.datetime.now() - f_time).microseconds
+        except Exception as e:
+            print("[WARNING] " + 'Unable to read contents of file %s' % (os.path.join(proj_path, file_path)))
+            print(e)
+            continue
+
+        file_id = process_num * MULTIPLIER + base_file_id + file_count
+        try:
+            times = process_file_contents(file_string, proj_id, file_id, proj_path, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
+        except Exception as e:
+            print("[WARNING] " + 'Unable to process file %s. %s' % (os.path.join(proj_path, file_path), e))
+            continue
 
         string_time += times[0]
         tokens_time += times[1]
-        write_time  += times[4]
-        hash_time   += times[2]
-        regex_time  += times[3]
-  except Exception as e:
-    logging.warning('Unable to open zip on <'+proj_path+'> (process '+str(process_num)+')')
-    logging.warning(e)
-    return
-  return (zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time)
+        hash_time += times[2]
+        regex_time += times[3]
+        write_time += times[4]
+    return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
-def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format):
-  p_start = dt.datetime.now()
 
-  if project_format == 'leidos':
-    proj_path, proj_url = proj_path
-    if not os.path.isdir(proj_path):
-      logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-      return
+def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_stats_file):
+    zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
+    try:
+        with tarfile.open(tar_file, 'r|*') as my_tar_file:
+            for file in my_tar_file:
+                if not file.isfile():
+                    continue
 
-    # Search for tar files with _code in them
-    tar_files = [os.path.join(proj_path, f) for f in os.listdir(proj_path) if os.path.isfile(os.path.join(proj_path, f))]
-    tar_files = [f for f in tar_files if '_code' in f]
-    if(len(tar_files) != 1):
-      logging.warning('Tar not found on <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-      times = [0,0,0,0,0,0]
-      os.path.walk(proj_path, process_regular_folder, 
-             (process_num, proj_id, proj_path, proj_url, base_file_id, 
-              FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, times))
-      file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-      zip_time = 0
-    else:
-      tar_file = tar_files[0]
-      times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
-    if times is not None:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-    else:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (-1,-1,-1,-1,-1,-1,-1)
+                file_path = file.name
+                # Filter by the correct extension
+                if not os.path.splitext(file.name)[1] in file_extensions:
+                    continue
 
-    FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
+                file_id = process_num * MULTIPLIER + base_file_id + file_count
 
-  if project_format == 'zipblocks':
+                z_time = dt.datetime.now()
+                try:
+                    myfile = my_tar_file.extractfile(file)
+                except Exception as e:
+                    print("[WARNING] Unable to open file (1) <{},{},{}> (process {})".format(proj_id, file_id, os.path.join(tar_file, file_path), process_num))
+                    print(e)
+                    continue
+                zip_time += (dt.datetime.now() - z_time).microseconds
+
+                if myfile is None:
+                    print("[WARNING] Unable to open file (2) <{},{},{}> (process {})".format(proj_id, file_id, os.path.join(tar_file, file_path), process_num))
+                    continue
+
+                f_time = dt.datetime.now()
+                file_string = myfile.read()
+                file_time += (dt.datetime.now() - f_time).microseconds
+
+                file_bytes = str(file.size)
+                times = process_file_contents(file_string, proj_id, file_id, tar_file, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
+                string_time += times[0]
+                tokens_time += times[1]
+                hash_time += times[2]
+                regex_time += times[3]
+                write_time += times[4]
+    except Exception as e:
+        print("[WARNING] Unable to open tar on <{},{}> (process {})".format(proj_id, proj_path, process_num))
+        print("[WARNING] {}".format(e))
+        return
+    return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
+
+
+def process_zip_ball(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_stats_file):
+    zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
+    with zipfile.ZipFile(proj_path, 'r') as my_file:
+        for file in my_file.infolist():
+            if not os.path.splitext(file.filename)[1] in file_extensions:
+                continue
+
+            z_time = dt.datetime.now()
+            try:
+                my_zip_file = my_file.open(file.filename, 'r')
+            except Exception as e:
+                print("[WARNING] Unable to open file (1) <{}> (process {})".format(os.path.join(proj_path, file), process_num))
+                print(e)
+                continue
+            zip_time += (dt.datetime.now() - z_time).microseconds
+
+            if my_zip_file is None:
+                print("[WARNING] Unable to open file (2) <{}> (process {})".format(os.path.join(proj_path, file), process_num))
+                continue
+
+            f_time = dt.datetime.now()
+            file_string = my_zip_file.read().decode("utf-8", 'ignore')
+            file_time += (dt.datetime.now() - f_time).microseconds
+
+            file_id = process_num * MULTIPLIER + base_file_id + file_count
+            file_path = file.filename
+            file_bytes = str(file.file_size)
+            times = process_file_contents(file_string, proj_id, file_id, proj_path, file_path, file_bytes, proj_url, file_tokens_file, file_stats_file)
+            string_time += times[0]
+            tokens_time += times[1]
+            hash_time += times[2]
+            regex_time += times[3]
+            write_time += times[4]
+
+    return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
+
+
+def process_one_project(process_num, proj_id, proj_path, base_file_id, file_tokens_file, file_bookkeeping_proj, file_stats_file, project_format):
+    p_start = dt.datetime.now()
+
     proj_url = 'NULL'
-    
     proj_id = str(proj_id_flag) + proj_id
+    if project_format == 'zipblocks':
+        if not os.path.isfile(proj_path):
+            print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
+            return
+        times = process_zip_ball(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file,
+                                 file_stats_file)
+    elif project_format == 'folderblocks':
+        if not os.path.exists(proj_path):
+            print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
+            return
+        times = process_regular_folder(process_num, proj_id, proj_path, proj_url, base_file_id, file_tokens_file, file_stats_file)
+    if times is None:
+        times = (-1, -1, -1, -1, -1, -1, -1)
+    zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
+    file_bookkeeping_proj.write("{},\"{}\",\"{}\"\n".format(proj_id, proj_path, proj_url))
 
-    if not os.path.isfile(proj_path):
-      logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-      return
+    p_elapsed = dt.datetime.now() - p_start
+    print("[INFO] " + 'Project finished <{},{}> (process {})'.format(proj_id, proj_path, process_num))
+    print("[INFO] " + ' ({}): Total: {} ms'.format(process_num, p_elapsed))
+    print("[INFO] " + '     Zip: {}'.format(zip_time))
+    print("[INFO] " + '     Read: {}'.format(file_time))
+    print("[INFO] " + '     Separators: {} ms'.format(string_time))
+    print("[INFO] " + '     Tokens: {} ms'.format(tokens_time))
+    print("[INFO] " + '     Write: {} ms'.format(write_time))
+    print("[INFO] " + '     Hash: {}'.format(hash_time))
+    print("[INFO] " + '     regex: {}'.format(regex_time))
 
-    zip_file = proj_path
-    times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
-    if times is not None:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-    else:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (-1,-1,-1,-1,-1,-1,-1)
-
-    FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
-
-  if project_format in ['folderblocks']:
-    proj_url = 'NULL'
-    
-    proj_id = str(proj_id_flag) + proj_id
-
-    if not os.path.exists(proj_path):
-      logging.warning('Unable to open project <'+proj_id+','+proj_path+'> (process '+str(process_num)+')')
-      return
-
-    zip_file = proj_path
-    times = process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, 
-                 FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging)
-    if times is not None:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
-    else:
-      zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (-1,-1,-1,-1,-1,-1,-1)
-
-    FILE_bookkeeping_proj.write(proj_id+',\"'+proj_path+'\",\"'+proj_url+'\"\n')
-
-  p_elapsed = dt.datetime.now() - p_start
-  logging.info('Project finished <%s,%s> (process %s)', proj_id, proj_path, process_num)
-  logging.info(' (%s): Total: %s ms', process_num,  p_elapsed)
-  logging.info('     Zip: %s', zip_time)
-  logging.info('     Read: %s', file_time)
-  logging.info('     Separators: %s ms', string_time)
-  logging.info('     Tokens: %s ms', tokens_time)
-  logging.info('     Write: %s ms', write_time)
-  logging.info('     Hash: %s', hash_time)
-  logging.info('     regex: %s', regex_time)
 
 def process_projects(process_num, list_projects, base_file_id, global_queue, project_format):
-    if platform.system() =='Windows':
-        read_config()
-
-    # Logging code
-    FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
-    logging.basicConfig(level=logging.DEBUG,format=FORMAT)
-    file_handler = logging.FileHandler(os.path.join(PATH_logs,'LOG-'+str(process_num)+'.log'))
-    file_handler.setFormatter(logging.Formatter(FORMAT))
-    logging.getLogger().addHandler(file_handler)
-
-    FILE_files_stats_file = os.path.join(PATH_stats_file_folder,'files-stats-'+str(process_num)+'.stats')
-    FILE_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,'bookkeeping-proj-'+str(process_num)+'.projs')
-    FILE_files_tokens_file = os.path.join(PATH_tokens_file_folder,'files-tokens-'+str(process_num)+'.tokens')
+    file_files_tokens_file = os.path.join(PATH_tokens_file_folder, 'files-tokens-{}.tokens'.format(process_num))
+    file_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder, 'bookkeeping-proj-{}.projs'.format(process_num))
+    file_files_stats_file = os.path.join(PATH_stats_file_folder, 'files-stats-{}.stats'.format(process_num))
 
     global file_count
     file_count = 0
-    with open(FILE_files_tokens_file, 'a+') as FILE_tokens_file, \
-            open(FILE_bookkeeping_proj_name, 'a+') as FILE_bookkeeping_proj, \
-            open(FILE_files_stats_file, 'a+') as FILE_stats_file:
-        logging.info("Process %s starting", process_num)
+    with open(file_files_tokens_file, 'a+') as tokens_file, \
+            open(file_bookkeeping_proj_name, 'a+') as bookkeeping_file, \
+            open(file_files_stats_file, 'a+') as stats_file:
+        print("[INFO] Process {} starting".format(process_num))
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            process_one_project(process_num, str(proj_id), proj_path, base_file_id, 
-                                FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, logging, project_format)
+            process_one_project(process_num, str(proj_id), proj_path, base_file_id, tokens_file, bookkeeping_file, stats_file, project_format)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
-    logging.info('Process %s finished. %s files in %ss.', process_num, file_count, p_elapsed)
+    print("[INFO] " + 'Process {} finished. {} files in {} s'.format(process_num, file_count, p_elapsed))
 
     # Let parent know
     global_queue.put((process_num, file_count))
     sys.exit(0)
 
+
 def start_child(processes, global_queue, proj_paths, batch, project_format):
-  # This is a blocking get. If the queue is empty, it waits
-  pid, n_files_processed = global_queue.get()
-  # OK, one of the processes finished. Let's get its data and kill it
-  kill_child(processes, pid, n_files_processed)
-
-  # Get a new batch of project paths ready
-  paths_batch = proj_paths[:batch]
-  del proj_paths[:batch]
-
-  print("Starting new process %s" % (pid))
-  p = Process(name='Process '+str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format, ))
-  processes[pid][0] = p
-  p.start()
-
-def kill_child(processes, pid, n_files_processed):
-  global file_count
-  file_count += n_files_processed
-  if processes[pid][0] != None:
-    processes[pid][0] = None
-    processes[pid][1] += n_files_processed
-    
-    print("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count))
-
-def active_process_count(processes):
-  count = 0
-  for p in processes:
-    if p[0] != None:
-      count +=1
-  return count
-
-if __name__ == '__main__':
-
-  global project_format
-  project_format = sys.argv[1] # 'zipblocks' or 'folderblocks' (when want the blocks inside files)
-
-  if project_format not in ['zipblocks','folderblocks']:
-    print("ERROR - Please insert archive format, 'zipblocks' or 'folderblocks'!")
-    sys.exit()
-
-  read_config()
-  p_start = dt.datetime.now()
-
-  prio_proj_paths = []
-  if FILE_priority_projects != None:
-    with open(FILE_priority_projects) as f:
-      for line in f:
-        line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
-        prio_proj_paths.append((line_split[0],line_split[4]))
-    prio_proj_paths = zip(range(init_proj_id, len(prio_proj_paths)+init_proj_id), prio_proj_paths)
-
-  proj_paths = []
-
-  if project_format == 'zipblocks': # zipblocks will diverge the process flow on process_file()
-    print('\''+project_format+'\''+'format')
-    with open(FILE_projects_list) as f:
-      for line in f:
-        proj_paths.append(line[:-1])
-    proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
-  elif project_format == 'folderblocks': # folderblocks will diverge the process flow on process_file()
-    print('\''+project_format+'\''+'format')
-    with open(FILE_projects_list) as f:
-      for line in f:
-        proj_paths.append(line[:-1])
-    proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
-
-  if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-    print('ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!')
-    sys.exit(1)
-  else:
-    os.makedirs(PATH_stats_file_folder)
-    os.makedirs(PATH_bookkeeping_proj_folder)
-    os.makedirs(PATH_tokens_file_folder)
-    os.makedirs(PATH_logs)
-
-  #Split list of projects into N_PROCESSES lists
-  #proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
-
-  # Multiprocessing with N_PROCESSES
-  # [process, file_count]
-  processes = [[None, init_file_id] for i in range(N_PROCESSES)]
-  # Multiprocessing shared variable instance for recording file_id
-  #file_id_global_var = Value('i', 1)
-  # The queue for processes to communicate back to the parent (this process)
-  # Initialize it with N_PROCESSES number of (process_id, n_files_processed)
-  global_queue = Queue()
-  for i in range(N_PROCESSES):
-    global_queue.put((i, 0))
-
-  # Start the priority projects
-  print("*** Starting priority projects...")
-  while len(prio_proj_paths) > 0:
-    start_child(processes, global_queue, prio_proj_paths, 1, project_format)
-
-  # Start all other projects
-  print("*** Starting regular projects...")
-  while len(proj_paths) > 0:
-    start_child(processes, global_queue, proj_paths, PROJECTS_BATCH, project_format)
-
-  print("*** No more projects to process. Waiting for children to finish...")
-  while active_process_count(processes) > 0:
+    # This is a blocking get. If the queue is empty, it waits
     pid, n_files_processed = global_queue.get()
+    # OK, one of the processes finished. Let's get its data and kill it
     kill_child(processes, pid, n_files_processed)
 
-  p_elapsed = dt.datetime.now() - p_start
-  print("*** All done. %s files in %s" % (file_count, p_elapsed))
+    # Get a new batch of project paths ready
+    paths_batch = proj_paths[:batch]
+    del proj_paths[:batch]
 
+    print("Starting new process {}".format(pid))
+    p = Process(name='Process ' + str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format))
+    processes[pid][0] = p
+    p.start()
+
+
+def kill_child(processes, pid, n_files_processed):
+    global file_count
+    file_count += n_files_processed
+    if processes[pid][0] is not None:
+        processes[pid][0] = None
+        processes[pid][1] += n_files_processed
+        print("Process {} finished, {} files processed {}. Current total: {}".format(pid, n_files_processed, processes[pid][1], file_count))
+
+
+def active_process_count(processes):
+    return len([p for p in processes if p[0] is not None])
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: {} [MODE]".format(sys.argv[0]))
+        print("Where MODE is zipblocks or folderblocks")
+        exit(0)
+
+    global project_format
+    project_format = sys.argv[1]
+
+    if project_format not in ['zipblocks', 'folderblocks']:
+        print("MODE must be zipblocks or folderblocks")
+        sys.exit()
+
+    read_config()
+    p_start = dt.datetime.now()
+
+    prio_proj_paths = []
+    if FILE_priority_projects is not None:
+        with open(FILE_priority_projects) as f:
+            for line in f:
+                line_split = line[:-1].split(',')  # [:-1] to strip final character which is '\n'
+                prio_proj_paths.append((line_split[0], line_split[4]))
+        prio_proj_paths = zip(range(init_proj_id, len(prio_proj_paths) + init_proj_id), prio_proj_paths)
+
+    proj_paths = []
+
+    with open(FILE_projects_list) as f:
+        for line in f:
+            proj_paths.append(line.strip("\n"))
+    proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
+    # it will diverge the process flow on process_file()
+
+    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(
+            PATH_tokens_file_folder) or os.path.exists(PATH_logs):
+        print('ERROR - Folder [{}] or [{}] or [{}] or [{}] already exists!'.format(PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs))
+        sys.exit(1)
+    else:
+        os.makedirs(PATH_stats_file_folder)
+        os.makedirs(PATH_bookkeeping_proj_folder)
+        os.makedirs(PATH_tokens_file_folder)
+        os.makedirs(PATH_logs)
+
+    # Split list of projects into N_PROCESSES lists
+    # proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
+
+    # Multiprocessing with N_PROCESSES
+    # [process, file_count]
+    processes = [[None, init_file_id] for i in range(N_PROCESSES)]
+    # Multiprocessing shared variable instance for recording file_id
+    # file_id_global_var = Value('i', 1)
+    # The queue for processes to communicate back to the parent (this process)
+    # Initialize it with N_PROCESSES number of (process_id, n_files_processed)
+    global_queue = Queue()
+    for i in range(N_PROCESSES):
+        global_queue.put((i, 0))
+
+    # Start the priority projects
+    print("*** Starting priority projects...")
+    while len(prio_proj_paths) > 0:
+        start_child(processes, global_queue, prio_proj_paths, 1, project_format)
+
+    # Start all other projects
+    print("*** Starting regular projects...")
+    while len(proj_paths) > 0:
+        start_child(processes, global_queue, proj_paths, PROJECTS_BATCH, project_format)
+
+    print("*** No more projects to process. Waiting for children to finish...")
+    while active_process_count(processes) > 0:
+        pid, n_files_processed = global_queue.get()
+        kill_child(processes, pid, n_files_processed)
+
+    p_elapsed = dt.datetime.now() - p_start
+    print("*** All done. %s files in %s" % (file_count, p_elapsed))

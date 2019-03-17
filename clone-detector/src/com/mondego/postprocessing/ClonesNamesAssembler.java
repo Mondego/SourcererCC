@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.mondego.postprocessing;
 
 import java.io.BufferedReader;
@@ -16,24 +13,14 @@ import java.util.Set;
 
 import com.mondego.utility.Util;
 
-/**
- * @author vaibhavsaini
- * 
- */
 public class ClonesNamesAssembler {
-
-    /**
-     * @param args
-     */
-    String projectName;
-    Map<Integer, String> idNameMap = new HashMap<Integer, String>();
-    Map<Integer, List<Integer>> cloneIdsMap = new HashMap<Integer, List<Integer>>();
-    Map<String, List<String>> cloneNameMap = new HashMap<String, List<String>>();
-    private Writer outputWriter;
-    int linesWritten;
-
+    public String projectName;
+    public Map<Integer, String> idNameMap = new HashMap<Integer, String>();
+    public Map<Integer, List<Integer>> cloneIdsMap = new HashMap<Integer, List<Integer>>();
+    public Map<String, List<String>> cloneNameMap = new HashMap<String, List<String>>();
+    public int linesWritten;
+    
     public static void main(String[] args) {
-        // TODO Auto-generated method stub
         System.out.println("start!");
         ClonesNamesAssembler assembler = new ClonesNamesAssembler();
         if (args.length > 0) {
@@ -41,36 +28,36 @@ public class ClonesNamesAssembler {
         } else {
             System.out
                     .println("Please provide inputfile prefix, e.g. ANT,cocoon,hadoop.");
-            System.exit(1);
-        }
-        assembler.linesWritten = 0;
-        assembler.process();
-        try {
+                    System.exit(1);
+                }
+                assembler.linesWritten = 0;
+                assembler.process();
+                try {
             assembler.createOutput();
             System.out.println("done!");
         } catch (Exception e) {
             System.out.println("ERROR::" + e.getMessage());
         }
     }
-
+    
     private void process() {
         String sCurrentLine;
         int offset = "Clones of Bag ".length();
         BufferedReader br;
         String idMethodFileName = "input/idMethod/" + this.projectName
                 + "-idMethodMap.txt";
-        String clonesInfoFileName = "output/" + this.projectName
+                String clonesInfoFileName = "output/" + this.projectName
                 + "clones_WITH_FILTER.txt";
-        try {
-            br = new BufferedReader(new FileReader(idMethodFileName));
-            while ((sCurrentLine = br.readLine()) != null) {
-                this.populateIdNameMap(sCurrentLine);
-            }
-            br = new BufferedReader(new FileReader(clonesInfoFileName));
+                try {
+                    br = new BufferedReader(new FileReader(idMethodFileName));
+                    while ((sCurrentLine = br.readLine()) != null) {
+                        this.populateIdNameMap(sCurrentLine);
+                    }
+                    br = new BufferedReader(new FileReader(clonesInfoFileName));
             int key = 0;
             while ((sCurrentLine = br.readLine()) != null) {
                 if (sCurrentLine.trim().length() > 0) {
-
+                    
                     if (sCurrentLine.indexOf("Bag") != -1) {
                         key = Integer.parseInt(sCurrentLine.substring(offset));
                         this.cloneIdsMap.put(key, new ArrayList<Integer>());
@@ -91,15 +78,15 @@ public class ClonesNamesAssembler {
             System.exit(1);
         }
     }
-
+    
     private void populateIdNameMap(String line) {
         String[] tokens = line.split(" ");
         this.idNameMap.put(Integer.parseInt(tokens[0]), tokens[1]);
     }
-
+    
     private void createOutput() throws IOException {
         String filename = "output/" + this.projectName + "-clones_names.csv";
-        this.outputWriter = Util.openFile(filename, false);
+        Writer outputWriter = Util.openFile(filename, false);
         StringBuilder sb = new StringBuilder();
         Set<Integer> ids = this.cloneIdsMap.keySet();
         try {
@@ -111,16 +98,15 @@ public class ClonesNamesAssembler {
                 }
                 sb.setLength(sb.length() - 2);
                 sb.append(Util.CSV_DELIMITER + clones.size());
-                Util.writeToFile(this.outputWriter, sb.toString(), true);
+                Util.writeToFile(outputWriter, sb.toString(), true);
                 sb.setLength(0);
                 this.linesWritten++;
                 if ((this.linesWritten % 1000) == 0) {
-                    System.out.println("lines written so far "
-                            + this.linesWritten);
+                    System.out.println("lines written so far " + this.linesWritten);
                 }
             }
         } finally {
-            Util.closeOutputFile(this.outputWriter);
+            Util.closeOutputFile(outputWriter);
         }
     }
 }

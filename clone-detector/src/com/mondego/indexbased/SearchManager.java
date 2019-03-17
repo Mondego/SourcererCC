@@ -24,7 +24,6 @@ import net.jmatrix.eproperties.EProperties;
 import net.jmatrix.eproperties.Key;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
 
@@ -59,9 +58,10 @@ public class SearchManager {
     public static String QUERY_DIR_PATH;
     public static String DATASET_DIR;
     public static String WFM_DIR_PATH;
-    public static Writer clonesWriter; // writer to write the output
-    public static Writer recoveryWriter; // writes the lines processed during
-                                         // search. for recovery purpose.
+    // writer to write the output
+    public static Writer clonesWriter;
+    // writes the lines processed during search. for recovery purpose.
+    public static Writer recoveryWriter;
     public static float th; // args[2]
     private static final String ACTION_INIT = "init";
     public final static String ACTION_INDEX = "index";
@@ -77,9 +77,9 @@ public class SearchManager {
     private long timeTotal = 0;
     public static String ACTION;
     public boolean appendToExistingFile = true;
-    TestGson testGson;
+    public TestGson testGson;
     public static final Integer MUL_FACTOR = 100;
-    int deletemeCounter = 0;
+    public int deletemeCounter = 0;
     public static double ramBufferSizeMB = 100 * 1;
     private long bagsSortTime = 0;
     public static ThreadedChannel<String> queryLineQueue;
@@ -98,14 +98,6 @@ public class SearchManager {
     private static EProperties properties = new EProperties();
 
     public static Object lock = new Object();
-    private int qlq_thread_count;
-    private int qbq_thread_count;
-    private int qcq_thread_count;
-    private int vcq_thread_count;
-    private int rcq_thread_count;
-    private int threadsToProcessBagsToSortQueue;
-    private int threadToProcessIIQueue;
-    private int threadsToProcessFIQueue;
     public static int min_tokens;
     public static int max_tokens;
     public static boolean isGenCandidateStats;
@@ -127,19 +119,27 @@ public class SearchManager {
 
     public SearchManager(String[] args) throws IOException {
         SearchManager.ACTION = args[0];
+        int qlq_thread_count = -1;
+        int qbq_thread_count = -1;
+        int qcq_thread_count = -1;
+        int vcq_thread_count = -1;
+        int rcq_thread_count = -1;
+        int threadsToProcessBagsToSortQueue = -1;
+        int threadToProcessIIQueue = -1;
+        int threadsToProcessFIQueue = -1;
         try {
             SearchManager.th = (Float.parseFloat(args[1]) * SearchManager.MUL_FACTOR);
 
-            this.qlq_thread_count = Integer.parseInt(properties.getProperty("QLQ_THREADS", "1"));
-            this.qbq_thread_count = Integer.parseInt(properties.getProperty("QBQ_THREADS", "1"));
-            this.qcq_thread_count = Integer.parseInt(properties.getProperty("QCQ_THREADS", "1"));
-            this.vcq_thread_count = Integer.parseInt(properties.getProperty("VCQ_THREADS", "1"));
-            this.rcq_thread_count = Integer.parseInt(properties.getProperty("RCQ_THREADS", "1"));
+            qlq_thread_count = Integer.parseInt(properties.getProperty("QLQ_THREADS", "1"));
+            qbq_thread_count = Integer.parseInt(properties.getProperty("QBQ_THREADS", "1"));
+            qcq_thread_count = Integer.parseInt(properties.getProperty("QCQ_THREADS", "1"));
+            vcq_thread_count = Integer.parseInt(properties.getProperty("VCQ_THREADS", "1"));
+            rcq_thread_count = Integer.parseInt(properties.getProperty("RCQ_THREADS", "1"));
             SearchManager.min_tokens = Integer.parseInt(properties.getProperty("MIN_TOKENS", "65"));
             SearchManager.max_tokens = Integer.parseInt(properties.getProperty("MAX_TOKENS", "500000"));
-            this.threadsToProcessBagsToSortQueue = Integer.parseInt(properties.getProperty("BTSQ_THREADS", "1"));
-            this.threadToProcessIIQueue = Integer.parseInt(properties.getProperty("BTIIQ_THREADS", "1"));
-            this.threadsToProcessFIQueue = Integer.parseInt(properties.getProperty("BTFIQ_THREADS", "1"));
+            threadsToProcessBagsToSortQueue = Integer.parseInt(properties.getProperty("BTSQ_THREADS", "1"));
+            threadToProcessIIQueue = Integer.parseInt(properties.getProperty("BTIIQ_THREADS", "1"));
+            threadsToProcessFIQueue = Integer.parseInt(properties.getProperty("BTFIQ_THREADS", "1"));
             this.isSharding = Boolean.parseBoolean(properties.getProperty("IS_SHARDING"));
         } catch (NumberFormatException e) {
             System.out.println("[ERROR] " + e.getMessage() + ", exiting now");
@@ -155,32 +155,30 @@ public class SearchManager {
             System.out.println("action: " + SearchManager.ACTION
                     + System.lineSeparator() + "threshold: " + args[1]
                     + System.lineSeparator() + " QLQ_THREADS: "
-                    + this.qlq_thread_count + " QBQ_THREADS: "
-                    + this.qbq_thread_count + " QCQ_THREADS: "
-                    + this.qcq_thread_count + " VCQ_THREADS: "
-                    + this.vcq_thread_count + " RCQ_THREADS: "
-                    + this.rcq_thread_count + System.lineSeparator());
-            SearchManager.queryLineQueue = new ThreadedChannel<String>(this.qlq_thread_count, QueryLineProcessor.class);
-            SearchManager.queryBlockQueue = new ThreadedChannel<QueryBlock>(this.qbq_thread_count, CandidateSearcher.class);
-            SearchManager.queryCandidatesQueue = new ThreadedChannel<QueryCandidates>(this.qcq_thread_count, CandidateProcessor.class);
-            SearchManager.verifyCandidateQueue = new ThreadedChannel<CandidatePair>(this.vcq_thread_count, CloneValidator.class);
-            SearchManager.reportCloneQueue = new ThreadedChannel<ClonePair>(this.rcq_thread_count, CloneReporter.class);
+                    + qlq_thread_count + " QBQ_THREADS: "
+                    + qbq_thread_count + " QCQ_THREADS: "
+                    + qcq_thread_count + " VCQ_THREADS: "
+                    + vcq_thread_count + " RCQ_THREADS: "
+                    + rcq_thread_count + System.lineSeparator());
+            SearchManager.queryLineQueue = new ThreadedChannel<String>(qlq_thread_count, QueryLineProcessor.class);
+            SearchManager.queryBlockQueue = new ThreadedChannel<QueryBlock>(qbq_thread_count, CandidateSearcher.class);
+            SearchManager.queryCandidatesQueue = new ThreadedChannel<QueryCandidates>(qcq_thread_count, CandidateProcessor.class);
+            SearchManager.verifyCandidateQueue = new ThreadedChannel<CandidatePair>(vcq_thread_count, CloneValidator.class);
+            SearchManager.reportCloneQueue = new ThreadedChannel<ClonePair>(rcq_thread_count, CloneReporter.class);
         } else if (SearchManager.ACTION.equals(ACTION_INDEX)) {
             indexerWriters = new ArrayList<IndexWriter>();
             this.createShards(true);
-
             System.out.println("[ERROR] " + "action: " + SearchManager.ACTION
                     + System.lineSeparator() + "threshold: " + args[1]
                     + System.lineSeparator() + " BQ_THREADS: "
-                    + this.threadsToProcessBagsToSortQueue
+                    + threadsToProcessBagsToSortQueue
                     + System.lineSeparator() + " SBQ_THREADS: "
-                    + this.threadToProcessIIQueue + System.lineSeparator()
-                    + " IIQ_THREADS: " + this.threadsToProcessFIQueue
+                    + threadToProcessIIQueue + System.lineSeparator()
+                    + " IIQ_THREADS: " + threadsToProcessFIQueue
                     + System.lineSeparator());
-
-            SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(this.threadsToProcessBagsToSortQueue, BagSorter.class);
-            SearchManager.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(this.threadToProcessIIQueue, InvertedIndexCreator.class);
-            SearchManager.bagsToForwardIndexQueue = new ThreadedChannel<Bag>(this.threadsToProcessFIQueue, ForwardIndexCreator.class);
+            SearchManager.bagsToSortQueue = new ThreadedChannel<Bag>(threadsToProcessBagsToSortQueue, BagSorter.class);
+            SearchManager.bagsToInvertedIndexQueue = new ThreadedChannel<Bag>(threadToProcessIIQueue, InvertedIndexCreator.class);
+            SearchManager.bagsToForwardIndexQueue = new ThreadedChannel<Bag>(threadsToProcessFIQueue, ForwardIndexCreator.class);
         }
     }
 
@@ -318,7 +316,7 @@ public class SearchManager {
             theInstance.timeSearch = System.currentTimeMillis()
                     - timeStartSearch;
             signOffNode();
-            if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
+            if ("NODE_1".equals(SearchManager.NODE_PREFIX)) {
                 System.out.println("[DEBUG] " + "NODES COMPLETED SO FAR: " + getCompletedNodes());
                 while (true) {
                     if (allNodesCompleted()) {
@@ -700,7 +698,7 @@ public class SearchManager {
             SearchManager.searcher.add(new CodeSearcher(Util.INDEX_DIR + "/" + shard.getId(), "tokens"));
         }
         SearchManager.gtpmSearcher = new CodeSearcher(Util.GTPM_INDEX_DIR, "key");
-        if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
+        if ("NODE_1".equals(SearchManager.NODE_PREFIX)) {
             theInstance.readAndUpdateRunMetadata();
         }
     }

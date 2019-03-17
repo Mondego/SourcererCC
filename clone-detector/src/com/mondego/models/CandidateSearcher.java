@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,7 +14,6 @@ public class CandidateSearcher implements IListener, Runnable {
     private QueryBlock queryBlock;
     private static final Logger logger = LogManager.getLogger(CandidateSearcher.class);
     public CandidateSearcher(QueryBlock queryBlock) {
-        // TODO Auto-generated constructor stub
         this.queryBlock = queryBlock;
     }
 
@@ -33,22 +28,16 @@ public class CandidateSearcher implements IListener, Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IllegalAccessException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (InvocationTargetException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (SecurityException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

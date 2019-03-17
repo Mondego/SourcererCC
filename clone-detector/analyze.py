@@ -1,9 +1,11 @@
-'''
-Created on Dec 20, 2016
+import sys
 
-@author: vaibhavsaini
-'''
-import sys, os
+
+def print_dict(dict_to_print):
+    print("clones of each file:")
+    with open("results.txt", 'w') as resultfile:
+        for key, val in sorted(dict_to_print.items(), key=lambda x: -x[1]):
+            resultfile.write("{key},{val}\n".format(key=key, val=val))
 
 
 class Analyzer(object):
@@ -25,26 +27,21 @@ class Analyzer(object):
                     self.clone_groups[lhsFile] += 1
                 else:
                     self.clone_groups[lhsFile] = 1
-                
+
                 if rhsFile in self.clone_groups:
                     self.clone_groups[rhsFile] += 1
                 else:
                     self.clone_groups[rhsFile] = 1
                 count += 1
                 if (count % print_per_k) == 0:
-                    print "rows processed: ", count
-        print "rows processed: ", count
+                    print("rows processed: ", count)
+        print("rows processed: ", count)
 
-    def print_dict(self, dict_to_print):
-        print("clones of each file:")
-        with open("results.txt", 'w') as resultfile:
-            for key, val in sorted(dict_to_print.items(), key=lambda x:-x[1]):
-                resultfile.write("{key},{val}\n".format(key=key, val=val))
-            
+
 if __name__ == '__main__':
     pairs_file = sys.argv[1]
     analyzer = Analyzer(pairs_file)
     # analyzer.get_count_of_distinct_files_that_have_clones()
     analyzer.populate_distinct_clone_groups_count()
-    analyzer.print_dict(analyzer.clone_groups)
-    print "count of distinct files that have clones", len(analyzer.clone_groups.keys())
+    print_dict(analyzer.clone_groups)
+    print("count of distinct files that have clones", len(analyzer.clone_groups.keys()))

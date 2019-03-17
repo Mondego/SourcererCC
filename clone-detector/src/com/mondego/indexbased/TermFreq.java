@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.mondego.indexbased;
 
 import java.io.IOException;
@@ -16,7 +13,6 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 
 public class TermFreq {
-    private String searchTerm;
     private IndexReader reader;
     private Map<String, Long> TermFreqMap;
 
@@ -30,8 +26,7 @@ public class TermFreq {
         TermsEnum iterator = terms.iterator(null);
         BytesRef byteRef = null;
         while ((byteRef = iterator.next()) != null) {
-            String term = new String(byteRef.bytes, byteRef.offset,
-                    byteRef.length);
+            String term = new String(byteRef.bytes, byteRef.offset, byteRef.length);
             Term termInstance = new Term("tokens", term);
             long termFreq = this.reader.totalTermFreq(termInstance);
             this.TermFreqMap.put(term, termFreq);
@@ -39,7 +34,7 @@ public class TermFreq {
         }
     }
     
-    public static void main (String [] args) throws IOException{
+    public static void main(String[] args) throws IOException{
         TermFreq freq = new TermFreq();
         freq.dummy();
     }
