@@ -166,11 +166,6 @@ def process_tokenizer(string, comment_open_close_pattern, comment_inline_pattern
     }
 
 
-# return value: (
-#   (file_hash, lines, lines_of_code, source_lines_of_code),
-#   (tokens_count_total, tokens_count_unique, tokens_hash, formatted tokens),
-#   [tokenization_time, formatting_time, hash_time, removing_comments_time]
-# )
 def tokenize_file_string(string, comment_inline_pattern, comment_open_close_pattern, separators):
     tmp = process_tokenizer(string, comment_inline_pattern, comment_open_close_pattern, separators)
     final_stats = tmp["stats"]
@@ -218,44 +213,45 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
     global file_count
     file_count += 1
 
-    if project_format in ['zipblocks', 'folderblocks']:
-        (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, os.path.join(container_path, file_path))
-        if (final_stats is None) or (blocks_data is None) or (file_parsing_times is None):
-            print("[WARNING] " + 'Problems tokenizing file ' + os.path.join(container_path, file_path))
-            return [0, 0, 0, 0, 0]
+    if not project_format in ['zipblocks', 'folderblocks']:
+        return [0] * 5
+    (final_stats, blocks_data, file_parsing_times) = tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_pattern, separators, os.path.join(container_path, file_path))
+    if (final_stats is None) or (blocks_data is None) or (file_parsing_times is None):
+        print("[WARNING] " + 'Problems tokenizing file ' + os.path.join(container_path, file_path))
+        return [0] * 5
 
-        if len(blocks_data) > 90000:
-            print("[WARNING] " + 'File ' + os.path.join(container_path, file_path) + ' has ' + str(len(blocks_data)) + ' blocks, more than 90000. Range MUST be increased.')
-            return [0, 0, 0, 0, 0]
+    if len(blocks_data) > 90000:
+        print("[WARNING] " + 'File ' + os.path.join(container_path, file_path) + ' has ' + str(len(blocks_data)) + ' blocks, more than 90000. Range MUST be increased.')
+        return [0] * 5
 
-        # write file stats
-        file_url = proj_url + '/' + file_path.replace(' ', '%20')
-        file_path = os.path.join(container_path, file_path)
+    # write file stats
+    file_url = proj_url + '/' + file_path.replace(' ', '%20')
+    file_path = os.path.join(container_path, file_path)
 
-        # file stats start with a letter 'f'
-        (file_hash, lines, LOC, SLOC) = final_stats
-        file_stats_file.write('f{},{},\"{}\",\"{}\",\"{}\",{},{},{},{}\n'.format(proj_id, file_id, file_path, file_url, file_hash, file_bytes, lines, LOC, SLOC))
-        blocks_data = zip(range(10000, 99999), blocks_data)
+    # file stats start with a letter 'f'
+    (file_hash, lines, LOC, SLOC) = final_stats
+    file_stats_file.write('f{},{},\"{}\",\"{}\",\"{}\",{},{},{},{}\n'.format(proj_id, file_id, file_path, file_url, file_hash, file_bytes, lines, LOC, SLOC))
+    blocks_data = zip(range(10000, 99999), blocks_data)
 
-        ww_time = dt.datetime.now()
-        try:
-            for relative_id, block_data in blocks_data:
-                (blocks_tokens, blocks_stats, experimental_values) = block_data
-                block_id = "{}{}".format(relative_id, file_id)
+    ww_time = dt.datetime.now()
+    try:
+        for relative_id, block_data in blocks_data:
+            (blocks_tokens, blocks_stats, experimental_values) = block_data
+            block_id = "{}{}".format(relative_id, file_id)
 
-                (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
-                (tokens_count_total, tokens_count_unique, token_hash, tokens) = blocks_tokens
+            (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
+            (tokens_count_total, tokens_count_unique, token_hash, tokens) = blocks_tokens
 
-                # Adjust the blocks stats written to the files, file stats start with a letter 'b'
-                file_stats_file.write('b,{},{},\"{}\",{},{},{},{},{}\n'.format(proj_id, block_id, block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line))
-                file_tokens_file.write(','.join([proj_id, block_id, str(tokens_count_total), str(tokens_count_unique)]))
-                if len(experimental_values) != 0:
-                    file_tokens_file.write("," + experimental_values)
-                file_tokens_file.write("," + token_hash + tokens + '\n')
-            w_time = (dt.datetime.now() - ww_time).microseconds
-        except Exception as e:
-            print("[WARNING] Error on step3 of process_file_contents")
-            print(e)
+            # Adjust the blocks stats written to the files, file stats start with a letter 'b'
+            file_stats_file.write('b,{},{},\"{}\",{},{},{},{},{}\n'.format(proj_id, block_id, block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line))
+            file_tokens_file.write(','.join([proj_id, block_id, str(tokens_count_total), str(tokens_count_unique)]))
+            if len(experimental_values) != 0:
+                file_tokens_file.write("," + experimental_values)
+            file_tokens_file.write("," + token_hash + tokens + '\n')
+        w_time = (dt.datetime.now() - ww_time).microseconds
+    except Exception as e:
+        print("[WARNING] Error on step3 of process_file_contents")
+        print(e)
     return file_parsing_times + [w_time]  # [s_time, t_time, w_time, hash_time, re_time]
 
 
