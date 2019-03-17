@@ -1,4 +1,4 @@
-def compareLisenseLists(licenses1, licenses2) :
+def compareLisenseLists(licenses1, licenses2):
     if licenses1[0] == '' or licenses2[0] == '':
         return False
     for l1 in licenses1:
@@ -8,19 +8,20 @@ def compareLisenseLists(licenses1, licenses2) :
     return True
 
 
-def compareLisenses(license1, license2) :
+def compareLisenses(license1, license2):
     license1 = renameLicense(license1)
     license2 = renameLicense(license2)
-    if (license1 == license2):
+    if license1 == license2:
         return True
     return False
-    #for l in licensesCompatibility[license1]:
-     #   if str(license2) in l:
-      #      return True
-    #for l in licensesCompatibility[license2]:
-     #   if str(license1) in l:
-      #      return True
-    #return False
+    # for l in licensesCompatibility[license1]:
+    #   if str(license2) in l:
+    #      return True
+    # for l in licensesCompatibility[license2]:
+    #   if str(license1) in l:
+    #      return True
+    # return False
+
 
 def renameLicense(my_license):
     basicLicenses = ['MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-3-Clause', 'BSD-2-Clause']
@@ -29,9 +30,11 @@ def renameLicense(my_license):
             return licenseType
     return my_license
 
+
 cloneGroups = [[]]
 
-def addPairToCloneGroup(clone1,  clone2) :
+
+def addPairToCloneGroup(clone1, clone2):
     global cloneGroups
     if [] in cloneGroups:
         cloneGroups = [[clone1, clone2]]
@@ -48,16 +51,18 @@ def addPairToCloneGroup(clone1,  clone2) :
                 return
         cloneGroups.append([clone1, clone2])
 
+
 licenses = {}
-licensesCompatibility = {}
-licensesCompatibility['MIT'] = {'MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-2-Clause', 'BSD-3-Clause'}
-licensesCompatibility['Apache-2.0'] = {'Apache-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0'}
-licensesCompatibility['GPL-2.0'] = {'GPL-2.0'}
-licensesCompatibility['GPL-3.0'] = {'GPL-3.0', 'AGPL-3.0'}
-licensesCompatibility['LGPL-3.0'] = {'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0'}
-licensesCompatibility['AGPL-3.0'] = {'AGPL-3.0'}
-licensesCompatibility['BSD-2-Clause'] = {'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-2-Clause', 'BSD-3-Clause'}
-licensesCompatibility['BSD-3-Clause'] = {'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-3-Clause'}
+licensesCompatibility = {
+    'MIT': {'MIT', 'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-2-Clause', 'BSD-3-Clause'},
+    'Apache-2.0': {'Apache-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0'},
+    'GPL-2.0': {'GPL-2.0'},
+    'GPL-3.0': {'GPL-3.0', 'AGPL-3.0'},
+    'LGPL-3.0': {'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0'},
+    'AGPL-3.0': {'AGPL-3.0'},
+    'BSD-2-Clause': {'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-2-Clause', 'BSD-3-Clause'},
+    'BSD-3-Clause': {'Apache-2.0', 'GPL-2.0', 'GPL-3.0', 'LGPL-3.0', 'AGPL-3.0', 'BSD-3-Clause'}
+}
 
 if __name__ == '__main__':
     with open("cloneGithub/nameToLicense.txt", 'r') as fin:
@@ -68,7 +73,7 @@ if __name__ == '__main__':
 
     projectNameByNumber = {}
     i = 0
-    with open ('SourcererCC/tokenizers/block-level/project-list.txt', 'r') as fin :
+    with open('SourcererCC/tokenizers/block-level/project-list.txt', 'r') as fin:
         for line in fin:
             i = i + 1
             projectNameByNumber[i] = line[9:-5]

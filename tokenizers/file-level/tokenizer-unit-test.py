@@ -5,18 +5,14 @@ import sys
 import unittest
 import tokenizer
 import hashlib
-
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser # ver. < 3.0
+from configparser import ConfigParser
 
 config = ConfigParser()
 # parse existing file
 try:
     config.read('config.ini')
 except IOError:
-    print 'ERROR - Config settings not found. Usage: $python this-script.py config.ini'
+    print('ERROR - Config settings not found. Usage: $python this-script.py config.ini')
     sys.exit()
 
 separators = config.get('Language', 'separators').strip('"').split(' ')
@@ -28,8 +24,9 @@ comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
 
 REGEX = re.compile('.+?@@::@@+\d')
 
+
 class TestParser(unittest.TestCase):
-    #Input is something like: @#@print@@::@@1,include@@::@@1,sys@@::@@1
+    # Input is something like: @#@print@@::@@1,include@@::@@1,sys@@::@@1
     def assert_common_properties(self, list_tokens_string):
         self.assertTrue(list_tokens_string.startswith('@#@'))
 
@@ -39,67 +36,72 @@ class TestParser(unittest.TestCase):
                 self.assertTrue(REGEX.match(pair))
 
     def test_line_counts_1(self):
-        input = """ line 1
-                    line 2
-                    line 3 """
-        (final_stats, _, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (_,lines,LOC,SLOC) = final_stats
+        input_str = """ line 1
+                        line 2
+                        line 3 """
+        (final_stats, _, _) = tokenizer.tokenize_files(input_str, comment_inline_pattern, comment_open_close_pattern,
+                                                       separators)
+        (_, lines, LOC, SLOC) = final_stats
 
-        self.assertEqual(lines,3)
-        self.assertEqual(LOC,3)
-        self.assertEqual(SLOC,3)
+        self.assertEqual(lines, 3)
+        self.assertEqual(LOC, 3)
+        self.assertEqual(SLOC, 3)
 
     def test_line_counts_2(self):
-        input = """ line 1
-                    line 2
-                    line 3
-"""
-        (final_stats, _, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (_,lines,LOC,SLOC) = final_stats
+        input_str = """ line 1
+                        line 2
+                        line 3
+                    """
+        (final_stats, _, _) = tokenizer.tokenize_files(input_str, comment_inline_pattern, comment_open_close_pattern,
+                                                       separators)
+        (_, lines, LOC, SLOC) = final_stats
 
-        self.assertEqual(lines,3)
-        self.assertEqual(LOC,3)
-        self.assertEqual(SLOC,3)
+        self.assertEqual(lines, 3)
+        self.assertEqual(LOC, 3)
+        self.assertEqual(SLOC, 3)
 
     def test_line_counts_3(self):
-        input = """ line 1
+        input_str = """ line 1
 
                     // line 2
                     line 3 
                 """
-        (final_stats, _, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (_,lines,LOC,SLOC) = final_stats
+        (final_stats, _, _) = tokenizer.tokenize_files(input_str, comment_inline_pattern, comment_open_close_pattern,
+                                                       separators)
+        (_, lines, LOC, SLOC) = final_stats
 
-        self.assertEqual(lines,5)
-        self.assertEqual(LOC,3)
-        self.assertEqual(SLOC,2)
+        self.assertEqual(lines, 5)
+        self.assertEqual(LOC, 3)
+        self.assertEqual(SLOC, 2)
 
     def test_comments(self):
-        input = "// Hello\n // World"
-        (final_stats, final_tokens, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (_,lines,LOC,SLOC) = final_stats
-        (tokens_count_total,tokens_count_unique,_,tokens) = final_tokens
+        input_str = "// Hello\n // World"
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(input_str, comment_inline_pattern,
+                                                                  comment_open_close_pattern, separators)
+        (_, lines, LOC, SLOC) = final_stats
+        (tokens_count_total, tokens_count_unique, _, tokens) = final_tokens
 
-        self.assertEqual(lines,2)
-        self.assertEqual(LOC,2)
-        self.assertEqual(SLOC,0)
+        self.assertEqual(lines, 2)
+        self.assertEqual(LOC, 2)
+        self.assertEqual(SLOC, 0)
 
-        self.assertEqual(tokens_count_total,0)
-        self.assertEqual(tokens_count_unique,0)
+        self.assertEqual(tokens_count_total, 0)
+        self.assertEqual(tokens_count_unique, 0)
         self.assert_common_properties(tokens)
 
     def test_multiline_comment(self):
-        input = '/* this is a \n comment */ /* Last one */ '
-        (final_stats, final_tokens, _) = tokenizer.tokenize_files(input, comment_inline_pattern, comment_open_close_pattern, separators)
-        (_,lines,LOC,SLOC) = final_stats
+        input_str = '/* this is a \n comment */ /* Last one */ '
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(input_str, comment_inline_pattern,
+                                                                  comment_open_close_pattern, separators)
+        (_, lines, LOC, SLOC) = final_stats
         (tokens_count_total, tokens_count_unique, _, tokens) = final_tokens
 
-        self.assertEqual(lines,2)
-        self.assertEqual(LOC,2)
-        self.assertEqual(SLOC,0)
+        self.assertEqual(lines, 2)
+        self.assertEqual(LOC, 2)
+        self.assertEqual(SLOC, 0)
 
-        self.assertEqual(tokens_count_total,0)
-        self.assertEqual(tokens_count_unique,0)
+        self.assertEqual(tokens_count_total, 0)
+        self.assertEqual(tokens_count_unique, 0)
         self.assert_common_properties(tokens)
 
     def test_simple_file(self):
@@ -115,26 +117,30 @@ class TestParser(unittest.TestCase):
                        }
                        printf("%s", "asciiじゃない文字");
                      }""".encode("utf-8")
-        (final_stats, final_tokens, _) = tokenizer.tokenize_files(string, comment_inline_pattern, comment_open_close_pattern, separators)
+        (final_stats, final_tokens, _) = tokenizer.tokenize_files(string, comment_inline_pattern,
+                                                                  comment_open_close_pattern, separators)
         (_, lines, LOC, SLOC) = final_stats
-        (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
+        (tokens_count_total, tokens_count_unique, token_hash, tokens) = final_tokens
 
-        self.assertEqual(lines,12)
-        self.assertEqual(LOC,11)
-        self.assertEqual(SLOC,9)
+        self.assertEqual(lines, 12)
+        self.assertEqual(LOC, 11)
+        self.assertEqual(SLOC, 9)
 
-        self.assertEqual(tokens_count_total,27)
-        self.assertEqual(tokens_count_unique,21)
+        self.assertEqual(tokens_count_total, 27)
+        self.assertEqual(tokens_count_unique, 21)
         self.assert_common_properties(tokens)
 
-        hard_tokens = set(['int@@::@@4','void@@::@@1','cstdio@@::@@1','action@@::@@1','static@@::@@1','key@@::@@1','glfw_key_callback@@::@@1','mod@@::@@1','if@@::@@1','glfw3@@::@@1','scancode@@::@@1','h@@::@@1','GLFW_INCLUDE_GLU@@::@@1','input_event_queue@@::@@2','GLFW@@::@@1','push@@::@@1','inputaction@@::@@1','include@@::@@3'])
+        hard_tokens = {'int@@::@@4', 'void@@::@@1', 'cstdio@@::@@1', 'action@@::@@1', 'static@@::@@1', 'key@@::@@1',
+                       'glfw_key_callback@@::@@1', 'mod@@::@@1', 'if@@::@@1', 'glfw3@@::@@1', 'scancode@@::@@1',
+                       'h@@::@@1', 'GLFW_INCLUDE_GLU@@::@@1', 'input_event_queue@@::@@2', 'GLFW@@::@@1', 'push@@::@@1',
+                       'inputaction@@::@@1', 'include@@::@@3'}
         this_tokens = set(tokens[3:].split(','))
-        self.assertTrue(len(hard_tokens - this_tokens),0)
+        self.assertTrue(len(hard_tokens - this_tokens), 0)
 
         m = hashlib.md5()
         m.update(tokens[3:])
-        self.assertEqual(m.hexdigest(),token_hash)
+        self.assertEqual(m.hexdigest(), token_hash)
+
 
 if __name__ == '__main__':
     unittest.main()
-
