@@ -1,5 +1,9 @@
 # Files' purpose:
 
+# runexp.sh
+
+Runs `runn.sh`(`run.sh`?) for every project in **pro.txt** which does not exist
+
 # runValidation.sh
 
 Runs validation.CloneBugPattern for every vaibhavsaini's project
