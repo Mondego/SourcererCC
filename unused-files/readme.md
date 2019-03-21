@@ -1,5 +1,9 @@
 #Files' purpose:
 
+# analyze.py
+
+Prints some info based on results
+
 ## mergeindexes-cygwin.sh, runnodes-cygwin.sh
 
 Same as mergeindexes.sh and runnodes.sh but with paths in windows-way. May be for running in cygwin, but i don't know what for.
