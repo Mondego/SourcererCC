@@ -1,50 +1,50 @@
-# Files' purpose:
+# Files' purpose
 
-# splitquery.sh
+## splitquery.sh
 
 Shows some lines statistics
 
-# search\_status.sh
+## search\_status.sh
 
 Shows how many processes ended(?)
 
-# runparser.sh
+## runparser.sh
 
 Runs `ant cdparse` and then parser.FileParser for every project in numberedProjects\*
 
-# runexp.sh
+## runexp.sh
 
 Runs `runn.sh`(`run.sh`?) for every project in **pro.txt** which does not exist
 
-# runValidation.sh
+## runValidation.sh
 
 Runs validation.CloneBugPattern for every vaibhavsaini's project
 
-# runPostProcessing.sh
+## runPostProcessing.sh
 
 Runs postprocessing.ClonesNamesAssembler and postprocessing.ClonesBugsAssembler on vaibhavsaini's projects
 
-# runAggregator.sh
+## runAggregator.sh
 
 Runs postprocessing.Aggregator on every vaibhavsaini's projects
 
-# run.sh
+## run.sh
 
 Runs noindex.CloneDetectorWithFilter many times with different options. No usages found
 
-# mergeindexes.sh
+## mergeindexes.sh
 
 Runs `ant cdmerge` and then *indexbased.IndexMerger class*. Not found usages
 
-# copy\_properties.sh
+## copy\_properties.sh
 
 Copies sourcerer-cc.properties to NODE\_$/ directories and runs `replacenodeprefix.sh`. Not found usages
 
-# cleanup.sh
+## cleanup.sh
 
 Removes some files that aren't existing anyway
 
-# analyze.py
+## analyze.py
 
 Prints some info based on results
 
