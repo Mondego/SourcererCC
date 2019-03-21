@@ -1,5 +1,9 @@
 # Files' purpose:
 
+# splitquery.sh
+
+Shows some lines statistics
+
 # search\_status.sh
 
 Shows how many processes ended(?)
