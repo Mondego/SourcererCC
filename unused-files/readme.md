@@ -1,5 +1,9 @@
 #Files' purpose:
 
+## mergeindexes-cygwin.sh, runnodes-cygwin.sh
+
+Same as mergeindexes.sh and runnodes.sh but with paths in windows-way. May be for running in cygwin, but i don't know what for.
+
 ## cloneGithub.py
 
 Someway filters repositories by having license and writtent in java and other strange things with smth named "siva"
