@@ -1,12 +1,20 @@
 #Files' purpose:
 
+# copy\_properties.sh
+
+Copies sourcerer-cc.properties to NODE\_$/ directories and runs `replacenodeprefix.sh`. Not found usages
+
+# cleanup.sh
+
+Removes some files that aren't existing anyway
+
 # analyze.py
 
 Prints some info based on results
 
 ## mergeindexes-cygwin.sh, runnodes-cygwin.sh
 
-Same as mergeindexes.sh and runnodes.sh but with paths in windows-way. May be for running in cygwin, but i don't know what for.
+Same as mergeindexes.sh and runnodes.sh but with paths in windows-way. May be for running in cygwin, but i don't know what for
 
 ## cloneGithub.py
 
