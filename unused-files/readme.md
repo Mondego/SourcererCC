@@ -1,5 +1,9 @@
 #Files' purpose:
 
+# runAggregator.sh
+
+Runs postprocessing.Aggregator on every vaibhavsaini's project??? wtf
+
 # run.sh
 
 Runs noindex.CloneDetectorWithFilter many times with different options. No usages found
