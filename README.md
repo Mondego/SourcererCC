@@ -1,3 +1,26 @@
+# How to run
+
+Write urls of repositories you want to analyze in urls.txt. Then execute:
+
+
+```bash
+# for file-level analysis
+./downloadRepos.py urls.txt "tokenizers/file-level/" "tokenizer-sample-input"
+./runSourcererCC-FilesMode.sh
+# or
+# for block-level analysis
+./downloadRepos.py urls.txt "tokenizers/block-level/" "tokenizer-sample-input"
+./runSourcererCC-BlocksMode.sh
+```
+
+Get results in results.pairs:
+
+```bash
+cat results.pairs
+```
+
+# Old readme
+
 # SourcererCC
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/86471e8cabf74c6486622d9027c1c0d3)](https://app.codacy.com/app/rprtr258/SourcererCC?utm_source=github.com&utm_medium=referral&utm_content=rprtr258/SourcererCC&utm_campaign=Badge_Grade_Settings)
