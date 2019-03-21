@@ -1,5 +1,9 @@
 # Files' purpose:
 
+# runparser.sh
+
+Runs `ant cdparse` and then parser.FileParser for every project in numberedProjects\*
+
 # runexp.sh
 
 Runs `runn.sh`(`run.sh`?) for every project in **pro.txt** which does not exist
