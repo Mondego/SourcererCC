@@ -1,5 +1,9 @@
 #Files' purpose:
 
+# mergeindexes.sh
+
+Runs `ant cdmerge` and then *indexbased.IndexMerger class*. Not found usages
+
 # copy\_properties.sh
 
 Copies sourcerer-cc.properties to NODE\_$/ directories and runs `replacenodeprefix.sh`. Not found usages
