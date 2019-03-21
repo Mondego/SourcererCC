@@ -1,5 +1,9 @@
 #Files' purpose:
 
+## cloneGithub.py
+
+Someway filters repositories by having license and writtent in java and other strange things with smth named "siva"
+
 ## filterResults.py
 
 Filter copies from results of SourcererCC and finds clones with non-compatible licenses
