@@ -1,6 +1,6 @@
 # How to run
 
-Write urls of repositories you want to analyze in urls.txt. Then execute:
+Write urls of repositories you want to analyze in **urls.txt**. Then execute:
 
 
 ```bash
