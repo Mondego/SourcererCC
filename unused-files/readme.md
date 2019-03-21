@@ -60,7 +60,7 @@ Someway filters repositories by having license and writtent in java and other st
 
 Filter copies from results of SourcererCC and finds clones with non-compatible licenses
 
-## step[1-4]:
+## step\[1-4\]
 
 From original README description:
 
