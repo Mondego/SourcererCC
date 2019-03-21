@@ -1,5 +1,9 @@
 # Files' purpose:
 
+# runValidation.sh
+
+Runs validation.CloneBugPattern for every vaibhavsaini's project
+
 # runPostProcessing.sh
 
 Runs postprocessing.ClonesNamesAssembler and postprocessing.ClonesBugsAssembler on vaibhavsaini's projects
