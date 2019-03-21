@@ -1,5 +1,9 @@
 # Files' purpose:
 
+# search\_status.sh
+
+Shows how many processes ended(?)
+
 # runparser.sh
 
 Runs `ant cdparse` and then parser.FileParser for every project in numberedProjects\*
