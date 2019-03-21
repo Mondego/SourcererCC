@@ -1,5 +1,9 @@
 #Files' purpose:
 
+# run.sh
+
+Runs noindex.CloneDetectorWithFilter many times with different options. No usages found
+
 # mergeindexes.sh
 
 Runs `ant cdmerge` and then *indexbased.IndexMerger class*. Not found usages
