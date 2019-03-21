@@ -1,8 +1,12 @@
-#Files' purpose:
+# Files' purpose:
+
+# runPostProcessing.sh
+
+Runs postprocessing.ClonesNamesAssembler and postprocessing.ClonesBugsAssembler on vaibhavsaini's projects
 
 # runAggregator.sh
 
-Runs postprocessing.Aggregator on every vaibhavsaini's project??? wtf
+Runs postprocessing.Aggregator on every vaibhavsaini's projects
 
 # run.sh
 
