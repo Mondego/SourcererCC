@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
-    if not len(sys.argv) > 1:
+    if len(sys.argv) <= 1:
         print("No arguments were passed. Try running with '--help'.")
         sys.exit(0)
     if (not options.tokensFiles) or (not options.statsFiles):
