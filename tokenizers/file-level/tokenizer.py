@@ -19,7 +19,6 @@ FILE_priority_projects = None
 PATH_stats_file_folder = 'files_stats'
 PATH_bookkeeping_proj_folder = 'bookkeeping_projs'
 PATH_tokens_file_folder = 'files_tokens'
-PATH_logs = 'logs'
 
 # Reading Language settings
 separators = ''
@@ -35,7 +34,7 @@ file_count = 0
 
 def read_config():
     global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
-    global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
+    global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder
     global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
     global file_extensions
     global init_file_id
@@ -59,7 +58,6 @@ def read_config():
     PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
     PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
     PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
-    PATH_logs = config.get('Folders/Files', 'PATH_logs')
 
     # Reading Language settings
     separators = config.get('Language', 'separators').strip('"').split(' ')
@@ -405,15 +403,14 @@ if __name__ == '__main__':
                 proj_paths.append(line.strip("\n"))
     proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
 
-    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-        missing_files = filter(os.path.exists, [PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs])
+    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder):
+        missing_files = filter(os.path.exists, [PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder])
         print('ERROR - Folder [' + '] or ['.join(missing_files) + '] already exists!')
         sys.exit(1)
     else:
         os.makedirs(PATH_stats_file_folder)
         os.makedirs(PATH_bookkeeping_proj_folder)
         os.makedirs(PATH_tokens_file_folder)
-        os.makedirs(PATH_logs)
 
     # Split list of projects into N_PROCESSES lists
     # proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
