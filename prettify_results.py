@@ -92,12 +92,12 @@ def get_stats_info(stats_files_path, blocks_mode):
                             "project_id": line.split(",")[1],
                             "relative_id": relative_id,
                             "file_id": file_id,
-                            "block_hash": line.split(",")[4],
-                            "block_lines": line.split(",")[5],
-                            "block_LOC": line.split(",")[6],
-                            "block_SLOC": line.split(",")[7],
-                            "start_line": line.split(",")[8],
-                            "end_line": line.split(",")[9]
+                            "block_hash": line.split(",")[3],
+                            "block_lines": line.split(",")[4],
+                            "block_LOC": line.split(",")[5],
+                            "block_SLOC": line.split(",")[6],
+                            "start_line": line.split(",")[7],
+                            "end_line": line.split(",")[8]
                         }
                 else:
                     code_id = line.split(",")[1]
