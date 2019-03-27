@@ -4,10 +4,6 @@
 
 Copies projects names and downloaded projects from `cloneGithub/` into block-level tokenizer. Left from modified runSourcererCC.sh script
 
-## utils/get_source_from_tokens.py
-
-Restores files listed in `.tokens` file using `.stats` file
-
 ## db-importer
 
 Some database with unknown purpose
