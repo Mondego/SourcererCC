@@ -15,13 +15,13 @@ script:
   - cp SourcererCC/ test/t1/ -r
   - cd test/t1/SourcererCC/
   - ./runSourcererCC-BlocksMode.sh | while read line; do printf "\e[32m[BlocksMode.sh] \e[0m$line\n"; done
-  - ./prettify_results.py --blocks-mode --experimental -r results.pairs -s tokenizers/block-level/files_stats/
+  - ./prettify_results.py --blocks-mode --experimental -r results.pairs -s tokenizers/block-level/file_block_stats/
   - cd ../../..
   - mkdir test/t2
   - cp SourcererCC/ test/t2/ -r
   - cd test/t2/SourcererCC/
   - ./runSourcererCC-FilesMode.sh | while read line; do printf "\e[32m[FilesMode.sh] \e[0m$line\n"; done
-  - ./prettify_results.py -r results.pairs -s tokenizers/file-level/file_block_stats/
+  - ./prettify_results.py -r results.pairs -s tokenizers/file-level/files_stats/
 notifications:
   email:
     recipients:
