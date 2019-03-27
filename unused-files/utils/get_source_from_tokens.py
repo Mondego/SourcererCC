@@ -1,59 +1,10 @@
+#!/usr/bin/env python3
 import datetime as dt
 from optparse import OptionParser
 import sys, os
 import zipfile
 
 default_output_folder = 'projects_from_blocks'
-
-
-def filter_files(folder_or_file, extension):
-    res = set()
-    if os.path.isdir(folder_or_file):
-        for file in os.listdir(folder_or_file):
-            if file.endswith(extension):
-                res.add(os.path.join(folder_or_file, file))
-    elif os.path.isfile(folder_or_file):
-        res.add(folder_or_file)
-    else:
-        print("ERROR: '", projects_from_blocks, "' not found!")
-    return res
-
-
-def grab_ids(folder_or_file):
-    paths = filter_files(folder_or_file, ".tokens")
-    res = set()
-    for p in paths:
-        with open(p, 'r') as file:
-            for line in file:
-                res.add(line.split(',')[1])
-    return res
-
-
-def copy_files(ids_set, folder_or_file, output_folder):
-    copy_count = 0
-    paths = filter_files(folder_or_file, ".stats")
-
-    for p in paths:
-        with open(p, 'r') as file:
-            for line in file:
-                if line.split(',')[1] in ids_set:
-                    # Next split is complicated to cut the string by quotation marks
-                    # (can't use only the commas because some paths do have them)
-                    full_path = line.split('","')[0].split(',"')[1]
-                    zip_path = full_path[:full_path.find('.zip') + 4]
-                    file_path = full_path[full_path.find('.zip') + 5:]
-
-                    if not os.path.isdir(os.path.dirname(os.path.join(output_folder, file_path))):
-                        os.makedirs(os.path.dirname(os.path.join(output_folder, file_path)))
-
-                    try:
-                        with zipfile.ZipFile(zip_path) as z:
-                            with open(os.path.join(output_folder, file_path), 'w') as f:
-                                f.write(z.read(file_path))
-                    except Exception as e:
-                        print('ERROR reading', zip_path, e)
-                    copy_count += 1
-    return copy_count
 
 
 if __name__ == "__main__":
@@ -98,3 +49,54 @@ if __name__ == "__main__":
     print('Copying files...')
     copy_count = copy_files(ids_set, options.statsFiles, default_output_folder)
     print('%s files copied in %s' % (copy_count, dt.datetime.now() - p_start))
+
+
+def grab_ids(folder_or_file):
+    paths = filter_files(folder_or_file, ".tokens")
+    res = set()
+    for p in paths:
+        with open(p, 'r') as file:
+            for line in file:
+                res.add(line.split(',')[1])
+    return res
+
+
+def filter_files(folder_or_file, extension):
+    res = set()
+    if os.path.isdir(folder_or_file):
+        for file in os.listdir(folder_or_file):
+            if file.endswith(extension):
+                res.add(os.path.join(folder_or_file, file))
+    elif os.path.isfile(folder_or_file):
+        res.add(folder_or_file)
+    else:
+        print("ERROR: '{}' not found!".format(projects_from_blocks))
+    return res
+
+
+def copy_files(ids_set, folder_or_file, output_folder):
+    copy_count = 0
+    paths = filter_files(folder_or_file, ".stats")
+
+    for p in paths:
+        with open(p, 'r') as file:
+            for line in file:
+                if line.split(',')[1] in ids_set:
+                    # Next split is complicated to cut the string by quotation marks
+                    # (can't use only the commas because some paths do have them)
+                    full_path = line.split('","')[0].split(',"')[1]
+                    zip_path = full_path[:full_path.find('.zip') + 4]
+                    file_path = full_path[full_path.find('.zip') + 5:]
+                    full_file_path = os.path.dirname(os.path.join(output_folder, file_path)))
+
+                    if not os.path.isdir(full_file_path):
+                        os.makedirs(full_file_path)
+
+                    try:
+                        with zipfile.ZipFile(zip_path) as z:
+                            with open(os.path.join(output_folder, file_path), 'w') as f:
+                                f.write(z.read(file_path).decode('utf-8'))
+                    except Exception as e:
+                        print('ERROR reading', zip_path, e)
+                    copy_count += 1
+    return copy_count

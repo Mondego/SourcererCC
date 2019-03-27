@@ -24,9 +24,6 @@ script:
   - ./runSourcererCC-FilesMode.sh | while read line; do printf "\e[32m[FilesMode.sh] \e[0m$line\n"; done
   - sort -o results.pairs results.pairs
   - cat results.pairs
-  - cd tokenizers/file-level
-  - python utils/get_source_from_tokens.py --statsFiles=files_stats --tokensFiles=files_tokens
-  - ls -laR projects_from_blocks
 notifications:
   email:
     recipients:
