@@ -2,11 +2,6 @@
 
 set -e
 
-#echo -n "" > tokenizers/block-level/project-list.txt
-#ls cloneGithub/projects | while read f; do echo projects/${f} >> SourcererCC/tokenizers/#block-level/project-list.txt; done;
-#rm -r SourcererCC/tokenizers/block-level/projects
-#mkdir SourcererCC/tokenizers/block-level/projects
-#mv cloneGithub/projects SourcererCC/tokenizers/block-level
 cd tokenizers/file-level/
 rm -rf files_tokens
 rm -rf bookkeeping_projs

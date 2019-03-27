@@ -1,5 +1,9 @@
 # Files' purpose
 
+## import_github_projects.sh
+
+Copies projects names and downloaded projects from `cloneGithub/` into block-level tokenizer. Left from modified runSourcererCC.sh script
+
 ## utils/get_source_from_tokens.py
 
 Restores files listed in `.tokens` file using `.stats` file
