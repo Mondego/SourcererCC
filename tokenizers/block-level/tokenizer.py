@@ -22,7 +22,6 @@ FILE_priority_projects = None
 PATH_stats_file_folder = 'files_stats'
 PATH_bookkeeping_proj_folder = 'bookkeeping_projs'
 PATH_tokens_file_folder = 'files_tokens'
-PATH_logs = 'logs'
 
 # Reading Language settings
 separators = ''
@@ -48,7 +47,7 @@ def hash_measuring_time(string):
 
 def read_config():
     global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
-    global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
+    global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder
     global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
     global file_extensions
 
@@ -74,7 +73,6 @@ def read_config():
     PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
     PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
     PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
-    PATH_logs = config.get('Folders/Files', 'PATH_logs')
 
     # Reading Language settings
     separators = "; . [ ] ( ) ~ ! - + & * / % < > ^ | ? { } = # , \" \\ : $ ' ` @"
@@ -230,7 +228,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
 
     # file stats start with a letter 'f'
     (file_hash, lines, LOC, SLOC) = final_stats
-    file_stats_file.write('f{},{},\"{}\",\"{}\",\"{}\",{},{},{},{}\n'.format(proj_id, file_id, file_path, file_url, file_hash, file_bytes, lines, LOC, SLOC))
+    file_stats_file.write('f,{},{},\"{}\",\"{}\",\"{}\",{},{},{},{}\n'.format(proj_id, file_id, file_path, file_url, file_hash, file_bytes, lines, LOC, SLOC))
     blocks_data = zip(range(10000, 99999), blocks_data)
 
     ww_time = dt.datetime.now()
@@ -499,15 +497,13 @@ if __name__ == '__main__':
     proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
     # it will diverge the process flow on process_file()
 
-    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(
-            PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-        print('ERROR - Folder [{}] or [{}] or [{}] or [{}] already exists!'.format(PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs))
+    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder):
+        print('ERROR - Folder [{}] or [{}] or [{}] already exists!'.format(PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder))
         sys.exit(1)
     else:
         os.makedirs(PATH_stats_file_folder)
         os.makedirs(PATH_bookkeeping_proj_folder)
         os.makedirs(PATH_tokens_file_folder)
-        os.makedirs(PATH_logs)
 
     # Split list of projects into N_PROCESSES lists
     # proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
