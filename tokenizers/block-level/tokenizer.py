@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import collections
 import datetime as dt
 import hashlib
@@ -235,7 +237,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
     try:
         for relative_id, block_data in blocks_data:
             (blocks_tokens, blocks_stats, experimental_values) = block_data
-            block_id = "{}{}".format(relative_id, file_id)
+            block_id = "{},{}".format(relative_id, file_id)
 
             (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
             (tokens_count_total, tokens_count_unique, token_hash, tokens) = blocks_tokens
@@ -244,7 +246,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
             file_stats_file.write('b,{},{},\"{}\",{},{},{},{},{}\n'.format(proj_id, block_id, block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line))
             file_tokens_file.write(','.join([proj_id, block_id, str(tokens_count_total), str(tokens_count_unique)]))
             if len(experimental_values) != 0:
-                file_tokens_file.write("," + experimental_values)
+                file_tokens_file.write("," + experimental_values.replace(",", ";"))
             file_tokens_file.write("," + token_hash + tokens + '\n')
         w_time = (dt.datetime.now() - ww_time).microseconds
     except Exception as e:
