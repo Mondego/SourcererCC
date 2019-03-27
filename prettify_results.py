@@ -143,7 +143,7 @@ def get_results(results_file):
 
 def get_file_name(file_path):
     projects_dir = "tokenizer-sample-input"
-    return re.sub(r"\.zip/[a-zA-Z0-9-]+-master/", "/tree/master/", file_path.strip("\"")[len(projects_dir + "/"):].replace("--", "/"))
+    return re.sub(r"\.zip/[a-zA-Z0-9-.]+-master/", "/tree/master/", file_path.strip("\"")[len(projects_dir + "/"):].replace("--", "/"))
 
 
 if __name__ == "__main__":
