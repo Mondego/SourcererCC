@@ -7,8 +7,8 @@ install:
   - pip install -r requirements.txt
 script:
   - set -e
-  - ./downloadRepos.py urls.txt "tokenizers/file-level/" "tokenizer-sample-input"
-  - ./downloadRepos.py urls.txt "tokenizers/block-level/" "tokenizer-sample-input"
+  - ./downloadRepos.py urls.txt "tokenizers/file-level/tokenizer-sample-input"
+  - ./downloadRepos.py urls.txt "tokenizers/block-level/tokenizer-sample-input"
   - cd ..
   - mkdir test
   - mkdir test/t1
