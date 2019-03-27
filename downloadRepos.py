@@ -56,5 +56,5 @@ if __name__ == "__main__":
             user, project = re.findall(r"https://github.com/(.*)/(.*)$", url)[0]
             print("Downloaded {}/{}".format(user, project))
 
-    project_list_dir = re.search(r"^([a-zA-Z0-9-]+)/", destination_directory).group(1)
+    project_list_dir = re.search(r"^([a-zA-Z0-9-/]+)/[a-zA-Z0-9-]+$", destination_directory).group(1)
     open("{}/project-list.txt".format(project_list_dir), "w").write("\n".join(project_list))
