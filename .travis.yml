@@ -23,7 +23,7 @@ script:
   - cd test/t2/SourcererCC/
   - ./runSourcererCC-FilesMode.sh | while read line; do printf "\e[32m[FilesMode.sh] \e[0m$line\n"; done
   - sort -o results.pairs results.pairs
-  - python tokenizers/file-level/utils/get_source_from_tokens.py --statsFiles ./tokenizers/file-level/files_stats --tokensFiles ./tokenizers/file-level/files_tokens
+  - python tokenizers/file-level/utils/get_source_from_tokens.py --statsFiles=./tokenizers/file-level/files_stats --tokensFiles=./tokenizers/file-level/files_tokens
   - cat results.pairs
 notifications:
   email:
