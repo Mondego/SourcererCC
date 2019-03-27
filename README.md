@@ -94,10 +94,10 @@ The resulting output is composed of three folders, in the same location:
 `project_id, project_path, project_url`
 
 * `files_stats/` - contains lists of files together with statistics. Has the following format:
-`file_id, project_id, file_path, file_url, file_hash, file_size, lines, lines_of_code(LOC), source_lines_of_code(SLOC)`
+`project_id, file_id, file_path, file_url, file_hash, file_size, lines, lines_of_code(LOC), source_lines_of_code(SLOC)`
 
 * `files_tokens/` - contains lists of files together with tokens statistics and the tokenized forms. Has the following format:
-`file_id, project_id, total_tokens, unique_tokens, tokens_hash@#@token1@@::@@frequency,token2@@::@@frequency,...`
+`project_id, file_id, total_tokens, unique_tokens, tokens_hash@#@token1@@::@@frequency,token2@@::@@frequency,...`
 
 The elements `file id` and `project id` always point to the same source code file or project, respectively (they work as a primary key). So a line in `files_stats/*` that start with `1,1` represents the same file as the line in `files_tokens/*` that starts with `1,1`, and these came from the project in `bookkeeping_projs/*` whose line starts with `1`.
 The number of lines in `bookkeeping_projs/*` corresponds to the total number of projects analyzed, the number of lines in `files_stats/*` is the same as `files_tokens/*` and is the same as the total number of files obtained from the projects.

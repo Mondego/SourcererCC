@@ -2,8 +2,7 @@
 
 set -e
 
-mkdir clone-detector/input/
-mkdir clone-detector/input/dataset/
+mkdir -p clone-detector/input/dataset/
 cd tokenizers/block-level/
 rm -rf blocks_tokens
 rm -rf bookkeeping_projs
