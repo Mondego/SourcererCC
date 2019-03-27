@@ -16,6 +16,7 @@ def filter_files(path, extension):
         res.add(path)
     else:
         print("ERROR: '{}' not found!".format(path))
+        sys.exit()
     return res
 
 
@@ -175,7 +176,7 @@ if __name__ == "__main__":
         if options.blocks_mode:
             for code_id in stats.keys():
                 if "start_line" in stats[code_id]:
-                    formatted_titles[code_id] = "{}(lines {}-{}, total {})".format(get_file_name(stats[stats[code_id]["file_id"]]["file_path"]), stats[code_id]["start_line"], stats[code_id]["end_line"], int(stats[code_id]["end_line"]) - int(stats[code_id]["start_line"]))
+                    formatted_titles[code_id] = "{}(lines {}-{}, total {})".format(get_file_name(stats[stats[code_id]["file_id"]]["file_path"]), stats[code_id]["start_line"], stats[code_id]["end_line"], int(stats[code_id]["end_line"]) - int(stats[code_id]["start_line"]) + 1)
         else:
             formatted_titles = {code_id: "{}({} SLOC)".format(get_file_name(stats[code_id]["file_path"]), stats[code_id]["SLOC"]) for code_id in stats.keys()}
         print("Results list:")
