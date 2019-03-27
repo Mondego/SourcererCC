@@ -35,26 +35,24 @@ def create_folder(folder_name):
     os.makedirs(folder_name)
 
 
-if len(sys.argv) < 4:
+if len(sys.argv) < 3:
     print("This script downloads projects by urls in specified file and puts them in directories for tokenizers")
     print("Usage:")
-    print("{} [URL_FILE] [DESTINATION_DIR] [PROJECTS_DIR]".format(sys.argv[0]))
+    print("{} [URL_FILE] [DESTINATION_DIR]".format(sys.argv[0]))
     print("Where [URL_FILE] is file with project urls")
     print("[DESTINATION_DIR] is directory where to save archives")
-    print("[PROJECTS_DIR] is directory name with project archives")
     exit(0)
 
 if __name__ == "__main__":
     urls_filename = sys.argv[1]
     destination_directory = sys.argv[2]
-    projects_directory = sys.argv[3]
-    full_projects_dir_path = "{}/{}".format(destination_directory, projects_directory)
     project_list = []
-    create_folder(full_projects_dir_path)
+    create_folder(destination_directory)
+    projects_directory = re.search(r"/([a-zA-Z0-9-]+)$", destination_directory)[1]
+    print(projects_directory)
     with open(urls_filename) as urls_file:
-        for url in urls_file:
-            url = url.strip('\n')
-            filename = save_project(url, full_projects_dir_path)
+        for url in map(lambda x: x.strip("\n"), urls_file):
+            filename = save_project(url, destination_directory)
             project_list.append("{}/{}".format(projects_directory, filename))
             user, project = re.findall(r"https://github.com/(.*)/(.*)$", url)[0]
             print("Downloaded {}/{}".format(user, project))
