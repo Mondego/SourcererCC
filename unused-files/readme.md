@@ -1,5 +1,9 @@
 # Files' purpose
 
+## tokenizer-unit-test.py
+
+Unit tests for tokenizers/file-level/tokenizer.py
+
 ## splitquery.sh
 
 Shows some lines statistics
