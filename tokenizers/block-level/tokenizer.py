@@ -179,10 +179,13 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
     block_linenos = None
     blocks = None
     experimental_values = ''
-    if '.py' in file_extensions:
-        (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, file_path)
-    if '.java' in file_extensions:
-        (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, file_path, separators, comment_inline_pattern)
+    try:
+        if '.py' in file_extensions:
+            (block_linenos, blocks) = extractPythonFunction.getFunctions(file_string, file_path)
+        if '.java' in file_extensions:
+            (block_linenos, blocks, experimental_values) = extractJavaFunction.getFunctions(file_string, file_path, separators, comment_inline_pattern)
+    except Exception as e:
+        print(e)
 
     if block_linenos is None:
         print("[INFO] Returning None on tokenize_blocks for file {}".format(file_path))
@@ -237,7 +240,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
     try:
         for relative_id, block_data in blocks_data:
             (blocks_tokens, blocks_stats, experimental_values) = block_data
-            block_id = "{},{}".format(relative_id, file_id)
+            block_id = "{}{}".format(relative_id, file_id)
 
             (block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line) = blocks_stats
             (tokens_count_total, tokens_count_unique, token_hash, tokens) = blocks_tokens

@@ -45,6 +45,8 @@ def get_tokens_info(tokens_files_path, blocks_mode, experimental):
                 if blocks_mode and experimental:
                     file_info = {
                         "project_id": info_line.split(",")[0],
+                        "relative_id": code_id[:5],
+                        "file_id": code_id[5:],
                         "total_tokens": info_line.split(",")[2],
                         "unique_tokens": info_line.split(",")[3],
                         "experimental": info_line.split(",")[4],
@@ -83,9 +85,9 @@ def get_stats_info(stats_files_path, blocks_mode):
                             "SLOC": line.split(",")[9]
                         }
                     elif line.split(",")[0] == "b":
-                        relative_id = line.split(",")[2]
-                        file_id = line.split(",")[3]
-                        code_id = "{}{}".format(relative_id, file_id)
+                        code_id = line.split(",")[2]
+                        relative_id = code_id[:5]
+                        file_id = code_id[5:]
                         stats = {
                             "project_id": line.split(",")[1],
                             "relative_id": relative_id,
