@@ -58,12 +58,9 @@ def copy_files(ids_set, folder_or_file, output_folder):
 
 if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("-b", "--tokensFiles", dest="tokensFiles", type="string", default=False,
-                      help="File or folder with tokens files (*.tokens).")
-    parser.add_option("-s", "--statsFiles", dest="statsFiles", type="string", default=False,
-                      help="File or folder with stats files (*.stats).")
-    parser.add_option("-o", "--output", dest="outputDir", type="string", default=False,
-                      help="[OPTIONAL] Output folder for the files.")
+    parser.add_option("-b", "--tokensFiles", dest="tokensFiles", type="string", default=False, help="File or folder with tokens files (*.tokens).")
+    parser.add_option("-s", "--statsFiles", dest="statsFiles", type="string", default=False, help="File or folder with stats files (*.stats).")
+    parser.add_option("-o", "--output", dest="outputDir", type="string", default=False, help="[OPTIONAL] Output folder for the files.")
 
     (options, args) = parser.parse_args()
 
