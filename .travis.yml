@@ -26,6 +26,7 @@ script:
   - cat results.pairs
   - cd tokenizers/file-level
   - python tokenizers/file-level/utils/get_source_from_tokens.py --statsFiles=./tokenizers/file-level/files_stats --tokensFiles=./tokenizers/file-level/files_tokens
+  - ls -laR projects_from_blocks
 notifications:
   email:
     recipients:
