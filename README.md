@@ -113,7 +113,7 @@ in blocks-mode  in `blocks_tokens/` contains:
 
 `project_id, block_id, total_tokens, unique_tokens[, experimental_values], tokens_hash, tokens`
 
-`block_id` is `relative_id,file_id`
+`block_id` is `"relative_id"` + `"file_id"`
 
 The elements `file id` and `project id` always point to the same source code file or project, respectively (they work as a primary key). So a line in `files_stats/*` that start with `1,1` represents the same file as the line in `files_tokens/*` that starts with `1,1`, and these came from the project in `bookkeeping_projs/*` whose line starts with `1`.
 The number of lines in `bookkeeping_projs/*` corresponds to the total number of projects analyzed, the number of lines in `files_stats/*` is the same as `files_tokens/*` and is the same as the total number of files obtained from the projects.
