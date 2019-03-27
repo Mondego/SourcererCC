@@ -1,13 +1,12 @@
 import ast
 
 
-# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
-def getFunctions(filestring, logging, file_path):
+def getFunctions(filestring, file_path):
     tree = None
     try:
         tree = ast.parse(filestring)
     except Exception as e:
-        logging.warning("File " + file_path + " cannot be parsed. " + str(e))
+        print("File {} cannot be parsed\n{}".format(file_path, e))
         return None, None
 
     linecount = filestring.count("\n")

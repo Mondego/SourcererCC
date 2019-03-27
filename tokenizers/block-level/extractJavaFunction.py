@@ -8,7 +8,6 @@ global found_parent
 re_string = re.escape("\"") + '.*?' + re.escape("\"")
 
 
-# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def getFunctions(filestring, file_path, separators, comment_inline_pattern):
     method_string = []
     method_pos = []
