@@ -62,25 +62,23 @@ def get_tokens_info(tokens_files_path, blocks_mode):
         for line in get_file_lines(tokens_file):
             (info_line, tokens_list) = line.split("@#@")
             code_id = info_line.split(",")[1]
+            file_info = {
+                "project_id": info_line.split(",")[0],
+                "total_tokens": info_line.split(",")[2],
+                "unique_tokens": info_line.split(",")[3],
+                "tokens_list": {k: v for k, v in map(lambda x: x.split("@@::@@"), tokens_list.split(","))}
+            }
             if blocks_mode:
-                file_info = {
-                    "project_id": info_line.split(",")[0],
+                file_info.update({
                     "relative_id": code_id[:5],
                     "file_id": code_id[5:],
-                    "total_tokens": info_line.split(",")[2],
-                    "unique_tokens": info_line.split(",")[3],
                     "experimental": info_line.split(",")[4],
-                    "tokens_hash": info_line.split(",")[5],
-                    "tokens_list": {k: v for k, v in map(lambda x: x.split("@@::@@"), tokens_list.split(","))}
-                }
+                    "tokens_hash": info_line.split(",")[5]
+                })
             else:
-                file_info = {
-                    "project_id": info_line.split(",")[0],
-                    "total_tokens": info_line.split(",")[2],
-                    "unique_tokens": info_line.split(",")[3],
-                    "tokens_hash": info_line.split(",")[4],
-                    "tokens_list": {k: v for k, v in map(lambda x: x.split("@@::@@"), tokens_list.split(","))}
-                }
+                file_info.update({
+                    "tokens_hash": info_line.split(",")[4]
+                })
             tokens_info[code_id] = file_info
     return tokens_info
 
