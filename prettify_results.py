@@ -120,11 +120,9 @@ def get_stats_info(stats_files_path, blocks_mode):
                 if code_type == "f":
                     stats = parse_file_line(code_parts)
                 elif code_type == "b":
-                    relative_id = code_id[:5]
-                    file_id = code_id[5:]
                     stats = parse_block_line(line_parts)
-                    stats["relative_id"] = relative_id
-                    stats["file_id"] = file_id
+                    stats["relative_id"] = code_id[:5]
+                    stats["file_id"] = code_id[5:]
             else:
                 code_id = line_parts[1]
                 stats = parse_file_line(line_parts)
@@ -146,7 +144,7 @@ def get_results(results_file):
     return results
 
 
-def print_results(results_file, stats_file, blocks_mode, experimental):
+def print_results(results_file, stats_files, blocks_mode, experimental):
     stats = get_stats_info(stats_files, blocks_mode)
     results = get_results(results_file)
     formatted_titles = {}
@@ -177,8 +175,8 @@ def print_tokens(tokens_files, blocks_mode, experimental):
     print("Files/tokens info list:")
     for code_id, stat in tokens_info.items():
         print("    {}:".format(code_id))
-        stat_line = ["{}: {}".format(k, v) for k, v in stat.items() if k != "tokens_list"]
-        print("        " + "\n        ".join(stat_line))
+        stat_lines = ["{}: {}".format(k, v) for k, v in stat.items() if k != "tokens_list"]
+        print("        " + "\n        ".join(stat_lines))
         print("        tokens_list: ")
         tokens_lines = ["{}: {}".format(k, v) for k, v in stat["tokens_list"].items()]
         print("            " + "\n            ".join(tokens_lines))
