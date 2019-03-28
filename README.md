@@ -3,15 +3,37 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/86471e8cabf74c6486622d9027c1c0d3)](https://app.codacy.com/app/rprtr258/SourcererCC?utm_source=github.com&utm_medium=referral&utm_content=rprtr258/SourcererCC&utm_campaign=Badge_Grade_Settings)
 [![Build Status](https://travis-ci.com/rprtr258/SourcererCC.svg?branch=master)](https://travis-ci.com/rprtr258/SourcererCC)
 
+## How to run
+
+Write urls of repositories you want to analyze in **urls.txt**. Then execute:
+
+```bash
+# for file-level analysis
+./downloadRepos.py urls.txt "tokenizers/file-level/tokenizer-sample-input"
+./runSourcererCC-FilesMode.sh
+# or
+# for block-level analysis
+./downloadRepos.py urls.txt "tokenizers/block-level/tokenizer-sample-input"
+./runSourcererCC-BlocksMode.sh
+```
+
+Get results in results.pairs:
+
+```bash
+cat results.pairs
+```
+
+## Old README
+
 ## Tutorial
 
 SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UCI")'s token-based code clone detector for very large code bases and Internet-scale project repositories. SourcererCC works at many levels of granularity such as detecting clones between files, methods, statements or blocks, in any language. This tutorial is for file-level clone detection on Java.
 
 ### Additional Resources
 
-* For more information about SourcererCC please see the [ICSE'16](http://arxiv.org/abs/1512.06448) paper.
-* SourcererCC supports DéjàVu, a large scale study of cloning on GitHub. It has a [homepage](http://mondego.ics.uci.edu/projects/dejavu/), and was published at [OOPSLA'17](https://dl.acm.org/citation.cfm?id=3133908)
-* DéjàVu is a supporting web-tool to allow quick and simple clone analysis, can be found [here](http://dejavu.ics.uci.edu/).
+*   For more information about SourcererCC please see the [ICSE'16](http://arxiv.org/abs/1512.06448) paper.
+*   SourcererCC supports DéjàVu, a large scale study of cloning on GitHub. It has a [homepage](http://mondego.ics.uci.edu/projects/dejavu/), and was published at [OOPSLA'17](https://dl.acm.org/citation.cfm?id=3133908)
+*   DéjàVu is a supporting web-tool to allow quick and simple clone analysis, can be found [here](http://dejavu.ics.uci.edu/).
 
 ### Before going through
 
@@ -68,14 +90,30 @@ python tokenizer.py zip
 where `zip` is the extension of the individual projects in `FILE_projects_list = this/is/a/path/paths.txt`. 
 
 The resulting output is composed of three folders, in the same location:
-* `bookkeeping_projs/` - contains a list of processed projects. Has the following format:
-`project id, project path, project url`
+*   `bookkeeping_projs/*.projs` - contains a list of processed projects. Has the following format:
 
-* `files_stats/` - contains lists of files together with various statistics. Has the following format:
-`file id,project id,project path,project url,file hash,size bytes,lines,LOC,SLOC`
+`project_id, project_path, project_url`
 
-* `files_tokens/` - contains lists of files together with various statistics and the tokenized forms. Has the following format:
-`file id,project id,total tokens,unique tokens,token hash@#@token1@@::@@frequency,token2@@::@@frequency,...`
+*   `files_stats/` - contains lists of files(blocks) together with statistics. Has the following format:
+
+`project_id, file_id, file_path, file_url, file_hash, file_size, lines, lines_of_code(LOC), source_lines_of_code(SLOC)`
+
+in blocks-mode contains files in format:
+
+`'f', project_id, file_id, file_path, file_url, file_hash, file_size, lines, lines_of_code(LOC), source_lines_of_code(SLOC)`
+
+and blocks in format:
+
+`'b', project_id, block_id, block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line`
+
+*   `files_tokens/` - contains lists of files together with tokens statistics and the tokenized forms. Has the following format:
+`project_id, file_id, total_tokens, unique_tokens, tokens_hash@#@token1@@::@@frequency,token2@@::@@frequency,...`
+
+in blocks-mode  in `blocks_tokens/` contains:
+
+`project_id, block_id, total_tokens, unique_tokens[, experimental_values], tokens_hash, tokens`
+
+`block_id` is `"relative_id"` + `"file_id"`
 
 The elements `file id` and `project id` always point to the same source code file or project, respectively (they work as a primary key). So a line in `files_stats/*` that start with `1,1` represents the same file as the line in `files_tokens/*` that starts with `1,1`, and these came from the project in `bookkeeping_projs/*` whose line starts with `1`.
 The number of lines in `bookkeeping_projs/*` corresponds to the total number of projects analyzed, the number of lines in `files_stats/*` is the same as `files_tokens/*` and is the same as the total number of files obtained from the projects.

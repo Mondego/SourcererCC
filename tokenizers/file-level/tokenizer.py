@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import collections
 import datetime as dt
 import hashlib
@@ -18,7 +19,6 @@ FILE_priority_projects = None
 PATH_stats_file_folder = 'files_stats'
 PATH_bookkeeping_proj_folder = 'bookkeeping_projs'
 PATH_tokens_file_folder = 'files_tokens'
-PATH_logs = 'logs'
 
 # Reading Language settings
 separators = ''
@@ -34,7 +34,7 @@ file_count = 0
 
 def read_config():
     global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
-    global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
+    global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder
     global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
     global file_extensions
     global init_file_id
@@ -58,7 +58,6 @@ def read_config():
     PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
     PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
     PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
-    PATH_logs = config.get('Folders/Files', 'PATH_logs')
 
     # Reading Language settings
     separators = config.get('Language', 'separators').strip('"').split(' ')
@@ -122,7 +121,7 @@ def tokenize_files(file_string):
     tokens_count_unique = len(file_string_for_tokenization)
     t_time = dt.datetime.now()
     # SourcererCC formatting
-    tokens = ','.join(['{}@@::@@{}'.format(k.encode('utf-8'), v) for k, v in file_string_for_tokenization.items()])
+    tokens = ','.join(['{}@@::@@{}'.format(k, v) for k, v in file_string_for_tokenization.items()])
     t_time = (dt.datetime.now() - t_time).microseconds
     # MD5
     h_time = dt.datetime.now()
@@ -143,13 +142,10 @@ def process_file_contents(file_string, proj_id, file_id, container_path, file_pa
     file_url = proj_url + '/' + file_path[7:].replace(' ', '%20')
     file_path = os.path.join(container_path, file_path)
     ww_time = dt.datetime.now()
-    FILE_stats_file.write(','.join(
-        [proj_id, str(file_id), '\"' + file_path + '\"', '\"' + file_url + '\"', '\"' + file_hash + '\"', file_bytes,
-         str(lines), str(LOC), str(SLOC)]) + '\n')
+    FILE_stats_file.write(','.join([proj_id, str(file_id), '\"' + file_path + '\"', '\"' + file_url + '\"', '\"' + file_hash + '\"', file_bytes, str(lines), str(LOC), str(SLOC)]) + '\n')
     w_time = (dt.datetime.now() - ww_time).microseconds
     ww_time = dt.datetime.now()
-    FILE_tokens_file.write(','.join(
-        [proj_id, str(file_id), str(tokens_count_total), str(tokens_count_unique), token_hash + tokens]) + '\n')
+    FILE_tokens_file.write(','.join([proj_id, str(file_id), str(tokens_count_total), str(tokens_count_unique), token_hash + tokens]) + '\n')
     w_time += (dt.datetime.now() - ww_time).microseconds
     return file_parsing_times + [w_time]  # [s_time, t_time, w_time, hash_time, re_time]
 
@@ -238,8 +234,7 @@ def process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_f
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file,
-                     FILE_bookkeeping_proj, FILE_stats_file):
+def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file):
     zip_time = file_time = string_time = tokens_time = hash_time = write_time = regex_time = 0
     print("[INFO] " + 'Attempting to process_zip_ball ' + zip_file)
     with zipfile.ZipFile(proj_path, 'r') as my_file:
@@ -278,11 +273,9 @@ def process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_f
     return zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time
 
 
-def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj,
-                        FILE_stats_file, project_format):
+def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, project_format):
     p_start = dt.datetime.now()
-    print("[INFO] " + 'Starting ' + project_format + ' project <' + proj_id + ',' + proj_path + '> (process ' + str(
-        process_num) + ')')
+    print("[INFO] " + 'Starting ' + project_format + ' project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
     if not os.path.isfile(proj_path):
         print("[WARNING] " + 'Unable to open project <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
         return
@@ -296,18 +289,14 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
         if len(tar_files) != 1:
             print("[WARNING] " + 'Tar not found on <' + proj_id + ',' + proj_path + '> (process ' + str(process_num) + ')')
             times = [0, 0, 0, 0, 0, 0, 0]
-            os.path.walk(proj_path, process_regular_folder, (
-                process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj,
-                FILE_stats_file, times))
+            os.path.walk(proj_path, process_regular_folder, (process_num, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file, times))
         else:
             tar_file = tar_files[0]
-            times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id,
-                                     FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file)
+            times = process_tgz_ball(process_num, tar_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file)
     elif project_format == 'zip':
         proj_url = 'NULL'
         zip_file = proj_path
-        times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file,
-                                 FILE_bookkeeping_proj, FILE_stats_file)
+        times = process_zip_ball(process_num, zip_file, proj_id, proj_path, proj_url, base_file_id, FILE_tokens_file, FILE_bookkeeping_proj, FILE_stats_file)
     zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
         times if times is not None else (-1, -1, -1, -1, -1, -1, -1))
 
@@ -326,20 +315,16 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id, FILE_toke
 
 def process_projects(process_num, list_projects, base_file_id, global_queue, project_format):
     file_files_stats_file = os.path.join(PATH_stats_file_folder, 'files-stats-' + str(process_num) + '.stats')
-    file_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder,
-                                              'bookkeeping-proj-' + str(process_num) + '.projs')
-    file_files_tokens_file = os.path.join(PATH_tokens_file_folder, 'files-tokens-' + str(process_num) + '.tokens')
+    file_bookkeeping_proj_name = os.path.join(PATH_bookkeeping_proj_folder, 'bookkeeping-proj-{}.projs'.format(process_num))
+    file_files_tokens_file = os.path.join(PATH_tokens_file_folder, 'files-tokens-{}.tokens'.format(process_num))
 
     global file_count
     file_count = 0
-    with open(file_files_tokens_file, 'a+') as FILE_tokens, open(file_bookkeeping_proj_name,
-                                                                 'a+') as FILE_bookkeeping, open(file_files_stats_file,
-                                                                                                 'a+') as FILE_stats:
+    with open(file_files_tokens_file, 'a+') as FILE_tokens, open(file_bookkeeping_proj_name, 'a+') as FILE_bookkeeping, open(file_files_stats_file, 'a+') as FILE_stats:
         print("[INFO] " + "Process %s starting", process_num)
         p_start = dt.datetime.now()
         for proj_id, proj_path in list_projects:
-            process_one_project(process_num, str(proj_id), proj_path, base_file_id, FILE_tokens, FILE_bookkeeping,
-                                FILE_stats, project_format)
+            process_one_project(process_num, str(proj_id), proj_path, base_file_id, FILE_tokens, FILE_bookkeeping, FILE_stats, project_format)
 
     p_elapsed = (dt.datetime.now() - p_start).seconds
     print("[INFO] " + 'Process %s finished. %s files in %ss.', process_num, file_count, p_elapsed)
@@ -418,15 +403,14 @@ if __name__ == '__main__':
                 proj_paths.append(line.strip("\n"))
     proj_paths = list(zip(range(1, len(proj_paths) + 1), proj_paths))
 
-    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-        missing_files = filter(os.path.exists, [PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs])
+    if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder):
+        missing_files = filter(os.path.exists, [PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder])
         print('ERROR - Folder [' + '] or ['.join(missing_files) + '] already exists!')
         sys.exit(1)
     else:
         os.makedirs(PATH_stats_file_folder)
         os.makedirs(PATH_bookkeeping_proj_folder)
         os.makedirs(PATH_tokens_file_folder)
-        os.makedirs(PATH_logs)
 
     # Split list of projects into N_PROCESSES lists
     # proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
