@@ -32,7 +32,9 @@ SourcererCC is [Sourcerer](http://sourcerer.ics.uci.edu/ "Sourcerer Project @ UC
 ### Additional Resources
 
 * For more information about SourcererCC please see the [ICSE'16](http://arxiv.org/abs/1512.06448) paper.
+
 * SourcererCC supports DéjàVu, a large scale study of cloning on GitHub. It has a [homepage](http://mondego.ics.uci.edu/projects/dejavu/), and was published at [OOPSLA'17](https://dl.acm.org/citation.cfm?id=3133908)
+
 * DéjàVu is a supporting web-tool to allow quick and simple clone analysis, can be found [here](http://dejavu.ics.uci.edu/).
 
 ### Before going through
