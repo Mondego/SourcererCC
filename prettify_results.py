@@ -86,6 +86,27 @@ def get_tokens_info(tokens_files_path, blocks_mode, experimental):
 
 
 def get_stats_info(stats_files_path, blocks_mode):
+    def parse_file_line(line_parts):
+        return {
+            "project_id": line_parts[0],
+            "file_path": line_parts[2],
+            "file_url": line_parts[3],
+            "file_hash": line_parts[4],
+            "file_size": line_parts[5],
+            "lines": line_parts[6],
+            "LOC": line_parts[7],
+            "SLOC": line_parts[8]
+        }
+    def parse_block_line(line_parts):
+        return {
+            "project_id": line_parts[0],
+            "block_hash": line_parts[2],
+            "block_lines": line_parts[3],
+            "block_LOC": line_parts[4],
+            "block_SLOC": line_parts[5],
+            "start_line": line_parts[6],
+            "end_line": line_parts[7]
+        }
     files = filter_files(stats_files_path, ".stats")
     stats_info = {}
     for stats_file in files:
@@ -93,44 +114,20 @@ def get_stats_info(stats_files_path, blocks_mode):
             line_parts = line.split(",")
             stats = {}
             if blocks_mode:
+                code_type = line_parts[0]
                 code_id = line_parts[2]
-                if line_parts[0] == "f":
-                    stats = {
-                        "project_id": line_parts[1],
-                        "file_path": line_parts[3],
-                        "file_url": line_parts[4],
-                        "file_hash": line_parts[5],
-                        "file_size": line_parts[6],
-                        "lines": line_parts[7],
-                        "LOC": line_parts[8],
-                        "SLOC": line_parts[9]
-                    }
-                elif line_parts[0] == "b":
+                code_parts = line_parts[1:]
+                if code_type == "f":
+                    stats = parse_file_line(code_parts)
+                elif code_type == "b":
                     relative_id = code_id[:5]
                     file_id = code_id[5:]
-                    stats = {
-                        "project_id": line_parts[1],
-                        "relative_id": relative_id,
-                        "file_id": file_id,
-                        "block_hash": line_parts[3],
-                        "block_lines": line_parts[4],
-                        "block_LOC": line_parts[5],
-                        "block_SLOC": line_parts[6],
-                        "start_line": line_parts[7],
-                        "end_line": line_parts[8]
-                    }
+                    stats = parse_block_line(line_parts)
+                    stats["relative_id"] = relative_id
+                    stats["file_id"] = file_id
             else:
                 code_id = line_parts[1]
-                stats = {
-                    "project_id": line_parts[1],
-                    "file_path": line_parts[2],
-                    "file_url": line_parts[3],
-                    "file_hash": line_parts[4],
-                    "file_size": line_parts[5],
-                    "lines": line_parts[6],
-                    "LOC": line_parts[7],
-                    "SLOC": line_parts[8]
-                }
+                stats = parse_file_line(line_parts)
             if code_id in stats_info:
                 print("intersection on id {}".format(code_id))
                 print("old: {}".format(stats_info[code_id]))
