@@ -116,18 +116,17 @@ def get_stats_info(stats_files_path, blocks_mode):
             if blocks_mode:
                 code_type = line_parts[0]
                 code_id = line_parts[2]
-                code_parts = line_parts[1:]
                 if code_type == "f":
-                    stats = parse_file_line(code_parts)
+                    stats = parse_file_line(line_parts[1:])
                 elif code_type == "b":
-                    stats = parse_block_line(line_parts)
+                    stats = parse_block_line(line_parts[1:])
                     stats["relative_id"] = code_id[:5]
                     stats["file_id"] = code_id[5:]
             else:
                 code_id = line_parts[1]
                 stats = parse_file_line(line_parts)
             if code_id in stats_info:
-                print("intersection on id {}".format(code_id))
+                print("[NOTIFY] intersection on id {}".format(code_id))
                 print("old: {}".format(stats_info[code_id]))
                 print("new: {}".format(stats))
             stats_info[code_id] = stats
