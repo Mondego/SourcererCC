@@ -90,11 +90,11 @@ python tokenizer.py zip
 where `zip` is the extension of the individual projects in `FILE_projects_list = this/is/a/path/paths.txt`. 
 
 The resulting output is composed of three folders, in the same location:
-* `bookkeeping_projs/*.projs` - contains a list of processed projects. Has the following format:
+*   `bookkeeping_projs/*.projs` - contains a list of processed projects. Has the following format:
 
 `project_id, project_path, project_url`
 
-* `files_stats/` - contains lists of files(blocks) together with statistics. Has the following format:
+*   `files_stats/` - contains lists of files(blocks) together with statistics. Has the following format:
 
 `project_id, file_id, file_path, file_url, file_hash, file_size, lines, lines_of_code(LOC), source_lines_of_code(SLOC)`
 
@@ -106,7 +106,7 @@ and blocks in format:
 
 `'b', project_id, block_id, block_hash, block_lines, block_LOC, block_SLOC, start_line, end_line`
 
-* `files_tokens/` - contains lists of files together with tokens statistics and the tokenized forms. Has the following format:
+*   `files_tokens/` - contains lists of files together with tokens statistics and the tokenized forms. Has the following format:
 `project_id, file_id, total_tokens, unique_tokens, tokens_hash@#@token1@@::@@frequency,token2@@::@@frequency,...`
 
 in blocks-mode  in `blocks_tokens/` contains:
