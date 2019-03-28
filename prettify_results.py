@@ -90,45 +90,46 @@ def get_stats_info(stats_files_path, blocks_mode):
     stats_info = {}
     for stats_file in files:
         for line in get_file_lines(stats_file):
+            line_parts = line.split(",")
+            stats = {}
             if blocks_mode:
-                if line.split(",")[0] == "f":
-                    code_id = line.split(",")[2]
+                code_id = line_parts[2]
+                if line_parts[0] == "f":
                     stats = {
-                        "project_id": line.split(",")[1],
-                        "file_path": line.split(",")[3],
-                        "file_url": line.split(",")[4],
-                        "file_hash": line.split(",")[5],
-                        "file_size": line.split(",")[6],
-                        "lines": line.split(",")[7],
-                        "LOC": line.split(",")[8],
-                        "SLOC": line.split(",")[9]
+                        "project_id": line_parts[1],
+                        "file_path": line_parts[3],
+                        "file_url": line_parts[4],
+                        "file_hash": line_parts[5],
+                        "file_size": line_parts[6],
+                        "lines": line_parts[7],
+                        "LOC": line_parts[8],
+                        "SLOC": line_parts[9]
                     }
-                elif line.split(",")[0] == "b":
-                    code_id = line.split(",")[2]
+                elif line_parts[0] == "b":
                     relative_id = code_id[:5]
                     file_id = code_id[5:]
                     stats = {
-                        "project_id": line.split(",")[1],
+                        "project_id": line_parts[1],
                         "relative_id": relative_id,
                         "file_id": file_id,
-                        "block_hash": line.split(",")[3],
-                        "block_lines": line.split(",")[4],
-                        "block_LOC": line.split(",")[5],
-                        "block_SLOC": line.split(",")[6],
-                        "start_line": line.split(",")[7],
-                        "end_line": line.split(",")[8]
+                        "block_hash": line_parts[3],
+                        "block_lines": line_parts[4],
+                        "block_LOC": line_parts[5],
+                        "block_SLOC": line_parts[6],
+                        "start_line": line_parts[7],
+                        "end_line": line_parts[8]
                     }
             else:
-                code_id = line.split(",")[1]
+                code_id = line_parts[1]
                 stats = {
-                    "project_id": line.split(",")[1],
-                    "file_path": line.split(",")[2],
-                    "file_url": line.split(",")[3],
-                    "file_hash": line.split(",")[4],
-                    "file_size": line.split(",")[5],
-                    "lines": line.split(",")[6],
-                    "LOC": line.split(",")[7],
-                    "SLOC": line.split(",")[8]
+                    "project_id": line_parts[1],
+                    "file_path": line_parts[2],
+                    "file_url": line_parts[3],
+                    "file_hash": line_parts[4],
+                    "file_size": line_parts[5],
+                    "lines": line_parts[6],
+                    "LOC": line_parts[7],
+                    "SLOC": line_parts[8]
                 }
             if code_id in stats_info:
                 print("intersection on id {}".format(code_id))
@@ -219,7 +220,7 @@ if __name__ == "__main__":
         if not options.stats_files:
             print("No stats files specified. Exiting")
             sys.exit(0)
-        print_results(options.results_file, options.stats_file, options.blocks_mode, options.experimental)
+        print_results(options.results_file, options.stats_files, options.blocks_mode, options.experimental)
     elif options.bookkeeping_files:
         print_projects_list(options.bookkeeping_files)
     elif options.tokens_files:
