@@ -55,14 +55,14 @@ def get_projects_info(bookkeeping_files_path):
     return projects_info
 
 
-def get_tokens_info(tokens_files_path, blocks_mode, experimental):
+def get_tokens_info(tokens_files_path, blocks_mode):
     files = filter_files(tokens_files_path, ".tokens")
     tokens_info = {}
     for tokens_file in files:
         for line in get_file_lines(tokens_file):
             (info_line, tokens_list) = line.split("@#@")
             code_id = info_line.split(",")[1]
-            if blocks_mode and experimental:
+            if blocks_mode:
                 file_info = {
                     "project_id": info_line.split(",")[0],
                     "relative_id": code_id[:5],
@@ -144,7 +144,7 @@ def get_results(results_file):
     return results
 
 
-def print_results(results_file, stats_files, blocks_mode, experimental):
+def print_results(results_file, stats_files, blocks_mode):
     stats = get_stats_info(stats_files, blocks_mode)
     results = get_results(results_file)
     formatted_titles = {}
@@ -170,8 +170,8 @@ def print_projects_list(bookkeeping_files):
         print()
 
 
-def print_tokens(tokens_files, blocks_mode, experimental):
-    tokens_info = get_tokens_info(tokens_files, blocks_mode, experimental)
+def print_tokens(tokens_files, blocks_mode):
+    tokens_info = get_tokens_info(tokens_files, blocks_mode)
     print("Files/tokens info list:")
     for code_id, stat in tokens_info.items():
         print("    {}:".format(code_id))
@@ -194,7 +194,6 @@ def print_stats(stats_file, blocks_mode):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--blocks-mode", dest="blocks_mode", nargs="?", const=True, default=False, help="Specify if files produced in blocks-mode")
-    parser.add_argument("--experimental", dest="experimental", nargs="?", const=True, default=False, help="If experimental values included in blocks-mode")
     parser.add_argument("-b", "--bookkeepingFiles", dest="bookkeeping_files", default=False, help="File or folder with bookkeeping files (*.projs).")
     parser.add_argument("-t", "--tokensFiles", dest="tokens_files", default=False, help="File or folder with tokens files (*.tokens).")
     parser.add_argument("-s", "--statsFiles", dest="stats_files", default=False, help="File or folder with stats files (*.stats).")
@@ -205,9 +204,6 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print("No arguments were passed. Try running with '--help'.")
         sys.exit(0)
-    elif not options.blocks_mode and options.experimental:
-        print("--experimental can be used only with --blocks-mode")
-        sys.exit(0)
 
     p_start = dt.datetime.now()
 
@@ -215,11 +211,11 @@ if __name__ == "__main__":
         if not options.stats_files:
             print("No stats files specified. Exiting")
             sys.exit(0)
-        print_results(options.results_file, options.stats_files, options.blocks_mode, options.experimental)
+        print_results(options.results_file, options.stats_files, options.blocks_mode)
     elif options.bookkeeping_files:
         print_projects_list(options.bookkeeping_files)
     elif options.tokens_files:
-        print_tokens(options.token_files, options.blocks_mode, options.experimental)
+        print_tokens(options.token_files, options.blocks_mode)
     elif options.stats_files:
         print_stats(options.stats_files, options.blocks_mode)
 
