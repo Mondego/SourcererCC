@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.jmatrix.eproperties.EProperties;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -105,7 +105,7 @@ public class SearchManager {
     // private List<FSDirectory> invertedIndexDirectories;
     // private List<FSDirectory> forwardIndexDirectories;
     public static List<IndexWriter> indexerWriters;
-    private static EProperties properties = new EProperties();
+    private static Properties properties = new Properties();
 
     public static Object lock = new Object();
     private int qlq_thread_count;
@@ -314,9 +314,9 @@ public class SearchManager {
                     properties.getProperty("IS_STATUS_REPORTER_ON"));
             SearchManager.NODE_PREFIX = properties.getProperty("NODE_PREFIX")
                     .toUpperCase();
-            SearchManager.OUTPUT_DIR = SearchManager.ROOT_DIR
+            SearchManager.OUTPUT_DIR = SearchManager.ROOT_DIR + SearchManager.NODE_PREFIX + "/"
                     + properties.getProperty("OUTPUT_DIR");
-            SearchManager.QUERY_DIR_PATH = SearchManager.ROOT_DIR
+            SearchManager.QUERY_DIR_PATH = SearchManager.ROOT_DIR + SearchManager.NODE_PREFIX + "/"
                     + properties.getProperty("QUERY_DIR_PATH");
             logger.debug("Query path:" + SearchManager.QUERY_DIR_PATH);
             SearchManager.LOG_PROCESSED_LINENUMBER_AFTER_X_LINES = Integer
