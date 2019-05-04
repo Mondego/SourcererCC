@@ -2,7 +2,8 @@
 #
 # Run this script after indexing with just 1 node
 #
-scriptPATH=`realpath $0`
+# scriptPATH=`realpath $0`
+scriptPATH="pwd"
 rootPATH=`dirname $scriptPATH`
 echo "Installing indexes..."
 

@@ -4,7 +4,8 @@
 #lines_per_part = int(total_lines + $N - 1) / $N
 
 # Configuration stuff
-scriptPATH=`realpath $0`
+# scriptPATH=`realpath $0`
+scriptPATH="pwd"
 rootPATH=`dirname $scriptPATH`
 echo "inside splitquery "
 queryfile="$rootPATH/input/dataset/blocks.file"

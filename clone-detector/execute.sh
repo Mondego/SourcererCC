@@ -1,5 +1,6 @@
 #!/bin/bash
-scriptPATH=`realpath $0`
+# scriptPATH=`realpath $0`
+scriptPATH="pwd"
 rootPATH=`dirname $scriptPATH`
 echo $rootPATH
 rm -rf $rootPATH/NODE*
