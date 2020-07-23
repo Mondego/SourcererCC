@@ -11,6 +11,6 @@ for file in os.listdir("file_block_stats"):
 					elif line.startswith('f'):
 						file_info.write(line)
 					else:
-						print "error", line
+						print("error", line)
 		
-	print "Done with: ", readfile
+	print("Done with: ", readfile)
