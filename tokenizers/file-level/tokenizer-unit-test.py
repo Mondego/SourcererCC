@@ -1,12 +1,11 @@
 # -*- encoding: utf-8 -*-
 
+import hashlib
 import re
-import os
-import collections
 import sys
 import unittest
+
 import tokenizer as tokenizer
-import hashlib
 
 try:
     from configparser import ConfigParser
@@ -166,4 +165,3 @@ class TestParser(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

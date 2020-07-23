@@ -1,17 +1,15 @@
-import logging
-import multiprocessing as mp
-from multiprocessing import Process, Value, Queue
-import re
-import os, platform
 import collections
-import tarfile
-import sys
-import hashlib
 import datetime as dt
-import zipfile
-import javalang
-import pathlib
+import hashlib
+import logging
+import os
+import platform
+import re
 import shutil
+import sys
+import tarfile
+import zipfile
+from multiprocessing import Process, Queue
 from subprocess import call
 
 try:
@@ -426,7 +424,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
         else:
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
-            -1, -1, -1, -1, -1, -1, -1)
+                -1, -1, -1, -1, -1, -1, -1)
 
         FILE_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
 
@@ -446,7 +444,7 @@ def process_one_project(process_num, proj_id, proj_path, base_file_id,
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = times
         else:
             zip_time, file_time, string_time, tokens_time, write_time, hash_time, regex_time = (
-            -1, -1, -1, -1, -1, -1, -1)
+                -1, -1, -1, -1, -1, -1, -1)
 
         FILE_bookkeeping_proj.write(proj_id + ',\"' + proj_path + '\",\"' + proj_url + '\"\n')
 
@@ -518,7 +516,7 @@ def kill_child(processes, pid, n_files_processed):
         processes[pid][1] += n_files_processed
 
         print("Process %s finished, %s files processed (%s). Current total: %s" % (
-        pid, n_files_processed, processes[pid][1], file_count))
+            pid, n_files_processed, processes[pid][1], file_count))
 
 
 def active_process_count(processes):

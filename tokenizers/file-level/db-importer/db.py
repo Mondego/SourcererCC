@@ -295,7 +295,7 @@ class DB:
 
     # Prepare the complete list
     if autoID:
-      self.files = map(lambda (a, b, c, d, e): (b, c, d, e), self.files)
+      self.files = [(a_b_c_d_e[1], a_b_c_d_e[2], a_b_c_d_e[3], a_b_c_d_e[4]) for a_b_c_d_e in self.files]
     flist = ','.join(self.files)
 
     self.check_connection()
@@ -442,7 +442,7 @@ class DB:
   def sanitize_string(self, string_input):
     # To clean non-ascii characters
     printable = set(string.printable)
-    string_res = filter(lambda x: x in printable, string_input)
+    string_res = [x for x in string_input if x in printable]
     return (string_res[:DB_MAX_STRING_SIZE])
 
   def execute(self, query):

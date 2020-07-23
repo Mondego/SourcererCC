@@ -15,7 +15,7 @@ N_PROCESSES = 2
 log_path = 'LOG-db-clonefinder.log'
 
 if os.path.isfile(log_path):
-    print 'ERROR: Log file:',log_path,'already exists'
+    print('ERROR: Log file:',log_path,'already exists')
     sys.exit(1)
 
 FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
@@ -29,7 +29,7 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
     try:
         query = """SELECT fileId, projectId, f.fileHash, tokenHash FROM files as f 
                    JOIN stats as s ON f.fileHash=s.fileHash 
-                   WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(token_hashes.keys()) + "'", project_id)
+                   WHERE tokenHash in (%s) AND projectId >= %s;""" % ("'" + "','".join(list(token_hashes.keys())) + "'", project_id)
         res = db_object.execute(query);
         logging.info(query)
         for (file_id, projectId, fileHash, tokenHash, ) in res:
@@ -39,8 +39,8 @@ def findAllTokenHashClones(project_id, token_hashes, files_clones, db_object):
                     files_clones[f].add((str(file_id), projectId))
 
     except Exception as e:
-        print 'Error on findAllTokenHashClones'
-        print e
+        print('Error on findAllTokenHashClones')
+        print(e)
         sys.exit(1)
 
 def find_clones_for_project(project_id, project_file_counts, db_object, debug):
@@ -68,7 +68,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
 
         if debug == 'all':
             logging.debug('## After round 1')
-            for k, v in files_clones.iteritems():
+            for k, v in files_clones.items():
                 if len(v) > 0:
                     logging.debug('%s-%s', k, v)
 
@@ -80,7 +80,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
 
         project_file_set = {}
         clone_set = set()
-        for fid, clones in files_clones.iteritems():
+        for fid, clones in files_clones.items():
             project_counted = False
             for clone in clones:
                 projectId = clone[1]
@@ -90,14 +90,14 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                 project_file_set[projectId].add(fid)
                 
         # How many of this project's files are present in each of the other project?
-        for pid, file_list in project_file_set.iteritems():
+        for pid, file_list in project_file_set.items():
             percentage_clone_projects_counter[pid] = len(file_list)
 
 
         # How many of the other projects files are present in this project?
         for clone in clone_set:
             projectId = clone[1]
-            if percentage_host_projects_counter.has_key(projectId):
+            if projectId in percentage_host_projects_counter:
                 percentage_host_projects_counter[projectId] += 1
             else:
                 percentage_host_projects_counter[projectId] = 1
@@ -105,7 +105,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
         if len(percentage_host_projects_counter) > 0:
             # The key k (projects) should be the same between 
             # percentage_clone_projects_counter and percentage_host_projects_counter
-            for k, v in percentage_host_projects_counter.iteritems():
+            for k, v in percentage_host_projects_counter.items():
                 
                 percent_cloning = float(percentage_clone_projects_counter[k]*100)/total_files
                 percent_host = float(v*100)/project_file_counts[k]
@@ -116,7 +116,7 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
 
                 if debug == 'all' or debug == 'final':
                     if True:#(percent_cloning > 99) and (str(project_id) != k):
-                        print 'Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]'
+                        print('Proj',project_id,'in',k,'@',str( float("{0:.2f}".format(percent_cloning)) )+'% ('+str(v)+'/'+str(total_files),'files) affecting', str(float("{0:.2f}".format(percent_host)))+'%','['+str(percentage_cloning_counter[k])+'/'+str(total_files_host),'files]')
 
                 else:
                     db_object.insert_projectClones(project_id, percentage_clone_projects_counter[k], total_files, float("{0:.2f}".format(percent_cloning)), 
@@ -124,8 +124,8 @@ def find_clones_for_project(project_id, project_file_counts, db_object, debug):
                                                    float("{0:.2f}".format(percent_host)))
 
     except Exception as e:
-        print 'Error on find_clones_for_project'
-        print e
+        print('Error on find_clones_for_project')
+        print(e)
         traceback.print_exc()
         sys.exit(1)
 
@@ -157,8 +157,8 @@ def start_process(pnum, input_process, DB_user, DB_name, DB_pass, project_file_c
         db_object.flush_projectClones()
 
     except Exception as e:
-        print 'Error in clone_finder.start_process'
-        print e
+        print('Error in clone_finder.start_process')
+        print(e)
         sys.exit(1)
 
     finally:
@@ -216,14 +216,14 @@ if __name__ == "__main__":
 
         project_ids = []
 
-        for projectId in project_file_counts.keys():
+        for projectId in list(project_file_counts.keys()):
             project_ids.append(projectId)
             pair_number += 1
 
-        project_ids = [ project_ids[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
+        project_ids = [ project_ids[i::N_PROCESSES] for i in range(N_PROCESSES) ]
 
         processes = []
-        for process_num in xrange(N_PROCESSES):
+        for process_num in range(N_PROCESSES):
             p = Process(name='Process '+str(process_num), target=start_process, 
                         args=(process_num, project_ids[process_num], DB_user, DB_name, DB_pass, project_file_counts, host, ))
             processes.append(p)
@@ -232,8 +232,8 @@ if __name__ == "__main__":
         [p.join() for p in processes]
 
     except Exception as e:
-        print 'Error in clone_finder.__main__'
-        print e
+        print('Error in clone_finder.__main__')
+        print(e)
         sys.exit(1)
 
     finally:
