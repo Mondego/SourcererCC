@@ -16,7 +16,7 @@ def grab_ids(folder_or_file):
     if os.path.isfile(folder_or_file):
       paths.add(folder_or_file)
     else:
-      print "ERROR: '",projects_from_blocks,"' not found!"
+      print("ERROR: '",projects_from_blocks,"' not found!")
   
   res = set()
   for p in paths:
@@ -38,7 +38,7 @@ def copy_files(ids_set, folder_or_file, output_folder):
     if os.path.isfile(folder_or_file):
       paths.add(folder_or_file)
     else:
-      print "ERROR: '",projects_from_blocks,"' not found!"
+      print("ERROR: '",projects_from_blocks,"' not found!")
 
   for p in paths:
     with open(p,'r') as file:
@@ -59,7 +59,7 @@ def copy_files(ids_set, folder_or_file, output_folder):
               with open(os.path.join(output_folder,file_path), 'w') as f:
                 f.write(z.read(file_path))
           except Exception as e:
-            print 'ERROR reading',zip_path,e
+            print('ERROR reading',zip_path,e)
 
 
           copy_count += 1
@@ -81,40 +81,40 @@ if __name__ == "__main__":
   (options, args) = parser.parse_args()
 
   if not len(sys.argv) > 1:
-    print "No arguments were passed. Try running with '--help'."
+    print("No arguments were passed. Try running with '--help'.")
     sys.exit(0)
 
   if (not options.tokensFiles) or (not options.statsFiles):
-    print "Arguments '-b' and '-s' are mandatory. Try running with '--help'."
+    print("Arguments '-b' and '-s' are mandatory. Try running with '--help'.")
     sys.exit(0)
 
   #### ARGUMENTS HANDLING MUST BE below
   output_folder = default_output_folder
   if options.outputDir:
     if os.path.isdir(options.outputDir):
-      print 'Folder',options.outputDir,'already exists.'
+      print('Folder',options.outputDir,'already exists.')
       sys.exit(0)
     else:
       os.makedirs(options.outputDir)
       output_folder = options.outputDir
-      print 'Folder',options.outputDir,'created.'
+      print('Folder',options.outputDir,'created.')
   else:
     if os.path.isdir(default_output_folder):
-      print 'Folder',default_output_folder,'already exists.'
+      print('Folder',default_output_folder,'already exists.')
       sys.exit(0)
     else:
       os.makedirs(default_output_folder)
-      print 'Folder',default_output_folder,'created.'
+      print('Folder',default_output_folder,'created.')
 
   p_start = dt.datetime.now()
-  print 'Grabbing IDs...'
+  print('Grabbing IDs...')
   ids_set = set()
   ids_set = grab_ids(options.tokensFiles)
-  print '%s file ids in %s' % (len(ids_set), dt.datetime.now() - p_start)
+  print('%s file ids in %s' % (len(ids_set), dt.datetime.now() - p_start))
 
   p_start = dt.datetime.now()
-  print 'Copying files...'
+  print('Copying files...')
   copy_count = copy_files(ids_set, options.statsFiles, default_output_folder)
-  print '%s files copied in %s' % (copy_count, dt.datetime.now() - p_start)
+  print('%s files copied in %s' % (copy_count, dt.datetime.now() - p_start))
 
 
