@@ -16,7 +16,7 @@ import io
 try:
   from configparser import ConfigParser
 except ImportError:
-  from ConfigParser import ConfigParser # ver. < 3.0
+  from configparser import ConfigParser # ver. < 3.0
 
 MULTIPLIER = 50000000
 
@@ -152,7 +152,7 @@ def tokenize_files(file_string, comment_inline_pattern, comment_open_close_patte
 
   t_time = dt.datetime.now()
   #SourcererCC formatting
-  tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in file_string_for_tokenization.iteritems()])
+  tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in file_string_for_tokenization.items()])
   t_time = (dt.datetime.now() - t_time).microseconds
 
   # MD5
@@ -278,7 +278,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         tokens_count_unique = len(block_string_for_tokenization)
         t_time = dt.datetime.now()
         #SourcererCC formatting
-        tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
+        tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.items()])
         token_time += (dt.datetime.now() - t_time).microseconds
         # MD5
         h_time = dt.datetime.now()
@@ -322,7 +322,7 @@ def process_file_contents(file_string, proj_id, file_id, container_path,
     
     # file stats start with a letter 'f'
     FILE_stats_file.write('f' + ','.join([proj_id,str(file_id),'\"'+file_path+'\"','\"'+file_url+'\"','\"'+file_hash+'\"',file_bytes,str(lines),str(LOC),str(SLOC)]) + '\n')
-    blocks_data = zip(range(10000,99999),blocks_data)
+    blocks_data = list(zip(list(range(10000,99999)),blocks_data))
 
     logging.warning('Finished step2 on process_file_contents');
 
@@ -678,7 +678,7 @@ def start_child(processes, global_queue, proj_paths, batch, project_format):
   paths_batch = proj_paths[:batch]
   del proj_paths[:batch]
 
-  print("Starting new process %s" % (pid))
+  print(("Starting new process %s" % (pid)))
   p = Process(name='Process '+str(pid), target=process_projects, args=(pid, paths_batch, processes[pid][1], global_queue, project_format, ))
   processes[pid][0] = p
   p.start()
@@ -690,7 +690,7 @@ def kill_child(processes, pid, n_files_processed):
     processes[pid][0] = None
     processes[pid][1] += n_files_processed
     
-    print("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count))
+    print(("Process %s finished, %s files processed (%s). Current total: %s" % (pid, n_files_processed, processes[pid][1], file_count)))
 
 def active_process_count(processes):
   count = 0
@@ -717,26 +717,26 @@ if __name__ == '__main__':
       for line in f:
         line_split = line[:-1].split(',') # [:-1] to strip final character which is '\n'
         prio_proj_paths.append((line_split[0],line_split[4]))
-    prio_proj_paths = zip(range(init_proj_id, len(prio_proj_paths)+init_proj_id), prio_proj_paths)
+    prio_proj_paths = list(zip(list(range(init_proj_id, len(prio_proj_paths)+init_proj_id)), prio_proj_paths))
 
   proj_paths = []
 
   if project_format in ['zipblocks']: # zipblocks will diverge the process flow on process_file()
-    print('\''+project_format+'\''+'format')
+    print(('\''+project_format+'\''+'format'))
     with open(FILE_projects_list) as f:
       for line in f:
         proj_paths.append(line[:-1])
-    proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
+    proj_paths = list(zip(list(range(1, len(proj_paths)+1)), proj_paths))
 
   if project_format in ['folderblocks']: # folderblocks will diverge the process flow on process_file()
-    print('\''+project_format+'\''+'format')
+    print(('\''+project_format+'\''+'format'))
     with open(FILE_projects_list) as f:
       for line in f:
         proj_paths.append(line[:-1])
-    proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
+    proj_paths = list(zip(list(range(1, len(proj_paths)+1)), proj_paths))
 
   if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
-    print('ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!')
+    print(('ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!'))
     sys.exit(1)
   else:
     os.makedirs(PATH_stats_file_folder)
@@ -774,5 +774,5 @@ if __name__ == '__main__':
     kill_child(processes, pid, n_files_processed)
 
   p_elapsed = dt.datetime.now() - p_start
-  print("*** All done. %s files in %s" % (file_count, p_elapsed))
+  print(("*** All done. %s files in %s" % (file_count, p_elapsed)))
 

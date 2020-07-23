@@ -1,7 +1,7 @@
 import sys, os, csv
 from db import DB
 import logging
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 pattern = r'\"(.+?)\"'
 flag = None
@@ -94,8 +94,8 @@ def import_tokenizer_output_files_tokens(db, output_path, logging):
 
                 logging.warning('String partitioned into:'+file_id+'|'+proj_id+path+'|'+url+'|'+file_hash+'|'+bytess+'|'+lines+'|'+loc+'|'+sloc)
 
-            path = urllib.quote(path.strip('"'))
-            url = urllib.quote(url.strip('"'))
+            path = urllib.parse.quote(path.strip('"'))
+            url = urllib.parse.quote(url.strip('"'))
             file_hash = file_hash.strip('"')
 
             if flag == 'files-autoID':
@@ -218,8 +218,8 @@ def import_tokenizer_output_blocks_tokens(db, output_path, logging):
 
                 logging.warning('String partitioned into:'+file_id+'|'+proj_id+path+'|'+url+'|'+file_hash+'|'+bytess+'|'+lines+'|'+loc+'|'+sloc)
 
-            path = urllib.quote(path.strip('"'))
-            url = urllib.quote(url.strip('"'))
+            path = urllib.parse.quote(path.strip('"'))
+            url = urllib.parse.quote(url.strip('"'))
             file_hash = file_hash.strip('"')
 
             db.insert_file(file_id, proj_id, path, url, file_hash)
@@ -266,7 +266,7 @@ def import_pairs(db, pairs_path):
     commit_interval = 1000
     pair_number = 0
 
-    print '## Importing pairs from',pairs_path
+    print('## Importing pairs from',pairs_path)
     with open(pairs_path, 'r') as file:
       for line in file:
         pair_number += 1
@@ -275,11 +275,11 @@ def import_pairs(db, pairs_path):
         db.insert_CCPairs(line_split[0], line_split[1], line_split[2], line_split[3])
 
         if pair_number%commit_interval == 0:
-          print '    ',pair_number,'pairs committed'
+          print('    ',pair_number,'pairs committed')
 
   except Exception as e:
-    print 'Error accessing Database'
-    print e
+    print('Error accessing Database')
+    print(e)
     sys.exit(1)
 
 if __name__ == "__main__":
@@ -299,7 +299,7 @@ if __name__ == "__main__":
   log_path = 'LOG-db-importer.log'
 
   if os.path.isfile(log_path):
-    print 'ERROR: Log file:',log_path,'already exists'
+    print('ERROR: Log file:',log_path,'already exists')
     sys.exit(1)
 
   FORMAT = '[%(levelname)s] (%(threadName)s) %(message)s'
@@ -333,6 +333,6 @@ if __name__ == "__main__":
     db_object.close()
 
   except Exception as e:
-    print 'Error on __main__'
-    print e
+    print('Error on __main__')
+    print(e)
   
