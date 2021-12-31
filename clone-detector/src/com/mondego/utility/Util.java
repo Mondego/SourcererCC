@@ -410,9 +410,10 @@ public class Util {
     public static List<File> getAllFilesRecur(File root) {
         List<File> listToReturn = new ArrayList<File>();
         for (File file : root.listFiles()) {
-            if (file.isFile()) {
+            if (file.isFile() && !file.getName().startsWith(".")) {
                 listToReturn.add(file);
-            } else if (file.isDirectory()) {
+            } else if (file.isDirectory() && !file.getName().equals("oldData")) {
+                logger.debug("Input blocks recursing onto " + file.getName());
                 listToReturn.addAll(getAllFilesRecur(file));
             }
         }
