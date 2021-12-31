@@ -38,7 +38,7 @@ file_extensions = '.none'
 file_count = 0
 
 def read_config():
-  global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects
+  global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects, obfuscate
   global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
   global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
   global file_extensions
@@ -62,6 +62,11 @@ def read_config():
   FILE_projects_list = config.get('Main', 'FILE_projects_list')
   if config.has_option('Main', 'FILE_priority_projects'):
     FILE_priority_projects = config.get('Main', 'FILE_priority_projects')
+  if config.has_option('Main', 'obfuscate') and config.get('Main', 'obfuscate') == "True":
+    obfuscate = True
+  else:
+    obfuscate = False
+
   PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
   PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
   PATH_tokens_file_folder = config.get('Folders/Files', 'PATH_tokens_file_folder')
@@ -141,8 +146,14 @@ def tokenize_files(file_bytes, comment_inline_pattern, comment_open_close_patter
 
   t_time = dt.datetime.now()
   #SourcererCC formatting
-  tokens = ','.join(['{}@@::@@{}'.format(k, v)
-                    for k,v in file_string.items()])
+  if obfuscate:
+    logging.info('Generating obsfuscated tokens')
+    tokens = ','.join(['{}@@::@@{}'.format(hashlib.md5(k.encode('utf-8')).hexdigest(), v)
+                       for k,v in file_string.items()])
+  else:
+    logging.info('Generating original tokens')
+    tokens = ','.join(['{}@@::@@{}'.format(k, v)
+                       for k,v in file_string.items()])
   t_time = (dt.datetime.now() - t_time).microseconds
 
   # MD5
