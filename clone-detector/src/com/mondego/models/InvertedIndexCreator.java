@@ -64,7 +64,7 @@ public class InvertedIndexCreator implements IListener, Runnable {
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         long startTime = System.nanoTime();
         List<Shard> shards = SearchManager.getShards(bag);
-	StringBuilder sid = new StringBuilder();
+	    StringBuilder sid = new StringBuilder();
         this.document = this.documentMaker.prepareDocument(bag);
         for (Shard shard : shards) {
 	    sid.append(shard.getId() + ":");

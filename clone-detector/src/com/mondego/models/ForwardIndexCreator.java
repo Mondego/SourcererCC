@@ -49,7 +49,7 @@ public class ForwardIndexCreator implements IListener, Runnable {
                 e.printStackTrace();
             }
         }
-	long estimatedTime = System.nanoTime() - startTime;
+    	long estimatedTime = System.nanoTime() - startTime;
 
         logger.debug(SearchManager.NODE_PREFIX + " FI, Bag " + bag + " in " + estimatedTime/1000 + " micros");
     }

@@ -54,10 +54,10 @@ public class BagSorter implements IListener, Runnable {
 
     private void sortBag(Bag bag) throws InterruptedException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-	long startTime = System.nanoTime(); 
+	    long startTime = System.nanoTime();
         Util.sortBag(bag);
-	long estimatedTime = System.nanoTime() - startTime;
-	logger.info(SearchManager.NODE_PREFIX + " SB, Bag " + bag+ " in " + estimatedTime/1000 + " micros");
-        SearchManager.bagsToInvertedIndexQueue.send(bag);
+	    long estimatedTime = System.nanoTime() - startTime;
+	    logger.info(SearchManager.NODE_PREFIX + " SB, Bag " + bag+ " in " + estimatedTime/1000 + " micros");
+            SearchManager.bagsToInvertedIndexQueue.send(bag);
     }
 }

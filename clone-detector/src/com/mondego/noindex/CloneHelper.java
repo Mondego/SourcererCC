@@ -274,14 +274,13 @@ public class CloneHelper {
                     }
                     queryBlock = new QueryBlock(Long.parseLong((bagId)), bagSize);
                     queryBlock.setFunctionId(Long.parseLong(functionId));
-		    Shard shard = SearchManager.getShard(queryBlock);
-		    if (shard == null) {
-			logger.warn(SearchManager.NODE_PREFIX + " unable to find shard for query block " + queryBlock);
-			return null;
-		    }
+		            Shard shard = SearchManager.getShard(queryBlock);
+		            if (shard == null) {
+			            logger.warn(SearchManager.NODE_PREFIX + " unable to find shard for query block " + queryBlock);
+			            return null;
+		            }
 
-		    queryBlock.setShardId(shard.getId()); 
-
+        		    queryBlock.setShardId(shard.getId());
                 } catch (NumberFormatException e) {
                     throw e;
                 }
