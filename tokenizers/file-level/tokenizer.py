@@ -35,10 +35,13 @@ comment_close_tag = ''
 comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
 file_extensions = '.none'
 
+obfuscate = False
+subtokens = False
+
 file_count = 0
 
 def read_config():
-  global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects, obfuscate
+  global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects, obfuscate, subtokens
   global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
   global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
   global file_extensions
@@ -62,10 +65,6 @@ def read_config():
   FILE_projects_list = config.get('Main', 'FILE_projects_list')
   if config.has_option('Main', 'FILE_priority_projects'):
     FILE_priority_projects = config.get('Main', 'FILE_priority_projects')
-  if config.has_option('Main', 'obfuscate') and config.get('Main', 'obfuscate') == "True":
-    obfuscate = True
-  else:
-    obfuscate = False
 
   PATH_stats_file_folder = config.get('Folders/Files', 'PATH_stats_file_folder')
   PATH_bookkeeping_proj_folder = config.get('Folders/Files', 'PATH_bookkeeping_proj_folder')
@@ -81,9 +80,31 @@ def read_config():
   comment_open_close_pattern = comment_open_tag + '.*?' + comment_close_tag
   file_extensions = config.get('Language', 'File_extensions').split(' ')
 
+  # Reading Tokens section
+  obfuscate = config['Tokens'].getboolean('obfuscate', False)
+  subtokens = config['Tokens'].getboolean('subtokens', False)
+
   # Reading config settings
   init_file_id = config.getint('Config', 'init_file_id')
   init_proj_id = config.getint('Config', 'init_proj_id')
+
+def custom_split(token):
+  """ Examples:
+  custom_split("getAllFilesRecur") --> ['get', 'All', 'Files', 'Recur']
+  custom_split("OpenFile") --> ['Open', 'File']
+  custom_split("UCI_isLocked") --> ['UCI', 'is', 'Locked']
+  custom_split("bLockedOut") --> ['Locked', 'Out']
+  custom_split("FileNotFound123") --> ['File', 'Not', 'Found123']
+  custom_split("ipv6_IPAddress") --> ['ipv6', 'IP', 'Address']
+  custom_split(Address") --> []
+  """
+  def camel_case_split(identifier):
+    matches = re.finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', identifier)
+    res = [ m.group(0) for m in matches if len(m.group(0)) > 1 ]
+    return res if len(res) > 1 else []
+
+  splits = token.split('_')
+  return sum(map(camel_case_split, splits), [])
 
 def tokenize_files(file_bytes, comment_inline_pattern, comment_open_close_pattern, separators):
 
@@ -135,6 +156,10 @@ def tokenize_files(file_bytes, comment_inline_pattern, comment_open_close_patter
 
   ##Create a list of tokens
   file_string = file_string.split()
+  ## Subtokens
+  if subtokens:
+    file_string += sum([custom_split(token) for token in file_string], [])
+    logging.info('Including subtokens')
   ## Total number of tokens
   tokens_count_total = len(file_string)
   ##Count occurrences
