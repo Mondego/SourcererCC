@@ -526,6 +526,8 @@ if __name__ == '__main__':
         prio_proj_paths.append(line_split)
     prio_proj_paths = list(zip(range(init_proj_id, len(prio_proj_paths)+init_proj_id), prio_proj_paths))
 
+  start_id = len(prio_proj_paths)+init_proj_id
+
   proj_paths = []
   if project_format == 'leidos':
     print ('\'',project_format,'\'','format')
@@ -539,13 +541,14 @@ if __name__ == '__main__':
             print ("Project %s is in priority list" % line_split)
         if not prio:
           proj_paths.append(line_split)
-    proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
+    proj_paths = list(zip(range(start_id, len(proj_paths)+start_id), proj_paths))
+
   if project_format in ['zip']:
     print ('\'',project_format,'\'','format')
     with open(FILE_projects_list) as f:
       for line in f:
         proj_paths.append(line[:-1])
-    proj_paths = list(zip(range(1, len(proj_paths)+1), proj_paths))
+    proj_paths = list(zip(range(start_id, len(proj_paths)+start_id), proj_paths))
 
   if os.path.exists(PATH_stats_file_folder) or os.path.exists(PATH_bookkeeping_proj_folder) or os.path.exists(PATH_tokens_file_folder) or os.path.exists(PATH_logs):
     print ('ERROR - Folder ['+PATH_stats_file_folder+'] or ['+PATH_bookkeeping_proj_folder+'] or ['+PATH_tokens_file_folder+'] or ['+PATH_logs+'] already exists!')
