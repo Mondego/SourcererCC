@@ -21,6 +21,7 @@ N_PROCESSES = 2
 PROJECTS_BATCH = 20
 FILE_projects_list = 'projects-list.txt'
 FILE_priority_projects = None
+FILE_ignore_tokens = None
 PATH_stats_file_folder = 'files_stats'
 PATH_bookkeeping_proj_folder = 'bookkeeping_projs'
 PATH_tokens_file_folder = 'files_tokens'
@@ -38,14 +39,15 @@ file_extensions = '.none'
 obfuscate = False
 subtokens = False
 
+ignore_tokens = []
 file_count = 0
 
 def read_config():
-  global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects, obfuscate, subtokens
+  global N_PROCESSES, PROJECTS_BATCH, FILE_projects_list, FILE_priority_projects, FILE_ignore_tokens
   global PATH_stats_file_folder, PATH_bookkeeping_proj_folder, PATH_tokens_file_folder, PATH_logs
   global separators, comment_inline, comment_inline_pattern, comment_open_tag, comment_close_tag, comment_open_close_pattern
   global file_extensions
-  
+  global obfuscate, subtokens
   global init_file_id
   global init_proj_id
 
@@ -81,6 +83,7 @@ def read_config():
   file_extensions = config.get('Language', 'File_extensions').split(' ')
 
   # Reading Tokens section
+  FILE_ignore_tokens = config['Tokens'].get('FILE_ignore_tokens')
   obfuscate = config['Tokens'].getboolean('obfuscate', False)
   subtokens = config['Tokens'].getboolean('subtokens', False)
 
@@ -155,30 +158,33 @@ def tokenize_files(file_bytes, comment_inline_pattern, comment_open_close_patter
   s_time = (dt.datetime.now() - s_time).microseconds
 
   ##Create a list of tokens
-  file_string = file_string.split()
+  file_tokens = file_string.split()
+  ## Remove ignore tokens
+  if ignore_tokens and len(ignore_tokens) > 0:
+    file_tokens = [t for t in file_tokens if t not in ignore_tokens]
   ## Subtokens
   if subtokens:
-    file_string += sum([custom_split(token) for token in file_string], [])
+    file_tokens += sum([custom_split(token) for token in file_tokens], [])
     logging.info('Including subtokens')
   ## Total number of tokens
-  tokens_count_total = len(file_string)
+  tokens_count_total = len(file_tokens)
   ##Count occurrences
-  file_string = collections.Counter(file_string)
+  file_tokens = collections.Counter(file_tokens)
   ##Converting Counter to dict because according to StackOverflow is better
-  file_string=dict(file_string)
+  file_tokens=dict(file_tokens)
   ## Unique number of tokens
-  tokens_count_unique = len(file_string)
+  tokens_count_unique = len(file_tokens)
 
   t_time = dt.datetime.now()
   #SourcererCC formatting
   if obfuscate:
     logging.info('Generating obsfuscated tokens')
     tokens = ','.join(['{}@@::@@{}'.format(hashlib.md5(k.encode('utf-8')).hexdigest(), v)
-                       for k,v in file_string.items()])
+                       for k,v in file_tokens.items()])
   else:
     logging.info('Generating original tokens')
     tokens = ','.join(['{}@@::@@{}'.format(k, v)
-                       for k,v in file_string.items()])
+                       for k,v in file_tokens.items()])
   t_time = (dt.datetime.now() - t_time).microseconds
 
   # MD5
@@ -187,7 +193,7 @@ def tokenize_files(file_bytes, comment_inline_pattern, comment_open_close_patter
   m.update(tokens.encode('utf-8'))
   hash_time += (dt.datetime.now() - h_time).microseconds
 
-  final_tokens = (tokens_count_total,tokens_count_unique,m.hexdigest(),'@#@'+tokens)
+  final_tokens = (tokens_count_total, tokens_count_unique, m.hexdigest(), '@#@'+tokens)
 
   return (final_stats, final_tokens, [s_time, t_time, hash_time, re_time])
 
@@ -558,6 +564,10 @@ if __name__ == '__main__':
     os.makedirs(PATH_bookkeeping_proj_folder)
     os.makedirs(PATH_tokens_file_folder)
     os.makedirs(PATH_logs)
+
+  if FILE_ignore_tokens:
+    ignore_tokens = open(FILE_ignore_tokens).read().splitlines()
+    print(ignore_tokens)
 
   #Split list of projects into N_PROCESSES lists
   #proj_paths_list = [ proj_paths[i::N_PROCESSES] for i in xrange(N_PROCESSES) ]
