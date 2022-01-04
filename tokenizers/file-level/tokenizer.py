@@ -515,7 +515,10 @@ def active_process_count(processes):
 if __name__ == '__main__':
 
   global project_format
-  project_format = sys.argv[1] # 'zip' or 'leidos'
+  if len(sys.argv) > 1:
+    project_format = sys.argv[1] # 'zip' or 'leidos'
+  else:
+    project_format = 'zip'
 
   if project_format not in ['zip','leidos']:
     print ("ERROR - Please insert archive format, 'zip', 'leidos'!")
