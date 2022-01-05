@@ -211,7 +211,7 @@ def process_file_contents(file_bytes, proj_id, file_id, container_path,
 
   (tokens_count_total,tokens_count_unique,token_hash,tokens) = final_tokens
 
-  file_url = proj_url + '/' + file_path[7:].replace(' ','%20')
+  file_url = file_path.replace(' ', '%20') # proj_url + '/' + file_path[7:].replace(' ','%20')
   file_path = os.path.join(container_path, file_path)
 
   ww_time = dt.datetime.now()
