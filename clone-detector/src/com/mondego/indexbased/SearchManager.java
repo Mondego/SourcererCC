@@ -394,8 +394,8 @@ public class SearchManager {
                     - timeStartSearch;
             signOffNode();
             if (SearchManager.NODE_PREFIX.equals("NODE_1")) {
-                logger.debug("NODES COMPLETED SO FAR: " + getCompletedNodes());
                 while (true) {
+                    logger.debug("NODES COMPLETED SO FAR: " + getCompletedNodes());
                     if (allNodesCompleted()) {
                         theInstance.backupInput();
                         break;
@@ -412,7 +412,7 @@ public class SearchManager {
             wfs.populateLocalWordFreqMap();
         }
         long estimatedTime = System.nanoTime() - start_time;
-        logger.info("Total run Time: " + (estimatedTime / 1000) + " micors");
+        logger.info("Total run Time: " + (estimatedTime / 1000) + " micros");
         logger.info("number of clone pairs detected: "
                 + SearchManager.clonePairsCount);
         theInstance.timeTotal = estimatedTime;
@@ -428,6 +428,7 @@ public class SearchManager {
             logger.error("exception caught in main " + e.getMessage());
         }
         logger.info("completed on " + SearchManager.NODE_PREFIX);
+        System.exit(0);
     }
 
     private void readAndUpdateRunMetadata() {
