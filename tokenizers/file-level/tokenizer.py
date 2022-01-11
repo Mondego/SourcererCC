@@ -129,7 +129,7 @@ def tokenize_files(file_bytes, comment_inline_pattern, comment_open_close_patter
   if not file_bytes.endswith(b'\n'):
     lines += 1
 
-  file_string = file_bytes.decode('utf-8')
+  file_string = file_bytes.decode('utf-8', errors="ignore")
   file_string = "".join([s for s in file_string.splitlines(True) if s.strip()])
 
   LOC = file_string.count('\n')
