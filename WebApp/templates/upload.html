@@ -1,0 +1,15 @@
+<html>
+   <body>
+      <form action = "http://localhost:5000/uploader" method = "POST" 
+         enctype = "multipart/form-data">
+         <select name="exp">
+            <option value="{{ exp_config }}" selected>{{ exp_config[0].name }}</option>
+            {% for exp in exp_config[1:] %}
+               <option value="{{ exp }}">{{ exp.name }}</option>
+            {% endfor %}
+         </select>
+         <input type = "file" name = "file" multiple="" />
+         <input type = "submit"/>
+      </form>   
+   </body>
+</html>
