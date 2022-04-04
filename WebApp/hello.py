@@ -3,12 +3,18 @@ from werkzeug.utils import secure_filename
 import os
 import sqlite3
 from sqlite3 import Error
-from flask_table import Table, Col
+# from flask_table import Table, Col
 from datetime import date
 from werkzeug.wsgi import LimitedStream
 import csv
 from io import StringIO
+import configurationData as configPath
+
+# STATIC_DIR = os.path.abspath('../static')
+# app = Flask(__name__, static_folder=STATIC_DIR)
 app = Flask(__name__)
+# Not needed. Only for development
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
 class StreamConsumingMiddleware(object):
@@ -34,7 +40,7 @@ app.wsgi_app = StreamConsumingMiddleware(app.wsgi_app)
 
 
 
-database = r"/path/SourcererCC/WebApp/pythonsqlite.db"
+database = configPath.sourcerer_path + "/SourcererCC/WebApp/pythonsqlite.db"
 res_list =[]
 
 def create_connection(db_file):
@@ -92,28 +98,28 @@ def upload_file():
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader_file():
    if request.method == 'POST':
-      
+
       exp = request.form.get('exp')
       #ToDO: write the configuration file
       files = request.files.getlist('file')
-      os.chdir("/path/SourcererCC/tokenizers/file-level/")
+      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/")
       write_projectList(files)
 
-      os.system("python3 tokenizer.py zip") 
+      os.system(configPath.run_environment+" tokenizer.py zip") 
       os.system("cat files_tokens/* > blocks.file") 
-      os.system("cp blocks.file /path/SourcererCC/clone-detector/input/dataset/")
+      os.system("cp blocks.file " + os.path.join(configPath.sourcerer_path, "SourcererCC/clone-detector/input/dataset/"))
       
-      os.chdir("/path/SourcererCC/clone-detector")
-      os.system("python controller.py")
+      os.chdir(configPath.sourcerer_path + "/SourcererCC/clone-detector")
+      os.system(configPath.run_environment+" controller.py")
       os.system("cat NODE_*/output*/query_* > results.pairs")
       
       test = renderingObject()
       #db_import()
       #print(test)
-      os.system("./cleanup.sh")
-      os.chdir("/path/SourcererCC/tokenizers/file-level/")
+      os.system("bash ./cleanup.sh")
+      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/")
       os.system("rm blocks.file")
-      os.system("./cleanup.sh ")
+      os.system("bash ./cleanup.sh ")
       
 
       #return render_template('uploader.html')
@@ -121,26 +127,26 @@ def uploader_file():
       return render_template('uploader.html',title='Clones Detected',test=test)
 
 def write_projectList(files):
-   my_file = open("/path/SourcererCC/tokenizers/file-level/project-list.txt", "w")
+   my_file = open(configPath.project_list_path, "w")
    for f in files:
       f.save(secure_filename(f.filename))
-      my_file.write("/path/SourcererCC/tokenizers/file-level/"+f.filename)
+      my_file.write(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/"+f.filename)
       my_file.write("\n")
 
 def renderingObject():
-   results = open("/path/SourcererCC/clone-detector/results.pairs", "r")
+   results = open(configPath.result_pair_path, "r")
    r = results.read()
    r = r.replace('\n',',')
    result_val= r.split(',')
    project_map = {}
    files_map ={}
-   with open("/path/SourcererCC/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
+   with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
       for line in file:
          project = line.split(',')
          if( project[0] not in project_map):
             project_map[project[0]]=project[1]
             files_map[project[0]]={}
-   with open("/path/SourcererCC/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
+   with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
       for line in file:
          
          file_data = line.split(',')
@@ -206,13 +212,13 @@ def db_import():
    unique_tokens_count_map ={}
    files_map={}
    with conn:
-      with open("/path/SourcererCC/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
+      with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
          for line in file:
             project = line.split(',')
             project_db= (project[1],date.today())
             project_ids[project[0]] = create_project(conn,project_db)
 
-      with open("/path/SourcererCC/tokenizers/file-level/blocks.file", "r") as file:
+      with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/blocks.file", "r") as file:
          for line in file:
             tokens= line.split(',')
             token_string = ''
@@ -238,7 +244,7 @@ def db_import():
             tokensCount_map[tokens[0]][tokens[1]]=tokens[2]
             unique_tokens_count_map[tokens[0]][tokens[1]]=tokens[3]
 
-      with open("/path/SourcererCC/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
+      with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
          for line in file:
             file_data = line.split(',')
             file_db = (exp.id,file_data[3],date.today(),file_data[2],tokensCount_map[file_data[0]][file_data[1]],tokens_map[file_data[0]][file_data[1]],project_ids[file_data[0]],unique_tokens_count_map[file_data[0]][file_data[1]])
@@ -246,7 +252,7 @@ def db_import():
                file_ids[file_data[0]]={}
             file_ids[file_data[0]][file_data[1]]=create_file(conn,file_db)
 
-      with open("/path/SourcererCC/clone-detector/results.pairs", "r") as file:
+      with open(configPath.result_pair_path, "r") as file:
          for line in file:
             line = line.replace('\n',',')
             res = line.split(',')
