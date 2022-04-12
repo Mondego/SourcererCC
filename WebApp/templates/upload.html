@@ -18,8 +18,7 @@
             <h1>TOKENIZER</h1>
         </div>
       </header>
-      <form action = "
-      " method = "POST" id="formUpload"
+      <form action = "{{ url_for('uploader_file') }}" method = "POST" id="formUpload" 
          enctype = "multipart/form-data">
          <div class="selectUpload">
             <select name="exp" id=selButton>
