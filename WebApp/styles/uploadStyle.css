@@ -111,4 +111,14 @@
     background-color: #D1DCE4;
 }
 /* ******* header ********** */
-  
+
+/* Error Page */
+#errorTok{
+    text-align: center;
+    padding-top: 15pt;
+    margin: auto;
+    font-size:xx-large;
+    font-weight: bold;
+    font-family: sans-serif;  
+    color:rgb(0, 0, 0);
+}
