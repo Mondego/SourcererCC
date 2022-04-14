@@ -9,7 +9,6 @@ from werkzeug.wsgi import LimitedStream
 import csv
 from io import StringIO
 import configurationData as configPath
-import time
 
 # STATIC_DIR = os.path.abspath('../static')
 # app = Flask(__name__, static_folder=STATIC_DIR)
