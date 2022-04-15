@@ -1,0 +1,27 @@
+<html>
+   <head>
+      <style> html,body
+         {
+            padding: 0pt;
+            margin: 0;
+            font-family:cursive;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+         }
+      </style>
+      <link rel="stylesheet" type= "text/css" href="{{ url_for('static', filename='styles/uploadStyle.css') }}">
+   </head>
+   <header id=uploader_header_id>
+    <nav>
+      <ul>
+        <li>
+          <a href="{{ url_for('upload_file') }}">Home</a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+   <body>
+       <h1  id="errorTok">Tokenizer is in use. Please try again.</h1>  
+   </body>
+</html>

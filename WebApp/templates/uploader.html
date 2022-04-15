@@ -1,40 +1,68 @@
-<a href="/getCSV">Click me.</a>
-{% extends "base.html" %}
+<html>
+  <head>
+    <style> html,body
+      {
+          padding: 0pt;
+          margin: 0;
+          font-family:cursive;
+          width: 100%;
+          height: 100%;
+          overflow-x: hidden;
+      }
+    </style>
+    <link rel="stylesheet" type= "text/css" href="{{ url_for('static', filename='styles/uploadStyle.css') }}">
+  </head>
+  <body>
+    <header id="uploader_header_id">
+      <nav>
+        <ul>
+          <li>
+            <a href="/getCSV">Download CSV</a>
+          </li>
+          <li>
+            <a href="{{ url_for('upload_file') }}">Home</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    {% extends "base.html" %}
 
-{% block content %}
-  <table id="data" class="table table-striped">
-    <thead>
-      <tr>
-        <th>Project1</th>
-        <th>File1</th>
-        <th>Project2</th>
-        <th>File2</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for t in test %}
-        <tr>
-          <td>{{ t[0] }}</td>
-          <td>{{ t[1] }}</td>
-          <td>{{ t[2] }}</td>
-          <td>{{ t[3] }}</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% endblock %}
+    {% block content %}
+      <table id="data" class="table table-striped">
+        <thead>
+          <tr>
+            <th>Project1</th>
+            <th>File1</th>
+            <th>Project2</th>
+            <th>File2</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in test %}
+            <tr>
+              <td>{{ t[0] }}</td>
+              <td>{{ t[1] }}</td>
+              <td>{{ t[2] }}</td>
+              <td>{{ t[3] }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endblock %}
 
-{% block scripts %}
-  <script>
-    $(document).ready(function () {
-      $('#data').DataTable({
-        columns: [
-          null,
-          {searchable: false},
-          {orderable: false, searchable: false},
-          {orderable: false, searchable: false},
-          null],
-      });
-    });
-  </script>
-{% endblock %}
+    {% block scripts %}
+      <script>
+        $(document).ready(function () {
+          $('#data').DataTable({
+            columns: [
+              null,
+              {searchable: false},
+              {orderable: false, searchable: false},
+              {orderable: false, searchable: false},
+              null],
+          });
+        });
+      </script>
+    {% endblock %}
+  </body>
+</html>

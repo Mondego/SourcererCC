@@ -1,0 +1,124 @@
+#headerToken{
+    background-color: rgb(159, 210, 240);
+    text-align: center;
+    padding-top: 15pt;
+    padding-bottom: 15pt;
+    margin: auto;
+    font-size:xx-large;
+    font-weight: bold;
+    color:rgb(2, 2, 68);
+}
+.selectUpload{
+    position: relative;
+    left: 45%;
+}
+#selButton{
+    font-size: 20px;
+    background-color: #0563af;
+    color: rgb(235, 233, 233);
+    text-align: center;
+    margin-top: 10pt;
+    width: 250px;
+    height: 50px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    border-style: solid;
+    border-color: #0e4877;
+    border-width: 2.5pt;
+}
+
+.chooseFile{
+    position: relative;
+    left: 45%; 
+}
+
+.chooseFile input{
+    font-size: 18px;
+    background-color: #0563af;
+    margin-top: 10pt;
+    padding: 10px 5px 5px 5px;
+    color:rgb(235, 233, 233);
+    width: 250px;
+    height: 50px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    border-style: solid;
+    border-color: #0e4877;
+    border-radius: 5pt;
+}
+.submitButton{
+    position: relative;
+    left: 45%; 
+}
+
+.submitButton input{
+    font-size: 18px;
+    background-color: #0563af;
+    margin-top: 10pt;
+    padding: 5px 5px 5px 5px;
+    color:rgb(235, 233, 233);
+    width: 250px;
+    height: 50px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    border-style: solid;
+    border-color: #0e4877;
+    border-radius: 5pt;
+    border-width: 2.5pt;
+}
+
+/* ******* header uploader ********** */
+#uploader_header_id{
+    background-color: rgb(159, 210, 240);
+    color: #daf3f3;
+    padding-top: 30px;
+    padding-left: 10px;
+    min-height: 80px;
+    border: #69a9a9 3px solid;
+    display: block;
+    box-shadow: 0 0 25px 0 black;
+    width: 100%;
+}
+#uploader_header_id * {  
+    display: inline;  
+}
+  
+#uploader_header_id nav{
+    /* float:right; */
+    /* padding-right: 20px; */
+    clear: both;
+    color: #ffffff;
+    background-size: cover;  
+    font-family: sans-serif;  
+    height: 30px;
+    width: 935px;
+    margin-top: 25px;
+    margin-left: -10px;
+}
+  
+#uploader_header_id nav ul{
+    /* margin-left: 920px; */
+    margin-top: 0px;
+    color: #D6EAF1;
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+#uploader_header_id nav ul li{
+    display: inline;
+    margin: 0;
+    padding-right: 20px;
+}
+
+#uploader_header_id nav li a:hover, header nav li a.current{
+    color: #213A5A;
+    background-color: #D1DCE4;
+}
+/* ******* header ********** */
+
+/* Error Page */
+#errorTok{
+    text-align: center;
+    padding-top: 15pt;
+    margin: auto;
+    font-size:xx-large;
+    font-weight: bold;
+    font-family: sans-serif;  
+    color:rgb(0, 0, 0);
+}

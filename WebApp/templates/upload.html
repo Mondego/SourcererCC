@@ -1,15 +1,40 @@
 <html>
+   <head>
+      <style> html,body
+         {
+            padding: 0pt;
+            margin: 0;
+            font-family:cursive;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+         }
+      </style>
+      <link rel="stylesheet" type= "text/css" href="{{ url_for('static', filename='styles/uploadStyle.css') }}">
+   </head>
    <body>
-      <form action = "http://localhost:5000/uploader" method = "POST" 
+      <header id=header>
+         <div id="headerToken">
+            <h1>TOKENIZER</h1>
+        </div>
+      </header>
+      <form action = "{{ url_for('uploader_file') }}" method = "POST" id="formUpload" 
          enctype = "multipart/form-data">
-         <select name="exp">
-            <option value="{{ exp_config }}" selected>{{ exp_config[0].name }}</option>
-            {% for exp in exp_config[1:] %}
-               <option value="{{ exp }}">{{ exp.name }}</option>
-            {% endfor %}
-         </select>
-         <input type = "file" name = "file" multiple="" />
-         <input type = "submit"/>
+         <div class="selectUpload">
+            <select name="exp" id=selButton>
+               <option id="option1" value="{{ exp_config }}" selected>{{ exp_config[0].name }}</option>
+               {% for exp in exp_config[1:] %}
+               <option id="option2" value="{{ exp }}">{{ exp.name }}</option>
+               {% endfor %}
+            </select>
+         </div>
+         <div class=chooseFile>
+            <!-- Choose File -->
+            <input type = "file" name = "file" multiple="" class ="inputFile" />
+         </div>
+         <div class=submitButton>
+            <input type = "submit"/>
+         </div>
       </form>   
    </body>
 </html>
