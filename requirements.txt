@@ -1,0 +1,16 @@
+Dependencies:
+javalang==0.13.0
+six==1.16.0
+
+The application runs on python 3.7. Please verify the version and the following changes in the configuration files:
+WebApp:
+	If using a pyenv to run 3.7, please change the RUN_ENVIRONMENT variable to the command which is needed to execute the specific version. For example:
+	[ENVIRONMENT]
+	RUN_ENVIRONMENT = pyenv exec python3
+
+Steps to run the WebApp:
+	1. Please run the following commands in the shell in the WebApp directory:
+		EXPORT FLASK_APP=hello
+		EXPORT FLASK_ENV=development
+		flask run
+
