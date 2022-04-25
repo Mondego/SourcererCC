@@ -101,8 +101,10 @@ def uploader_file():
       exp = request.form.get('exp')
       #ToDO: write the configuration file
       files = request.files.getlist('file')
-      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/")
+
+      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level")
       write_projectList(files)
+      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level")
 
       return_code = os.system(configPath.run_environment+" tokenizer.py zip")
       test = []
@@ -119,6 +121,7 @@ def uploader_file():
          test = renderingObject()
          #db_import()
          #print(test)
+         res_list =[]
          os.system("bash ./cleanup.sh")
          os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/")
          os.system("rm blocks.file")
@@ -129,10 +132,13 @@ def uploader_file():
 
 def write_projectList(files):
    try:
+      if(not os.path.exists('data')):
+         os.mkdir('data')
+      os.chdir('data')
       my_file = open(configPath.project_list_path, "w")
       for f in files:
          f.save(secure_filename(f.filename))
-         my_file.write(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/"+f.filename)
+         my_file.write(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/data/"+f.filename)
          my_file.write("\n")
    except FileNotFoundError:
       print("write_projectList():: file path doesn't exist.")

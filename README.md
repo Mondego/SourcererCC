@@ -22,6 +22,8 @@ Let's get started.
 
 ### Tokenize source code:
 
+NOTE: if you're using a Mac, you need to downgrade Python to 3.6 because the tokenizer uses multiprocessing features that don't work in the Macs past Python 3.6. Better yet: don't use a Mac. 
+
 SourcererCC is a token-based clone detector. This means that source code must go through an initial step of processing. Luckily, we have a tool do to so, which we will explain in this section.
 
 The program needed to tokenize souce code can be found [here](https://github.com/Mondego/SourcererCC/tree/master/tokenizers/file-level). Start by looking at [config.ini](https://github.com/Mondego/SourcererCC/blob/master/tokenizers/file-level/config.ini) which sets the configuration for the tokenizer. You need to edit a few parameters (the parameters not covered here can be dismissed for now):
