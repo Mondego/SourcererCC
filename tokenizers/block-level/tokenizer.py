@@ -188,7 +188,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
       h_time = dt.datetime.now()
       m = hashlib.md5()
       try:
-        m.update(file_string)
+        m.update(file_string.encode("utf-8"))
       except Exception as e:
         logging.info('Error on tokenize_blocks (1) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
       file_hash = m.hexdigest()
@@ -232,7 +232,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         h_time = dt.datetime.now()
         m = hashlib.md5()
         try:
-          m.update(block_string)
+          m.update(block_string.encode("utf-8"))
         except Exception as e:
           logging.info('Error on tokenize_blocks (2) (file,exception,input) (%s,%s,%s)' % (file_path,e,file_string))
         block_hash = m.hexdigest()
@@ -278,7 +278,7 @@ def tokenize_blocks(file_string, comment_inline_pattern, comment_open_close_patt
         tokens_count_unique = len(block_string_for_tokenization)
         t_time = dt.datetime.now()
         #SourcererCC formatting
-        tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.iteritems()])
+        tokens = ','.join(['{}@@::@@{}'.format(k, v) for k,v in block_string_for_tokenization.items()])
         token_time += (dt.datetime.now() - t_time).microseconds
         # MD5
         h_time = dt.datetime.now()
@@ -386,7 +386,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
     my_file    = None
     file_bytes = None
     try:
-      my_file    = io.open(os.path.join(proj_path,file_path),encoding='ascii',errors='ignore')
+      my_file    = io.open(os.path.join(proj_path,file_path),encoding='utf-8',errors='ignore')
       file_bytes = str(os.stat(os.path.join(proj_path,file_path)).st_size)
     except Exception as e:
       logging.warning('Unable to open file (1) <'+file_path+'> (process '+str(process_num)+')' + str(e))
@@ -395,7 +395,7 @@ def process_regular_folder(process_num, zip_file, proj_id, proj_path, proj_url, 
     zip_time += (dt.datetime.now() - z_time).microseconds
 
     if my_file is None:
-      logging.warning('Unable to open file (2) <'+file_path+'> (process '+str(process_num)+')')
+      logging.warning('Unable to open file (2) <'+os.path.join(proj_path,file_path)+'> (process '+str(process_num)+')')
       continue
 
     try:
