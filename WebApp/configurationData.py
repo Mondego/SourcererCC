@@ -10,7 +10,7 @@ except IOError:
    sys.exit()
 
 web_path = os.path.dirname(os.path.abspath(__file__))
-sourcerer_path = os.path.abspath(os.path.join(web_path, os.pardir, os.pardir))
-project_list_path = os.path.join(sourcerer_path, "SourcererCC", config.get("PATHS","PROJECT_LIST_PATH"))
-result_pair_path = os.path.join(sourcerer_path, "SourcererCC", config.get("PATHS","RESULT_PAIR_PATH"))
+sourcerer_path = os.path.abspath(os.path.join(web_path, os.pardir))
+project_list_path = os.path.join(sourcerer_path, config.get("PATHS","PROJECT_LIST_PATH"))
+result_pair_path = os.path.join(sourcerer_path, config.get("PATHS","RESULT_PAIR_PATH"))
 run_environment = config.get("ENVIRONMENT", "RUN_ENVIRONMENT")

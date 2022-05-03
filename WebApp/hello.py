@@ -40,7 +40,7 @@ app.wsgi_app = StreamConsumingMiddleware(app.wsgi_app)
 
 
 
-database = configPath.sourcerer_path + "/SourcererCC/WebApp/pythonsqlite.db"
+database = configPath.sourcerer_path + "/WebApp/pythonsqlite.db"
 res_list =[]
 
 def create_connection(db_file):
@@ -96,50 +96,60 @@ def upload_file():
     
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader_file():
-   if request.method == 'POST':
+   try:
+      if request.method == 'POST':
 
-      exp = request.form.get('exp')
-      #ToDO: write the configuration file
-      files = request.files.getlist('file')
+         exp = request.form.get('exp')
+         #ToDO: write the configuration file
+         files = request.files.getlist('file')
 
-      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level")
-      write_projectList(files)
-      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level")
+         os.chdir(configPath.sourcerer_path)
+         os.chdir("tokenizers/file-level")
+         write_projectList(files)
 
-      return_code = os.system(configPath.run_environment+" tokenizer.py zip")
-      test = []
-      if(return_code != 0):
-         return render_template('error_page.html',title='Error Handling')
-      else:
-         os.system("cat files_tokens/* > blocks.file") 
-         os.system("cp blocks.file " + os.path.join(configPath.sourcerer_path, "SourcererCC/clone-detector/input/dataset/"))
-         
-         os.chdir(configPath.sourcerer_path + "/SourcererCC/clone-detector")
-         os.system(configPath.run_environment+" controller.py")
-         os.system("cat NODE_*/output*/query_* > results.pairs")
-         
-         test = renderingObject()
-         #db_import()
-         #print(test)
-         res_list =[]
-         os.system("bash ./cleanup.sh")
-         os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/")
-         os.system("rm blocks.file")
-         os.system("bash ./cleanup.sh ")
-      
+         return_code = os.system(configPath.run_environment+" tokenizer.py zip")
+         test = []
+         if(return_code != 0):
+            return render_template('error_page.html',title='Error Handling')
+         else:
+            os.system("cat files_tokens/* > blocks.file")
+            os.chdir(configPath.sourcerer_path)
+            os.system("cp ./tokenizers/file-level/blocks.file ./clone-detector/input/dataset/")
+
+            os.chdir("clone-detector")
+            os.system(configPath.run_environment+" controller.py")
+            os.system("cat NODE_*/output*/query_* > results.pairs")
+
+            test = renderingObject()
+            #db_import()
+            #print(test)
+            clean_up()
+   except Exception as e:
+      clean_up()
+      return render_template('error_page.html',title='Error Handling')
+
       #return render_template('uploader.html')
-      return render_template('uploader.html',title='Clones Detected',test=test)
+   return render_template('uploader.html',title='Clones Detected',test=test)
+
+def clean_up():
+   res_list =[]
+   os.system("bash ./cleanup.sh")
+   os.chdir("../tokenizers/file-level/")
+   os.system("rm blocks.file")
+   os.system("bash ./cleanup.sh ")
 
 def write_projectList(files):
    try:
       if(not os.path.exists('data')):
-         os.mkdir('data')
+             os.mkdir('data')
+      prev_path = os.getcwd()
       os.chdir('data')
       my_file = open(configPath.project_list_path, "w")
       for f in files:
          f.save(secure_filename(f.filename))
-         my_file.write(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/data/"+f.filename)
+         my_file.write(os.path.join(os.getcwd(),f.filename))
          my_file.write("\n")
+      os.chdir(prev_path)
    except FileNotFoundError:
       print("write_projectList():: file path doesn't exist.")
 
@@ -151,13 +161,13 @@ def renderingObject():
       result_val= r.split(',')
       project_map = {}
       files_map ={}
-      with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
+      with open(configPath.sourcerer_path + "/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
          for line in file:
             project = line.split(',')
             if( project[0] not in project_map):
                project_map[project[0]]=project[1]
                files_map[project[0]]={}
-      with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
+      with open(configPath.sourcerer_path + "/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
          for line in file:
             
             file_data = line.split(',')
@@ -175,6 +185,7 @@ def renderingObject():
          res_list.append(temp)
    except FileNotFoundError:
       print("renderingObject():: file path doesn't exist.")
+      raise FileNotFoundError("inside renderingObject()")
 
    return res_list
 
@@ -224,13 +235,13 @@ def db_import():
    files_map={}
    try:
       with conn:
-         with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
+         with open(configPath.sourcerer_path + "/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
             for line in file:
                project = line.split(',')
                project_db= (project[1],date.today())
                project_ids[project[0]] = create_project(conn,project_db)
 
-         with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/blocks.file", "r") as file:
+         with open(configPath.sourcerer_path + "/tokenizers/file-level/blocks.file", "r") as file:
             for line in file:
                tokens= line.split(',')
                token_string = ''
@@ -256,7 +267,7 @@ def db_import():
                tokensCount_map[tokens[0]][tokens[1]]=tokens[2]
                unique_tokens_count_map[tokens[0]][tokens[1]]=tokens[3]
 
-         with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
+         with open(configPath.sourcerer_path + "/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
             for line in file:
                file_data = line.split(',')
                file_db = (exp.id,file_data[3],date.today(),file_data[2],tokensCount_map[file_data[0]][file_data[1]],tokens_map[file_data[0]][file_data[1]],project_ids[file_data[0]],unique_tokens_count_map[file_data[0]][file_data[1]])
