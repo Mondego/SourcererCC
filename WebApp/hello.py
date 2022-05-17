@@ -9,6 +9,7 @@ from werkzeug.wsgi import LimitedStream
 import csv
 from io import StringIO
 import configurationData as configPath
+import db_helper as db_h
 
 # STATIC_DIR = os.path.abspath('../static')
 # app = Flask(__name__, static_folder=STATIC_DIR)
@@ -40,108 +41,81 @@ app.wsgi_app = StreamConsumingMiddleware(app.wsgi_app)
 
 
 
-database = configPath.sourcerer_path + "/SourcererCC/WebApp/pythonsqlite.db"
+database = configPath.sourcerer_path + "/WebApp/pythonsqlite.db"
 res_list =[]
 
-def create_connection(db_file):
-    """ create a database connection to the SQLite database
-        specified by db_file
-    :param db_file: database file
-    :return: Connection object or None
-    """
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file)
-        return conn
-    except Error as e:
-        print(e)
-
-    return conn
-class Experiment:
-   
-    # init method or constructor 
-    def __init__(self, e_id, name, config_file):
-        self.name = name
-        self.id = e_id 
-        self.config_file = config_file
-exp=Experiment('Default',1,'')
-
-def get_experiments(conn):
-    """
-    Create a new project into the projects table
-    :param conn:
-    :param project:
-    :return: project id
-    """
-    sql = ''' SELECT id, name, config_file FROM experiment '''
-    cur = conn.cursor()
-    cur.execute(sql)
-    rows = cur.fetchall()
-    
-    exp_list=[]
-    for row in rows:
-      temp_exp = Experiment(row[0],row[1],row[2])
-      exp_list.append(temp_exp)
-
-    return exp_list
-
+exp=db_h.Experiment('Default',1,'')
 
 @app.route('/upload', methods=['GET'])
 def upload_file():
-   conn = create_connection(database)
+   conn = db_h.create_connection(database)
    with conn:
-      exp_config=get_experiments(conn)
+      exp_config=db_h.get_experiments(conn)
    conn.close()
    return render_template('upload.html', exp_config=exp_config)
     
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader_file():
-   if request.method == 'POST':
+   try:
+      if request.method == 'POST':
 
-      exp = request.form.get('exp')
-      #ToDO: write the configuration file
-      files = request.files.getlist('file')
+         exp = request.form.get('exp')
+         #ToDO: write the configuration file
+         files = request.files.getlist('file')
 
-      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level")
-      write_projectList(files)
-      os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level")
+         os.chdir(configPath.sourcerer_path)
+         os.chdir("tokenizers/file-level")
+         write_projectList(files)
 
-      return_code = os.system(configPath.run_environment+" tokenizer.py zip")
-      test = []
-      if(return_code != 0):
-         return render_template('error_page.html',title='Error Handling')
-      else:
-         os.system("cat files_tokens/* > blocks.file") 
-         os.system("cp blocks.file " + os.path.join(configPath.sourcerer_path, "SourcererCC/clone-detector/input/dataset/"))
-         
-         os.chdir(configPath.sourcerer_path + "/SourcererCC/clone-detector")
-         os.system(configPath.run_environment+" controller.py")
-         os.system("cat NODE_*/output*/query_* > results.pairs")
-         
-         test = renderingObject()
-         #db_import()
-         #print(test)
-         res_list =[]
-         os.system("bash ./cleanup.sh")
-         os.chdir(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/")
-         os.system("rm blocks.file")
-         os.system("bash ./cleanup.sh ")
-      
+         return_code = os.system(configPath.run_environment+" tokenizer.py zip")
+         test = []
+         if(return_code != 0):
+            return render_template('error_page.html',title='Error Handling', msg="Got error code = "+str(return_code)+", or the tokenizer might be in use!")
+         else:
+            os.system("cat files_tokens/* > blocks.file")
+            os.chdir(configPath.sourcerer_path)
+            os.system("cp ./tokenizers/file-level/blocks.file ./clone-detector/input/dataset/")
+
+            os.chdir("clone-detector")
+            os.system(configPath.run_environment+" controller.py")
+            os.system("cat NODE_*/output*/query_* > results.pairs")
+
+            test = renderingObject()
+            #db_import()
+            #print(test)
+            clean_up()
+   except FileNotFoundError as e:
+      clean_up()
+      return render_template('error_page.html',title='Error Handling', msg=e)
+
       #return render_template('uploader.html')
-      return render_template('uploader.html',title='Clones Detected',test=test)
+   return render_template('uploader.html',title='Clones Detected',test=test)
+
+def clean_up():
+   res_list =[]
+   os.system("bash ./cleanup.sh")
+   if ("clone-detector" in os.getcwd()):
+      os.chdir("../tokenizers/file-level/")
+   else:
+      os.chdir(configPath.sourcerer_path)
+      os.chdir("tokenizers/file-level")
+   os.system("rm blocks.file")
+   os.system("bash ./cleanup.sh ")
 
 def write_projectList(files):
    try:
       if(not os.path.exists('data')):
-         os.mkdir('data')
+             os.mkdir('data')
+      prev_path = os.getcwd()
       os.chdir('data')
       my_file = open(configPath.project_list_path, "w")
       for f in files:
          f.save(secure_filename(f.filename))
-         my_file.write(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/data/"+f.filename)
+         my_file.write(os.path.join(os.getcwd(),f.filename))
          my_file.write("\n")
+      os.chdir(prev_path)
    except FileNotFoundError:
-      print("write_projectList():: file path doesn't exist.")
+      raise FileNotFoundError("write_projectList():: file path doesn't exist.")
 
 def renderingObject():
    try:
@@ -151,13 +125,13 @@ def renderingObject():
       result_val= r.split(',')
       project_map = {}
       files_map ={}
-      with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
+      with open(configPath.sourcerer_path + "/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
          for line in file:
             project = line.split(',')
             if( project[0] not in project_map):
                project_map[project[0]]=project[1]
                files_map[project[0]]={}
-      with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
+      with open(configPath.sourcerer_path + "/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
          for line in file:
             
             file_data = line.split(',')
@@ -174,48 +148,12 @@ def renderingObject():
          temp.append(files_map[result_val[i+2]][result_val[i+3]])
          res_list.append(temp)
    except FileNotFoundError:
-      print("renderingObject():: file path doesn't exist.")
+      raise FileNotFoundError("renderingObject():: file path doesn't exist.")
 
    return res_list
 
-def create_project(conn, project):
-    """
-    Create a new project into the projects table
-
-    :param project:
-    :return: project id
-    """
-    sql = ''' INSERT INTO project(name,date_added)
-              VALUES(?,?) '''
-    cur = conn.cursor()
-    cur.execute(sql, project)
-    conn.commit()
-    return cur.lastrowid
-def create_file(conn, file):
-    """
-    Create a new file into the file table
-   
-    """
-    sql = ''' INSERT INTO file(experiment_id, name, date_added ,path_text,token_count,tokens, project_id , unique_token_count)
-              VALUES(?,?,?,?,?,?,?,?) '''
-    cur = conn.cursor()
-    cur.execute(sql, file)
-    conn.commit()
-    return cur.lastrowid
-def create_res(conn, res):
-    """
-    Create a new clone results into the clone_detection table
-    
-    """
-    sql = ''' INSERT INTO clone_detection(file_id_1,file_id_2,date_added,project_id1,project_id2)
-              VALUES(?,?,?,?,?) '''
-    cur = conn.cursor()
-    cur.execute(sql, res)
-    conn.commit()
-    return cur.lastrowid
-
 def db_import():
-   conn = create_connection(database)
+   conn = db_h.create_connection(database)
    project_ids={}
    file_ids ={}
    tokens_map = {}
@@ -224,13 +162,13 @@ def db_import():
    files_map={}
    try:
       with conn:
-         with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
+         with open(configPath.sourcerer_path + "/tokenizers/file-level/bookkeeping_projs/bookkeeping-proj-0.projs", "r") as file:
             for line in file:
                project = line.split(',')
                project_db= (project[1],date.today())
-               project_ids[project[0]] = create_project(conn,project_db)
+               project_ids[project[0]] = db_h.create_project(conn,project_db)
 
-         with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/blocks.file", "r") as file:
+         with open(configPath.sourcerer_path + "/tokenizers/file-level/blocks.file", "r") as file:
             for line in file:
                tokens= line.split(',')
                token_string = ''
@@ -256,22 +194,22 @@ def db_import():
                tokensCount_map[tokens[0]][tokens[1]]=tokens[2]
                unique_tokens_count_map[tokens[0]][tokens[1]]=tokens[3]
 
-         with open(configPath.sourcerer_path + "/SourcererCC/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
+         with open(configPath.sourcerer_path + "/tokenizers/file-level/files_stats/files-stats-0.stats", "r") as file:
             for line in file:
                file_data = line.split(',')
                file_db = (exp.id,file_data[3],date.today(),file_data[2],tokensCount_map[file_data[0]][file_data[1]],tokens_map[file_data[0]][file_data[1]],project_ids[file_data[0]],unique_tokens_count_map[file_data[0]][file_data[1]])
                if not file_data[0] in file_ids.keys():
                   file_ids[file_data[0]]={}
-               file_ids[file_data[0]][file_data[1]]=create_file(conn,file_db)
+               file_ids[file_data[0]][file_data[1]]=db_h.create_file(conn,file_db)
 
          with open(configPath.result_pair_path, "r") as file:
             for line in file:
                line = line.replace('\n',',')
                res = line.split(',')
                res_db=(file_ids[res[0]][res[1]],file_ids[res[2]][res[3]],date.today(),project_ids[res[0]],project_ids[res[2]])
-               create_res(conn,res_db)
+               db_h.create_res(conn,res_db)
    except FileNotFoundError:
-      print("db_import():: file path doesn't exist.")
+      raise FileNotFoundError("db_import():: file path doesn't exist.")
 
 @app.route("/getCSV")
 def getPlotCSV():
@@ -290,6 +228,3 @@ def getPlotCSV():
         
 if __name__ == '__main__':
    app.run(debug = True)
-
-
-
