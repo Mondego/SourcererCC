@@ -1,6 +1,6 @@
 #!/bin/bash
-scriptPATH=`realpath $0`
-rootPATH=`dirname $scriptPATH`
+scriptPATH=`realpath "$0"`
+rootPATH=`dirname "$scriptPATH"`
 num=`cat search_metadata.txt`
 
 for i in $(seq 1 1 $num)
