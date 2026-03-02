@@ -1,6 +1,6 @@
 #!/bin/bash
-scriptPATH=`realpath $0`
-rootPATH=`dirname $scriptPATH`
+scriptPATH=`realpath "$0"`
+rootPATH=`dirname "$scriptPATH"`
 num_nodes="${1:-0}"
 src_text="NODE_PREFIX=NODE"
 src_log4_text="NODE_"
@@ -14,6 +14,6 @@ do
   echo $replace_text
   echo $replace_log4_text
 
-  sed -i -e "s/$src_text/$replace_text/g" $foldername/sourcerer-cc.properties
-  sed -i -e "s/$src_log4_text/$replace_log4_text/g" $foldername/log4j2.xml
+  sed -i -e "s/$src_text/$replace_text/g" "$foldername/sourcerer-cc.properties"
+  sed -i -e "s/$src_log4_text/$replace_log4_text/g" "$foldername/log4j2.xml"
 done
